@@ -185,6 +185,9 @@ export async function callLLM(prompt: string): Promise<string> {
 
 ## Example LLM Project File Structure
 
+{% tabs %}
+{% tab title="Python" %}
+
 ```
 my_project/
 ├── main.py
@@ -198,6 +201,27 @@ my_project/
 └── docs/
     └── design.md
 ```
+
+{% endtab %}
+
+{% tab title="TypeScript" %}
+
+```
+my_project/
+├── src/
+│   ├── main.ts
+│   ├── nodes.ts
+│   ├── flow.ts
+│   └── utils/
+│       ├── callLLM.ts
+│       └── searchWeb.ts
+├── package.json
+└── docs/
+    └── design.md
+```
+
+{% endtab %}
+{% endtabs %}
 
 - **`docs/design.md`**: Contains project documentation for each step above. This should be _high-level_ and _no-code_.
 - **`utils/`**: Contains all utility functions.
