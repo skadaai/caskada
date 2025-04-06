@@ -62,7 +62,7 @@ class AnswerNode(Node):
         return shared["question"]
 
     async def exec(self, question):
-        return await call_llm(question)
+        return call_llm(question)
 
     async def post(self, shared, prep_res, exec_res):
         shared["answer"] = exec_res
@@ -101,7 +101,7 @@ class AnswerNode extends Node {
 {% endtab %}
 {% endtabs %}
 
-Please note that we intentionally do not provide a `callLLM` function but you can [use your own implementation](./utility-functions/llm.md).
+Please note that we intentionally do not provide a `callLLM` function but you can [use your own implementation](./utility_function/llm.md).
 
 ### Step 2: Create the Flow
 
@@ -1105,7 +1105,7 @@ class SequentialSummaries(SequentialBatchNode):
 
     async def exec(self, chunk):
         prompt = f"Summarize this chunk in 10 words: {chunk}"
-        return await call_llm_async(prompt)
+        return call_llm(prompt)
 
     async def post(self, shared, prep_res, exec_res_list):
         shared["summary"] = "\n".join(exec_res_list)
@@ -1804,13 +1804,16 @@ This agent:
 {% tab title="Python" %}
 
 ````python
+import asyncio
+import yaml # Assuming call_llm and search_web are defined elsewhere
+
 class DecideAction(Node):
-    def prep(self, shared):
+    async def prep(self, shared):
         context = shared.get("context", "No previous search")
         query = shared["query"]
         return query, context
 
-    def exec(self, inputs):
+    async def exec(self, inputs):
         query, context = inputs
         prompt = f"""
 Given input: {query}
@@ -1835,7 +1838,7 @@ search_term: search phrase if action is search
 
         return result
 
-    def post(self, shared, prep_res, exec_res):
+    async def post(self, shared, prep_res, exec_res):
         if exec_res["action"] == "search":
             shared["search_term"] = exec_res["search_term"]
         return exec_res["action"]
@@ -1847,13 +1850,13 @@ search_term: search phrase if action is search
 
 ````typescript
 class DecideAction extends Node {
-  prep(shared: any): [string, string] {
+  async prep(shared: any): Promise<[string, string]> {
     const context = shared.context || 'No previous search'
     const query = shared.query
     return [query, context]
   }
 
-  exec(inputs: [string, string]): any {
+  async exec(inputs: [string, string]): Promise<any> {
     const [query, context] = inputs
     const prompt = `
 Given input: ${query}
@@ -1866,7 +1869,7 @@ reason: why this action
 search_term: search phrase if action is search
 \`\`\``
 
-    const resp = callLLM(prompt)
+    const resp = await callLLM(prompt)
     const yamlStr = resp.split('```yaml')[1].split('```')[0].trim()
     const result = parseYaml(yamlStr)
 
@@ -1889,7 +1892,7 @@ search_term: search phrase if action is search
     return result
   }
 
-  post(shared: any, prepRes: any, execRes: any): string {
+  async post(shared: any, prepRes: any, execRes: any): Promise<string> {
     if (execRes.action === 'search') {
       shared.search_term = execRes.search_term
     }
@@ -1906,13 +1909,13 @@ search_term: search phrase if action is search
 
 ```python
 class SearchWeb(Node):
-    def prep(self, shared):
+    async def prep(self, shared):
         return shared["search_term"]
 
-    def exec(self, search_term):
-        return search_web(search_term)
+    async def exec(self, search_term):
+        return await search_web(search_term)
 
-    def post(self, shared, prep_res, exec_res):
+    async def post(self, shared, prep_res, exec_res):
         prev_searches = shared.get("context", [])
         shared["context"] = prev_searches + [
             {"term": shared["search_term"], "result": exec_res}
@@ -1926,15 +1929,15 @@ class SearchWeb(Node):
 
 ```typescript
 class SearchWeb extends Node {
-  prep(shared: any): string {
+  async prep(shared: any): Promise<string> {
     return shared.search_term
   }
 
-  exec(searchTerm: string): any {
-    return searchWeb(searchTerm)
+  async exec(searchTerm: string): Promise<any> {
+    return await searchWeb(searchTerm)
   }
 
-  post(shared: any, prepRes: any, execRes: any): string {
+  async post(shared: any, prepRes: any, execRes: any): Promise<string> {
     const prevSearches = shared.context || []
     shared.context = [...prevSearches, { term: shared.search_term, result: execRes }]
     return 'decide'
@@ -1950,14 +1953,14 @@ class SearchWeb extends Node {
 
 ```python
 class DirectAnswer(Node):
-    def prep(self, shared):
+    async def prep(self, shared):
         return shared["query"], shared.get("context", "")
 
-    def exec(self, inputs):
+    async def exec(self, inputs):
         query, context = inputs
         return call_llm(f"Context: {context}\nAnswer: {query}")
 
-    def post(self, shared, prep_res, exec_res):
+    async def post(self, shared, prep_res, exec_res):
        print(f"Answer: {exec_res}")
        shared["answer"] = exec_res
 ```
@@ -1968,16 +1971,16 @@ class DirectAnswer(Node):
 
 ```typescript
 class DirectAnswer extends Node {
-  prep(shared: any): [string, string] {
+  async prep(shared: any): Promise<[string, string]> {
     return [shared.query, shared.context || '']
   }
 
-  exec(inputs: [string, string]): string {
+  async exec(inputs: [string, string]): Promise<string> {
     const [query, context] = inputs
-    return callLLM(`Context: ${context}\nAnswer: ${query}`)
+    return await callLLM(`Context: ${context}\nAnswer: ${query}`)
   }
 
-  post(shared: any, prepRes: any, execRes: string): void {
+  async post(shared: any, prepRes: any, execRes: string): Promise<void> {
     console.log(`Answer: ${execRes}`)
     shared.answer = execRes
   }
@@ -2001,7 +2004,15 @@ decide - "answer" >> answer
 search - "decide" >> decide # Loop back
 
 flow = Flow(start=decide)
-flow.run({"query": "Who won the Nobel Prize in Physics 2024?"})
+
+async def main():
+    shared_data = {"query": "Who won the Nobel Prize in Physics 2024?"}
+    result = await flow.run(shared_data)
+    print(result) # Or handle result as needed
+    print(shared_data) # See final shared state
+
+if __name__ == "__main__":
+    asyncio.run(main())
 ```
 
 {% endtab %}
@@ -2020,7 +2031,15 @@ decide.on('answer', answer)
 search.on('decide', decide) // Loop back
 
 const flow = new Flow(decide)
-flow.run({ query: 'Who won the Nobel Prize in Physics 2024?' })
+
+async function main() {
+  const sharedData = { query: 'Who won the Nobel Prize in Physics 2024?' }
+  const result = await flow.run(sharedData) // Added await
+  console.log(result) // Or handle result as needed
+  console.log(sharedData) // See final shared state
+}
+
+main().catch(console.error) // Execute async main function
 ```
 
 {% endtab %}
@@ -2057,20 +2076,23 @@ You usually need multiple _iterations_ to find the _sweet spot_. If the task has
 {% tab title="Python" %}
 
 ```python
+import asyncio
+from brainyflow import Node, Flow
+
 class GenerateOutline(Node):
-    def prep(self, shared): return shared["topic"]
-    def exec(self, topic): return call_llm(f"Create a detailed outline for an article about {topic}")
-    def post(self, shared, prep_res, exec_res): shared["outline"] = exec_res
+    async def prep(self, shared): return shared["topic"]
+    async def exec(self, topic): return call_llm(f"Create a detailed outline for an article about {topic}")
+    async def post(self, shared, prep_res, exec_res): shared["outline"] = exec_res
 
 class WriteSection(Node):
-    def prep(self, shared): return shared["outline"]
-    def exec(self, outline): return call_llm(f"Write content based on this outline: {outline}")
-    def post(self, shared, prep_res, exec_res): shared["draft"] = exec_res
+    async def prep(self, shared): return shared["outline"]
+    async def exec(self, outline): return call_llm(f"Write content based on this outline: {outline}")
+    async def post(self, shared, prep_res, exec_res): shared["draft"] = exec_res
 
 class ReviewAndRefine(Node):
-    def prep(self, shared): return shared["draft"]
-    def exec(self, draft): return call_llm(f"Review and improve this draft: {draft}")
-    def post(self, shared, prep_res, exec_res): shared["final_article"] = exec_res
+    async def prep(self, shared): return shared["draft"]
+    async def exec(self, draft): return call_llm(f"Review and improve this draft: {draft}")
+    async def post(self, shared, prep_res, exec_res): shared["final_article"] = exec_res
 
 # Connect nodes
 outline = GenerateOutline()
@@ -2081,8 +2103,14 @@ outline >> write >> review
 
 # Create and run flow
 writing_flow = Flow(start=outline)
-shared = {"topic": "AI Safety"}
-writing_flow.run(shared)
+
+async def main():
+    shared = {"topic": "AI Safety"}
+    await writing_flow.run(shared)
+    print("Final Article:", shared.get("final_article", "Not generated"))
+
+if __name__ == "__main__":
+    asyncio.run(main())
 ```
 
 {% endtab %}
@@ -2091,37 +2119,37 @@ writing_flow.run(shared)
 
 ```typescript
 class GenerateOutline extends Node {
-  prep(shared: any): any {
+  async prep(shared: any): Promise<any> {
     return shared['topic']
   }
-  exec(topic: string): any {
-    return callLLM(`Create a detailed outline for an article about ${topic}`)
+  async exec(topic: string): Promise<any> {
+    return await callLLM(`Create a detailed outline for an article about ${topic}`)
   }
-  post(shared: any, prepRes: any, execRes: any): void {
+  async post(shared: any, prepRes: any, execRes: any): Promise<void> {
     shared['outline'] = execRes
   }
 }
 
 class WriteSection extends Node {
-  prep(shared: any): any {
+  async prep(shared: any): Promise<any> {
     return shared['outline']
   }
-  exec(outline: string): any {
-    return callLLM(`Write content based on this outline: ${outline}`)
+  async exec(outline: string): Promise<any> {
+    return await callLLM(`Write content based on this outline: ${outline}`)
   }
-  post(shared: any, prepRes: any, execRes: any): void {
+  async post(shared: any, prepRes: any, execRes: any): Promise<void> {
     shared['draft'] = execRes
   }
 }
 
 class ReviewAndRefine extends Node {
-  prep(shared: any): any {
+  async prep(shared: any): Promise<any> {
     return shared['draft']
   }
-  exec(draft: string): any {
-    return callLLM(`Review and improve this draft: ${draft}`)
+  async exec(draft: string): Promise<any> {
+    return await callLLM(`Review and improve this draft: ${draft}`)
   }
-  post(shared: any, prepRes: any, execRes: any): void {
+  async post(shared: any, prepRes: any, execRes: any): Promise<void> {
     shared['final_article'] = execRes
   }
 }
@@ -2135,8 +2163,14 @@ outline.next(write).next(review)
 
 // Create and run flow
 const writingFlow = new Flow(outline)
-const shared = { topic: 'AI Safety' }
-writingFlow.run(shared)
+
+async function main() {
+  const shared = { topic: 'AI Safety' }
+  await writingFlow.run(shared)
+  console.log(`Final Article: ${shared['final_article'] || 'Not generated'}`)
+}
+
+main().catch(console.error) // Execute async main function
 ```
 
 {% endtab %}
@@ -2179,12 +2213,15 @@ We create three Nodes:
 {% tab title="Python" %}
 
 ```python
-class ChunkDocs(BatchNode):
-    def prep(self, shared):
+import asyncio
+from brainyflow import Node, Flow, SequentialBatchNode
+
+class ChunkDocs(SequentialBatchNode):
+    async def prep(self, shared):
         # A list of file paths in shared["files"]. We process each file.
         return shared["files"]
 
-    def exec(self, filepath):
+    async def exec(self, filepath):
         # read file content. In real usage, do error handling.
         with open(filepath, "r", encoding="utf-8") as f:
             text = f.read()
@@ -2195,7 +2232,7 @@ class ChunkDocs(BatchNode):
             chunks.append(text[i : i + size])
         return chunks
 
-    def post(self, shared, prep_res, exec_res_list):
+    async def post(self, shared, prep_res, exec_res_list):
         # exec_res_list is a list of chunk-lists, one per file.
         # flatten them all into a single list of chunks.
         all_chunks = []
@@ -2209,13 +2246,13 @@ class ChunkDocs(BatchNode):
 {% tab title="TypeScript" %}
 
 ```typescript
-class ChunkDocs extends BatchNode {
-  prep(shared: any): string[] {
+class ChunkDocs extends SequentialBatchNode {
+  async prep(shared: any): Promise<string[]> {
     // A list of file paths in shared["files"]. We process each file.
     return shared['files']
   }
 
-  exec(filepath: string): string[] {
+  async exec(filepath: string): Promise<string[]> {
     // read file content. In real usage, do error handling.
     const text = fs.readFileSync(filepath, 'utf-8')
     // chunk by 100 chars each
@@ -2227,7 +2264,7 @@ class ChunkDocs extends BatchNode {
     return chunks
   }
 
-  post(shared: any, prepRes: string[], execResList: string[][]): void {
+  async post(shared: any, prepRes: string[], execResList: string[][]): Promise<void> {
     // execResList is a list of chunk-lists, one per file.
     // flatten them all into a single list of chunks.
     const allChunks: string[] = []
@@ -2246,14 +2283,14 @@ class ChunkDocs extends BatchNode {
 {% tab title="Python" %}
 
 ```python
-class EmbedDocs(BatchNode):
-    def prep(self, shared):
+class EmbedDocs(SequentialBatchNode):
+    async def prep(self, shared):
         return shared["all_chunks"]
 
-    def exec(self, chunk):
+    async def exec(self, chunk):
         return get_embedding(chunk)
 
-    def post(self, shared, prep_res, exec_res_list):
+    async def post(self, shared, prep_res, exec_res_list):
         # Store the list of embeddings.
         shared["all_embeds"] = exec_res_list
         print(f"Total embeddings: {len(exec_res_list)}")
@@ -2264,16 +2301,16 @@ class EmbedDocs(BatchNode):
 {% tab title="TypeScript" %}
 
 ```typescript
-class EmbedDocs extends BatchNode {
-  prep(shared: any): string[] {
+class EmbedDocs extends SequentialBatchNode {
+  async prep(shared: any): Promise<string[]> {
     return shared['all_chunks']
   }
 
-  exec(chunk: string): number[] {
-    return getEmbedding(chunk)
+  async exec(chunk: string): Promise<number[]> {
+    return await getEmbedding(chunk)
   }
 
-  post(shared: any, prepRes: string[], execResList: number[][]): void {
+  async post(shared: any, prepRes: string[], execResList: number[][]): Promise<void> {
     // Store the list of embeddings.
     shared['all_embeds'] = execResList
     console.log(`Total embeddings: ${execResList.length}`)
@@ -2289,16 +2326,16 @@ class EmbedDocs extends BatchNode {
 
 ```python
 class StoreIndex(Node):
-    def prep(self, shared):
+    async def prep(self, shared):
         # We'll read all embeds from shared.
         return shared["all_embeds"]
 
-    def exec(self, all_embeds):
+    async def exec(self, all_embeds):
         # Create a vector index (faiss or other DB in real usage).
         index = create_index(all_embeds)
         return index
 
-    def post(self, shared, prep_res, index):
+    async def post(self, shared, prep_res, index):
         shared["index"] = index
 ```
 
@@ -2308,18 +2345,18 @@ class StoreIndex(Node):
 
 ```typescript
 class StoreIndex extends Node {
-  prep(shared: any): number[][] {
+  async prep(shared: any): Promise<number[][]> {
     // We'll read all embeds from shared.
     return shared['all_embeds']
   }
 
-  exec(allEmbeds: number[][]): any {
+  async exec(allEmbeds: number[][]): Promise<any> {
     // Create a vector index (faiss or other DB in real usage).
     const index = createIndex(allEmbeds)
     return index
   }
 
-  post(shared: any, prepRes: number[][], index: any): void {
+  async post(shared: any, prepRes: number[][], index: any): Promise<void> {
     shared['index'] = index
   }
 }
@@ -2369,7 +2406,7 @@ Usage example:
 shared = {
     "files": ["doc1.txt", "doc2.txt"],  # any text files
 }
-OfflineFlow.run(shared)
+await OfflineFlow.run(shared)
 ```
 
 {% endtab %}
@@ -2380,7 +2417,7 @@ OfflineFlow.run(shared)
 const shared = {
   files: ['doc1.txt', 'doc2.txt'], // any text files
 }
-OfflineFlow.run(shared)
+await OfflineFlow.run(shared)
 ```
 
 {% endtab %}
@@ -2401,13 +2438,13 @@ We have 3 nodes:
 
 ```python
 class EmbedQuery(Node):
-    def prep(self, shared):
+    async def prep(self, shared):
         return shared["question"]
 
-    def exec(self, question):
+    async def exec(self, question):
         return get_embedding(question)
 
-    def post(self, shared, prep_res, q_emb):
+    async def post(self, shared, prep_res, q_emb):
         shared["q_emb"] = q_emb
 ```
 
@@ -2417,15 +2454,15 @@ class EmbedQuery(Node):
 
 ```typescript
 class EmbedQuery extends Node {
-  prep(shared: any): string {
+  async prep(shared: any): Promise<string> {
     return shared['question']
   }
 
-  exec(question: string): number[] {
-    return getEmbedding(question)
+  async exec(question: string): Promise<number[]> {
+    return await getEmbedding(question)
   }
 
-  post(shared: any, prepRes: string, qEmb: number[]): void {
+  async post(shared: any, prepRes: string, qEmb: number[]): Promise<void> {
     shared['q_emb'] = qEmb
   }
 }
@@ -2439,18 +2476,18 @@ class EmbedQuery extends Node {
 
 ```python
 class RetrieveDocs(Node):
-    def prep(self, shared):
+    async def prep(self, shared):
         # We'll need the query embedding, plus the offline index/chunks
         return shared["q_emb"], shared["index"], shared["all_chunks"]
 
-    def exec(self, inputs):
+    async def exec(self, inputs):
         q_emb, index, chunks = inputs
         I, D = search_index(index, q_emb, top_k=1)
         best_id = I[0][0]
         relevant_chunk = chunks[best_id]
         return relevant_chunk
 
-    def post(self, shared, prep_res, relevant_chunk):
+    async def post(self, shared, prep_res, relevant_chunk):
         shared["retrieved_chunk"] = relevant_chunk
         print("Retrieved chunk:", relevant_chunk[:60], "...")
 ```
@@ -2461,12 +2498,12 @@ class RetrieveDocs(Node):
 
 ```typescript
 class RetrieveDocs extends Node {
-  prep(shared: any): [number[], any, string[]] {
+  async prep(shared: any): Promise<[number[], any, string[]]> {
     // We'll need the query embedding, plus the offline index/chunks
     return [shared['q_emb'], shared['index'], shared['all_chunks']]
   }
 
-  exec(inputs: [number[], any, string[]]): string {
+  async exec(inputs: [number[], any, string[]]): Promise<string> {
     const [qEmb, index, chunks] = inputs
     const [I, D] = searchIndex(index, qEmb, 1)
     const bestId = I[0][0]
@@ -2474,7 +2511,11 @@ class RetrieveDocs extends Node {
     return relevantChunk
   }
 
-  post(shared: any, prepRes: [number[], any, string[]], relevantChunk: string): void {
+  async post(
+    shared: any,
+    prepRes: [number[], any, string[]],
+    relevantChunk: string,
+  ): Promise<void> {
     shared['retrieved_chunk'] = relevantChunk
     console.log(`Retrieved chunk: ${relevantChunk.slice(0, 60)}...`)
   }
@@ -2489,15 +2530,15 @@ class RetrieveDocs extends Node {
 
 ```python
 class GenerateAnswer(Node):
-    def prep(self, shared):
+    async def prep(self, shared):
         return shared["question"], shared["retrieved_chunk"]
 
-    def exec(self, inputs):
+    async def exec(self, inputs):
         question, chunk = inputs
         prompt = f"Question: {question}\nContext: {chunk}\nAnswer:"
         return call_llm(prompt)
 
-    def post(self, shared, prep_res, answer):
+    async def post(self, shared, prep_res, answer):
         shared["answer"] = answer
         print("Answer:", answer)
 ```
@@ -2508,17 +2549,17 @@ class GenerateAnswer(Node):
 
 ```typescript
 class GenerateAnswer extends Node {
-  prep(shared: any): [string, string] {
+  async prep(shared: any): Promise<[string, string]> {
     return [shared['question'], shared['retrieved_chunk']]
   }
 
-  exec(inputs: [string, string]): string {
+  async exec(inputs: [string, string]): Promise<string> {
     const [question, chunk] = inputs
     const prompt = `Question: ${question}\nContext: ${chunk}\nAnswer:`
-    return callLLM(prompt)
+    return await callLLM(prompt)
   }
 
-  post(shared: any, prepRes: [string, string], answer: string): void {
+  async post(shared: any, prepRes: [string, string], answer: string): Promise<void> {
     shared['answer'] = answer
     console.log(`Answer: ${answer}`)
   }
@@ -2562,12 +2603,23 @@ Usage example:
 {% tab title="Python" %}
 
 ```python
-# Suppose we already ran OfflineFlow and have:
-# shared["all_chunks"], shared["index"], etc.
-shared["question"] = "Why do people like cats?"
+async def run_online(shared_from_offline):
+    # Suppose we already ran OfflineFlow (run_offline) and have:
+    # shared_from_offline["all_chunks"], shared_from_offline["index"], etc.
+    shared_from_offline["question"] = "Why do people like cats?"
 
-OnlineFlow.run(shared)
-# final answer in shared["answer"]
+    await OnlineFlow.run(shared_from_offline)
+    # final answer in shared_from_offline["answer"]
+    print("Final Answer:", shared_from_offline["answer"])
+    return shared_from_offline
+
+# Example usage combining both stages
+async def main():
+    offline_shared = await run_offline()
+    await run_online(offline_shared)
+
+if __name__ == "__main__":
+    asyncio.run(main())
 ```
 
 {% endtab %}
@@ -2575,12 +2627,24 @@ OnlineFlow.run(shared)
 {% tab title="TypeScript" %}
 
 ```typescript
-// Suppose we already ran OfflineFlow and have:
-// shared["all_chunks"], shared["index"], etc.
-shared['question'] = 'Why do people like cats?'
+async function runOnline(sharedFromOffline: any): Promise<any> {
+  // Suppose we already ran OfflineFlow (runOffline) and have:
+  // sharedFromOffline["all_chunks"], sharedFromOffline["index"], etc.
+  sharedFromOffline['question'] = 'Why do people like cats?'
 
-OnlineFlow.run(shared)
-// final answer in shared["answer"]
+  await OnlineFlow.run(sharedFromOffline)
+  // final answer in sharedFromOffline["answer"]
+  console.log(`Final Answer: ${sharedFromOffline['answer']}`)
+  return sharedFromOffline
+}
+
+// Example usage combining both stages
+async function main() {
+  const offlineShared = await runOffline()
+  await runOnline(offlineShared)
+}
+
+main().catch(console.error) // Execute async main function
 ```
 
 {% endtab %}
@@ -2617,24 +2681,27 @@ You first break down the task using [BatchNode](../core_abstraction/batch.md) in
 {% tab title="Python" %}
 
 ```python
-class SummarizeAllFiles(BatchNode):
-    def prep(self, shared):
+import asyncio
+from brainyflow import Node, SequentialBatchNode
+
+class SummarizeAllFiles(SequentialBatchNode):
+    async def prep(self, shared):
         files_dict = shared["files"]  # e.g. 10 files
         return list(files_dict.items())  # [("file1.txt", "aaa..."), ("file2.txt", "bbb..."), ...]
 
-    def exec(self, one_file):
+    async def exec(self, one_file):
         filename, file_content = one_file
         summary_text = call_llm(f"Summarize the following file:\n{file_content}")
         return (filename, summary_text)
 
-    def post(self, shared, prep_res, exec_res_list):
+    async def post(self, shared, prep_res, exec_res_list):
         shared["file_summaries"] = dict(exec_res_list)
 
 class CombineSummaries(Node):
-    def prep(self, shared):
+    async def prep(self, shared):
         return shared["file_summaries"]
 
-    def exec(self, file_summaries):
+    async def exec(self, file_summaries):
         # format as: "File1: summary\nFile2: summary...\n"
         text_list = []
         for fname, summ in file_summaries.items():
@@ -2643,7 +2710,7 @@ class CombineSummaries(Node):
 
         return call_llm(f"Combine these file summaries into one final summary:\n{big_text}")
 
-    def post(self, shared, prep_res, final_summary):
+    async def post(self, shared, prep_res, final_summary):
         shared["all_files_summary"] = final_summary
 
 batch_node = SummarizeAllFiles()
@@ -2652,16 +2719,20 @@ batch_node >> combine_node
 
 flow = Flow(start=batch_node)
 
-shared = {
-    "files": {
-        "file1.txt": "Alice was beginning to get very tired of sitting by her sister...",
-        "file2.txt": "Some other interesting text ...",
-        # ...
+async def main():
+    shared = {
+        "files": {
+            "file1.txt": "Alice was beginning to get very tired of sitting by her sister...",
+            "file2.txt": "Some other interesting text ...",
+            # ...
+        }
     }
-}
-flow.run(shared)
-print("Individual Summaries:", shared["file_summaries"])
-print("\nFinal Summary:\n", shared["all_files_summary"])
+    await flow.run(shared)
+    print("Individual Summaries:", shared["file_summaries"])
+    print("\nFinal Summary:\n", shared["all_files_summary"])
+
+if __name__ == "__main__":
+    asyncio.run(main())
 ```
 
 {% endtab %}
@@ -2669,29 +2740,29 @@ print("\nFinal Summary:\n", shared["all_files_summary"])
 {% tab title="TypeScript" %}
 
 ```typescript
-class SummarizeAllFiles extends BatchNode {
-  prep(shared: any): [string, string][] {
+class SummarizeAllFiles extends SequentialBatchNode {
+  async prep(shared: any): Promise<[string, string][]> {
     const filesDict = shared.files // e.g. 10 files
     return Object.entries(filesDict) // [["file1.txt", "aaa..."], ["file2.txt", "bbb..."], ...]
   }
 
-  exec(oneFile: [string, string]): [string, string] {
+  async exec(oneFile: [string, string]): Promise<[string, string]> {
     const [filename, fileContent] = oneFile
-    const summaryText = callLLM(`Summarize the following file:\n${fileContent}`)
+    const summaryText = await callLLM(`Summarize the following file:\n${fileContent}`)
     return [filename, summaryText]
   }
 
-  post(shared: any, prepRes: any, execResList: [string, string][]): void {
+  async post(shared: any, prepRes: any, execResList: [string, string][]): Promise<void> {
     shared.file_summaries = Object.fromEntries(execResList)
   }
 }
 
 class CombineSummaries extends Node {
-  prep(shared: any): Record<string, string> {
+  async prep(shared: any): Promise<Record<string, string>> {
     return shared.file_summaries
   }
 
-  exec(fileSummaries: Record<string, string>): string {
+  async exec(fileSummaries: Record<string, string>): Promise<string> {
     // format as: "File1: summary\nFile2: summary...\n"
     const textList: string[] = []
     for (const [fname, summ] of Object.entries(fileSummaries)) {
@@ -2699,10 +2770,10 @@ class CombineSummaries extends Node {
     }
     const bigText = textList.join('\n---\n')
 
-    return callLLM(`Combine these file summaries into one final summary:\n${bigText}`)
+    return await callLLM(`Combine these file summaries into one final summary:\n${bigText}`)
   }
 
-  post(shared: any, prepRes: any, finalSummary: string): void {
+  async post(shared: any, prepRes: any, finalSummary: string): Promise<void> {
     shared.all_files_summary = finalSummary
   }
 }
@@ -2713,16 +2784,20 @@ batchNode.next(combineNode)
 
 const flow = new Flow(batchNode)
 
-const shared = {
-  files: {
-    'file1.txt': 'Alice was beginning to get very tired of sitting by her sister...',
-    'file2.txt': 'Some other interesting text ...',
-    // ...
-  },
+async function main() {
+  const shared = {
+    files: {
+      'file1.txt': 'Alice was beginning to get very tired of sitting by her sister...',
+      'file2.txt': 'Some other interesting text ...',
+      // ...
+    },
+  }
+  await flow.run(shared)
+  console.log('Individual Summaries:', shared.file_summaries)
+  console.log('\nFinal Summary:\n', shared.all_files_summary)
 }
-flow.run(shared)
-console.log('Individual Summaries:', shared.file_summaries)
-console.log('\nFinal Summary:\n', shared.all_files_summary)
+
+main().catch(console.error)
 ```
 
 {% endtab %}
@@ -2794,8 +2869,10 @@ When prompting the LLM to produce **structured** output:
 {% tab title="Python" %}
 
 ````python
+import yaml
+
 class SummarizeNode(Node):
-    def exec(self, prep_res):
+    async def exec(self, prep_res):
         # Suppose `prep_res` is the text to summarize.
         prompt = f"""
 Please summarize the following text as YAML, with exactly 3 bullet points
@@ -2812,7 +2889,6 @@ summary:
         response = call_llm(prompt)
         yaml_str = response.split("```yaml")[1].split("```")[0].strip()
 
-        import yaml
         structured_result = yaml.safe_load(yaml_str)
 
         assert "summary" in structured_result
@@ -2827,7 +2903,7 @@ summary:
 
 ````typescript
 class SummarizeNode extends Node {
-  exec(prepRes: string): any {
+  async exec(prepRes: string): Promise<any> {
     // Suppose prepRes is the text to summarize
     const prompt = `
 Please summarize the following text as YAML, with exactly 3 bullet points
@@ -2842,7 +2918,7 @@ summary:
   - bullet 3
 \`\`\``
 
-    const response = callLLM(prompt)
+    const response = await callLLM(prompt)
     const yamlStr = response.split('```yaml')[1].split('```')[0].trim()
 
     // In TypeScript we would typically use a YAML parser like 'yaml'
@@ -2922,8 +2998,11 @@ The agent listens for messages, processes them, and continues listening:
 {% tab title="Python" %}
 
 ```python
-class AgentNode(AsyncNode):
-    async def prep_async(self, _):
+import asyncio
+from brainyflow import Node, Flow
+
+class AgentNode(Node):
+    async def prep(self, _):
         message_queue = self.params["messages"]
         message = await message_queue.get()
         print(f"Agent received: {message}")
@@ -2932,7 +3011,7 @@ class AgentNode(AsyncNode):
 # Create node and flow
 agent = AgentNode()
 agent >> agent  # connect to self
-flow = AsyncFlow(start=agent)
+flow = Flow(start=agent)
 
 # Create heartbeat sender
 async def send_system_messages(message_queue):
@@ -2957,7 +3036,7 @@ async def main():
 
     # Run both coroutines
     await asyncio.gather(
-        flow.run_async(shared),
+        flow.run(shared),
         send_system_messages(message_queue)
     )
 
@@ -2969,8 +3048,8 @@ asyncio.run(main())
 {% tab title="TypeScript" %}
 
 ```typescript
-class AgentNode extends AsyncNode {
-  async prepAsync(_: any) {
+class AgentNode extends Node {
+  async prep(_: any): Promise<string> {
     const messageQueue = this.params.messages as AsyncQueue<string>
     const message = await messageQueue.get()
     console.log(`Agent received: ${message}`)
@@ -2981,7 +3060,7 @@ class AgentNode extends AsyncNode {
 // Create node and flow
 const agent = new AgentNode()
 agent.next(agent) // connect to self
-const flow = new AsyncFlow(agent)
+const flow = new Flow(agent)
 
 // Create heartbeat sender
 async function sendSystemMessages(messageQueue: AsyncQueue<string>) {
@@ -3007,10 +3086,9 @@ async function main() {
   flow.setParams({ messages: messageQueue })
 
   // Run both coroutines
-  await Promise.all([flow.runAsync(shared), sendSystemMessages(messageQueue)])
+  await Promise.all([flow.run(shared), sendSystemMessages(messageQueue)])
 }
 
-// Simple AsyncQueue implementation for TypeScript
 class AsyncQueue<T> {
   private queue: T[] = []
   private waiting: ((value: T) => void)[] = []
@@ -3058,14 +3136,17 @@ One agent provides hints while avoiding forbidden words, and another agent tries
 {% tab title="Python" %}
 
 ```python
-class AsyncHinter(AsyncNode):
-    async def prep_async(self, shared):
+import asyncio
+from brainyflow import Node, Flow
+
+class Hinter(Node):
+    async def prep(self, shared):
         guess = await shared["hinter_queue"].get()
         if guess == "GAME_OVER":
             return None
         return shared["target_word"], shared["forbidden_words"], shared.get("past_guesses", [])
 
-    async def exec_async(self, inputs):
+    async def exec(self, inputs):
         if inputs is None:
             return None
         target, forbidden, past_guesses = inputs
@@ -3078,25 +3159,25 @@ class AsyncHinter(AsyncNode):
         print(f"\nHinter: Here's your hint - {hint}")
         return hint
 
-    async def post_async(self, shared, prep_res, exec_res):
+    async def post(self, shared, prep_res, exec_res):
         if exec_res is None:
             return "end"
         await shared["guesser_queue"].put(exec_res)
         return "continue"
 
-class AsyncGuesser(AsyncNode):
-    async def prep_async(self, shared):
+class Guesser(Node):
+    async def prep(self, shared):
         hint = await shared["guesser_queue"].get()
         return hint, shared.get("past_guesses", [])
 
-    async def exec_async(self, inputs):
+    async def exec(self, inputs):
         hint, past_guesses = inputs
         prompt = f"Given hint: {hint}, past wrong guesses: {past_guesses}, make a new guess. Directly reply a single word:"
         guess = call_llm(prompt)
         print(f"Guesser: I guess it's - {guess}")
         return guess
 
-    async def post_async(self, shared, prep_res, exec_res):
+    async def post(self, shared, prep_res, exec_res):
         if exec_res.lower() == shared["target_word"].lower():
             print("Game Over - Correct guess!")
             await shared["hinter_queue"].put("GAME_OVER")
@@ -3126,12 +3207,12 @@ async def main():
     await shared["hinter_queue"].put("")
 
     # Create nodes and flows
-    hinter = AsyncHinter()
-    guesser = AsyncGuesser()
+    hinter = Hinter()
+    guesser = Guesser()
 
     # Set up flows
-    hinter_flow = AsyncFlow(start=hinter)
-    guesser_flow = AsyncFlow(start=guesser)
+    hinter_flow = Flow(start=hinter)
+    guesser_flow = Flow(start=guesser)
 
     # Connect nodes to themselves
     hinter - "continue" >> hinter
@@ -3139,8 +3220,8 @@ async def main():
 
     # Run both agents concurrently
     await asyncio.gather(
-        hinter_flow.run_async(shared),
-        guesser_flow.run_async(shared)
+        hinter_flow.run(shared),
+        guesser_flow.run(shared)
     )
 
 asyncio.run(main())
@@ -3151,8 +3232,8 @@ asyncio.run(main())
 {% tab title="TypeScript" %}
 
 ```typescript
-class AsyncHinter extends AsyncNode {
-  async prepAsync(shared: any) {
+class Hinter extends Node {
+  async prep(shared: any): Promise<any> {
     const guess = await shared.hinterQueue.get()
     if (guess === 'GAME_OVER') {
       return null
@@ -3160,7 +3241,7 @@ class AsyncHinter extends AsyncNode {
     return [shared.targetWord, shared.forbiddenWords, shared.pastGuesses || []]
   }
 
-  async execAsync(inputs: any) {
+  async exec(inputs: any): Promise<string | null> {
     if (inputs === null) return null
     const [target, forbidden, pastGuesses] = inputs
     let prompt = `Generate hint for '${target}'\nForbidden words: ${forbidden}`
@@ -3174,20 +3255,20 @@ class AsyncHinter extends AsyncNode {
     return hint
   }
 
-  async postAsync(shared: any, prepRes: any, execRes: any) {
+  async post(shared: any, prepRes: any, execRes: any): Promise<string> {
     if (execRes === null) return 'end'
     await shared.guesserQueue.put(execRes)
     return 'continue'
   }
 }
 
-class AsyncGuesser extends AsyncNode {
-  async prepAsync(shared: any) {
+class Guesser extends Node {
+  async prep(shared: any): Promise<any> {
     const hint = await shared.guesserQueue.get()
     return [hint, shared.pastGuesses || []]
   }
 
-  async execAsync(inputs: any) {
+  async exec(inputs: any): Promise<string> {
     const [hint, pastGuesses] = inputs
     const prompt = `Given hint: ${hint}, past wrong guesses: ${pastGuesses}, make a new guess. Directly reply a single word:`
     const guess = await callLLM(prompt)
@@ -3195,7 +3276,7 @@ class AsyncGuesser extends AsyncNode {
     return guess
   }
 
-  async postAsync(shared: any, prepRes: any, execRes: any) {
+  async post(shared: any, prepRes: any, execRes: any): Promise<string> {
     if (execRes.toLowerCase() === shared.targetWord.toLowerCase()) {
       console.log('Game Over - Correct guess!')
       await shared.hinterQueue.put('GAME_OVER')
@@ -3229,19 +3310,19 @@ async function main() {
   await shared.hinterQueue.put('')
 
   // Create nodes and flows
-  const hinter = new AsyncHinter()
-  const guesser = new AsyncGuesser()
+  const hinter = new Hinter()
+  const guesser = new Guesser()
 
   // Set up flows
-  const hinterFlow = new AsyncFlow(hinter)
-  const guesserFlow = new AsyncFlow(guesser)
+  const hinterFlow = new Flow(hinter)
+  const guesserFlow = new Flow(guesser)
 
   // Connect nodes to themselves
   hinter.on('continue', hinter)
   guesser.on('continue', guesser)
 
   // Run both agents concurrently
-  await Promise.all([hinterFlow.runAsync(shared), guesserFlow.runAsync(shared)])
+  await Promise.all([hinterFlow.run(shared), guesserFlow.run(shared)])
 }
 
 // Mock LLM call for TypeScript
