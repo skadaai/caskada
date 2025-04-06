@@ -8,11 +8,12 @@ This agent demonstrates the following capabilities:
 - Decision-making based on context
 - Web searching for information
 - Generating comprehensive answers
-### Step for quick testing
+
+### Step and Usage
 
 ```bash
 # from BrainyFlow root directory
-cd typescript-agent
+cd cookbook/typescript-agent
 
 cp .env.example .env # add your API key
 
