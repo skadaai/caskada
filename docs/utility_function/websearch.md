@@ -1,8 +1,17 @@
 ---
 title: 'Web Search'
+machine-display: false
 ---
 
 # Web Search
+
+{% hint style="warning" %}
+
+**BrainyFlow does NOT provide built-in utilities**
+
+Instead, we offer examples that you can implement yourself. This approach gives you [more flexibility and control](./index#why-not-built-in) over your project's dependencies and functionality.
+
+{% endhint %}
 
 We recommend some implementations of commonly used web search tools.
 

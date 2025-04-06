@@ -31,7 +31,7 @@ fi
 # - grep -vE: Filters out paths starting with 'utility_function/'
 grep -oE '\[.*\]\(([^)]+\.md)\)' "$SUMMARY_FILE" | \
 sed -E 's/\[.*\]\(([^)]+\.md)\)/\1/' | \
-grep -vE '^utility_function/' | \
+# grep -vE '^utility_function/' | \
 while IFS= read -r filepath; do
   # Construct the full path relative to the repository root
   fullpath="$DOCS_DIR/$filepath"

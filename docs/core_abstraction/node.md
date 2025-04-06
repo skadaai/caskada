@@ -4,7 +4,13 @@ title: 'Node'
 
 # Node
 
-A **Node** is the smallest building block in BrainyFlow. Each Node has 3 steps in its lifecycle: `prep -> exec -> post`:
+A **Node** is the smallest building block in BrainyFlow. Each Node has 3 steps in its lifecycle: `prep -> exec -> post`
+
+{% hint style="info" %}
+**Why 3 steps?** To enforce the principle of _separation of concerns_. Data storage and data processing are operated separately.
+
+All steps are _optional_. For example, you can implement only `prep` and `post` if you just need to process data without external computation.
+{% endhint %}
 
 ## Node Lifecycle
 
@@ -30,12 +36,6 @@ A **Node** is the smallest building block in BrainyFlow. Each Node has 3 steps i
    - **Postprocess and write data** back to `shared`.
    - Examples: Update databases, change states, log results.
    - **Decide the next action** by returning a string (`action = "default"` if `None` is returned).
-
-{% hint style="info" %}
-**Why 3 steps?** To enforce the principle of _separation of concerns_. Data storage and data processing are operated separately.
-
-All steps are _optional_. For example, you can implement only `prep` and `post` if you just need to process data without external computation.
-{% endhint %}
 
 ```mermaid
 sequenceDiagram

@@ -96,7 +96,7 @@ class AnswerNode extends Node {
 {% endtab %}
 {% endtabs %}
 
-Please note that we intentionally do not provide a `callLLM` function but you can [use your own implementation](../flow/utility-functions/llm).
+Please note that we intentionally do not provide a `callLLM` function but you can [use your own implementation](./utility-functions/llm.md).
 
 ### Step 2: Create the Flow
 
@@ -184,4 +184,4 @@ The example we've just built is far from impressive, but it demonstrates the cor
 - Explore more complex [Design Patterns](./design_pattern/index.md) like Agents, RAG, and MapReduce.
 - Learn about [Batch Processing](./core_abstraction/batch.md) for handling large datasets.
 - Dive deeper into [Core Abstractions](./core_abstraction/index.md) to understand the framework's fundamentals.
-- Check out the [Agentic Coding Guide](./agentic_coding.md) for best practices in building self-coding LLM applications with BrainyFlow.
+- Check out the [Agentic Coding Guide](./guides/agentic_coding.md) for best practices in building self-coding LLM applications with BrainyFlow.

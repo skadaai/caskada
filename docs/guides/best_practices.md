@@ -128,6 +128,7 @@ my_complex_project/
     └── api.md                # API documentation
 ```
 
+{% endtab %}
 {% endtabs %}
 
 - **`docs/design.md`**: Contains project documentation for each step designed in [agentic coding](./agentic_coding.md). This should be _high-level_ and _no-code_.

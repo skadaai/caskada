@@ -204,8 +204,8 @@ shared = {
     "input": {
         "query": "How do neural networks learn?",
         "context": { # Another nested dict
-          "persona": "The user is a computer science student.",
-          "location": "San Francisco"
+            "persona": "The user is a computer science student.",
+            "location": "San Francisco"
         }
     },
     "processing": {

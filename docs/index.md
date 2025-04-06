@@ -8,7 +8,7 @@ machine-display: false
 A [65-line](https://github.com/zvictor/BrainyFlow/blob/main/python/brainyflow.py) minimalist AI framework for _Agents, Task Decomposition, RAG, and more_.
 
 - **Lightweight**: Just the core graph abstraction in 65 lines. ZERO dependencies, and vendor lock-in.
-- **Expressive**: Everything you love from larger frameworks—([Multi-](./design_pattern/multi_agent.html))[Agents](./design_pattern/agent.html), [Workflow](./design_pattern/workflow.html), [RAG](./design_pattern/rag.html), and more.
+- **Expressive**: Everything you love from larger frameworks—([Multi-](./design_pattern/multi_agent.md))[Agents](./design_pattern/agent.md), [Workflow](./design_pattern/workflow.md), [RAG](./design_pattern/rag.md), and more.
 - **Agentic-Coding**: Intuitive enough for AI agents to help humans build complex LLM applications.
 
 <div align="center">
@@ -44,28 +44,10 @@ BrainyFlow makes it easy to implement popular design patterns:
   <img src="https://github.com/the-pocket/.github/raw/main/assets/design.png" width="500"/>
 </div>
 
-## Utility Functions
-
-BrainyFlow **does not** provide built-in utilities. Instead, we offer _examples_ that you can implement yourself:
-
-- [LLM Wrapper](./utility_function/llm.md)
-- [Visualization and Debugging](./utility_function/viz.md)
-- [Web Search](./utility_function/websearch.md)
-- [Chunking](./utility_function/chunking.md)
-- [Embedding](./utility_function/embedding.md)
-- [Vector Databases](./utility_function/vector.md)
-- [Text-to-Speech](./utility_function/text_to_speech.md)
-
-**Why not built-in?** We believe it's a _bad practice_ to include vendor-specific APIs in a general framework:
-
-- _API Volatility_: Frequent changes lead to heavy maintenance for hardcoded APIs.
-- _Flexibility_: You may want to switch vendors, use fine-tuned models, or run them locally.
-- _Optimizations_: Prompt caching, batching, and streaming are easier without vendor lock-in.
-
 ## Quick Start
 
 New to BrainyFlow? Check out our [Getting Started](./getting_started.md) guide to build your first flow in no time.
 
 ## Ready to Build Self-Coding Apps?
 
-Check out [Agentic Coding Guidance](./agentic_coding.md), the fastest way to develop self-coding LLM projects with BrainyFlow!
+Check out [Agentic Coding Guidance](./guides/agentic_coding.md), the fastest way to develop self-coding LLM projects with BrainyFlow!

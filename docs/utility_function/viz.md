@@ -1,8 +1,17 @@
 ---
 title: 'Viz and Debug'
+machine-display: false
 ---
 
 # Visualization and Debugging
+
+{% hint style="warning" %}
+
+**BrainyFlow does NOT provide built-in utilities**
+
+Instead, we offer examples that you can implement yourself. This approach gives you [more flexibility and control](./index#why-not-built-in) over your project's dependencies and functionality.
+
+{% endhint %}
 
 Similar to LLM wrappers, we **don't** provide built-in visualization and debugging. Here, we recommend some _minimal_ (and incomplete) implementations These examples can serve as a starting point for your own tooling.
 

@@ -1,8 +1,17 @@
 ---
 title: 'LLM Wrapper'
+machine-display: false
 ---
 
 # LLM Wrappers
+
+{% hint style="warning" %}
+
+**BrainyFlow does NOT provide built-in utilities**
+
+Instead, we offer examples that you can implement yourself. This approach gives you [more flexibility and control](./index#why-not-built-in) over your project's dependencies and functionality.
+
+{% endhint %}
 
 BrainyFlow doesn't provide built-in LLM wrappers.
 You are better of checking out libraries like [litellm](https://github.com/BerriAI/litellm) (Python).
