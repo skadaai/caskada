@@ -1,4 +1,4 @@
-import { Flow } from "../../typescript/brainyflow";
+import { Flow } from "brainyflow";
 import { DecideNode, SearchNode, AnswerNode } from "./nodes";
 
 export function createAgentFlow() {

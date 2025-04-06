@@ -1,5 +1,5 @@
 import { parse } from 'yaml'
-import { Node } from "../../typescript/brainyflow";
+import { Node } from "brainyflow";
 import { callLLM, webSearch } from "./utils";
 
 export interface SearchAgentSharedContext {
