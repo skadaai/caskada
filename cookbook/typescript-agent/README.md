@@ -22,12 +22,11 @@ npm run agent
 
 Default question is inside `main.ts`, change it and see the result.
 
-### Feature
+## Features
 
-- Perform web search
-- Gather all infomation from web search
-- Answer user question according to search result
-
+- Performs web searches to gather information
+- Collects and processes information from search results
+- Answers user questions based on the gathered information
 ### How it work
 
 The flow is comprise of 3 node
