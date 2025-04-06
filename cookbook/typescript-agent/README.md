@@ -1,5 +1,13 @@
-# TypeScript simple agentic ai
+# TypeScript Agent Example
 
+This example demonstrates how to build a question-answering agent using TypeScript and BrainyFlow. The agent can search the web for information and provide answers based on the search results.
+
+## Overview
+
+This agent demonstrates the following capabilities:
+- Decision-making based on context
+- Web searching for information
+- Generating comprehensive answers
 ### Step for quick testing
 
 ```bash
