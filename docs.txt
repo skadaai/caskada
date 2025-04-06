@@ -3,54 +3,57 @@
 ================================================
 File: docs/getting_started.md
 ================================================
-# Getting Started
+# Getting Started with BrainyFlow
 
-Welcome to BrainyFlow! This guide will help you get started with the framework and build your first flow.
+Welcome to BrainyFlow! This framework helps you build powerful, modular AI applications using a simple yet expressive abstraction based on nested directed graphs.
 
 ## 1. Installation
 
-First, ensure you have BrainyFlow installed. Follow the instructions in the [Installation Guide](./installation.md).
+First, ensure you have BrainyFlow installed:
+
+```bash
+# For Python
+pip install brainyflow
+
+# For TypeScript
+npm install brainyflow
+```
+
+For detailed installation options, see the [Installation Guide](./installation.md).
 
 ## 2. Core Concepts
 
-BrainyFlow uses a simple yet powerful abstraction based on a **Graph + Shared Store**:
+BrainyFlow is built around a minimalist yet powerful abstraction that separates data flow from computation:
 
-- **[Node](./core_abstraction/node.md)**: Represents a single unit of work, often involving an LLM call or data processing.
-- **[Flow](./core_abstraction/flow.md)**: Connects Nodes together to define the sequence of operations.
-- **[Shared Store](./core_abstraction/communication.md)**: A dictionary-like object passed between nodes, allowing them to share data.
-- **[Batch](./core_abstraction/batch.md)**: Enables processing multiple data items in parallel or sequentially.
+- **[Node](./core_abstraction/node.md)**: The fundamental building block that performs a single task with a clear lifecycle (`prep → exec → post`).
+- **[Flow](./core_abstraction/flow.md)**: Orchestrates nodes in a directed graph, supporting branching, looping, and nesting.
+- **[Shared Store](./core_abstraction/communication.md)**: A global data structure that enables communication between nodes.
+- **[Batch](./core_abstraction/batch.md)**: Processes multiple items either sequentially or in parallel.
 
 ## 3. Your First Flow
 
-Let's create a simple Question-Answering flow:
+Let's build a simple Question-Answering flow to demonstrate BrainyFlow's core concepts:
 
-1. **GetQuestionNode**: Takes user input.
-2. **AnswerNode**: Uses an LLM to answer the question based on the input.
+### Step 1: Design Your Flow
+
+Our flow will have two nodes:
+
+1. `GetQuestionNode`: Captures the user's question
+2. `AnswerNode`: Generates an answer using an LLM
 
 ```mermaid
 graph LR
     A[GetQuestionNode] --> B[AnswerNode]
 ```
 
-The implementation of this flow would simply be:
-
-- `GetQuestionNode` writing the user's question to the `shared` store.
-- `AnswerNode` reading the question from the `shared` store, calling an LLM utility, and writing the answer back to the `shared` store.
-
-## 4. Implementation
-
-Let's implement this flow step by step:
-
-### Step 1: Create the Nodes
-
-First, we'll create our two nodes:
+### Step 2: Implement the Nodes
 
 {% tabs %}
 {% tab title="Python" %}
 
 ```python
 from brainyflow import Node
-from utils import call_llm
+from utils import call_llm  # Your LLM implementation
 
 class GetQuestionNode(Node):
     async def prep(self, shared):
@@ -59,12 +62,15 @@ class GetQuestionNode(Node):
 
 class AnswerNode(Node):
     async def prep(self, shared):
+        """Extract the question from shared store."""
         return shared["question"]
 
     async def exec(self, question):
-        return call_llm(question)
+        """Call LLM to generate an answer."""
+        return await call_llm(question)
 
     async def post(self, shared, prep_res, exec_res):
+        """Store the answer in shared store."""
         shared["answer"] = exec_res
 ```
 
@@ -75,25 +81,25 @@ class AnswerNode(Node):
 ```typescript
 import { Node } from 'brainyflow'
 import { input } from '@inquirer/prompts'
-import { callLLM } from './utils/callLLM'
+import { callLLM } from './utils/callLLM' // Your LLM implementation
 
 class GetQuestionNode extends Node {
-  async prep(shared): Promise {
-    shared.question = (await input({ message: 'Enter your question: ' })) || ''
+  async prep(shared: Record): Promise {
+    shared.question = await input({ message: 'Enter your question: ' })
   }
 }
 
 class AnswerNode extends Node {
-  async prep(shared: any): Promise {
-    return shared['question']
+  async prep(shared: Record): Promise {
+    return shared.question
   }
 
   async exec(question: string): Promise {
     return await callLLM(question)
   }
 
-  async post(shared: any, _prepRes: any, execRes: string): Promise {
-    shared['answer'] = execRes
+  async post(shared: Record, prepRes: string, execRes: string): Promise {
+    shared.answer = execRes
   }
 }
 ```
@@ -101,11 +107,16 @@ class AnswerNode extends Node {
 {% endtab %}
 {% endtabs %}
 
-Please note that we intentionally do not provide a `callLLM` function but you can [use your own implementation](./utility_function/llm.md).
+{% hint style="info" %}
 
-### Step 2: Create the Flow
+**Review:** What was achieved here?
 
-Now, let's connect these nodes into a flow:
+- `GetQuestionNode` writes the user's question to the `shared` store.
+- `AnswerNode` reads the question from the `shared` store, calling an LLM utility, and writing the answer back to the `shared` store.
+
+{% endhint %}
+
+### Step 3: Connect the Nodes into a Flow
 
 {% tabs %}
 {% tab title="Python" %}
@@ -117,6 +128,7 @@ def create_qa_flow():
     get_question_node = GetQuestionNode()
     answer_node = AnswerNode()
 
+    # Connect nodes: get_question_node → answer_node
     get_question_node >> answer_node
 
     return Flow(start=get_question_node)
@@ -133,6 +145,7 @@ function createQaFlow(): Flow {
   const getQuestionNode = new GetQuestionNode()
   const answerNode = new AnswerNode()
 
+  // Connect nodes: getQuestionNode → answerNode
   getQuestionNode.next(answerNode)
 
   return new Flow(getQuestionNode)
@@ -142,9 +155,7 @@ function createQaFlow(): Flow {
 {% endtab %}
 {% endtabs %}
 
-### Step 3: Run the Flow
-
-Finally, let's run our flow:
+### Step 4: Run the Flow
 
 {% tabs %}
 {% tab title="Python" %}
@@ -153,9 +164,10 @@ Finally, let's run our flow:
 import asyncio
 
 async def main():
-    shared = {}
+    shared = {}  # Initialize empty shared store
     qa_flow = create_qa_flow()
     await qa_flow.run(shared)
+
     print(f"Question: {shared['question']}")
     print(f"Answer: {shared['answer']}")
 
@@ -169,27 +181,45 @@ if __name__ == "__main__":
 
 ```typescript
 async function main() {
-  const shared: Record = {}
+  const shared: Record = {} // Initialize empty shared store
   const qaFlow = createQaFlow()
   await qaFlow.run(shared)
-  console.log(`Question: ${shared['question']}`)
-  console.log(`Answer: ${shared['answer']}`)
+
+  console.log(`Question: ${shared.question}`)
+  console.log(`Answer: ${shared.answer}`)
 }
 
 main().catch(console.error)
 ```
 
+{% hint style="info" %}
+
+**Review:** What was achieved here?
+
+- `qaFlow` has connected the nodes, letting the user's question flow from `GetQuestionNode` to `AnswerNode` to generate an answer.
+
+{% endhint %}
+
 {% endtab %}
 {% endtabs %}
 
+## 4. Key Design Principles
+
+BrainyFlow follows these core design principles:
+
+1. **Separation of Concerns**: Data storage (shared store) is separate from computation logic (nodes)
+2. **Explicit Data Flow**: Data dependencies between steps are clear and traceable
+3. **Composability**: Complex systems are built from simple, reusable components
+4. **Minimalism**: The framework provides only essential abstractions, avoiding vendor-specific implementations
+
 ## 5. Next Steps
 
-The example we've just built is far from impressive, but it demonstrates the core building blocks of BrainyFlow. From there, you can quickly build much more complex flows and applications.
+Now that you understand the basics, explore these resources to build sophisticated applications:
 
-- Explore more complex [Design Patterns](./design_pattern/index.md) like Agents, RAG, and MapReduce.
-- Learn about [Batch Processing](./core_abstraction/batch.md) for handling large datasets.
-- Dive deeper into [Core Abstractions](./core_abstraction/index.md) to understand the framework's fundamentals.
-- Check out the [Agentic Coding Guide](./guides/agentic_coding.md) for best practices in building self-coding LLM applications with BrainyFlow.
+- [Core Abstractions](./core_abstraction/index.md): Dive deeper into nodes, flows, and communication
+- [Design Patterns](./design_pattern/index.md): Learn more complex patterns like Agents, RAG, and MapReduce
+- [Agentic Coding Guide](./guides/agentic_coding.md): Best practices for human-AI collaborative development
+- [Best Practices](./guides/best_practices.md): Tips for building robust, maintainable applications
 
 
 
@@ -197,16 +227,19 @@ The example we've just built is far from impressive, but it demonstrates the cor
 ================================================
 File: docs/core_abstraction/index.md
 ================================================
-# Understanding BrainyFlow's Mental Model
+# Understanding BrainyFlow's Core Abstractions
 
-BrainyFlow is built around a simple but powerful mental model that separates _data flow_ from _computation_. This separation of concerns makes complex LLM applications more maintainable and easier to reason about.
+BrainyFlow is built around a simple yet powerful abstraction: the **nested directed graph with shared store**. This mental model separates _data flow_ from _computation_, making complex LLM applications more maintainable and easier to reason about.
 
 ## Core Philosophy
 
-1. **Separation of Concerns**: Keep data storage (shared store) separate from computation logic (nodes)
-2. **Explicit Data Flow**: Make data dependencies between steps clear and traceable
-3. **Composability**: Build complex systems from simple, reusable components
-4. **Resilience**: Handle failures gracefully with retries and fallbacks
+BrainyFlow follows these fundamental principles:
+
+1. **Modularity & Composability**: Build complex systems from simple, reusable components that are easy to build, test, and maintain
+2. **Explicitness**: Make data dependencies between steps clear and traceable
+3. **Separation of Concerns**: Data storage (shared store) remains separate from computation logic (nodes)
+4. **Minimalism**: The framework provides only essential abstractions, avoiding vendor-specific implementations while supporting various high-level AI design paradigms (agents, workflows, map-reduce, etc.)
+5. **Resilience**: Handle failures gracefully with retries and fallbacks
 
 ## The Graph + Shared Store Pattern
 
@@ -217,20 +250,22 @@ The fundamental pattern in BrainyFlow combines two key elements:
 
 This pattern offers several advantages:
 
-- Clear visualization of application logic
-- Easy identification of bottlenecks
-- Simple debugging of individual components
-- Natural parallelization opportunities
+- **Clear visualization** of application logic
+- **Easy identification** of bottlenecks
+- **Simple debugging** of individual components
+- **Natural parallelization** opportunities
 
 ## Key Components
 
 BrainyFlow's architecture is based on these fundamental building blocks:
 
-- **[Node](./node.md)**: The basic unit of work with a clear lifecycle (`prep -> exec -> post`)
-- **[Flow](./flow.md)**: Connects nodes together through action-based transitions
-- **[Communication](./communication.md)**: Enables data sharing between nodes via Shared Store and Params
-- **[Batch](./batch.md)**: Handles processing of multiple items sequentially or in parallel
-- **[Throttling](./throttling.md)**: Manages concurrency and rate limits for external API calls
+| Component                           | Description             | Key Features                                                                |
+| ----------------------------------- | ----------------------- | --------------------------------------------------------------------------- |
+| [Node](./node.md)                   | The basic unit of work  | Clear lifecycle (`prep → exec → post`), fault tolerance, graceful fallbacks |
+| [Flow](./flow.md)                   | Connects nodes together | Action-based transitions, branching, looping, nesting                       |
+| [Communication](./communication.md) | Enables data sharing    | Shared Store (global), Params (node-specific)                               |
+| [Batch](./batch.md)                 | Handles multiple items  | Sequential or parallel processing, nested batching                          |
+| [Throttling](./throttling.md)       | Manages concurrency     | Rate limiting, concurrency control                                          |
 
 ## How They Work Together
 
@@ -256,15 +291,6 @@ BrainyFlow's architecture is based on these fundamental building blocks:
    - Handling large datasets efficiently
    - Supporting nested batch operations
 
-## Design Philosophy
-
-BrainyFlow's core abstractions follow these principles:
-
-- **Separation of Concerns**: Data storage (shared store) is separate from computation logic (nodes)
-- **Composability**: Nodes and flows can be combined in various ways to create complex workflows
-- **Flexibility**: The framework imposes minimal constraints while providing powerful patterns
-- **Reliability**: Built-in retry mechanisms and error handling improve robustness
-
 ## Getting Started
 
 If you're new to BrainyFlow, we recommend exploring these core abstractions in the following order:
@@ -283,19 +309,9 @@ Once you understand these core abstractions, you'll be ready to implement variou
 ================================================
 File: docs/core_abstraction/node.md
 ================================================
----
-title: 'Node'
----
+# Node: The Fundamental Building Block
 
-# Node
-
-A **Node** is the smallest building block in BrainyFlow. Each Node has 3 steps in its lifecycle: `prep -> exec -> post`
-
-{% hint style="info" %}
-**Why 3 steps?** To enforce the principle of _separation of concerns_. Data storage and data processing are operated separately.
-
-All steps are _optional_. For example, you can implement only `prep` and `post` if you just need to process data without external computation.
-{% endhint %}
+A **Node** is the smallest reusable unit in BrainyFlow. Each Node follows a 3-step lifecycle that enforces the principle of separation of concerns.
 
 ## Node Lifecycle
 
@@ -303,24 +319,41 @@ All steps are _optional_. For example, you can implement only `prep` and `post` 
   <img src="https://github.com/the-pocket/.github/raw/main/assets/node.png?raw=true" width="400"/>
 </div>
 
-1. `async prep(shared)`
+### 1. `async prep(shared)`
 
-   - **Read and preprocess data** from the `shared` store.
-   - Examples: Query databases, read files, or serialize data into a string.
-   - Return `prep_res`, which is used by `exec()` and `post()`.
+**Purpose**: Read and preprocess data from the shared store.
 
-2. `async exec(prep_res)`
+- Extracts necessary data from the `shared` store
+- Performs any required preprocessing or validation
+- Returns `prep_res`, which becomes input for `exec()` and `post()`
 
-   - **Execute compute logic**, with optional retries and error handling.
-   - Examples: LLM calls, remote API calls, tool use.
-   - ⚠️ This shall be used only for computation and must **NOT** access `shared`.
-   - ⚠️ If retries are enabled, ensure idempotent implementation.
-   - Return `exec_res`, which is passed to `post()`.
+### 2. `async exec(prep_res)`
 
-3. `async post(shared, prep_res, exec_res)`
-   - **Postprocess and write data** back to `shared`.
-   - Examples: Update databases, change states, log results.
-   - **Decide the next action** by returning a string (`action = "default"` if `None` is returned).
+**Purpose**: Execute the core computation logic.
+
+- Performs the main computation (often an LLM call or API request)
+- ⚠️ Must **NOT** access the `shared` store directly
+- ⚠️ Should be designed for idempotence when retries are enabled
+- Returns `exec_res`, which is passed to `post()`
+
+### 3. `async post(shared, prep_res, exec_res)`
+
+**Purpose**: Process results and update the shared store.
+
+- Writes computation results back to the `shared` store
+- Has access to both the original input (`prep_res`) and result (`exec_res`)
+- Returns an action string that determines the next node in the flow
+  - If no value is returned, defaults to `"default"`
+
+{% hint style="info" %}
+**Why 3 steps?** This design enforces separation of concerns:
+
+- `prep`: Data access and preparation
+- `exec`: Pure computation (no side effects)
+- `post`: Result processing and state updates
+
+All steps are **optional**. For example, you can implement only `prep` and `post` if you just need to process data without external computation.
+{% endhint %}
 
 ```mermaid
 sequenceDiagram
@@ -339,37 +372,23 @@ sequenceDiagram
 
 ## Fault Tolerance & Retries
 
-You can **retry** `exec()` if it raises an exception via two parameters when defining the Node:
-
-- `max_retries` (int): Maximum times to run `exec()`. The default is `1` (**no** retry).
-- `wait` (int): The time to wait (in **seconds**) before the next retry. By default, `wait=0` (no waiting).
-
-`wait` is helpful when you encounter rate-limits or quota errors from your LLM provider and need to back off.
-
-{% tabs %}
-{% tab title="Python" %}
+Nodes support automatic retries for handling transient failures in `exec()` calls:
 
 ```python
-my_node = SummarizeFile(max_retries=3, wait=10)
+# Python
+my_node = MyNode(max_retries=3, wait=10)  # Retry up to 3 times with 10s delay
+
+# TypeScript
+const myNode = new MyNode({ maxRetries: 3, wait: 10 }) // Retry up to 3 times with 10s delay
 ```
 
-{% endtab %}
+Key retry parameters:
 
-{% tab title="TypeScript" %}
+- `max_retries` (int): Maximum number of execution attempts (default: 1, meaning no retry)
+- `wait` (int): Seconds to wait between retries (default: 0)
 
-```typescript
-const myNode = new SummarizeFile({ maxRetries: 3, wait: 10 })
-```
-
-{% endtab %}
-{% endtabs %}
-
-When an exception occurs in `exec()`, the Node automatically retries until:
-
-- It either succeeds, or
-- The Node has retried `max_retries - 1` times already and fails on the last attempt.
-
-You can get the current retry count (0-based) from `cur_retry`.
+`wait` is specially helpful when you encounter rate-limits or quota errors from your LLM provider and need to back off.
+During retries, you can access the current retry count (0-based) via `self.cur_retry` (Python) or `this.curRetry` (TypeScript).
 
 {% tabs %}
 {% tab title="Python" %}
@@ -377,7 +396,7 @@ You can get the current retry count (0-based) from `cur_retry`.
 ```python
 class RetryNode(Node):
     async def exec(self, prep_res):
-        print(f"Retry {self.cur_retry} times")
+        print(f"Retried {self.cur_retry} times")
         raise Exception("Failed")
 ```
 
@@ -388,18 +407,15 @@ class RetryNode(Node):
 ```typescript
 class RetryNode extends Node {
   async exec(prepRes: any): Promise {
-    console.log(`Retry ${this.curRetry} times`)
+    console.log(`Retried ${this.curRetry} times`)
     throw new Error('Failed')
   }
 }
 ```
 
-{% endtab %}
-{% endtabs %}
+## Graceful Fallbacks
 
-## Graceful Fallback
-
-To **gracefully handle** exceptions (after all retries) rather than raising them, override:
+To handle failures gracefully after all retries are exhausted, override the `exec_fallback` method:
 
 {% tabs %}
 {% tab title="Python" %}
@@ -504,28 +520,43 @@ console.log('Summary stored:', shared['summary'])
 {% endtab %}
 {% endtabs %}
 
+## Running Individual Nodes
+
+Nodes have an extra method `run(shared)`, which calls `prep->exec->post` and returns the action.
+
+{% hint style="warning" %}
+`Node.run` **does not** proceed to a successor!
+
+This method is useful for debugging or testing a single node, but not for running a [flow](./flow.md)!
+
+Always use `Flow.run` instead to ensure the full pipeline runs correctly.
+{% endhint %}
+
+Compare it with `Flow.run`:
+
+- `node.run(shared)`: Just runs that node alone (calls `prep->exec->post()`), returns an Action.
+- `flow.run(shared)`: Executes from the start node, follows Actions to the next node, and so on until the flow can't continue.
+
 
 
 
 ================================================
 File: docs/core_abstraction/flow.md
 ================================================
----
-title: 'Flow'
----
+# Flow: Orchestrating Nodes in a Directed Graph
 
-# Flow
+A **Flow** orchestrates a graph of Nodes, connecting them through action-based transitions. Flows enable you to create complex application logic including sequences, branches, loops, and nested workflows.
 
-A **Flow** orchestrates a graph of Nodes. You can chain Nodes in a sequence or create branching depending on the **Actions** returned from each Node's `post()`.
+## Action-based Transitions
 
-## 1. Action-based Transitions
+Each Node's `post()` method returns an **Action** string that determines which node to execute next. If `post()` doesn't return anything, the default action `"default"` is used.
 
-Each Node's `post()` returns an **Action** string. By default, if `post()` doesn't return anything, we treat that as `"default"`.
-
-You define transitions with syntax sugar (in Python) or a method call:
+### Defining Transitions
 
 {% tabs %}
 {% tab title="Python" %}
+
+You can define transitions primarily with syntax sugar:
 
 1. **Basic default transition**: `node_a >> node_b`
    This means if `node_a.post()` returns `"default"`, go to `node_b`.
@@ -534,6 +565,15 @@ You define transitions with syntax sugar (in Python) or a method call:
    This means if `node_a.post()` returns `"action_name"`, go to `node_b`.
 
 Note that `node_a >> node_b` is equivalent to `node_a - "default" >> node_b`
+
+```python
+# Basic default transition
+node_a >> node_b  # If node_a returns "default", go to node_b
+
+# Named action transition
+node_a - "success" >> node_b  # If node_a returns "success", go to node_b
+node_a - "error" >> node_c    # If node_a returns "error", go to node_c
+```
 
 {% endtab %}
 
@@ -547,26 +587,41 @@ Note that `node_a >> node_b` is equivalent to `node_a - "default" >> node_b`
 
 Note that `node_a.next(node_b)` is equivalent to both `node_a.next(node_b, 'default')` and `node_a.on('default', node_b)`
 
+```typescript
+// Basic default transition
+node_a.next(node_b) // If node_a returns "default", go to node_b
+
+// Named action transition
+node_a.on('success', node_b) // If node_a returns "success", go to node_b
+node_a.on('error', node_c) // If node_a returns "error", go to node_c
+
+// Alternative syntax
+node_a.next(node_b, 'success') // Same as node_a.on('success', node_b)
+```
+
 {% endtab %}
 {% endtabs %}
 
-It's possible to create loops, branching, or multi-step flows.
+## Creating a Flow
 
-## 2. Creating a Flow
-
-A **Flow** begins with a **start** node. You call `Flow(start=some_node)` (in Python) or `new Flow(some_node)` (in Javascript) to specify the entry point. When you call `flow.run(shared)`, it executes the start node, looks at its returned Action from `post()`, follows the transition, and continues until there's no next node.
-
-### Example: Simple Sequence
-
-Here's a minimal flow of two nodes in a chain:
+A Flow begins with a **start node** and follows the action-based transitions until it reaches a node with no matching transition for its returned action.
 
 {% tabs %}
 {% tab title="Python" %}
 
 ```python
+from brainyflow import Flow
+
+# Define nodes and transitions
 node_a >> node_b
+node_b - "success" >> node_c
+node_b - "error" >> node_d
+
+# Create flow starting with node_a
 flow = Flow(start=node_a)
-flow.run(shared)
+
+# Run the flow with a shared store
+await flow.run(shared)
 ```
 
 {% endtab %}
@@ -574,33 +629,75 @@ flow.run(shared)
 {% tab title="TypeScript" %}
 
 ```typescript
+import { Flow } from 'brainyflow'
+
+// Define nodes and transitions
 node_a.next(node_b)
+node_b.on('success', node_c)
+node_b.on('error', node_d)
+
+// Create flow starting with node_a
 const flow = new Flow(node_a)
-flow.run(shared)
+
+// Run the flow with a shared store
+await flow.run(shared)
 ```
 
 {% endtab %}
 {% endtabs %}
 
-- When you run the flow, it executes `node_a`.
-- Suppose `node_a.post()` returns `"default"`.
-- The flow then sees `"default"` Action is linked to `node_b` and runs `node_b`.
-- `node_b.post()` returns `"default"` but we didn't define `node_b >> something_else`. So the flow ends there.
+## Flow Execution Process
 
-### Example: Branching & Looping
+When you call `flow.run(shared)`:
 
-Here's a simple expense approval flow that demonstrates branching and looping. The `ReviewExpense` node can return three possible Actions:
+1. The flow executes the start node
+2. It examines the action returned by the node's `post()` method
+3. It follows the corresponding transition to the next node
+4. This process repeats until it reaches a node with no matching transition for its action
 
-- `"approved"`: expense is approved, move to payment processing
-- `"needs_revision"`: expense needs changes, send back for revision
-- `"rejected"`: expense is denied, finish the process
+```mermaid
+sequenceDiagram
+    participant S as Shared Store
+    participant F as Flow
+    participant N1 as Node A
+    participant N2 as Node B
 
-We can wire them like this:
+    F->>N1: Execute Node A
+    N1->>S: Read from shared store
+    N1->>N1: Perform computation
+    N1->>S: Write to shared store
+    N1-->>F: Return action "default"
+
+    F->>F: Find next node for action "default"
+    F->>N2: Execute Node B
+    N2->>S: Read from shared store
+    N2->>N2: Perform computation
+    N2->>S: Write to shared store
+    N2-->>F: Return action "success"
+
+    F->>F: No transition defined for "success"
+    F-->>F: Flow execution complete
+```
+
+## Branching and Looping
+
+Flows support complex patterns like branching (conditionally following different paths) and looping (returning to previous nodes).
+
+### Example: Expense Approval Flow
+
+Here's a simple expense approval flow that demonstrates branching and looping:
 
 {% tabs %}
 {% tab title="Python" %}
 
 ```python
+# Define the nodes first
+# review = ReviewExpenseNode()
+# revise = ReviseReportNode()
+# payment = ProcessPaymentNode()
+# finish = FinishProcessNode()
+# ...
+
 # Define the flow connections
 review - "approved" >> payment        # If approved, process payment
 review - "needs_revision" >> revise   # If needs changes, go to revision
@@ -609,7 +706,8 @@ review - "rejected" >> finish         # If rejected, finish the process
 revise >> review   # After revision, go back for another review
 payment >> finish  # After payment, finish the process
 
-flow = Flow(start=review)
+# Create the flow
+expense_flow = Flow(start=review)
 ```
 
 {% endtab %}
@@ -617,6 +715,13 @@ flow = Flow(start=review)
 {% tab title="TypeScript" %}
 
 ```typescript
+// Define the nodes first
+// const review = new ReviewExpenseNode()
+// const revise = new ReviseReportNode()
+// const payment = new ProcessPaymentNode()
+// const finish = new FinishProcessNode()
+// ..
+
 // Define the flow connections
 review.on('approved', payment) // If approved, process payment
 review.on('needs_revision', revise) // If needs changes, go to revision
@@ -625,13 +730,14 @@ review.on('rejected', finish) // If rejected, finish the process
 revise.next(review) // After revision, go back for another review
 payment.next(finish) // After payment, finish the process
 
-const flow = new Flow(review)
+// Create the flow
+const expenseFlow = new Flow(review)
 ```
 
 {% endtab %}
 {% endtabs %}
 
-Let's see how it flows:
+This flow creates the following execution paths:
 
 1. If `review.post()` returns `"approved"`, the expense moves to the `payment` node
 2. If `review.post()` returns `"needs_revision"`, it goes to the `revise` node, which then loops back to `review`
@@ -647,76 +753,23 @@ flowchart TD
     payment --> finish
 ```
 
-### Running Individual Nodes vs. Running a Flow
+## Nested Flows
 
-- `node.run(shared)`: Just runs that node alone (calls `prep->exec->post()`), returns an Action.
-- `flow.run(shared)`: Executes from the start node, follows Actions to the next node, and so on until the flow can't continue.
+A Flow can be used as a Node within another Flow, enabling powerful composition patterns. This allows you to:
 
-{% hint style="warning" %}
-`node.run(shared)` **does not** proceed to the successor.
-This is mainly for debugging or testing a single node.
+1. Break down complex applications into manageable sub-flows
+2. Reuse flows across different applications
+3. Create hierarchical workflows with clear separation of concerns
 
-Always use `flow.run(...)` in production to ensure the full pipeline runs correctly.
-{% endhint %}
+### Flow as a Node
 
-## 3. Nested Flows
+When a Flow is used as a Node:
 
-A **Flow** can act like a Node, which enables powerful composition patterns. This means you can:
-
-1. Use a Flow as a Node within another Flow's transitions.
-2. Combine multiple smaller Flows into a larger Flow for reuse.
-3. Node `params` will be a merging of **all** parents' `params`.
-
-### Flow's Node Methods
-
-A **Flow** is also a **Node**, so it will run `prep()` and `post()`. However:
-
-- It **won't** run `exec()`, as its main logic is to orchestrate its nodes.
+- It inherits the Node lifecycle (`prep → exec → post`)
+- Its `prep()` and `post()` methods can be overridden
 - `post()` always receives `None` for `exec_res` and should instead get the flow execution results from the shared store.
-
-### Basic Flow Nesting
-
-Here's how to connect a flow to another node:
-
-{% tabs %}
-{% tab title="Python" %}
-
-```python
-# Create a sub-flow
-node_a >> node_b
-subflow = Flow(start=node_a)
-
-# Connect it to another node
-subflow >> node_c
-
-# Create the parent flow
-parent_flow = Flow(start=subflow)
-```
-
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-```typescript
-// Create a sub-flow
-node_a.next(node_b)
-const subflow = new Flow(node_a)
-
-// Connect it to another node
-subflow.next(node_c)
-
-// Create the parent flow
-const parentFlow = new Flow(subflow)
-```
-
-{% endtab %}
-{% endtabs %}
-
-When `parent_flow.run()` executes:
-
-1. It starts `subflow`
-2. `subflow` runs through its nodes (`node_a->node_b`)
-3. After `subflow` completes, execution continues to `node_c`
+- It won't allow for a custom `exec()` method since its main logic is to orchestrate its internal nodes
+- When run, it executes its internal nodes according to their transitions
 
 ### Example: Order Processing Pipeline
 
@@ -745,7 +798,7 @@ payment_flow >> inventory_flow >> shipping_flow
 order_pipeline = Flow(start=payment_flow)
 
 # Run the entire pipeline
-order_pipeline.run(shared_data)
+await order_pipeline.run(shared_data)
 ```
 
 {% endtab %}
@@ -754,16 +807,16 @@ order_pipeline.run(shared_data)
 
 ```typescript
 // Payment processing sub-flow
-validate_payment.next(process_payment).next(payment_confirmation)
-const paymentFlow = new Flow(validate_payment)
+validatePayment.next(processPayment).next(paymentConfirmation)
+const paymentFlow = new Flow(validatePayment)
 
 // Inventory sub-flow
-check_stock.next(reserve_items).next(update_inventory)
-const inventoryFlow = new Flow(check_stock)
+checkStock.next(reserveItems).next(updateInventory)
+const inventoryFlow = new Flow(checkStock)
 
 // Shipping sub-flow
-create_label.next(assign_carrier).next(schedule_pickup)
-const shippingFlow = new Flow(create_label)
+createLabel.next(assignCarrier).next(schedulePickup)
+const shippingFlow = new Flow(createLabel)
 
 // Connect the flows into a main order pipeline
 paymentFlow.next(inventoryFlow).next(shippingFlow)
@@ -772,7 +825,7 @@ paymentFlow.next(inventoryFlow).next(shippingFlow)
 const orderPipeline = new Flow(paymentFlow)
 
 // Run the entire pipeline
-orderPipeline.run(shared_data)
+await orderPipeline.run(sharedData)
 ```
 
 {% endtab %}
@@ -800,50 +853,100 @@ flowchart LR
     end
 ```
 
+## Flow Parameters
+
+When a Flow is used as a Node, you can pass parameters to it using `set_params()`. These parameters are then accessible within the Flow's nodes:
+
+{% tabs %}
+{% tab title="Python" %}
+
+```python
+# Create a flow
+process_flow = Flow(start=some_node)
+
+# Set parameters
+process_flow.set_params({"mode": "fast", "max_items": 10})
+
+# Use the flow in another flow
+main_flow = Flow(start=process_flow)
+
+# Run the main flow
+await main_flow.run(shared)
+```
+
+{% endtab %}
+
+{% tab title="TypeScript" %}
+
+```typescript
+// Create a flow
+const processFlow = new Flow(someNode)
+
+// Set parameters
+processFlow.setParams({ mode: 'fast', maxItems: 10 })
+
+// Use the flow in another flow
+const mainFlow = new Flow(processFlow)
+
+// Run the main flow
+await mainFlow.run(shared)
+```
+
+{% endtab %}
+{% endtabs %}
+
+## Best Practices
+
+1. **Start Simple**: Begin with a linear flow and add branching/looping as needed
+2. **Visualize First**: Sketch your flow diagram before coding
+3. **Name Actions Clearly**: Use descriptive action names that indicate the decision made
+4. **Test Incrementally**: Build and test one section of your flow at a time
+5. **Document Transitions**: Add comments explaining the conditions for each transition
+6. **Error Handling**: Always include paths for handling errors
+7. **Avoid Deep Nesting**: Keep nesting to 2-3 levels for maintainability
+
+By following these principles, you can create complex, maintainable AI applications that are easy to reason about and extend.
+
 
 
 
 ================================================
 File: docs/core_abstraction/communication.md
 ================================================
----
-title: 'Communication'
----
-
 # Communication
 
-Nodes and Flows **communicate** in 2 ways:
+Nodes and Flows in BrainyFlow communicate through two primary mechanisms:
 
-1. **Shared Store (for almost all cases)**
+1. **Shared Store (recommended for most cases)**
 
-   - A global data structure (often an in-memory dictionary) that all nodes can read (`prep()`) and write (`post()`).
-   - Great for data results, large content, or anything multiple nodes need.
-   - You shall design the data structure and populate it ahead.
-     {% hint style="success" %}
-     **Separation of Concerns:** Use `Shared Store` for almost all cases to separate _Data Schema_ from _Compute Logic_! This approach is both flexible and easy to manage, resulting in more maintainable code. `Params` is more a syntax sugar for [Batch](./batch.md).
-     {% endhint %}
+   - A global data structure (typically an in-memory dictionary) that all nodes can read from (`prep()`) and write to (`post()`)
+   - Ideal for sharing data results, large content, or information needed by multiple nodes
+   - Follows the principle of separation of concerns by keeping data separate from computation logic
 
-2. **Params (only for [Batch](./batch.md))**
-   - Each node has a local, ephemeral `params` dict passed in by the **parent Flow**, used as an identifier for tasks. Parameter keys and values shall be **immutable**.
-   - Good for identifiers like filenames or numeric IDs, in Batch mode.
+2. **Params (primarily for [Batch](./batch.md) operations)**
+   - Node-specific configuration passed down from parent flows
+   - Best for identifiers like filenames or IDs, especially in Batch processing
+   - Parameter keys and values should be **immutable** during execution
 
 If you know memory management, think of the **Shared Store** like a **heap** (shared by all function calls), and **Params** like a **stack** (assigned by the caller).
 
-## 1. Shared Store
+## Shared Store
+
+The Shared Store is the primary communication mechanism in BrainyFlow, embodying the principle of separation between data storage and computation logic.
 
 ### Overview
 
-A shared store is typically an in-memory dictionary, like:
+A shared store is typically an in-memory dictionary that serves as a global data repository:
 
 {% tabs %}
 {% tab title="Python" %}
 
 ```python
 shared = {
-    "data": {},
-    "summary": {},
+    "data": {...},
+    "results": {...},
     "config": {...},
-    # ...
+    # Any other data you need to share
 }
 ```
 
@@ -853,19 +956,26 @@ shared = {
 
 ```typescript
 const shared = {
-  data: {},
-  summary: {},
+  data: {...},
+  results: {...},
   config: {...},
-  // ...
+  // Any other data you need to share
 }
 ```
 
 {% endtab %}
 {% endtabs %}
 
-It can also contain local file handlers, database connections, or a combination for persistence. We recommend deciding the data structure or DB schema first based on your app requirements.
+The shared store can also contain file handlers, database connections, or other resources that need to be accessible across nodes.
 
-### Example
+### Best Practices
+
+1. **Define a Clear Schema**: Plan your shared store structure before implementation
+2. **Use Namespaces**: Group related data under descriptive keys
+3. **Document Structure**: Comment on expected data types and formats
+4. **Avoid Deep Nesting**: Keep the structure reasonably flat for readability
+
+### Example Usage
 
 {% tabs %}
 {% tab title="Python" %}
@@ -873,12 +983,12 @@ It can also contain local file handlers, database connections, or a combination 
 ```python
 class LoadData(Node):
     async def post(self, shared, prep_res, exec_res):
-        # We write data to shared store
+        # Write data to shared store
         shared["data"] = "Some text content"
 
 class Summarize(Node):
     async def prep(self, shared):
-        # We read data from shared store
+        # Read data from shared store
         return shared["data"]
 
     async def exec(self, prep_res):
@@ -888,9 +998,8 @@ class Summarize(Node):
         return summary
 
     async def post(self, shared, prep_res, exec_res):
-        # We write summary to shared store
+        # Write summary to shared store
         shared["summary"] = exec_res
-        return "default"
 
 load_data = LoadData()
 summarize = Summarize()
@@ -907,29 +1016,28 @@ await flow.run(shared)
 
 ```typescript
 class LoadData extends Node {
-  async post(shared: any, prepRes: any, execRes: any): Promise {
-    // We write data to shared store
+  async post(shared: Record): Promise {
+    // Write data to shared store
     shared.data = 'Some text content'
   }
 }
 
 class Summarize extends Node {
-  async prep(shared: any): Promise {
-    // We read data from shared store
+  async prep(shared: Record): Promise {
+    // Read data from shared store
     return shared.data
   }
 
-  async exec(prepRes: any): Promise {
+  async exec(prepRes: string): Promise {
     // Call LLM to summarize
     const prompt = `Summarize: ${prepRes}`
     const summary = await callLLM(prompt)
     return summary
   }
 
-  async post(shared: any, prepRes: any, execRes: string): Promise {
-    // We write summary to shared store
+  async post(shared: Record, prepRes: string, execRes: string): Promise {
+    // Write summary to shared store
     shared.summary = execRes
-    return 'default'
   }
 }
 
@@ -945,28 +1053,23 @@ await flow.run(shared)
 {% endtab %}
 {% endtabs %}
 
-Here:
+## Params
 
-- `LoadData` writes to `shared["data"]`.
-- `Summarize` reads from `shared["data"]`, summarizes, and writes to `shared["summary"]`.
+While the Shared Store is the primary communication mechanism, Params provide a way to configure individual nodes with specific settings.
 
-## 2. Params
+### Key Characteristics
 
-**Params** let you store _per-Node_ or _per-Flow_ config that doesn't need to live in the shared store. They are:
+- **Immutable**: Params don't change during a node's execution cycle
+- **Hierarchical**: Params are passed down from parent flows to child nodes
+- **Local**: Each node or flow has its own params that don't affect other nodes
 
-- **Immutable** during a Node's run cycle (i.e., they don't change mid-`prep->exec->post`).
-- **Set** via `set_params()`.
-- **Cleared** and updated each time a parent Flow calls it.
+### When to Use Params
 
-{% hint style="warning" %}
-Only set the uppermost Flow params because others will be overwritten by the parent Flow.
+- **Batch Processing**: To identify which item is being processed
+- **Configuration**: For node-specific settings that don't need to be shared
+- **Identification**: For tracking the source or purpose of a computation
 
-If you need to set child node params, see [Batch](./batch.md).
-{% endhint %}
-
-Typically, **Params** are identifiers (e.g., file name, page number). Use them to fetch the task you assigned or write to a specific part of the shared store.
-
-### Example
+### Example Usage
 
 {% tabs %}
 {% tab title="Python" %}
@@ -986,21 +1089,16 @@ class SummarizeFile(Node):
     async def post(self, shared, prep_res, exec_res):
         filename = self.params["filename"]
         shared["summary"][filename] = exec_res
-        return "default"
 
-# 2) Set params
+# 2) Set params directly on a node (for testing)
 node = SummarizeFile()
-
-# 3) Set Node params directly (for testing)
 node.set_params({"filename": "doc1.txt"})
 await node.run(shared)
 
-# 4) Create Flow
+# 3) Set params on a flow (overrides node params)
 flow = Flow(start=node)
-
-# 5) Set Flow params (overwrites node params)
 flow.set_params({"filename": "doc2.txt"})
-await flow.run(shared)  # The node summarizes doc2, not doc1
+await flow.run(shared)  # The node summarizes doc2.txt, not doc1.txt
 ```
 
 {% endtab %}
@@ -1010,7 +1108,7 @@ await flow.run(shared)  # The node summarizes doc2, not doc1
 ```typescript
 // 1) Create a Node that uses params
 class SummarizeFile extends Node {
-  async prep(shared: any): Promise {
+  async prep(shared: Record): Promise {
     // Access the node's param
     const filename = this.params.filename
     return shared.data[filename] || ''
@@ -1021,30 +1119,38 @@ class SummarizeFile extends Node {
     return await callLLM(prompt)
   }
 
-  async post(shared: any, prepRes: string, execRes: string): Promise<string> {
+  async post(shared: Record, prepRes: string, execRes: string): Promise {
     const filename = this.params.filename
     shared.summary[filename] = execRes
-    return 'default'
   }
 }
 
-// 2) Set params
+// 2) Set params directly on a node (for testing)
 const node = new SummarizeFile()
-
-// 3) Set Node params directly (for testing)
 node.setParams({ filename: 'doc1.txt' })
 await node.run(shared)
 
-// 4) Create Flow
+// 3) Set params on a flow (overrides node params)
 const flow = new Flow(node)
-
-// 5) Set Flow params (overwrites node params)
 flow.setParams({ filename: 'doc2.txt' })
-await flow.run(shared) // The node summarizes doc2, not doc1
+await flow.run(shared) // The node summarizes doc2.txt, not doc1.txt
 ```
 
 {% endtab %}
 {% endtabs %}
+
+## Choosing Between Shared Store and Params
+
+| Use Shared Store when...                    | Use Params when...                           |
+| ------------------------------------------- | -------------------------------------------- |
+| Data needs to be accessed by multiple nodes | Configuration is specific to a single node   |
+| Information persists across the entire flow | Working with Batch processing                |
+| Storing large amounts of data               | Passing identifiers or simple values         |
+| Maintaining state throughout execution      | Configuring behavior without affecting state |
+
+{% hint style="success" %}
+**Best Practice**: Use Shared Store for almost all cases to maintain separation of concerns. Params are primarily useful for Batch processing and node-specific configuration.
+{% endhint %}
 
 
 
@@ -1052,42 +1158,33 @@ await flow.run(shared) // The node summarizes doc2, not doc1
 ================================================
 File: docs/core_abstraction/batch.md
 ================================================
----
-title: 'Batch'
----
+# Batch Processing
 
-# Batch
+Batch processing in BrainyFlow enables efficient handling of multiple items, whether sequentially or in parallel. This is particularly useful for:
 
-**Batch** makes it easier to handle large inputs in one Node or **rerun** a Flow multiple times. Example use cases:
+- Processing large datasets or lists (e.g., multiple files, database records)
+- Applying the same operation to multiple inputs
+- Dividing large tasks into manageable chunks
 
-- **Chunk-based** processing (e.g., splitting large texts).
-- **Iterative** processing over lists of input items (e.g., user queries, files, URLs).
+## Node-Level Batch Processing
 
-## 1. SequentialBatchNode
+BrainyFlow provides two specialized node types for batch processing:
 
-A **SequentialBatchNode** extends `Node` for sequential processing with changes to:
+### SequentialBatchNode
+
+A `SequentialBatchNode` processes items one after another, which is useful when:
+
+- Order of processing matters
+- Operations have dependencies between items
+- You need to conserve resources or manage rate limits
+
+It extends `Node`, with changes to:
 
 - **`async prep(shared)`**: returns an **iterable** (e.g., list, generator).
 - **`async exec(item)`**: called **once** per item in that iterable.
 - **`async post(shared, prep_res, exec_res_list)`**: after all items are processed, receives a **list** of results (`exec_res_list`) and returns an **Action**.
 
-## 2. ParallelBatchNode
-
-{% hint style="warning" %}
-**Parallel Processing Considerations**:
-
-- Ensure operations are independent before parallelizing
-- Watch for race conditions in shared resources
-- Consider using [Throttling](./throttling.md) mechanisms for rate-limited APIs
-  {% endhint %}
-
-A **ParallelBatchNode** extends `Node` for parallel processing with changes to:
-
-- **`async prep(shared)`**: returns an **iterable** (e.g., list, generator).
-- **`async exec(item)`**: called **concurrently** for each item.
-- **`async post(shared, prep_res, exec_res_list)`**: after all items are processed, receives a **list** of results (`exec_res_list`) and returns an **Action**.
-
-### Example: Sequential Summarize File
+#### Example: Sequential Summarize File
 
 {% tabs %}
 {% tab title="Python" %}
@@ -1098,18 +1195,20 @@ A **ParallelBatchNode** extends `Node` for parallel processing with changes to:
 ```python
 class SequentialSummaries(SequentialBatchNode):
     async def prep(self, shared):
-    	# Suppose we have a big file; chunk it
+        """Return an iterable of items to process."""
         content = shared["data"]
         chunk_size = 10000
+        # Suppose we have a big file; chunk it!
         return [content[i:i+chunk_size] for i in range(0, len(content), chunk_size)]
 
     async def exec(self, chunk):
+        """Process a single chunk. Called once per item."""
         prompt = f"Summarize this chunk in 10 words: {chunk}"
         return call_llm(prompt)
 
     async def post(self, shared, prep_res, exec_res_list):
+        """Process all results after all items are processed."""
         shared["summary"] = "\n".join(exec_res_list)
-        return "default"
 ```
 
 {% endtab %}
@@ -1118,11 +1217,12 @@ class SequentialSummaries(SequentialBatchNode):
 
 ```typescript
 class SequentialSummaries extends SequentialBatchNode {
-  async prep(shared: any): Promise<string[]> {
-    // Suppose we have a big file; chunk it
-    const content = shared['data']
+  async prep(shared: Record): Promise {
+    const content = shared.data
     const chunkSize = 10000
     const chunks: string[] = []
+
+    // Suppose we have a big file; chunk it!
     for (let i = 0; i < content.length; i += chunkSize) {
       chunks.push(content.slice(i, i + chunkSize))
     }
@@ -1134,9 +1234,8 @@ class SequentialSummaries extends SequentialBatchNode {
     return await callLLM(prompt)
   }
 
-  async post(shared: any, prepRes: string[], execResList: string[]): Promise<string> {
-    shared['summary'] = execResList.join('\n')
-    return 'default'
+  async post(shared: Record, prepRes: string[], execResList: string[]): Promise {
+    shared.summary = execResList.join('\n')
   }
 }
 ```
@@ -1144,7 +1243,30 @@ class SequentialSummaries extends SequentialBatchNode {
 {% endtab %}
 {% endtabs %}
 
-### Example: Parallel Summarize of a Large File
+### ParallelBatchNode
+
+A `ParallelBatchNode` processes items concurrently, which is useful when:
+
+- Operations are independent of each other
+- You want to maximize throughput
+- Tasks are primarily I/O-bound (like API calls)
+
+{% hint style="warning" %}
+**Concurrency Considerations**:
+
+- Ensure operations are truly independent before using parallel processing
+- Be mindful of rate limits when making API calls
+- Consider using [Throttling](./throttling.md) to control concurrency
+
+{% endhint %}
+
+It extends `Node`, with changes to:
+
+- **`async prep(shared)`**: returns an **iterable** (e.g., list, generator).
+- **`async exec(item)`**: called **concurrently** for each item.
+- **`async post(shared, prep_res, exec_res_list)`**: after all items are processed, receives a **list** of results (`exec_res_list`) and returns an **Action**.
+
+#### Example: Parallel Summarize of a Large File
 
 {% tabs %}
 {% tab title="Python" %}
@@ -1152,30 +1274,20 @@ class SequentialSummaries extends SequentialBatchNode {
 ```python
 class ParallelSummaries(ParallelBatchNode):
     async def prep(self, shared):
-        # Suppose we have a big file; chunk it
+        """Return an iterable of items to process in parallel."""
         content = shared["data"]
         chunk_size = 10000
-        chunks = [content[i:i+chunk_size] for i in range(0, len(content), chunk_size)]
-        return chunks
+        # Suppose we have a big file; chunk it!
+        return [content[i:i+chunk_size] for i in range(0, len(content), chunk_size)]
 
     async def exec(self, chunk):
+        """Process a single chunk. Called concurrently for all items."""
         prompt = f"Summarize this chunk in 10 words: {chunk}"
-        summary = call_llm(prompt)
-        return summary
+        return call_llm(prompt)
 
     async def post(self, shared, prep_res, exec_res_list):
+        """Process all results after all items are processed."""
         shared["summary"] = "\n".join(exec_res_list)
-        return "default"
-
-# (Optional) With concurrency control
-class LimitedParallelSummaries(ParallelSummaries):
-    def __init__(self, concurrency=3):
-        self.semaphore = asyncio.Semaphore(concurrency)
-
-    async def exec(self, chunk):
-        async with self.semaphore:
-            prompt = f"Summarize this chunk in 10 words: {chunk}"
-            return call_llm(prompt)
 ```
 
 {% endtab %}
@@ -1184,11 +1296,12 @@ class LimitedParallelSummaries(ParallelSummaries):
 
 ```typescript
 class ParallelSummaries extends ParallelBatchNode {
-  async prep(shared: any): Promise<string[]> {
-    // Suppose we have a big file; chunk it
-    const content = shared['data']
+  async prep(shared: Record): Promise {
+    const content = shared.data
     const chunkSize = 10000
     const chunks: string[] = []
+
+    // Suppose we have a big file; chunk it!
     for (let i = 0; i < content.length; i += chunkSize) {
       chunks.push(content.slice(i, i + chunkSize))
     }
@@ -1200,25 +1313,8 @@ class ParallelSummaries extends ParallelBatchNode {
     return await callLLM(prompt)
   }
 
-  async post(shared: any, prepRes: string[], execResList: string[]): Promise<string> {
-    shared['summary'] = execResList.join('\n')
-    return 'default'
-  }
-}
-
-class LimitedParallelSummaries extends ParallelBatchNode {
-  private limit: ReturnType<typeof pLimit>
-
-  constructor(concurrency = 3) {
-    super()
-    this.limit = pLimit(concurrency)
-  }
-
-  async exec(chunk: string): Promise<string> {
-    return this.limit(() => {
-      const prompt = `Summarize this chunk in 10 words: ${chunk}`
-      return callLLM(prompt)
-    })
+  async post(shared: Record, prepRes: string[], execResList: string[]): Promise {
+    shared.summary = execResList.join('\n')
   }
 }
 ```
@@ -1226,48 +1322,36 @@ class LimitedParallelSummaries extends ParallelBatchNode {
 {% endtab %}
 {% endtabs %}
 
----
+## Flow-Level Batch Processing
 
-## 3. BatchFlow Types
+BrainyFlow also supports batch processing at the flow level, allowing you to run an entire flow multiple times with different parameters:
 
 ### SequentialBatchFlow
 
-A **SequentialBatchFlow** runs a **Flow** multiple times sequentially, each time with different `params`. Think of it as a loop that replays the Flow for each parameter set.
+A `SequentialBatchFlow` runs a flow multiple times in sequence, with different `params` each time. Think of it as a loop that replays the Flow for each parameter set.
+
 
 {% hint style="info" %}
 **When to use**: Choose sequential processing when order matters or when working with APIs that have strict rate limits. See [Throttling](./throttling.md) for managing rate limits.
 {% endhint %}
 
-### ParallelBatchFlow
-
-A **ParallelBatchFlow** runs a **Flow** multiple times concurrently, each time with different `params`. This is useful for I/O-bound operations where you want to maximize throughput.
-
-{% hint style="warning" %}
-**Concurrency Considerations**:
-
-- Ensure operations are independent
-- Watch for race conditions in shared resources
-- Consider using [Throttling](./throttling.md) mechanisms for rate-limited APIs
-  {% endhint %}
-
-### Example: Summarize Many Files
+#### Example: Summarize Many Files
 
 {% tabs %}
 {% tab title="Python" %}
 
 ```python
-class SummarizeAllFiles(SequentialBatchFlow): # or use ParallelBatchFlow
-    def prep(self, shared):
-        # Return a list of param dicts (one per file)
-        filenames = list(shared["data"].keys())  # e.g., ["file1.txt", "file2.txt", ...]
+class SummarizeAllFiles(SequentialBatchFlow):
+    async def prep(self, shared):
+        """Return a list of parameter dictionaries, one per file."""
+        filenames = list(shared["data"].keys()) # e.g., ["file1.txt", "file2.txt", ...]
         return [{"filename": fn} for fn in filenames]
 
-# Suppose we have a per-file Flow (e.g., load_file >> summarize >> reduce):
-summarize_file = SummarizeFile(start=load_file)
+summarize_file = Flow(start=load_file)
 
-# Wrap that flow into a SequentialBatchFlow:
+# Create a batch flow that processes all files sequentially
 summarize_all_files = SummarizeAllFiles(start=summarize_file)
-summarize_all_files.run(shared)
+await summarize_all_files.run(shared)
 ```
 
 {% endtab %}
@@ -1275,26 +1359,24 @@ summarize_all_files.run(shared)
 {% tab title="TypeScript" %}
 
 ```typescript
-class SummarizeAllFiles extends SequentialBatchFlow /* or use ParallelBatchFlow */ {
-  prep(shared: any): Array<Record<string, string>> {
-    // Return a list of param dicts (one per file)
-    const filenames = Object.keys(shared['data']) // e.g., ["file1.txt", "file2.txt", ...]
-    return filenames.map((fn) => ({ filename: fn }))
+class SummarizeAllFiles extends SequentialBatchFlow {
+  async prep(shared: Record): Promise<Array<Record<string, string>>> {
+    const filenames = Object.keys(shared.data) // e.g., ["file1.txt", "file2.txt", ...]
+    return filenames.map(fn => ({ filename: fn }))
   }
 }
 
-// Suppose we have a per-file Flow (e.g., load_file >> summarize >> reduce):
-const summarizeFile = new SummarizeFile(loadFile)
+const summarizeFile = new Flow(loadFile)
 
-// Wrap that flow into a SequentialBatchFlow:
+// Create a batch flow that processes all files sequentially
 const summarizeAllFiles = new SummarizeAllFiles(summarizeFile)
-summarizeAllFiles.run(shared)
+await summarizeAllFiles.run(shared)
 ```
 
 {% endtab %}
 {% endtabs %}
 
-### Under the Hood
+#### Under the Hood
 
 1. `prep(shared)` returns a list of param dicts—e.g., `[{filename: "file1.txt"}, {filename: "file2.txt"}, ...]`.
 2. The **BatchFlow** loops through each dict. For each one:
@@ -1302,9 +1384,53 @@ summarizeAllFiles.run(shared)
    - It calls `flow.run(shared)` using the merged result.
 3. This means the sub-Flow is run **repeatedly**, once for every param dict.
 
----
 
-## 5. Nested or Multi-Level Batches
+### ParallelBatchFlow
+
+A `ParallelBatchFlow` runs a flow multiple times concurrently, with different `params` each time:
+
+{% tabs %}
+{% tab title="Python" %}
+
+```python
+class SummarizeAllFiles(ParallelBatchFlow):
+    async def prep(self, shared):
+        """Return a list of parameter dictionaries, one per file."""
+        filenames = list(shared["data"].keys())
+        return [{"filename": fn} for fn in filenames]
+
+# Create a flow for processing a single file
+summarize_file = Flow(start=load_file)
+
+# Create a batch flow that processes all files in parallel
+summarize_all_files = ParallelBatchFlow(start=summarize_file)
+await summarize_all_files.run(shared)
+```
+
+{% endtab %}
+
+{% tab title="TypeScript" %}
+
+```typescript
+class SummarizeAllFiles extends ParallelBatchFlow {
+  async prep(shared: Record): Promise>> {
+    const filenames = Object.keys(shared.data)
+    return filenames.map(fn => ({ filename: fn }))
+  }
+}
+
+// Create a flow for processing a single file
+const summarizeFile = new Flow(loadFile)
+
+// Create a batch flow that processes all files in parallel
+const summarizeAllFiles = new ParallelBatchFlow(summarizeFile)
+await summarizeAllFiles.run(shared)
+```
+
+{% endtab %}
+{% endtabs %}
+
+## Nested Batch Processing
 
 You can nest a **SequentialBatchFlow** or **ParallelBatchFlow** in another batch flow. For instance:
 
@@ -1318,20 +1444,21 @@ At each level, **BatchFlow** merges its own param dict with the parent’s. By t
 
 ```python
 class FileBatchFlow(SequentialBatchFlow):
-    def prep(self, shared):
+    async def prep(self, shared):
         directory = self.params["directory"]
         # e.g., files = ["file1.txt", "file2.txt", ...]
         files = [f for f in os.listdir(directory) if f.endswith(".txt")]
         return [{"filename": f} for f in files]
 
 class DirectoryBatchFlow(SequentialBatchFlow):
-    def prep(self, shared):
-        directories = [ "/path/to/dirA", "/path/to/dirB"]
+    async def prep(self, shared):
+        directories = ["/path/to/dirA", "/path/to/dirB"]
         return [{"directory": d} for d in directories]
 
 # MapSummaries have params like {"directory": "/path/to/dirA", "filename": "file1.txt"}
 inner_flow = FileBatchFlow(start=MapSummaries())
 outer_flow = DirectoryBatchFlow(start=inner_flow)
+await outer_flow.run(shared)
 ```
 
 {% endtab %}
@@ -1340,29 +1467,43 @@ outer_flow = DirectoryBatchFlow(start=inner_flow)
 
 ```typescript
 class FileBatchFlow extends SequentialBatchFlow {
-  prep(shared: any): Array<Record<string, string>> {
-    const directory = this.params['directory']
-    // In real code you would use fs.readdirSync() or similar
-    // For example purposes we'll mock some files
-    const files = ['file1.txt', 'file2.txt'].filter((f) => f.endsWith('.txt'))
-    return files.map((f) => ({ filename: f }))
+  async prep(shared: Record): Promise<Array<Record<string, string>>> {
+    const directory = this.params.directory
+    // In a real implementation, use fs.readdirSync or similar
+    const files = ['file1.txt', 'file2.txt']
+    return files.map(f => ({ filename: f }))
   }
 }
 
 class DirectoryBatchFlow extends SequentialBatchFlow {
-  prep(shared: any): Array<Record<string, string>> {
+  async prep(shared: Record): Promise<Array<Record<string, string>>> {
     const directories = ['/path/to/dirA', '/path/to/dirB']
-    return directories.map((d) => ({ directory: d }))
+    return directories.map(d => ({ directory: d }))
   }
 }
 
 // MapSummaries have params like {"directory": "/path/to/dirA", "filename": "file1.txt"}
 const innerFlow = new FileBatchFlow(new MapSummaries())
 const outerFlow = new DirectoryBatchFlow(innerFlow)
+await outerFlow.run(shared)
 ```
 
 {% endtab %}
 {% endtabs %}
+
+In this nested batch example:
+
+1. The outer flow iterates through directories
+2. For each directory, the inner flow processes all files
+3. Parameters are merged, so the innermost node receives both directory and filename
+
+## Best Practices
+
+1. **Choose the Right Type**: Use sequential processing when order matters or when managing rate limits; use parallel processing for independent operations
+2. **Manage Chunk Size**: Balance between too many small chunks (overhead) and too few large chunks (memory issues)
+3. **Error Handling**: Implement proper error handling to prevent one failure from stopping the entire batch
+4. **Progress Tracking**: Add logging or progress indicators for long-running batch operations
+5. **Resource Management**: Be mindful of memory usage, especially with large datasets
 
 
 
