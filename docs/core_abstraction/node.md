@@ -4,7 +4,9 @@ title: 'Node'
 
 # Node
 
-A **Node** is the smallest building block. Each Node has 3 steps `prep -> exec -> post`:
+A **Node** is the smallest building block in BrainyFlow. Each Node has 3 steps in its lifecycle: `prep -> exec -> post`:
+
+## Node Lifecycle
 
 <div align="center">
   <img src="https://github.com/the-pocket/.github/raw/main/assets/node.png?raw=true" width="400"/>
@@ -12,36 +14,52 @@ A **Node** is the smallest building block. Each Node has 3 steps `prep -> exec -
 
 1. `async prep(shared)`
 
-   - **Read and preprocess data** from `shared` store.
-   - Examples: _query DB, read files, or serialize data into a string_.
+   - **Read and preprocess data** from the `shared` store.
+   - Examples: Query databases, read files, or serialize data into a string.
    - Return `prep_res`, which is used by `exec()` and `post()`.
 
 2. `async exec(prep_res)`
 
-   - **Execute compute logic**, with optional retries and error handling (below).
-   - Examples: _(mostly) LLM calls, remote APIs, tool use_.
-   - ⚠️ This shall be only for compute and **NOT** access `shared`.
-   - ⚠️ If retries enabled, ensure idempotent implementation.
+   - **Execute compute logic**, with optional retries and error handling.
+   - Examples: LLM calls, remote API calls, tool use.
+   - ⚠️ This shall be used only for computation and must **NOT** access `shared`.
+   - ⚠️ If retries are enabled, ensure idempotent implementation.
    - Return `exec_res`, which is passed to `post()`.
 
 3. `async post(shared, prep_res, exec_res)`
    - **Postprocess and write data** back to `shared`.
-   - Examples: _update DB, change states, log results_.
-   - **Decide the next action** by returning a _string_ (`action = "default"` if _None_).
+   - Examples: Update databases, change states, log results.
+   - **Decide the next action** by returning a string (`action = "default"` if `None` is returned).
 
 {% hint style="info" %}
-**Why 3 steps?** To enforce the principle of _separation of concerns_. The data storage and data processing are operated separately.
+**Why 3 steps?** To enforce the principle of _separation of concerns_. Data storage and data processing are operated separately.
 
-All steps are _optional_. E.g., you can only implement `prep` and `post` if you just need to process data.
+All steps are _optional_. For example, you can implement only `prep` and `post` if you just need to process data without external computation.
 {% endhint %}
 
-### Fault Tolerance & Retries
+```mermaid
+sequenceDiagram
+    participant S as Shared Store
+    participant N as Node
+
+    N->>S: 1. prep(): Read from shared store
+    Note right of N: Return prep_res
+
+    N->>N: 2. exec(prep_res): Compute result
+    Note right of N: Return exec_res
+
+    N->>S: 3. post(shared, prep_res, exec_res): Write to shared store
+    Note right of N: Return action string
+```
+
+## Fault Tolerance & Retries
 
 You can **retry** `exec()` if it raises an exception via two parameters when defining the Node:
 
-- `max_retries` (int): Max times to run `exec()`. The default is `1` (**no** retry).
-- `wait` (int): The time to wait (in **seconds**) before next retry. By default, `wait=0` (no waiting).
-  `wait` is helpful when you encounter rate-limits or quota errors from your LLM provider and need to back off.
+- `max_retries` (int): Maximum times to run `exec()`. The default is `1` (**no** retry).
+- `wait` (int): The time to wait (in **seconds**) before the next retry. By default, `wait=0` (no waiting).
+
+`wait` is helpful when you encounter rate-limits or quota errors from your LLM provider and need to back off.
 
 {% tabs %}
 {% tab title="Python" %}
@@ -66,7 +84,7 @@ When an exception occurs in `exec()`, the Node automatically retries until:
 - It either succeeds, or
 - The Node has retried `max_retries - 1` times already and fails on the last attempt.
 
-You can get the current retry times (0-based) from `cur_retry`.
+You can get the current retry count (0-based) from `cur_retry`.
 
 {% tabs %}
 {% tab title="Python" %}
@@ -84,7 +102,7 @@ class RetryNode(Node):
 
 ```typescript
 class RetryNode extends Node {
-  async exec(prepRes: any): any {
+  async exec(prepRes: any): Promise {
     console.log(`Retry ${this.curRetry} times`)
     throw new Error('Failed')
   }
@@ -94,16 +112,16 @@ class RetryNode extends Node {
 {% endtab %}
 {% endtabs %}
 
-### Graceful Fallback
+## Graceful Fallback
 
-To **gracefully handle** the exception (after all retries) rather than raising it, override:
+To **gracefully handle** exceptions (after all retries) rather than raising them, override:
 
 {% tabs %}
 {% tab title="Python" %}
 
 ```python
 async def exec_fallback(self, prep_res, exc):
-    raise exc
+    raise exc  # Default behavior is to re-raise
 ```
 
 {% endtab %}
@@ -111,17 +129,17 @@ async def exec_fallback(self, prep_res, exc):
 {% tab title="TypeScript" %}
 
 ```typescript
-async execFallback(prepRes: any, exc: Error): any {
-  throw exc;
+async execFallback(prepRes: any, exc: Error): Promise {
+  throw exc;  // Default behavior is to re-raise
 }
 ```
 
 {% endtab %}
 {% endtabs %}
 
-By default, it just re-raises exception. But you can return a fallback result instead, which becomes the `exec_res` passed to `post()`.
+By default, this method just re-raises the exception. You can override it to return a fallback result instead, which becomes the `exec_res` passed to `post()`.
 
-### Example: Summarize File
+## Example: Summarize File
 
 {% tabs %}
 {% tab title="Python" %}

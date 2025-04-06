@@ -2,12 +2,13 @@
 
 ## Introduction
 
-- [Home](index.md)
+- [What is BrainyFlow?](index.md)
 - [Installation](installation.md)
 - [Getting Started](getting_started.md)
 
 ## Core Abstraction
 
+- [Overview](core_abstraction/index.md)
 - [Node](core_abstraction/node.md)
 - [Flow](core_abstraction/flow.md)
 - [Communication](core_abstraction/communication.md)
@@ -16,6 +17,7 @@
 
 ## Design Patterns
 
+- [Overview](design_pattern/index.md)
 - [Agent](design_pattern/agent.md)
 - [Workflow](design_pattern/workflow.md)
 - [RAG](design_pattern/rag.md)
@@ -25,6 +27,7 @@
 
 ## Utility Functions
 
+- [Overview](utility_function/index.md)
 - [LLM Wrapper](utility_function/llm.md)
 - [Visualization & Debug](utility_function/viz.md)
 - [Web Search](utility_function/websearch.md)
@@ -35,5 +38,6 @@
 
 ## Guides
 
-- [Agentic Coding Guide](agentic_coding.md)
+- [Agentic Coding Guide](guides/agentic_coding.md)
+- [Best Practices](guides/best_practices.md)
 - [Migrating from PocketFlow](guides/migrating_from_pocketflow.md)

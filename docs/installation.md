@@ -1,3 +1,7 @@
+---
+machine-display: false
+---
+
 # Installation
 
 BrainyFlow is currently available for both Python and TypeScript.
@@ -39,3 +43,7 @@ Copy [`python/brainyflow.py`](https://github.com/zvictor/BrainyFlow/blob/main/py
 Copy [`typescript/brainyflow.ts`](https://github.com/zvictor/BrainyFlow/blob/main/typescript/brainyflow.ts)
 {% endtab %}
 {% endtabs %}
+
+## Next Steps
+
+Once you have BrainyFlow installed, check out the [Getting Started](./getting_started.md) guide to build your first flow, or explore the [Core Abstractions](./core_abstraction/node.md) to understand the framework's fundamental concepts.

@@ -1,10 +1,10 @@
 # Getting Started
 
-Welcome to BrainyFlow! This guide will help you get started with the framework.
+Welcome to BrainyFlow! This guide will help you get started with the framework and build your first flow.
 
 ## 1. Installation
 
-First, make sure you have BrainyFlow installed. Follow the instructions in the [Installation Guide](./installation.md).
+First, ensure you have BrainyFlow installed. Follow the instructions in the [Installation Guide](./installation.md).
 
 ## 2. Core Concepts
 
@@ -15,45 +15,173 @@ BrainyFlow uses a simple yet powerful abstraction based on a **Graph + Shared St
 - **[Shared Store](./core_abstraction/communication.md)**: A dictionary-like object passed between nodes, allowing them to share data.
 - **[Batch](./core_abstraction/batch.md)**: Enables processing multiple data items in parallel or sequentially.
 
-## 3. Your First Flow (Conceptual)
+## 3. Your First Flow
 
-Let's imagine a simple Question-Answering flow:
+Let's create a simple Question-Answering flow:
 
-1.  **GetQuestionNode**: Takes user input.
-2.  **AnswerNode**: Uses an LLM to answer the question based on the input.
+1. **GetQuestionNode**: Takes user input.
+2. **AnswerNode**: Uses an LLM to answer the question based on the input.
 
 ```mermaid
 graph LR
-    A[GetQuestionNode] --> B(AnswerNode);
+    A[GetQuestionNode] --> B[AnswerNode]
 ```
 
-This flow would involve:
+The implementation of this flow would simply be:
 
 - `GetQuestionNode` writing the user's question to the `shared` store.
 - `AnswerNode` reading the question from the `shared` store, calling an LLM utility, and writing the answer back to the `shared` store.
 
-## 4. Agentic Coding
+## 4. Implementation
 
-BrainyFlow is designed for **Agentic Coding**, where humans focus on high-level design and AI agents handle the implementation details.
+Let's implement this flow step by step:
 
-Before diving into complex code, review the [Agentic Coding Guide](./agentic_coding.md) to understand the recommended development process. This involves:
+### Step 1: Create the Nodes
 
-1.  Defining Requirements
-2.  Designing the Flow (using diagrams like the one above)
-3.  Identifying and implementing necessary Utility Functions (like an LLM wrapper)
-4.  Designing Node interactions with the Shared Store
-5.  Implementing the Nodes and Flow
-6.  Optimizing the prompts and flow
-7.  Ensuring Reliability with testing and error handling
+First, we'll create our two nodes:
 
-## 5. Explore Design Patterns and Utilities
+{% tabs %}
+{% tab title="Python" %}
 
-BrainyFlow supports various [Design Patterns](./design_pattern/index.md) like Agents, RAG, and MapReduce. Explore these patterns to build more sophisticated applications.
+```python
+from brainyflow import Node
+from utils import call_llm
 
-While BrainyFlow doesn't include built-in utilities, check the [Utility Function](./utility_function/index.md) examples for guidance on implementing common functionalities like LLM wrappers, web search, and vector database interactions.
+class GetQuestionNode(Node):
+    async def prep(self, shared):
+        """Get text input from user."""
+        shared["question"] = input("Enter your question: ")
 
-## Next Steps
+class AnswerNode(Node):
+    async def prep(self, shared):
+        return shared["question"]
 
-- Dive deeper into the [Core Abstraction](./core_abstraction/index.md) documentation.
-- Explore the [Design Patterns](./design_pattern/index.md) to see how BrainyFlow can be applied.
-- Start building your first application following the [Agentic Coding Guide](./agentic_coding.md).
+    async def exec(self, question):
+        return await call_llm(question)
+
+    async def post(self, shared, prep_res, exec_res):
+        shared["answer"] = exec_res
+```
+
+{% endtab %}
+
+{% tab title="TypeScript" %}
+
+```typescript
+import { Node } from 'brainyflow'
+import { input } from '@inquirer/prompts'
+import { callLLM } from './utils/callLLM'
+
+class GetQuestionNode extends Node {
+  async prep(shared): Promise {
+    shared.question = (await input({ message: 'Enter your question: ' })) || ''
+  }
+}
+
+class AnswerNode extends Node {
+  async prep(shared: any): Promise {
+    return shared['question']
+  }
+
+  async exec(question: string): Promise {
+    return await callLLM(question)
+  }
+
+  async post(shared: any, _prepRes: any, execRes: string): Promise {
+    shared['answer'] = execRes
+  }
+}
+```
+
+{% endtab %}
+{% endtabs %}
+
+Please note that we intentionally do not provide a `callLLM` function but you can [use your own implementation](../flow/utility-functions/llm).
+
+### Step 2: Create the Flow
+
+Now, let's connect these nodes into a flow:
+
+{% tabs %}
+{% tab title="Python" %}
+
+```python
+from brainyflow import Flow
+
+def create_qa_flow():
+    get_question_node = GetQuestionNode()
+    answer_node = AnswerNode()
+
+    get_question_node >> answer_node
+
+    return Flow(start=get_question_node)
+```
+
+{% endtab %}
+
+{% tab title="TypeScript" %}
+
+```typescript
+import { Flow } from 'brainyflow'
+
+function createQaFlow(): Flow {
+  const getQuestionNode = new GetQuestionNode()
+  const answerNode = new AnswerNode()
+
+  getQuestionNode.next(answerNode)
+
+  return new Flow(getQuestionNode)
+}
+```
+
+{% endtab %}
+{% endtabs %}
+
+### Step 3: Run the Flow
+
+Finally, let's run our flow:
+
+{% tabs %}
+{% tab title="Python" %}
+
+```python
+import asyncio
+
+async def main():
+    shared = {}
+    qa_flow = create_qa_flow()
+    await qa_flow.run(shared)
+    print(f"Question: {shared['question']}")
+    print(f"Answer: {shared['answer']}")
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+{% endtab %}
+
+{% tab title="TypeScript" %}
+
+```typescript
+async function main() {
+  const shared: Record = {}
+  const qaFlow = createQaFlow()
+  await qaFlow.run(shared)
+  console.log(`Question: ${shared['question']}`)
+  console.log(`Answer: ${shared['answer']}`)
+}
+
+main().catch(console.error)
+```
+
+{% endtab %}
+{% endtabs %}
+
+## 5. Next Steps
+
+The example we've just built is far from impressive, but it demonstrates the core building blocks of BrainyFlow. From there, you can quickly build much more complex flows and applications.
+
+- Explore more complex [Design Patterns](./design_pattern/index.md) like Agents, RAG, and MapReduce.
+- Learn about [Batch Processing](./core_abstraction/batch.md) for handling large datasets.
+- Dive deeper into [Core Abstractions](./core_abstraction/index.md) to understand the framework's fundamentals.
+- Check out the [Agentic Coding Guide](./agentic_coding.md) for best practices in building self-coding LLM applications with BrainyFlow.

@@ -6,9 +6,9 @@ title: 'Communication'
 
 Nodes and Flows **communicate** in 2 ways:
 
-1. **Shared Store (for almost all the cases)**
+1. **Shared Store (for almost all cases)**
 
-   - A global data structure (often an in-mem dict) that all nodes can read ( `prep()`) and write (`post()`).
+   - A global data structure (often an in-memory dictionary) that all nodes can read (`prep()`) and write (`post()`).
    - Great for data results, large content, or anything multiple nodes need.
    - You shall design the data structure and populate it ahead.
      {% hint style="success" %}
@@ -21,19 +21,22 @@ Nodes and Flows **communicate** in 2 ways:
 
 If you know memory management, think of the **Shared Store** like a **heap** (shared by all function calls), and **Params** like a **stack** (assigned by the caller).
 
----
-
 ## 1. Shared Store
 
 ### Overview
 
-A shared store is typically an in-mem dictionary, like:
+A shared store is typically an in-memory dictionary, like:
 
 {% tabs %}
 {% tab title="Python" %}
 
 ```python
-shared = {"data": {}, "summary": {}, "config": {...}, ...}
+shared = {
+    "data": {},
+    "summary": {},
+    "config": {...},
+    # ...
+}
 ```
 
 {% endtab %}
@@ -52,7 +55,7 @@ const shared = {
 {% endtab %}
 {% endtabs %}
 
-It can also contain local file handlers, DB connections, or a combination for persistence. We recommend deciding the data structure or DB schema first based on your app requirements.
+It can also contain local file handlers, database connections, or a combination for persistence. We recommend deciding the data structure or DB schema first based on your app requirements.
 
 ### Example
 
@@ -61,23 +64,22 @@ It can also contain local file handlers, DB connections, or a combination for pe
 
 ```python
 class LoadData(Node):
-    def post(self, shared, prep_res, exec_res):
+    async def post(self, shared, prep_res, exec_res):
         # We write data to shared store
         shared["data"] = "Some text content"
-        return None
 
 class Summarize(Node):
-    def prep(self, shared):
+    async def prep(self, shared):
         # We read data from shared store
         return shared["data"]
 
-    def exec(self, prep_res):
+    async def exec(self, prep_res):
         # Call LLM to summarize
         prompt = f"Summarize: {prep_res}"
         summary = call_llm(prompt)
         return summary
 
-    def post(self, shared, prep_res, exec_res):
+    async def post(self, shared, prep_res, exec_res):
         # We write summary to shared store
         shared["summary"] = exec_res
         return "default"
@@ -88,7 +90,7 @@ load_data >> summarize
 flow = Flow(start=load_data)
 
 shared = {}
-flow.run(shared)
+await flow.run(shared)
 ```
 
 {% endtab %}
@@ -97,27 +99,26 @@ flow.run(shared)
 
 ```typescript
 class LoadData extends Node {
-  post(shared: any, prepRes: any, execRes: any): void {
+  async post(shared: any, prepRes: any, execRes: any): Promise {
     // We write data to shared store
     shared.data = 'Some text content'
-    return undefined
   }
 }
 
 class Summarize extends Node {
-  prep(shared: any): any {
+  async prep(shared: any): Promise {
     // We read data from shared store
     return shared.data
   }
 
-  exec(prepRes: any): any {
+  async exec(prepRes: any): Promise {
     // Call LLM to summarize
     const prompt = `Summarize: ${prepRes}`
-    const summary = callLLM(prompt)
+    const summary = await callLLM(prompt)
     return summary
   }
 
-  post(shared: any, prepRes: any, execRes: any): string {
+  async post(shared: any, prepRes: any, execRes: string): Promise {
     // We write summary to shared store
     shared.summary = execRes
     return 'default'
@@ -130,7 +131,7 @@ loadData.next(summarize)
 const flow = new Flow(loadData)
 
 const shared = {}
-flow.run(shared)
+await flow.run(shared)
 ```
 
 {% endtab %}
@@ -140,8 +141,6 @@ Here:
 
 - `LoadData` writes to `shared["data"]`.
 - `Summarize` reads from `shared["data"]`, summarizes, and writes to `shared["summary"]`.
-
----
 
 ## 2. Params
 
@@ -167,16 +166,16 @@ Typically, **Params** are identifiers (e.g., file name, page number). Use them t
 ```python
 # 1) Create a Node that uses params
 class SummarizeFile(Node):
-    def prep(self, shared):
+    async def prep(self, shared):
         # Access the node's param
         filename = self.params["filename"]
         return shared["data"].get(filename, "")
 
-    def exec(self, prep_res):
+    async def exec(self, prep_res):
         prompt = f"Summarize: {prep_res}"
         return call_llm(prompt)
 
-    def post(self, shared, prep_res, exec_res):
+    async def post(self, shared, prep_res, exec_res):
         filename = self.params["filename"]
         shared["summary"][filename] = exec_res
         return "default"
@@ -186,14 +185,14 @@ node = SummarizeFile()
 
 # 3) Set Node params directly (for testing)
 node.set_params({"filename": "doc1.txt"})
-node.run(shared)
+await node.run(shared)
 
 # 4) Create Flow
 flow = Flow(start=node)
 
 # 5) Set Flow params (overwrites node params)
 flow.set_params({"filename": "doc2.txt"})
-flow.run(shared)  # The node summarizes doc2, not doc1
+await flow.run(shared)  # The node summarizes doc2, not doc1
 ```
 
 {% endtab %}
@@ -203,18 +202,18 @@ flow.run(shared)  # The node summarizes doc2, not doc1
 ```typescript
 // 1) Create a Node that uses params
 class SummarizeFile extends Node {
-  prep(shared: any): any {
+  async prep(shared: any): Promise {
     // Access the node's param
     const filename = this.params.filename
     return shared.data[filename] || ''
   }
 
-  exec(prepRes: any): any {
+  async exec(prepRes: string): Promise {
     const prompt = `Summarize: ${prepRes}`
-    return callLLM(prompt)
+    return await callLLM(prompt)
   }
 
-  post(shared: any, prepRes: any, execRes: any): string {
+  async post(shared: any, prepRes: string, execRes: string): Promise<string> {
     const filename = this.params.filename
     shared.summary[filename] = execRes
     return 'default'
@@ -226,14 +225,14 @@ const node = new SummarizeFile()
 
 // 3) Set Node params directly (for testing)
 node.setParams({ filename: 'doc1.txt' })
-node.run(shared)
+await node.run(shared)
 
 // 4) Create Flow
 const flow = new Flow(node)
 
 // 5) Set Flow params (overwrites node params)
 flow.setParams({ filename: 'doc2.txt' })
-flow.run(shared) // The node summarizes doc2, not doc1
+await flow.run(shared) // The node summarizes doc2, not doc1
 ```
 
 {% endtab %}
