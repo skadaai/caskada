@@ -1,136 +1,15 @@
 
 
 ================================================
-File: docs/index.md
-================================================
----
-title: 'Home'
----
-
-# Brainy Flow
-
-A [65-line](https://github.com/zvictor/BrainyFlow/blob/main/python/brainyflow.py) minimalist AI framework for _Agents, Task Decomposition, RAG, etc_.
-
-- **Lightweight**: Just the core graph abstraction in 65 lines. ZERO dependencies, and vendor lock-in.
-- **Expressive**: Everything you love from larger frameworks—([Multi-](./design_pattern/multi_agent.html))[Agents](./design_pattern/agent.html), [Workflow](./design_pattern/workflow.html), [RAG](./design_pattern/rag.html), and more.
-- **Agentic-Coding**: Intuitive enough for AI agents to help humans build complex LLM applications.
-
-<div align="center">
-  <img src="https://github.com/the-pocket/.github/raw/main/assets/meme.jpg?raw=true" width="400"/>
-</div>
-
-## Core Abstraction
-
-We model the LLM workflow as a **Graph + Shared Store**:
-
-- [Node](./core_abstraction/node.md) handles simple (LLM) tasks.
-- [Flow](./core_abstraction/flow.md) connects nodes through **Actions** (labeled edges).
-- [Shared Store](./core_abstraction/communication.md) enables communication between nodes within flows.
-- [Batch](./core_abstraction/batch.md) nodes/flows allow for data-intensive tasks.
-- [(Advanced) Throttling](./core_abstraction/throttling.md) helps manage concurrency and rate limits.
-
-<div align="center">
-  <img src="https://github.com/the-pocket/.github/raw/main/assets/abstraction.png" width="500"/>
-</div>
-
-## Design Pattern
-
-From there, it’s easy to implement popular design patterns:
-
-- [Agent](./design_pattern/agent.md) autonomously makes decisions.
-- [Workflow](./design_pattern/workflow.md) chains multiple tasks into pipelines.
-- [RAG](./design_pattern/rag.md) integrates data retrieval with generation.
-- [Map Reduce](./design_pattern/mapreduce.md) splits data tasks into Map and Reduce steps.
-- [Structured Output](./design_pattern/structure.md) formats outputs consistently.
-- [(Advanced) Multi-Agents](./design_pattern/multi_agent.md) coordinate multiple agents.
-
-<div align="center">
-  <img src="https://github.com/the-pocket/.github/raw/main/assets/design.png" width="500"/>
-</div>
-
-## Utility Function
-
-We **do not** provide built-in utilities. Instead, we offer _examples_—please _implement your own_:
-
-- [LLM Wrapper](./utility_function/llm.md)
-- [Viz and Debug](./utility_function/viz.md)
-- [Web Search](./utility_function/websearch.md)
-- [Chunking](./utility_function/chunking.md)
-- [Embedding](./utility_function/embedding.md)
-- [Vector Databases](./utility_function/vector.md)
-- [Text-to-Speech](./utility_function/text_to_speech.md)
-
-**Why not built-in?**: I believe it's a _bad practice_ for vendor-specific APIs in a general framework:
-
-- _API Volatility_: Frequent changes lead to heavy maintenance for hardcoded APIs.
-- _Flexibility_: You may want to switch vendors, use fine-tuned models, or run them locally.
-- _Optimizations_: Prompt caching, batching, and streaming are easier without vendor lock-in.
-
-## Ready to build your Apps?
-
-Check out [Agentic Coding Guidance](./agentic_coding.md), the fastest way to develop LLM projects with Brainy Flow!
-
-
-
-
-================================================
-File: docs/installation.md
-================================================
-# Installation
-
-BrainyFlow is currently available for both Python and TypeScript.
-
-{% tabs %}
-{% tab title="Python" %}
-You can install the Python package using pip:
-
-```bash
-pip install brainyflow
-```
-
-{% endtab %}
-
-{% tab title="TypeScript" %}
-You can install the TypeScript package using pnpm (or npm/yarn):
-
-```bash
-pnpm add brainyflow
-# or
-npm install brainyflow
-# or
-yarn add brainyflow
-```
-
-{% endtab %}
-{% endtabs %}
-
-## Alternative: Copy the Source Code
-
-Since BrainyFlow is lightweight and dependency-free, you can also install it by simply copying the source code file directly into your project:
-
-{% tabs %}
-{% tab title="Python" %}
-Copy [`python/brainyflow.py`](https://github.com/zvictor/BrainyFlow/blob/main/python/brainyflow.py)
-{% endtab %}
-
-{% tab title="TypeScript" %}
-Copy [`typescript/brainyflow.ts`](https://github.com/zvictor/BrainyFlow/blob/main/typescript/brainyflow.ts)
-{% endtab %}
-{% endtabs %}
-
-
-
-
-================================================
 File: docs/getting_started.md
 ================================================
 # Getting Started
 
-Welcome to BrainyFlow! This guide will help you get started with the framework.
+Welcome to BrainyFlow! This guide will help you get started with the framework and build your first flow.
 
 ## 1. Installation
 
-First, make sure you have BrainyFlow installed. Follow the instructions in the [Installation Guide](./installation.md).
+First, ensure you have BrainyFlow installed. Follow the instructions in the [Installation Guide](./installation.md).
 
 ## 2. Core Concepts
 
@@ -141,48 +20,262 @@ BrainyFlow uses a simple yet powerful abstraction based on a **Graph + Shared St
 - **[Shared Store](./core_abstraction/communication.md)**: A dictionary-like object passed between nodes, allowing them to share data.
 - **[Batch](./core_abstraction/batch.md)**: Enables processing multiple data items in parallel or sequentially.
 
-## 3. Your First Flow (Conceptual)
+## 3. Your First Flow
 
-Let's imagine a simple Question-Answering flow:
+Let's create a simple Question-Answering flow:
 
-1.  **GetQuestionNode**: Takes user input.
-2.  **AnswerNode**: Uses an LLM to answer the question based on the input.
+1. **GetQuestionNode**: Takes user input.
+2. **AnswerNode**: Uses an LLM to answer the question based on the input.
 
 ```mermaid
 graph LR
-    A[GetQuestionNode] --> B(AnswerNode);
+    A[GetQuestionNode] --> B[AnswerNode]
 ```
 
-This flow would involve:
+The implementation of this flow would simply be:
 
 - `GetQuestionNode` writing the user's question to the `shared` store.
 - `AnswerNode` reading the question from the `shared` store, calling an LLM utility, and writing the answer back to the `shared` store.
 
-## 4. Agentic Coding
+## 4. Implementation
 
-BrainyFlow is designed for **Agentic Coding**, where humans focus on high-level design and AI agents handle the implementation details.
+Let's implement this flow step by step:
 
-Before diving into complex code, review the [Agentic Coding Guide](./agentic_coding.md) to understand the recommended development process. This involves:
+### Step 1: Create the Nodes
 
-1.  Defining Requirements
-2.  Designing the Flow (using diagrams like the one above)
-3.  Identifying and implementing necessary Utility Functions (like an LLM wrapper)
-4.  Designing Node interactions with the Shared Store
-5.  Implementing the Nodes and Flow
-6.  Optimizing the prompts and flow
-7.  Ensuring Reliability with testing and error handling
+First, we'll create our two nodes:
 
-## 5. Explore Design Patterns and Utilities
+{% tabs %}
+{% tab title="Python" %}
 
-BrainyFlow supports various [Design Patterns](./design_pattern/index.md) like Agents, RAG, and MapReduce. Explore these patterns to build more sophisticated applications.
+```python
+from brainyflow import Node
+from utils import call_llm
 
-While BrainyFlow doesn't include built-in utilities, check the [Utility Function](./utility_function/index.md) examples for guidance on implementing common functionalities like LLM wrappers, web search, and vector database interactions.
+class GetQuestionNode(Node):
+    async def prep(self, shared):
+        """Get text input from user."""
+        shared["question"] = input("Enter your question: ")
 
-## Next Steps
+class AnswerNode(Node):
+    async def prep(self, shared):
+        return shared["question"]
 
-- Dive deeper into the [Core Abstraction](./core_abstraction/index.md) documentation.
-- Explore the [Design Patterns](./design_pattern/index.md) to see how BrainyFlow can be applied.
-- Start building your first application following the [Agentic Coding Guide](./agentic_coding.md).
+    async def exec(self, question):
+        return await call_llm(question)
+
+    async def post(self, shared, prep_res, exec_res):
+        shared["answer"] = exec_res
+```
+
+{% endtab %}
+
+{% tab title="TypeScript" %}
+
+```typescript
+import { Node } from 'brainyflow'
+import { input } from '@inquirer/prompts'
+import { callLLM } from './utils/callLLM'
+
+class GetQuestionNode extends Node {
+  async prep(shared): Promise {
+    shared.question = (await input({ message: 'Enter your question: ' })) || ''
+  }
+}
+
+class AnswerNode extends Node {
+  async prep(shared: any): Promise {
+    return shared['question']
+  }
+
+  async exec(question: string): Promise {
+    return await callLLM(question)
+  }
+
+  async post(shared: any, _prepRes: any, execRes: string): Promise {
+    shared['answer'] = execRes
+  }
+}
+```
+
+{% endtab %}
+{% endtabs %}
+
+Please note that we intentionally do not provide a `callLLM` function but you can [use your own implementation](../flow/utility-functions/llm).
+
+### Step 2: Create the Flow
+
+Now, let's connect these nodes into a flow:
+
+{% tabs %}
+{% tab title="Python" %}
+
+```python
+from brainyflow import Flow
+
+def create_qa_flow():
+    get_question_node = GetQuestionNode()
+    answer_node = AnswerNode()
+
+    get_question_node >> answer_node
+
+    return Flow(start=get_question_node)
+```
+
+{% endtab %}
+
+{% tab title="TypeScript" %}
+
+```typescript
+import { Flow } from 'brainyflow'
+
+function createQaFlow(): Flow {
+  const getQuestionNode = new GetQuestionNode()
+  const answerNode = new AnswerNode()
+
+  getQuestionNode.next(answerNode)
+
+  return new Flow(getQuestionNode)
+}
+```
+
+{% endtab %}
+{% endtabs %}
+
+### Step 3: Run the Flow
+
+Finally, let's run our flow:
+
+{% tabs %}
+{% tab title="Python" %}
+
+```python
+import asyncio
+
+async def main():
+    shared = {}
+    qa_flow = create_qa_flow()
+    await qa_flow.run(shared)
+    print(f"Question: {shared['question']}")
+    print(f"Answer: {shared['answer']}")
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+{% endtab %}
+
+{% tab title="TypeScript" %}
+
+```typescript
+async function main() {
+  const shared: Record = {}
+  const qaFlow = createQaFlow()
+  await qaFlow.run(shared)
+  console.log(`Question: ${shared['question']}`)
+  console.log(`Answer: ${shared['answer']}`)
+}
+
+main().catch(console.error)
+```
+
+{% endtab %}
+{% endtabs %}
+
+## 5. Next Steps
+
+The example we've just built is far from impressive, but it demonstrates the core building blocks of BrainyFlow. From there, you can quickly build much more complex flows and applications.
+
+- Explore more complex [Design Patterns](./design_pattern/index.md) like Agents, RAG, and MapReduce.
+- Learn about [Batch Processing](./core_abstraction/batch.md) for handling large datasets.
+- Dive deeper into [Core Abstractions](./core_abstraction/index.md) to understand the framework's fundamentals.
+- Check out the [Agentic Coding Guide](./agentic_coding.md) for best practices in building self-coding LLM applications with BrainyFlow.
+
+
+
+
+================================================
+File: docs/core_abstraction/index.md
+================================================
+# Understanding BrainyFlow's Mental Model
+
+BrainyFlow is built around a simple but powerful mental model that separates _data flow_ from _computation_. This separation of concerns makes complex LLM applications more maintainable and easier to reason about.
+
+## Core Philosophy
+
+1. **Separation of Concerns**: Keep data storage (shared store) separate from computation logic (nodes)
+2. **Explicit Data Flow**: Make data dependencies between steps clear and traceable
+3. **Composability**: Build complex systems from simple, reusable components
+4. **Resilience**: Handle failures gracefully with retries and fallbacks
+
+## The Graph + Shared Store Pattern
+
+The fundamental pattern in BrainyFlow combines two key elements:
+
+- **Computation Graph**: A directed graph where nodes represent discrete units of work and edges represent the flow of control
+- **Shared Store**: A global data structure that enables communication between nodes
+
+This pattern offers several advantages:
+
+- Clear visualization of application logic
+- Easy identification of bottlenecks
+- Simple debugging of individual components
+- Natural parallelization opportunities
+
+## Key Components
+
+BrainyFlow's architecture is based on these fundamental building blocks:
+
+- **[Node](./node.md)**: The basic unit of work with a clear lifecycle (`prep -> exec -> post`)
+- **[Flow](./flow.md)**: Connects nodes together through action-based transitions
+- **[Communication](./communication.md)**: Enables data sharing between nodes via Shared Store and Params
+- **[Batch](./batch.md)**: Handles processing of multiple items sequentially or in parallel
+- **[Throttling](./throttling.md)**: Manages concurrency and rate limits for external API calls
+
+## How They Work Together
+
+1. **Nodes** perform individual tasks with a clear lifecycle:
+
+   - `prep`: Read from shared store and prepare data
+   - `exec`: Execute computation (often LLM calls)
+   - `post`: Process results and write to shared store
+
+2. **Flows** orchestrate nodes by:
+
+   - Starting with a designated node
+   - Following action-based transitions between nodes
+   - Supporting branching, looping, and nested flows
+
+3. **Communication** happens through:
+
+   - **Shared Store**: A global dictionary accessible to all nodes
+   - **Params**: Node-specific configuration passed down from parent flows
+
+4. **Batch Processing** enables:
+   - Processing multiple items sequentially or in parallel
+   - Handling large datasets efficiently
+   - Supporting nested batch operations
+
+## Design Philosophy
+
+BrainyFlow's core abstractions follow these principles:
+
+- **Separation of Concerns**: Data storage (shared store) is separate from computation logic (nodes)
+- **Composability**: Nodes and flows can be combined in various ways to create complex workflows
+- **Flexibility**: The framework imposes minimal constraints while providing powerful patterns
+- **Reliability**: Built-in retry mechanisms and error handling improve robustness
+
+## Getting Started
+
+If you're new to BrainyFlow, we recommend exploring these core abstractions in the following order:
+
+1. [Node](./node.md) - Understand the basic building block
+2. [Flow](./flow.md) - Learn how to connect nodes together
+3. [Communication](./communication.md) - See how nodes share data
+4. [Batch](./batch.md) - Explore handling multiple items
+5. [Throttling](./throttling.md) - Learn about managing concurrency
+
+Once you understand these core abstractions, you'll be ready to implement various [Design Patterns](../design_pattern/index.md) to solve real-world problems.
 
 
 
@@ -196,7 +289,9 @@ title: 'Node'
 
 # Node
 
-A **Node** is the smallest building block. Each Node has 3 steps `prep -> exec -> post`:
+A **Node** is the smallest building block in BrainyFlow. Each Node has 3 steps in its lifecycle: `prep -> exec -> post`:
+
+## Node Lifecycle
 
 <div align="center">
   <img src="https://github.com/the-pocket/.github/raw/main/assets/node.png?raw=true" width="400"/>
@@ -204,36 +299,52 @@ A **Node** is the smallest building block. Each Node has 3 steps `prep -> exec -
 
 1. `async prep(shared)`
 
-   - **Read and preprocess data** from `shared` store.
-   - Examples: _query DB, read files, or serialize data into a string_.
+   - **Read and preprocess data** from the `shared` store.
+   - Examples: Query databases, read files, or serialize data into a string.
    - Return `prep_res`, which is used by `exec()` and `post()`.
 
 2. `async exec(prep_res)`
 
-   - **Execute compute logic**, with optional retries and error handling (below).
-   - Examples: _(mostly) LLM calls, remote APIs, tool use_.
-   - ⚠️ This shall be only for compute and **NOT** access `shared`.
-   - ⚠️ If retries enabled, ensure idempotent implementation.
+   - **Execute compute logic**, with optional retries and error handling.
+   - Examples: LLM calls, remote API calls, tool use.
+   - ⚠️ This shall be used only for computation and must **NOT** access `shared`.
+   - ⚠️ If retries are enabled, ensure idempotent implementation.
    - Return `exec_res`, which is passed to `post()`.
 
 3. `async post(shared, prep_res, exec_res)`
    - **Postprocess and write data** back to `shared`.
-   - Examples: _update DB, change states, log results_.
-   - **Decide the next action** by returning a _string_ (`action = "default"` if _None_).
+   - Examples: Update databases, change states, log results.
+   - **Decide the next action** by returning a string (`action = "default"` if `None` is returned).
 
 {% hint style="info" %}
-**Why 3 steps?** To enforce the principle of _separation of concerns_. The data storage and data processing are operated separately.
+**Why 3 steps?** To enforce the principle of _separation of concerns_. Data storage and data processing are operated separately.
 
-All steps are _optional_. E.g., you can only implement `prep` and `post` if you just need to process data.
+All steps are _optional_. For example, you can implement only `prep` and `post` if you just need to process data without external computation.
 {% endhint %}
 
-### Fault Tolerance & Retries
+```mermaid
+sequenceDiagram
+    participant S as Shared Store
+    participant N as Node
+
+    N->>S: 1. prep(): Read from shared store
+    Note right of N: Return prep_res
+
+    N->>N: 2. exec(prep_res): Compute result
+    Note right of N: Return exec_res
+
+    N->>S: 3. post(shared, prep_res, exec_res): Write to shared store
+    Note right of N: Return action string
+```
+
+## Fault Tolerance & Retries
 
 You can **retry** `exec()` if it raises an exception via two parameters when defining the Node:
 
-- `max_retries` (int): Max times to run `exec()`. The default is `1` (**no** retry).
-- `wait` (int): The time to wait (in **seconds**) before next retry. By default, `wait=0` (no waiting).
-  `wait` is helpful when you encounter rate-limits or quota errors from your LLM provider and need to back off.
+- `max_retries` (int): Maximum times to run `exec()`. The default is `1` (**no** retry).
+- `wait` (int): The time to wait (in **seconds**) before the next retry. By default, `wait=0` (no waiting).
+
+`wait` is helpful when you encounter rate-limits or quota errors from your LLM provider and need to back off.
 
 {% tabs %}
 {% tab title="Python" %}
@@ -258,7 +369,7 @@ When an exception occurs in `exec()`, the Node automatically retries until:
 - It either succeeds, or
 - The Node has retried `max_retries - 1` times already and fails on the last attempt.
 
-You can get the current retry times (0-based) from `cur_retry`.
+You can get the current retry count (0-based) from `cur_retry`.
 
 {% tabs %}
 {% tab title="Python" %}
@@ -276,7 +387,7 @@ class RetryNode(Node):
 
 ```typescript
 class RetryNode extends Node {
-  async exec(prepRes: any): any {
+  async exec(prepRes: any): Promise {
     console.log(`Retry ${this.curRetry} times`)
     throw new Error('Failed')
   }
@@ -286,16 +397,16 @@ class RetryNode extends Node {
 {% endtab %}
 {% endtabs %}
 
-### Graceful Fallback
+## Graceful Fallback
 
-To **gracefully handle** the exception (after all retries) rather than raising it, override:
+To **gracefully handle** exceptions (after all retries) rather than raising them, override:
 
 {% tabs %}
 {% tab title="Python" %}
 
 ```python
 async def exec_fallback(self, prep_res, exc):
-    raise exc
+    raise exc  # Default behavior is to re-raise
 ```
 
 {% endtab %}
@@ -303,17 +414,17 @@ async def exec_fallback(self, prep_res, exc):
 {% tab title="TypeScript" %}
 
 ```typescript
-async execFallback(prepRes: any, exc: Error): any {
-  throw exc;
+async execFallback(prepRes: any, exc: Error): Promise {
+  throw exc;  // Default behavior is to re-raise
 }
 ```
 
 {% endtab %}
 {% endtabs %}
 
-By default, it just re-raises exception. But you can return a fallback result instead, which becomes the `exec_res` passed to `post()`.
+By default, this method just re-raises the exception. You can override it to return a fallback result instead, which becomes the `exec_res` passed to `post()`.
 
-### Example: Summarize File
+## Example: Summarize File
 
 {% tabs %}
 {% tab title="Python" %}
@@ -703,9 +814,9 @@ title: 'Communication'
 
 Nodes and Flows **communicate** in 2 ways:
 
-1. **Shared Store (for almost all the cases)**
+1. **Shared Store (for almost all cases)**
 
-   - A global data structure (often an in-mem dict) that all nodes can read ( `prep()`) and write (`post()`).
+   - A global data structure (often an in-memory dictionary) that all nodes can read (`prep()`) and write (`post()`).
    - Great for data results, large content, or anything multiple nodes need.
    - You shall design the data structure and populate it ahead.
      {% hint style="success" %}
@@ -718,19 +829,22 @@ Nodes and Flows **communicate** in 2 ways:
 
 If you know memory management, think of the **Shared Store** like a **heap** (shared by all function calls), and **Params** like a **stack** (assigned by the caller).
 
----
-
 ## 1. Shared Store
 
 ### Overview
 
-A shared store is typically an in-mem dictionary, like:
+A shared store is typically an in-memory dictionary, like:
 
 {% tabs %}
 {% tab title="Python" %}
 
 ```python
-shared = {"data": {}, "summary": {}, "config": {...}, ...}
+shared = {
+    "data": {},
+    "summary": {},
+    "config": {...},
+    # ...
+}
 ```
 
 {% endtab %}
@@ -749,7 +863,7 @@ const shared = {
 {% endtab %}
 {% endtabs %}
 
-It can also contain local file handlers, DB connections, or a combination for persistence. We recommend deciding the data structure or DB schema first based on your app requirements.
+It can also contain local file handlers, database connections, or a combination for persistence. We recommend deciding the data structure or DB schema first based on your app requirements.
 
 ### Example
 
@@ -758,23 +872,22 @@ It can also contain local file handlers, DB connections, or a combination for pe
 
 ```python
 class LoadData(Node):
-    def post(self, shared, prep_res, exec_res):
+    async def post(self, shared, prep_res, exec_res):
         # We write data to shared store
         shared["data"] = "Some text content"
-        return None
 
 class Summarize(Node):
-    def prep(self, shared):
+    async def prep(self, shared):
         # We read data from shared store
         return shared["data"]
 
-    def exec(self, prep_res):
+    async def exec(self, prep_res):
         # Call LLM to summarize
         prompt = f"Summarize: {prep_res}"
         summary = call_llm(prompt)
         return summary
 
-    def post(self, shared, prep_res, exec_res):
+    async def post(self, shared, prep_res, exec_res):
         # We write summary to shared store
         shared["summary"] = exec_res
         return "default"
@@ -785,7 +898,7 @@ load_data >> summarize
 flow = Flow(start=load_data)
 
 shared = {}
-flow.run(shared)
+await flow.run(shared)
 ```
 
 {% endtab %}
@@ -794,27 +907,26 @@ flow.run(shared)
 
 ```typescript
 class LoadData extends Node {
-  post(shared: any, prepRes: any, execRes: any): void {
+  async post(shared: any, prepRes: any, execRes: any): Promise {
     // We write data to shared store
     shared.data = 'Some text content'
-    return undefined
   }
 }
 
 class Summarize extends Node {
-  prep(shared: any): any {
+  async prep(shared: any): Promise {
     // We read data from shared store
     return shared.data
   }
 
-  exec(prepRes: any): any {
+  async exec(prepRes: any): Promise {
     // Call LLM to summarize
     const prompt = `Summarize: ${prepRes}`
-    const summary = callLLM(prompt)
+    const summary = await callLLM(prompt)
     return summary
   }
 
-  post(shared: any, prepRes: any, execRes: any): string {
+  async post(shared: any, prepRes: any, execRes: string): Promise {
     // We write summary to shared store
     shared.summary = execRes
     return 'default'
@@ -827,7 +939,7 @@ loadData.next(summarize)
 const flow = new Flow(loadData)
 
 const shared = {}
-flow.run(shared)
+await flow.run(shared)
 ```
 
 {% endtab %}
@@ -837,8 +949,6 @@ Here:
 
 - `LoadData` writes to `shared["data"]`.
 - `Summarize` reads from `shared["data"]`, summarizes, and writes to `shared["summary"]`.
-
----
 
 ## 2. Params
 
@@ -864,16 +974,16 @@ Typically, **Params** are identifiers (e.g., file name, page number). Use them t
 ```python
 # 1) Create a Node that uses params
 class SummarizeFile(Node):
-    def prep(self, shared):
+    async def prep(self, shared):
         # Access the node's param
         filename = self.params["filename"]
         return shared["data"].get(filename, "")
 
-    def exec(self, prep_res):
+    async def exec(self, prep_res):
         prompt = f"Summarize: {prep_res}"
         return call_llm(prompt)
 
-    def post(self, shared, prep_res, exec_res):
+    async def post(self, shared, prep_res, exec_res):
         filename = self.params["filename"]
         shared["summary"][filename] = exec_res
         return "default"
@@ -883,14 +993,14 @@ node = SummarizeFile()
 
 # 3) Set Node params directly (for testing)
 node.set_params({"filename": "doc1.txt"})
-node.run(shared)
+await node.run(shared)
 
 # 4) Create Flow
 flow = Flow(start=node)
 
 # 5) Set Flow params (overwrites node params)
 flow.set_params({"filename": "doc2.txt"})
-flow.run(shared)  # The node summarizes doc2, not doc1
+await flow.run(shared)  # The node summarizes doc2, not doc1
 ```
 
 {% endtab %}
@@ -900,18 +1010,18 @@ flow.run(shared)  # The node summarizes doc2, not doc1
 ```typescript
 // 1) Create a Node that uses params
 class SummarizeFile extends Node {
-  prep(shared: any): any {
+  async prep(shared: any): Promise {
     // Access the node's param
     const filename = this.params.filename
     return shared.data[filename] || ''
   }
 
-  exec(prepRes: any): any {
+  async exec(prepRes: string): Promise {
     const prompt = `Summarize: ${prepRes}`
-    return callLLM(prompt)
+    return await callLLM(prompt)
   }
 
-  post(shared: any, prepRes: any, execRes: any): string {
+  async post(shared: any, prepRes: string, execRes: string): Promise<string> {
     const filename = this.params.filename
     shared.summary[filename] = execRes
     return 'default'
@@ -923,14 +1033,14 @@ const node = new SummarizeFile()
 
 // 3) Set Node params directly (for testing)
 node.setParams({ filename: 'doc1.txt' })
-node.run(shared)
+await node.run(shared)
 
 // 4) Create Flow
 const flow = new Flow(node)
 
 // 5) Set Flow params (overwrites node params)
 flow.setParams({ filename: 'doc2.txt' })
-flow.run(shared) // The node summarizes doc2, not doc1
+await flow.run(shared) // The node summarizes doc2, not doc1
 ```
 
 {% endtab %}
@@ -1492,6 +1602,84 @@ async function callApi() {
 ## Linking to Related Concepts
 
 For batch processing patterns, see [Batch Processing](./batch.md).
+
+
+
+
+================================================
+File: docs/design_pattern/index.md
+================================================
+# Design Patterns
+
+BrainyFlow makes it easy to implement popular design patterns for LLM applications. This section covers the key patterns you can build with the framework.
+
+## Available Design Patterns
+
+### Core Patterns
+
+1. [Agent](./agent.md): Create autonomous agents that can make decisions and take actions based on context.
+2. [Workflow](./workflow.md): Chain multiple tasks into sequential pipelines for complex operations.
+3. [RAG](./rag.md): Integrate data retrieval with generation for knowledge-augmented responses.
+4. [Map Reduce](./mapreduce.md): Process large datasets by splitting work into parallel tasks and combining results.
+5. [Structured Output](./structure.md): Format LLM outputs consistently using structured formats like YAML or JSON.
+
+### Advanced Patterns
+
+6. [Multi-Agents](./multi_agent.md): Coordinate multiple agents working together on complex tasks.
+
+## Choosing the Right Pattern
+
+When building your LLM application, consider these factors when selecting a design pattern:
+
+| Pattern           | Best For                  | When To Use                                             |
+| ----------------- | ------------------------- | ------------------------------------------------------- |
+| Agent             | Dynamic problem-solving   | When tasks require reasoning and decision-making        |
+| Workflow          | Sequential processing     | When steps are well-defined and follow a clear order    |
+| RAG               | Knowledge-intensive tasks | When external information is needed for responses       |
+| Map Reduce        | Large data processing     | When handling datasets too large for a single operation |
+| Structured Output | Consistent formatting     | When outputs need to follow specific schemas            |
+| Multi-Agents      | Complex collaboration     | When tasks benefit from specialized agent roles         |
+
+## Decision Tree
+
+Use this decision tree to help determine which pattern best fits your use case:
+
+```mermaid
+flowchart TD
+    A[Start] --> B{Need to process large data?}
+    B -->|Yes| C{Data can be processed independently?}
+    B -->|No| D{Need to make decisions?}
+
+    C -->|Yes| E[Map Reduce]
+    C -->|No| F[Workflow]
+
+    D -->|Yes| G{Complex, multi-step reasoning?}
+    D -->|No| H[Simple Workflow]
+
+    G -->|Yes| I[Agent]
+    G -->|No| J{Need external knowledge?}
+
+    J -->|Yes| K[RAG]
+    J -->|No| L[Structured Output]
+```
+
+## Combining Patterns
+
+Many real-world applications combine multiple patterns. For example:
+
+- An **Agent** that uses **RAG** to retrieve information before making decisions
+- A **Workflow** that includes **Map Reduce** steps for processing large datasets
+- **Multi-Agents** that each use **Structured Output** for consistent communication
+
+The modular nature of BrainyFlow makes it easy to combine these patterns to solve complex problems.
+
+## Next Steps
+
+Explore each design pattern in detail to understand how to implement it in your application:
+
+- Start with [Agent](./agent.md) to learn about autonomous decision-making
+- Check out [Workflow](./workflow.md) for sequential processing patterns
+- Dive into [RAG](./rag.md) to see how to augment LLMs with external knowledge
 
 
 
@@ -3093,7 +3281,7 @@ Game Over - Correct guess!
 
 
 ================================================
-File: docs/agentic_coding.md
+File: docs/guides/agentic_coding.md
 ================================================
 ---
 title: 'Agentic Coding'
@@ -3105,41 +3293,72 @@ title: 'Agentic Coding'
 If you are an AI agents involved in building LLM Systems, read this guide **VERY, VERY** carefully! This is the most important chapter in the entire document. Throughout development, you should always (1) start with a small and simple solution, (2) design at a high level (`docs/design.md`) before implementation, and (3) frequently ask humans for feedback and clarification.
 {% endhint %}
 
-## Agentic Coding Steps
+## Introduction
 
-Agentic Coding should be a collaboration between Human System Design and Agent Implementation:
+Agentic Coding represents a paradigm shift in software development where humans focus on high-level design and strategic decisions while AI agents handle implementation details. This approach leverages the complementary strengths of both humans and AI to create more efficient, robust, and maintainable LLM applications.
 
-| Steps             |   Human    |     AI     | Comment                                                                                        |
-| :---------------- | :--------: | :--------: | :--------------------------------------------------------------------------------------------- |
-| 1. Requirements   |  ★★★ High  |  ★☆☆ Low   | Humans understand the requirements and context.                                                |
-| 2. Flow           | ★★☆ Medium | ★★☆ Medium | Humans specify the high-level design, and the AI fills in the details.                         |
-| 3. Utilities      | ★★☆ Medium | ★★☆ Medium | Humans provide available external APIs and integrations, and the AI helps with implementation. |
-| 4. Node           |  ★☆☆ Low   |  ★★★ High  | The AI helps design the node types and data handling based on the flow.                        |
-| 5. Implementation |  ★☆☆ Low   |  ★★★ High  | The AI implements the flow based on the design.                                                |
-| 6. Optimization   | ★★☆ Medium | ★★☆ Medium | Humans evaluate the results, and the AI helps optimize.                                        |
-| 7. Reliability    |  ★☆☆ Low   |  ★★★ High  | The AI writes test cases and addresses corner cases.                                           |
+## The Agentic Coding Workflow
 
-1. **Requirements**: Clarify the requirements for your project, and evaluate whether an AI system is a good fit.
+The development process follows seven key stages, with varying levels of human and AI involvement:
 
-   - Understand AI systems' strengths and limitations:
-     - **Good for**: Routine tasks requiring common sense (filling forms, replying to emails)
-     - **Good for**: Creative tasks with well-defined inputs (building slides, writing SQL)
-     - **Not good for**: Ambiguous problems requiring complex decision-making (business strategy, startup planning)
-   - **Keep It User-Centric:** Explain the "problem" from the user's perspective rather than just listing features.
-   - **Balance complexity vs. impact**: Aim to deliver the highest value features with minimal complexity early.
+| Stage             | Human Involvement | AI Involvement | Primary Responsibility                                                                        |
+| ----------------- | :---------------: | :------------: | --------------------------------------------------------------------------------------------- |
+| 1. Requirements   |     ★★★ High      |    ★☆☆ Low     | Human defines problem scope and success criteria                                              |
+| 2. Flow Design    |    ★★☆ Medium     |   ★★☆ Medium   | Human outlines high-level architecture; AI refines details                                    |
+| 3. Utilities      |    ★★☆ Medium     |   ★★☆ Medium   | Humans provide available external APIs and integrations, and the AI helps with implementation |
+| 4. Node Design    |      ★☆☆ Low      |    ★★★ High    | AI helps design the node types and data handling based on the flow.                           |
+| 5. Implementation |      ★☆☆ Low      |    ★★★ High    | AI writes code based on the established design                                                |
+| 6. Optimization   |    ★★☆ Medium     |   ★★☆ Medium   | Human evaluates results; AI suggests improvements                                             |
+| 7. Reliability    |      ★☆☆ Low      |    ★★★ High    | AI implements error handling and addresses corner cases.                                      |
 
-2. **Flow Design**: Outline at a high level, describe how your AI system orchestrates nodes.
+## Detailed Stage Breakdown
 
-   {% hint style="warning" %}
-   **If Humans can't specify the flow, AI Agents can't automate it!** Before building an LLM system, thoroughly understand the problem and potential solution by manually solving example inputs to develop intuition.  
-   {% endhint %}
+### 1. Requirements Analysis
 
-   - Identify applicable design patterns (e.g., [Map Reduce](./design_pattern/mapreduce.md), [Agent](./design_pattern/agent.md), [RAG](./design_pattern/rag.md)).
-     - For each node in the flow, start with a high-level one-line description of what it does.
-     - If using **Map Reduce**, specify how to map (what to split) and how to reduce (how to combine).
-     - If using **Agent**, specify what are the inputs (context) and what are the possible actions.
-     - If using **RAG**, specify what to embed, noting that there's usually both offline (indexing) and online (retrieval) workflows.
-   - Outline the flow and draw it in a mermaid diagram. For example:
+Before building an LLM application, thoroughly evaluate whether AI is the right solution for your problem:
+
+**Ideal Use Cases:**
+
+- Content generation and transformation (summaries, translations, rewrites)
+- Information extraction and classification
+- Conversational interfaces with well-defined domains
+- Decision support with clear parameters
+
+**Less Suitable Use Cases:**
+
+- Problems requiring perfect accuracy or deterministic outputs
+- Tasks needing specialized domain expertise beyond LLM training
+- Complex decision-making with high-stakes consequences
+- Problems with ambiguous success criteria
+
+**Best Practices:**
+
+- **User-Centric Approach:** Define problems from the user's perspective rather than listing features
+- **Concrete Examples:** Develop several example inputs and expected outputs
+- **Manual Walkthrough:** Solve examples by hand to understand the process before automation
+- **Value vs. Complexity:** Prioritize high-value features with manageable complexity
+
+### 2. Flow Design
+
+{% hint style="warning" %}
+**If Humans can't specify the flow, AI Agents can't automate it!** Before building an LLM system, thoroughly understand the problem and potential solution by manually solving example inputs to develop intuition.  
+{% endhint %}
+
+The flow design stage establishes the application's architecture and processing pipeline:
+
+**Key Activities:**
+
+- Identify applicable [design patterns](./design_pattern/index.md) (Agent, RAG, MapReduce, etc.)
+- Map out information flow between components
+  - For each node in the flow, start with a high-level one-line description of what it does.
+- Define decision points and branching logic
+  - If using **Map Reduce**, specify how to map (what to split) and how to reduce (how to combine).
+  - If using **Agent**, specify what are the inputs (context) and what are the possible actions.
+  - If using **RAG**, specify what to embed, noting that there's usually both offline (indexing) and online (retrieval) workflows.
+- Document expected inputs and outputs for each stage
+
+**Flow Visualization:**
+Create a mermaid diagram to visualize your application flow:
 
 ```mermaid
 flowchart LR
@@ -3156,26 +3375,47 @@ flowchart LR
     process --> endNode[End]
 ```
 
-3. **Utilities**: Based on the Flow Design, identify and implement necessary utility functions.
-   {% hint style="success" %}
-   **Sometimes, design Utilies before Flow:** For example, for an LLM project to automate a legacy system, the bottleneck will likely be the available interface to that system. Start by designing the hardest utilities for interfacing, and then build the flow around them.
-   {% endhint %}
+**Design Principles:**
 
-   - Think of your AI system as the brain. It needs a body—these _external utility functions_—to interact with the real world:
-       <div align="center"><img src="https://github.com/the-pocket/.github/raw/main/assets/utility.png?raw=true" width="400"/></div>
+- **Modularity:** Break complex tasks into discrete, manageable components
+- **Single Responsibility:** Each node should perform one clear function
+- **Explicit Data Flow:** Make data dependencies between nodes transparent
+- **Appropriate Granularity:** Balance between too coarse (complex) and too granular (fragmented)
 
-     - Reading inputs (e.g., retrieving Slack messages, reading emails)
-     - Writing outputs (e.g., generating reports, sending emails)
-     - Using external tools (e.g., calling LLMs, searching the web)
-     - **NOTE**: _LLM-based tasks_ (e.g., summarizing text, analyzing sentiment) are **NOT** utility functions; rather, they are _core functions_ internal in the AI system.
+### 3. Utility Functions
 
-   - For each utility function, implement it and write a simple test.
-   - Document their input/output, as well as why they are necessary. For example:
-     - `name`: `get_embedding` (`utils/get_embedding.py`)
-     - `input`: `str`
-     - `output`: a vector of 3072 floats
-     - `necessity`: Used by the second node to embed text
-   - Example utility implementation:
+{% hint style="success" %}
+**Sometimes, design Utilies before Flow:** For example, for an LLM project to automate a legacy system, the bottleneck will likely be the available interface to that system. Start by designing the hardest utilities for interfacing, and then build the flow around them.
+{% endhint %}
+
+Utility functions serve as the interface between your LLM application and external systems:
+
+<div align="center"><img src="https://github.com/the-pocket/.github/raw/main/assets/utility.png?raw=true" width="400"/></div>
+
+**Categories of Utilities:**
+
+- **Input Processing:** File reading, API data fetching, database queries
+- **External Tools:** Web search, code execution, specialized APIs
+- **Output Handling:** Data storage, notification systems, report generation
+- **LLM Interaction:** Model calling, embedding generation, prompt management
+  - **NOTE**: _LLM-based tasks_ (e.g., summarizing text, analyzing sentiment) are **NOT** utility functions; rather, they are _core functions_ internal in the AI system.
+
+**Implementation Guidelines:**
+
+- Create isolated, testable functions with clear interfaces
+- Document input/output specifications and error handling
+- Include usage examples and test cases
+- Implement proper error handling and retry logic
+- Document their input/output, as well as why they are necessary. For example:
+
+```yaml
+name: get_embedding (utils/get_embedding.py)
+input: string
+output: a vector of 3072 floats
+necessity: Used by the second node to embed text
+```
+
+**Example Utility Implementation:**
 
 {% tabs %}
 {% tab title="Python" %}
@@ -3193,6 +3433,7 @@ def call_llm(prompt):
     return r.choices[0].message.content
 
 if __name__ == "__main__":
+	# Simple test case
     prompt = "What is the meaning of life?"
     print(call_llm(prompt))
 ```
@@ -3218,7 +3459,7 @@ export async function callLLM(prompt: string): Promise<string> {
   return response.choices[0]?.message?.content || ''
 }
 
-// Example usage
+// Simple test case
 ;(async () => {
   const prompt = 'What is the meaning of life?'
   console.log(await callLLM(prompt))
@@ -3228,65 +3469,189 @@ export async function callLLM(prompt: string): Promise<string> {
 {% endtab %}
 {% endtabs %}
 
-4. **Node Design**: Plan how each node will read and write data, and use utility functions.
+### 4. Node Design
 
-   - One core design principle for BrainyFlow is to use a [shared store](./core_abstraction/communication.md), so start with a shared store design:
-     - For simple systems, use an in-memory dictionary.
-     - For more complex systems or when persistence is required, use a database.
-     - **Don't Repeat Yourself**: Use in-memory references or foreign keys.
-     - Example shared store design:
-       ```python
-       shared = {
-           "user": {
-               "id": "user123",
-               "context": {                # Another nested dict
-                   "weather": {"temp": 72, "condition": "sunny"},
-                   "location": "San Francisco"
-               }
-           },
-           "results": {}                   # Empty dict to store outputs
-       }
-       ```
-   - For each [Node](./core_abstraction/node.md), describe how it reads and writes data, and which utility function it uses. Keep it specific but high-level without codes. For example:
-     - `prep`: Read "text" from the shared store
-     - `exec`: Call the embedding utility function
-     - `post`: Write "embedding" to the shared store
-     - For batch processing, specify if it's sequential or parallel
+Nodes are the processing units within your application flow, each with a specific responsibility:
 
-5. **Implementation**: Implement the initial nodes and flows based on the design.
+**Node Design Principles:**
 
-   - 🎉 If you've reached this step, humans have finished the design. Now _Agentic Coding_ begins!
-   - **"Keep it simple, stupid!"** Avoid complex features and full-scale type checking.
-   - **FAIL FAST**! Avoid `try` logic so you can quickly identify any weak points in the system.
-   - Add logging throughout the code to facilitate debugging.
+- **Data Isolation:** Use the shared store for communication between nodes
+- **Clear Lifecycle:** Follow the `prep -> exec -> post` pattern
+- **Idempotent Operations:** Design for safe retries when possible
+- **Graceful Degradation:** Implement fallbacks for failure scenarios
 
-6. **Optimization**:
+**Shared Store Design:**
+Start by designing your shared store schema to facilitate data flow between nodes:
 
-   - **Use Intuition**: For a quick initial evaluation, human intuition is often a good start.
-   - **Redesign Flow (Back to Step 3)**: Consider breaking down tasks further, introducing agentic decisions, or better managing input contexts.
-   - If your flow design is already solid, move on to micro-optimizations:
+```python
+# Example shared store structure
+shared = {
+    "input": {
+        "query": "How do neural networks learn?",
+        "context": { # Another nested dict
+          "persona": "The user is a computer science student.",
+          "location": "San Francisco"
+        }
+    },
+    "processing": {
+        "search_results": [],
+        "relevant_chunks": []
+    },
+    "output": {
+        "response": None,
+        "confidence": None
+    },
+    "metadata": {
+        "start_time": "2025-04-06T18:38:00Z",
+        "processing_steps": []
+    }
+}
+```
 
-     - **Prompt Engineering**: Use clear, specific instructions with examples to reduce ambiguity.
-     - **In-Context Learning**: Provide robust examples for tasks that are difficult to specify with instructions alone.
+**Node Specification:**
+For each node, define how it reads and writes data, and which utility function it uses. Keep it specific but high-level without codes. For example:
+
+- `prep`: Input requirements (what it reads from shared store)
+- `exec`: Processing logic (what computation it performs)
+- `post`: Output format (what it writes to shared store)
+- `exec_fallback`: Error handling strategy (how it deals with failures)
+- For batch processing, specify if it's a sequential or parallel node
+
+### 5. Implementation
 
 {% hint style="success" %}
-**You'll likely iterate a lot!** Expect to repeat Steps 3–6 hundreds of times.
+🎉 If you've reached this step, humans have finished the design. Now _Agentic Coding_ begins!
+{% endhint %}
+
+The implementation stage transforms the design into working code:
+
+**Implementation Guidelines:**
+
+- **Start Simple:** Begin with a minimal viable implementation
+- **Incremental Development:** Add features one at a time with testing
+- **Fail Fast:** Avoid error suppression as much as you can to quickly identify issues
+- **Comprehensive Logging:** Add detailed logging throughout the code for debugging
+
+**Example Node Implementation:**
+
+```python
+class RetrieveRelevantDocuments(Node):
+    """Node that retrieves relevant documents based on a query."""
+
+    async def prep(self, shared):
+        """Extract query and vector database from shared store."""
+        query = shared["input"]["query"]
+        vector_db = shared["resources"]["vector_db"]
+        return query, vector_db
+
+    async def exec(self, inputs):
+        """Retrieve relevant documents using vector similarity."""
+        query, vector_db = inputs
+
+        # Get query embedding
+        query_embedding = await get_embedding(query)
+
+        # Search vector database
+        results = await vector_db.search(
+            query_embedding,
+            limit=5,
+            min_score=0.7
+        )
+
+        return results
+
+    async def post(self, shared, prep_res, exec_res):
+        """Store retrieved documents in shared store."""
+        shared["processing"]["relevant_documents"] = exec_res
+        shared["metadata"]["processing_steps"].append({
+            "step": "document_retrieval",
+            "timestamp": datetime.now().isoformat(),
+            "document_count": len(exec_res)
+        })
+
+        # Determine next action based on results
+        if not exec_res:
+            return "fallback_search"
+        return "generate_response"
+```
+
+### 6. Optimization
+
+{% hint style="success" %}
+**You'll likely iterate a lot!** Expect to repeat Steps 3–6 countless times.
 
 <div align="center"><img src="https://github.com/the-pocket/.github/raw/main/assets/success.png?raw=true" width="400"/></div>
 {% endhint %}
 
+- **Use Intuition**: For a quick initial evaluation, human intuition is often a good start.
+- **Redesign Flow (Back to Step 3)**: Consider breaking down tasks further, introducing agentic decisions, or better managing input contexts.
+- **Context Management:** Optimize the information provided to each node
+- If your flow design is already solid, move on to micro-optimizations:
+- **Prompt Engineering**: Use clear, specific instructions with examples to reduce ambiguity.
+- **In-Context Learning**: Provide robust examples for tasks that are difficult to specify with instructions alone.
+
 7. **Reliability**
    - **Node Retries**: Add checks in the node `exec` to ensure outputs meet requirements, and consider increasing `max_retries` and `wait` times.
    - **Logging and Visualization**: Maintain logs of all attempts and visualize node results for easier debugging.
-   - **Self-Evaluation**: Add a separate node (powered by an LLM) to review outputs when results are uncertain.
+   - **Self-Evaluation**: Add a separate node and have the LLM evaluate and improve its own outputs
 
-## Example LLM Project File Structure
+## Iterative Development Process
+
+Agentic Coding is inherently iterative. Expect to cycle through these stages multiple times:
+
+1. **Start Small:** Begin with a minimal implementation of the core functionality
+2. **Test and Evaluate:** Gather feedback on performance and output quality
+3. **Identify Improvements:** Determine which aspects need enhancement
+4. **Refine Design:** Update flow, nodes, or utilities as needed
+5. **Implement Changes:** Make targeted improvements
+6. **Repeat:** Continue the cycle until quality targets are met
+
+## Conclusion
+
+Agentic Coding represents a powerful approach to developing LLM applications by combining human design expertise with AI implementation capabilities. By following this structured process, you can create more effective, maintainable, and reliable AI systems while focusing your human effort where it adds the most value.
+
+Remember that the most successful projects start simple, iterate quickly, and continuously incorporate feedback. Let humans handle the "why" and "what" while AI agents handle the "how" of implementation.
+
+Human-AI collaboration is a journey of continuous learning and improvement. Embrace the iterative nature of the process, and you'll build increasingly sophisticated applications that deliver real value to users.
+
+
+
+
+================================================
+File: docs/guides/best_practices.md
+================================================
+# BrainyFlow Best Practices
+
+## Node Design
+
+1. **Keep Nodes Focused**: Each node should do one thing well
+2. **Idempotent Execution**: Design `exec()` methods to be safely retryable
+3. **Graceful Degradation**: Implement fallbacks for when things go wrong
+4. **Proper Error Handling**: Use `exec_fallback` to handle failures gracefully
+
+## Shared Store Management
+
+1. **Schema Design**: Define a clear schema for your shared store
+2. **Namespacing**: Use namespaces to avoid key collisions
+3. **Immutability**: Treat shared store values as immutable when possible
+4. **Documentation**: Document the expected structure of your shared store
+
+## Flow Design
+
+1. **Visualization First**: Design your flow visually before coding
+2. **Test Incrementally**: Build and test one section of your flow at a time
+3. **Error Paths**: Always include paths for handling errors
+4. **Monitoring**: Add logging at key points in your flow
+
+## Project Structure
+
+A well-organized project structure enhances maintainability and collaboration:
 
 {% tabs %}
-{% tab title="Python" %}
+{% tab title="Python (simple)" %}
 
 ```
-my_project/
+my_simple_project/
 ├── main.py
 ├── nodes.py
 ├── flow.py
@@ -3301,7 +3666,38 @@ my_project/
 
 {% endtab %}
 
-{% tab title="TypeScript" %}
+{% tab title="Python (complex)" %}
+
+```
+my_complex_project/
+├── main.py                # Entry point
+├── nodes/                 # Node implementations
+│   ├── __init__.py
+│   ├── input_nodes.py
+│   ├── processing_nodes.py
+│   └── output_nodes.py
+├── flows/                 # Flow definitions
+│   ├── __init__.py
+│   └── main_flow.py
+├── utils/                 # Utility functions
+│   ├── __init__.py
+│   ├── llm.py
+│   ├── database.py
+│   └── web_search.py
+├── tests/                 # Test cases
+│   ├── test_nodes.py
+│   └── test_flows.py
+├── config/                # Configuration
+│   └── settings.py
+├── requirements.txt       # Dependencies
+└── docs/                  # Documentation
+    ├── design.md          # High-level design
+    └── api.md             # API documentation
+```
+
+{% endtab %}
+
+{% tab title="TypeScript (simple)" %}
 
 ```
 my_project/
@@ -3318,351 +3714,50 @@ my_project/
 ```
 
 {% endtab %}
+
+{% tab title="TypeScript (complex)" %}
+
+```
+my_complex_project/
+├── src/                      # Source code
+│   ├── index.ts              # Entry point
+│   ├── nodes/                # Node implementations
+│   │   ├── index.ts          # Exports all nodes
+│   │   ├── inputNodes.ts
+│   │   ├── processingNodes.ts
+│   │   └── outputNodes.ts
+│   ├── flows/                # Flow definitions
+│   │   ├── index.ts          # Exports all flows
+│   │   └── mainFlow.ts
+│   ├── utils/                # Utility functions
+│   │   ├── index.ts          # Exports all utilities
+│   │   ├── llm.ts
+│   │   ├── database.ts
+│   │   └── webSearch.ts
+│   ├── types/                # Type definitions
+│   │   ├── index.ts          # Exports all types
+│   │   ├── node.types.ts
+│   │   └── flow.types.ts
+│   └── config/               # Configuration
+│       └── settings.ts
+├── dist/                     # Compiled JavaScript
+├── tests/                    # Test cases
+│   ├── nodes.test.ts
+│   └── flows.test.ts
+├── package.json              # Dependencies and scripts
+└── docs/                     # Documentation
+    ├── design.md             # High-level design
+    └── api.md                # API documentation
+```
+
 {% endtabs %}
 
-- **`docs/design.md`**: Contains project documentation for each step above. This should be _high-level_ and _no-code_.
+- **`docs/design.md`**: Contains project documentation for each step designed in [agentic coding](./agentic_coding.md). This should be _high-level_ and _no-code_.
 - **`utils/`**: Contains all utility functions.
-  - It's recommended to dedicate one Python file to each API call, for example `call_llm.py` or `search_web.py`.
+  - It's recommended to dedicate one file to each API call, for example `call_llm.py` or `search_web.ts`.
   - Each file should also include a `main()` function to try that API call
-- **`nodes.py`**: Contains all the node definitions.
-
-{% tabs %}
-{% tab title="Python" %}
-
-```python
-# nodes.py
-from brainyflow import Node
-from utils.call_llm import call_llm
-
-class GetQuestionNode(Node):
-    async def exec(self, _):
-        # Get question directly from user input
-        user_question = input("Enter your question: ")
-        return user_question
-
-    async def post(self, shared, prep_res, exec_res):
-        # Store the user's question
-        shared["question"] = exec_res
-        return "default"  # Go to the next node
-
-class AnswerNode(Node):
-    async def prep(self, shared):
-        # Read question from shared
-        return shared["question"]
-
-    async def exec(self, question):
-        # Call LLM to get the answer
-        return call_llm(question)
-
-    async def post(self, shared, prep_res, exec_res):
-        # Store the answer in shared
-        shared["answer"] = exec_res
-```
-
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-```typescript
-// nodes.ts
-import { Node } from 'brainyflow'
-import { callLLM } from './utils/callLLM'
-
-class GetQuestionNode extends Node {
-  async exec(_: any): Promise<string> {
-    // Get question directly from user input
-    const userQuestion = 'What is the meaning of life?'
-    return userQuestion
-  }
-
-  async post(shared: any, _prepRes: any, execRes: string): Promise<string> {
-    // Store the user's question
-    shared['question'] = execRes
-    return 'default' // Go to the next node
-  }
-}
-
-class AnswerNode extends Node {
-  async prep(shared: any): Promise<string> {
-    // Read question from shared
-    return shared['question']
-  }
-
-  async exec(question: string): Promise<string> {
-    // Call LLM to get the answer
-    return await callLLM(question)
-  }
-
-  async post(shared: any, _prepRes: any, execRes: string): Promise<void> {
-    // Store the answer in shared
-    shared['answer'] = execRes
-  }
-}
-```
-
-{% endtab %}
-{% endtabs %}
-
-- **`flow.py`**: Implements functions that create flows by importing node definitions and connecting them.
-
-{% tabs %}
-{% tab title="Python" %}
-
-```python
-# flow.py
-from brainyflow import Flow
-from nodes import GetQuestionNode, AnswerNode
-
-def create_qa_flow():
-    """Create and return a question-answering flow."""
-    # Create nodes
-    get_question_node = GetQuestionNode()
-    answer_node = AnswerNode()
-
-    # Connect nodes in sequence
-    get_question_node >> answer_node
-
-    # Create flow starting with input node
-    return Flow(start=get_question_node)
-```
-
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-```typescript
-// flow.ts
-import { Flow } from 'brainyflow'
-import { AnswerNode, GetQuestionNode } from './nodes'
-
-export function createQaFlow(): Flow {
-  // Create nodes
-  const getQuestionNode = new GetQuestionNode()
-  const answerNode = new AnswerNode()
-
-  // Connect nodes in sequence
-  getQuestionNode.next(answerNode)
-
-  // Create flow starting with input node
-  return new Flow(getQuestionNode)
-}
-```
-
-{% endtab %}
-{% endtabs %}
-
-- **`main.py`**: Serves as the project's entry point.
-
-{% tabs %}
-{% tab title="Python" %}
-
-```python
-# main.py
-from flow import create_qa_flow
-
-# Example main function
-# Please replace this with your own main function
-async def main():
-    shared = {
-        "question": None,  # Will be populated by GetQuestionNode from user input
-        "answer": None     # Will be populated by AnswerNode
-    }
-
-    # Create the flow and run it
-    qa_flow = create_qa_flow()
-    await qa_flow.run(shared)
-    print(f"Question: {shared['question']}")
-    print(f"Answer: {shared['answer']}")
-
-if __name__ == "__main__":
-    asyncio.run(main())
-```
-
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-```typescript
-// main.ts
-import { createQaFlow } from './flow'
-
-// Example main function
-async function main() {
-  const shared = {
-    question: null as string | null, // Will be populated by GetQuestionNode
-    answer: null as string | null, // Will be populated by AnswerNode
-  }
-
-  // Create the flow and run it
-  const qaFlow = createQaFlow()
-  await qaFlow.run(shared)
-  console.log(`Question: ${shared.question}`)
-  console.log(`Answer: ${shared.answer}`)
-}
-
-main().catch(console.error)
-```
-
-{% endtab %}
-{% endtabs %}
-
-
-
-
-================================================
-File: docs/guides/migrating_from_pocketflow.md
-================================================
-# Migrating from PocketFlow to BrainyFlow
-
-BrainyFlow is an asynchronous successor to PocketFlow, designed for enhanced performance and concurrency. Migrating is straightforward:
-
-## Key Changes
-
-1. **All core methods are now async**
-
-   - `prep()`, `exec()`, `post()`, `_exec()`, `_run()`, and `run()` methods now use `async/await` syntax
-   - All method calls to these functions must now be awaited
-
-2. **Simplified class hierarchy**
-
-   - Removed separate async classes (`AsyncNode`, `AsyncFlow`, etc.)
-   - All classes now use async methods by default
-
-3. **Batch processing changes**
-
-   - `BatchNode` → `SequentialBatchNode` (sequential processing) or `ParallelBatchNode` (concurrent processing)
-   - `BatchFlow` → `SequentialBatchFlow` (sequential processing) or `ParallelBatchFlow` (concurrent processing)
-
-## Why Async?
-
-The move to async brings several benefits:
-
-- **Improved performance**: Asynchronous code can handle I/O-bound operations more efficiently
-- **Better concurrency**: Easier to implement parallel processing patterns
-- **Simplified codebase**: No need for separate sync and async implementations
-- **Modern Python**: Aligns with Python's direction for handling concurrent operations
-
-## Migration Steps
-
-### Step 1: Update Imports
-
-Replace `pocketflow` imports with `brainyflow` and add `import asyncio`.
-
-```python
-# Before
-from pocketflow import Node, Flow, BatchNode # ... etc
-
-# After
-import asyncio
-from brainyflow import Node, Flow, SequentialBatchNode # ... etc
-```
-
-### Step 2: Add `async` / `await`:
-
-- Add `async` before `def` for your `prep`, `exec`, `post`, and `exec_fallback` methods in Nodes and Flows.
-- Add `await` before any calls to these methods, `run()` methods, `asyncio.sleep()`, or other async library functions.
-
-#### Node Example (Before):
-
-```python
-class MyNode(Node):
-    def prep(self, shared):
-        # Preparation logic
-        return some_data
-
-    def exec(self, prep_res):
-        # Execution logic
-        return result
-
-    def post(self, shared, prep_res, exec_res):
-        # Post-processing logic
-        return action
-
-    def exec_fallback(self, prep_res, exc):
-        # Handle exception
-        return fallback_result
-```
-
-#### Node Example (After):
-
-```python
-class MyNode(Node):
-    async def prep(self, shared):
-        # Preparation logic
-        # If you call other async functions here, use await
-        return some_data
-
-    async def exec(self, prep_res):
-    async def post(self, shared, prep_res, exec_res):
-        # Post-processing logic
-        # If you call other async functions here, use await
-        return action
-
-    async def exec_fallback(self, prep_res, exc):
-        # Handle exception
-        # If you call other async functions here, use await
-        return fallback_result
-```
-
-_(Flow methods follow the same pattern)_
-
-### Step 3: Rename Classes
-
-As we got rid of separated async classes, `AsyncNode` and `AsyncFlow` are now just `Node` and `Flow`.
-
-BrainyFlow makes the choice between sequential vs. parallel batch processing explicit:
-
-- If you used `BatchNode` (or `AsyncBatchNode`) -> Use `SequentialBatchNode`.
-- If you used `BatchFlow` (or `AsyncBatchFlow`) -> Use `SequentialBatchFlow`.
-- If you used `AsyncParallelBatchNode` -> Use `ParallelBatchNode`.
-- If you used `AsyncParallelBatchFlow` -> Use `ParallelBatchFlow`.
-
-Remember to make their methods (`exec`, `prep`, `post`) `async` as per Step 2.
-
-```python
-# Before (Sequential)
-class MySeqBatch(BatchNode):
-    def exec(self, item): ...
-
-# After (Sequential)
-class MySeqBatch(SequentialBatchNode):
-    async def exec(self, item): ... # Added async
-
-# Before (Parallel)
-class MyParBatch(AsyncParallelBatchNode):
-    async def exec_async(self, item): ...
-
-# After (Parallel)
-class MyParBatch(ParallelBatchNode):
-    async def exec(self, item): ... # Renamed and added async
-```
-
-### Step 4: Run with `asyncio`:
-
-BrainyFlow code must be run within an async event loop. The standard way is using `asyncio.run()`:
-
-```python
-import asyncio
-
-async def main():
-    # ... setup your BrainyFlow nodes/flows ...
-    result = await my_flow.run(shared_data) # Use await
-    print(result)
-
-if __name__ == "__main__":
-    asyncio.run(main())
-```
-
-## Conclusion
-
-Migrating from PocketFlow to BrainyFlow primarily involves:
-
-1.  Updating imports to `brainyflow` and adding `import asyncio`.
-2.  Adding `async` to your Node/Flow method definitions (`prep`, `exec`, `post`, `exec_fallback`).
-3.  Using `await` when calling `run()` methods and any other asynchronous operations within your methods.
-4.  Replacing `BatchNode`/`BatchFlow` with the appropriate `Sequential*` or `Parallel*` BrainyFlow classes.
-5.  Running your main execution logic within an `async def main()` function called by `asyncio.run()`.
-
-This transition enables you to leverage the performance and concurrency benefits of asynchronous programming in your workflows.
+- **`nodes.py`** or **`nodes.ts`**: Contains all the node definitions.
+- **`flow.py`** or **`flow.ts`**: Implements functions that create flows by importing node definitions and connecting them.
+- **`main.py`** or **`main.ts`**: Serves as the project's entry point.
 
 
