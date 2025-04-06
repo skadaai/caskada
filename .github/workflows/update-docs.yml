@@ -25,35 +25,8 @@ jobs:
       - name: Create temporary directory for gh-pages content
         run: mkdir gh-pages-content
 
-      - name: Concatenate docs based on SUMMARY.md order
-        run: |
-          OUTPUT_FILE="gh-pages-content/docs.txt"
-          SUMMARY_FILE="docs/SUMMARY.md"
-          DOCS_DIR="docs"
-
-          # Extract markdown file paths from SUMMARY.md, filter, and process
-          grep -oE '\[.*\]\(([^)]+\.md)\)' "$SUMMARY_FILE" | \
-          sed -E 's/\[.*\]\(([^)]+\.md)\)/\1/' | \
-          grep -vE '^utility_function/' | \
-          while IFS= read -r filepath; do
-            fullpath="$DOCS_DIR/$filepath"
-            if [ -f "$fullpath" ]; then
-              # Check for 'machine-display: false' in YAML frontmatter using awk
-              # awk logic: f=0 initially. See '---', f=1. Inside frontmatter (f==1), if line matches, print "ignore" and exit (found). See second '---', f=2, exit.
-              if awk '/^---$/{f++} f==1 && /^\s*machine-display:\s*false\s*$/{print "ignore"; exit} f>=2{exit}' "$fullpath" | grep -q "ignore"; then
-                echo "Skipping (machine-display: false): $fullpath"
-              else
-                echo "Processing: $fullpath"
-                printf "\n\n================================================\nFile: $fullpath\n================================================\n" >> "$OUTPUT_FILE"
-                cat "$fullpath" >> "$OUTPUT_FILE"
-                printf "\n\n" >> "$OUTPUT_FILE"
-              fi
-            else
-              echo "Warning: File not found in $DOCS_DIR - $filepath (skipped)"
-            fi
-          done
-
-          echo "Finished concatenating files based on $SUMMARY_FILE"
+      - name: Concatenate docs using script
+        run: bash .github/scripts/concatenate-docs.sh
 
       - name: Deploy docs.txt to gh-pages branch
         uses: peaceiris/actions-gh-pages@v4
