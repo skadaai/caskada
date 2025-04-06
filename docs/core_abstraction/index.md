@@ -1,13 +1,16 @@
-# Understanding BrainyFlow's Mental Model
+# Understanding BrainyFlow's Core Abstractions
 
-BrainyFlow is built around a simple but powerful mental model that separates _data flow_ from _computation_. This separation of concerns makes complex LLM applications more maintainable and easier to reason about.
+BrainyFlow is built around a simple yet powerful abstraction: the **nested directed graph with shared store**. This mental model separates _data flow_ from _computation_, making complex LLM applications more maintainable and easier to reason about.
 
 ## Core Philosophy
 
-1. **Separation of Concerns**: Keep data storage (shared store) separate from computation logic (nodes)
-2. **Explicit Data Flow**: Make data dependencies between steps clear and traceable
-3. **Composability**: Build complex systems from simple, reusable components
-4. **Resilience**: Handle failures gracefully with retries and fallbacks
+BrainyFlow follows these fundamental principles:
+
+1. **Modularity & Composability**: Build complex systems from simple, reusable components that are easy to build, test, and maintain
+2. **Explicitness**: Make data dependencies between steps clear and traceable
+3. **Separation of Concerns**: Data storage (shared store) remains separate from computation logic (nodes)
+4. **Minimalism**: The framework provides only essential abstractions, avoiding vendor-specific implementations while supporting various high-level AI design paradigms (agents, workflows, map-reduce, etc.)
+5. **Resilience**: Handle failures gracefully with retries and fallbacks
 
 ## The Graph + Shared Store Pattern
 
@@ -18,20 +21,22 @@ The fundamental pattern in BrainyFlow combines two key elements:
 
 This pattern offers several advantages:
 
-- Clear visualization of application logic
-- Easy identification of bottlenecks
-- Simple debugging of individual components
-- Natural parallelization opportunities
+- **Clear visualization** of application logic
+- **Easy identification** of bottlenecks
+- **Simple debugging** of individual components
+- **Natural parallelization** opportunities
 
 ## Key Components
 
 BrainyFlow's architecture is based on these fundamental building blocks:
 
-- **[Node](./node.md)**: The basic unit of work with a clear lifecycle (`prep -> exec -> post`)
-- **[Flow](./flow.md)**: Connects nodes together through action-based transitions
-- **[Communication](./communication.md)**: Enables data sharing between nodes via Shared Store and Params
-- **[Batch](./batch.md)**: Handles processing of multiple items sequentially or in parallel
-- **[Throttling](./throttling.md)**: Manages concurrency and rate limits for external API calls
+| Component                           | Description             | Key Features                                                                |
+| ----------------------------------- | ----------------------- | --------------------------------------------------------------------------- |
+| [Node](./node.md)                   | The basic unit of work  | Clear lifecycle (`prep → exec → post`), fault tolerance, graceful fallbacks |
+| [Flow](./flow.md)                   | Connects nodes together | Action-based transitions, branching, looping, nesting                       |
+| [Communication](./communication.md) | Enables data sharing    | Shared Store (global), Params (node-specific)                               |
+| [Batch](./batch.md)                 | Handles multiple items  | Sequential or parallel processing, nested batching                          |
+| [Throttling](./throttling.md)       | Manages concurrency     | Rate limiting, concurrency control                                          |
 
 ## How They Work Together
 
@@ -56,15 +61,6 @@ BrainyFlow's architecture is based on these fundamental building blocks:
    - Processing multiple items sequentially or in parallel
    - Handling large datasets efficiently
    - Supporting nested batch operations
-
-## Design Philosophy
-
-BrainyFlow's core abstractions follow these principles:
-
-- **Separation of Concerns**: Data storage (shared store) is separate from computation logic (nodes)
-- **Composability**: Nodes and flows can be combined in various ways to create complex workflows
-- **Flexibility**: The framework imposes minimal constraints while providing powerful patterns
-- **Reliability**: Built-in retry mechanisms and error handling improve robustness
 
 ## Getting Started
 

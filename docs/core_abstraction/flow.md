@@ -1,19 +1,17 @@
----
-title: 'Flow'
----
+# Flow: Orchestrating Nodes in a Directed Graph
 
-# Flow
+A **Flow** orchestrates a graph of Nodes, connecting them through action-based transitions. Flows enable you to create complex application logic including sequences, branches, loops, and nested workflows.
 
-A **Flow** orchestrates a graph of Nodes. You can chain Nodes in a sequence or create branching depending on the **Actions** returned from each Node's `post()`.
+## Action-based Transitions
 
-## 1. Action-based Transitions
+Each Node's `post()` method returns an **Action** string that determines which node to execute next. If `post()` doesn't return anything, the default action `"default"` is used.
 
-Each Node's `post()` returns an **Action** string. By default, if `post()` doesn't return anything, we treat that as `"default"`.
-
-You define transitions with syntax sugar (in Python) or a method call:
+### Defining Transitions
 
 {% tabs %}
 {% tab title="Python" %}
+
+You can define transitions primarily with syntax sugar:
 
 1. **Basic default transition**: `node_a >> node_b`
    This means if `node_a.post()` returns `"default"`, go to `node_b`.
@@ -22,6 +20,15 @@ You define transitions with syntax sugar (in Python) or a method call:
    This means if `node_a.post()` returns `"action_name"`, go to `node_b`.
 
 Note that `node_a >> node_b` is equivalent to `node_a - "default" >> node_b`
+
+```python
+# Basic default transition
+node_a >> node_b  # If node_a returns "default", go to node_b
+
+# Named action transition
+node_a - "success" >> node_b  # If node_a returns "success", go to node_b
+node_a - "error" >> node_c    # If node_a returns "error", go to node_c
+```
 
 {% endtab %}
 
@@ -35,26 +42,41 @@ Note that `node_a >> node_b` is equivalent to `node_a - "default" >> node_b`
 
 Note that `node_a.next(node_b)` is equivalent to both `node_a.next(node_b, 'default')` and `node_a.on('default', node_b)`
 
+```typescript
+// Basic default transition
+node_a.next(node_b) // If node_a returns "default", go to node_b
+
+// Named action transition
+node_a.on('success', node_b) // If node_a returns "success", go to node_b
+node_a.on('error', node_c) // If node_a returns "error", go to node_c
+
+// Alternative syntax
+node_a.next(node_b, 'success') // Same as node_a.on('success', node_b)
+```
+
 {% endtab %}
 {% endtabs %}
 
-It's possible to create loops, branching, or multi-step flows.
+## Creating a Flow
 
-## 2. Creating a Flow
-
-A **Flow** begins with a **start** node. You call `Flow(start=some_node)` (in Python) or `new Flow(some_node)` (in Javascript) to specify the entry point. When you call `flow.run(shared)`, it executes the start node, looks at its returned Action from `post()`, follows the transition, and continues until there's no next node.
-
-### Example: Simple Sequence
-
-Here's a minimal flow of two nodes in a chain:
+A Flow begins with a **start node** and follows the action-based transitions until it reaches a node with no matching transition for its returned action.
 
 {% tabs %}
 {% tab title="Python" %}
 
 ```python
+from brainyflow import Flow
+
+# Define nodes and transitions
 node_a >> node_b
+node_b - "success" >> node_c
+node_b - "error" >> node_d
+
+# Create flow starting with node_a
 flow = Flow(start=node_a)
-flow.run(shared)
+
+# Run the flow with a shared store
+await flow.run(shared)
 ```
 
 {% endtab %}
@@ -62,33 +84,75 @@ flow.run(shared)
 {% tab title="TypeScript" %}
 
 ```typescript
+import { Flow } from 'brainyflow'
+
+// Define nodes and transitions
 node_a.next(node_b)
+node_b.on('success', node_c)
+node_b.on('error', node_d)
+
+// Create flow starting with node_a
 const flow = new Flow(node_a)
-flow.run(shared)
+
+// Run the flow with a shared store
+await flow.run(shared)
 ```
 
 {% endtab %}
 {% endtabs %}
 
-- When you run the flow, it executes `node_a`.
-- Suppose `node_a.post()` returns `"default"`.
-- The flow then sees `"default"` Action is linked to `node_b` and runs `node_b`.
-- `node_b.post()` returns `"default"` but we didn't define `node_b >> something_else`. So the flow ends there.
+## Flow Execution Process
 
-### Example: Branching & Looping
+When you call `flow.run(shared)`:
 
-Here's a simple expense approval flow that demonstrates branching and looping. The `ReviewExpense` node can return three possible Actions:
+1. The flow executes the start node
+2. It examines the action returned by the node's `post()` method
+3. It follows the corresponding transition to the next node
+4. This process repeats until it reaches a node with no matching transition for its action
 
-- `"approved"`: expense is approved, move to payment processing
-- `"needs_revision"`: expense needs changes, send back for revision
-- `"rejected"`: expense is denied, finish the process
+```mermaid
+sequenceDiagram
+    participant S as Shared Store
+    participant F as Flow
+    participant N1 as Node A
+    participant N2 as Node B
 
-We can wire them like this:
+    F->>N1: Execute Node A
+    N1->>S: Read from shared store
+    N1->>N1: Perform computation
+    N1->>S: Write to shared store
+    N1-->>F: Return action "default"
+
+    F->>F: Find next node for action "default"
+    F->>N2: Execute Node B
+    N2->>S: Read from shared store
+    N2->>N2: Perform computation
+    N2->>S: Write to shared store
+    N2-->>F: Return action "success"
+
+    F->>F: No transition defined for "success"
+    F-->>F: Flow execution complete
+```
+
+## Branching and Looping
+
+Flows support complex patterns like branching (conditionally following different paths) and looping (returning to previous nodes).
+
+### Example: Expense Approval Flow
+
+Here's a simple expense approval flow that demonstrates branching and looping:
 
 {% tabs %}
 {% tab title="Python" %}
 
 ```python
+# Define the nodes first
+# review = ReviewExpenseNode()
+# revise = ReviseReportNode()
+# payment = ProcessPaymentNode()
+# finish = FinishProcessNode()
+# ...
+
 # Define the flow connections
 review - "approved" >> payment        # If approved, process payment
 review - "needs_revision" >> revise   # If needs changes, go to revision
@@ -97,7 +161,8 @@ review - "rejected" >> finish         # If rejected, finish the process
 revise >> review   # After revision, go back for another review
 payment >> finish  # After payment, finish the process
 
-flow = Flow(start=review)
+# Create the flow
+expense_flow = Flow(start=review)
 ```
 
 {% endtab %}
@@ -105,6 +170,13 @@ flow = Flow(start=review)
 {% tab title="TypeScript" %}
 
 ```typescript
+// Define the nodes first
+// const review = new ReviewExpenseNode()
+// const revise = new ReviseReportNode()
+// const payment = new ProcessPaymentNode()
+// const finish = new FinishProcessNode()
+// ..
+
 // Define the flow connections
 review.on('approved', payment) // If approved, process payment
 review.on('needs_revision', revise) // If needs changes, go to revision
@@ -113,13 +185,14 @@ review.on('rejected', finish) // If rejected, finish the process
 revise.next(review) // After revision, go back for another review
 payment.next(finish) // After payment, finish the process
 
-const flow = new Flow(review)
+// Create the flow
+const expenseFlow = new Flow(review)
 ```
 
 {% endtab %}
 {% endtabs %}
 
-Let's see how it flows:
+This flow creates the following execution paths:
 
 1. If `review.post()` returns `"approved"`, the expense moves to the `payment` node
 2. If `review.post()` returns `"needs_revision"`, it goes to the `revise` node, which then loops back to `review`
@@ -135,76 +208,23 @@ flowchart TD
     payment --> finish
 ```
 
-### Running Individual Nodes vs. Running a Flow
+## Nested Flows
 
-- `node.run(shared)`: Just runs that node alone (calls `prep->exec->post()`), returns an Action.
-- `flow.run(shared)`: Executes from the start node, follows Actions to the next node, and so on until the flow can't continue.
+A Flow can be used as a Node within another Flow, enabling powerful composition patterns. This allows you to:
 
-{% hint style="warning" %}
-`node.run(shared)` **does not** proceed to the successor.
-This is mainly for debugging or testing a single node.
+1. Break down complex applications into manageable sub-flows
+2. Reuse flows across different applications
+3. Create hierarchical workflows with clear separation of concerns
 
-Always use `flow.run(...)` in production to ensure the full pipeline runs correctly.
-{% endhint %}
+### Flow as a Node
 
-## 3. Nested Flows
+When a Flow is used as a Node:
 
-A **Flow** can act like a Node, which enables powerful composition patterns. This means you can:
-
-1. Use a Flow as a Node within another Flow's transitions.
-2. Combine multiple smaller Flows into a larger Flow for reuse.
-3. Node `params` will be a merging of **all** parents' `params`.
-
-### Flow's Node Methods
-
-A **Flow** is also a **Node**, so it will run `prep()` and `post()`. However:
-
-- It **won't** run `exec()`, as its main logic is to orchestrate its nodes.
+- It inherits the Node lifecycle (`prep → exec → post`)
+- Its `prep()` and `post()` methods can be overridden
 - `post()` always receives `None` for `exec_res` and should instead get the flow execution results from the shared store.
-
-### Basic Flow Nesting
-
-Here's how to connect a flow to another node:
-
-{% tabs %}
-{% tab title="Python" %}
-
-```python
-# Create a sub-flow
-node_a >> node_b
-subflow = Flow(start=node_a)
-
-# Connect it to another node
-subflow >> node_c
-
-# Create the parent flow
-parent_flow = Flow(start=subflow)
-```
-
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-```typescript
-// Create a sub-flow
-node_a.next(node_b)
-const subflow = new Flow(node_a)
-
-// Connect it to another node
-subflow.next(node_c)
-
-// Create the parent flow
-const parentFlow = new Flow(subflow)
-```
-
-{% endtab %}
-{% endtabs %}
-
-When `parent_flow.run()` executes:
-
-1. It starts `subflow`
-2. `subflow` runs through its nodes (`node_a->node_b`)
-3. After `subflow` completes, execution continues to `node_c`
+- It won't allow for a custom `exec()` method since its main logic is to orchestrate its internal nodes
+- When run, it executes its internal nodes according to their transitions
 
 ### Example: Order Processing Pipeline
 
@@ -233,7 +253,7 @@ payment_flow >> inventory_flow >> shipping_flow
 order_pipeline = Flow(start=payment_flow)
 
 # Run the entire pipeline
-order_pipeline.run(shared_data)
+await order_pipeline.run(shared_data)
 ```
 
 {% endtab %}
@@ -242,16 +262,16 @@ order_pipeline.run(shared_data)
 
 ```typescript
 // Payment processing sub-flow
-validate_payment.next(process_payment).next(payment_confirmation)
-const paymentFlow = new Flow(validate_payment)
+validatePayment.next(processPayment).next(paymentConfirmation)
+const paymentFlow = new Flow(validatePayment)
 
 // Inventory sub-flow
-check_stock.next(reserve_items).next(update_inventory)
-const inventoryFlow = new Flow(check_stock)
+checkStock.next(reserveItems).next(updateInventory)
+const inventoryFlow = new Flow(checkStock)
 
 // Shipping sub-flow
-create_label.next(assign_carrier).next(schedule_pickup)
-const shippingFlow = new Flow(create_label)
+createLabel.next(assignCarrier).next(schedulePickup)
+const shippingFlow = new Flow(createLabel)
 
 // Connect the flows into a main order pipeline
 paymentFlow.next(inventoryFlow).next(shippingFlow)
@@ -260,7 +280,7 @@ paymentFlow.next(inventoryFlow).next(shippingFlow)
 const orderPipeline = new Flow(paymentFlow)
 
 // Run the entire pipeline
-orderPipeline.run(shared_data)
+await orderPipeline.run(sharedData)
 ```
 
 {% endtab %}
@@ -287,3 +307,57 @@ flowchart LR
         inventoryFlow --> shippingFlow
     end
 ```
+
+## Flow Parameters
+
+When a Flow is used as a Node, you can pass parameters to it using `set_params()`. These parameters are then accessible within the Flow's nodes:
+
+{% tabs %}
+{% tab title="Python" %}
+
+```python
+# Create a flow
+process_flow = Flow(start=some_node)
+
+# Set parameters
+process_flow.set_params({"mode": "fast", "max_items": 10})
+
+# Use the flow in another flow
+main_flow = Flow(start=process_flow)
+
+# Run the main flow
+await main_flow.run(shared)
+```
+
+{% endtab %}
+
+{% tab title="TypeScript" %}
+
+```typescript
+// Create a flow
+const processFlow = new Flow(someNode)
+
+// Set parameters
+processFlow.setParams({ mode: 'fast', maxItems: 10 })
+
+// Use the flow in another flow
+const mainFlow = new Flow(processFlow)
+
+// Run the main flow
+await mainFlow.run(shared)
+```
+
+{% endtab %}
+{% endtabs %}
+
+## Best Practices
+
+1. **Start Simple**: Begin with a linear flow and add branching/looping as needed
+2. **Visualize First**: Sketch your flow diagram before coding
+3. **Name Actions Clearly**: Use descriptive action names that indicate the decision made
+4. **Test Incrementally**: Build and test one section of your flow at a time
+5. **Document Transitions**: Add comments explaining the conditions for each transition
+6. **Error Handling**: Always include paths for handling errors
+7. **Avoid Deep Nesting**: Keep nesting to 2-3 levels for maintainability
+
+By following these principles, you can create complex, maintainable AI applications that are easy to reason about and extend.

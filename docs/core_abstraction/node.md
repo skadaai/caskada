@@ -1,16 +1,6 @@
----
-title: 'Node'
----
+# Node: The Fundamental Building Block
 
-# Node
-
-A **Node** is the smallest building block in BrainyFlow. Each Node has 3 steps in its lifecycle: `prep -> exec -> post`
-
-{% hint style="info" %}
-**Why 3 steps?** To enforce the principle of _separation of concerns_. Data storage and data processing are operated separately.
-
-All steps are _optional_. For example, you can implement only `prep` and `post` if you just need to process data without external computation.
-{% endhint %}
+A **Node** is the smallest reusable unit in BrainyFlow. Each Node follows a 3-step lifecycle that enforces the principle of separation of concerns.
 
 ## Node Lifecycle
 
@@ -18,24 +8,41 @@ All steps are _optional_. For example, you can implement only `prep` and `post` 
   <img src="https://github.com/the-pocket/.github/raw/main/assets/node.png?raw=true" width="400"/>
 </div>
 
-1. `async prep(shared)`
+### 1. `async prep(shared)`
 
-   - **Read and preprocess data** from the `shared` store.
-   - Examples: Query databases, read files, or serialize data into a string.
-   - Return `prep_res`, which is used by `exec()` and `post()`.
+**Purpose**: Read and preprocess data from the shared store.
 
-2. `async exec(prep_res)`
+- Extracts necessary data from the `shared` store
+- Performs any required preprocessing or validation
+- Returns `prep_res`, which becomes input for `exec()` and `post()`
 
-   - **Execute compute logic**, with optional retries and error handling.
-   - Examples: LLM calls, remote API calls, tool use.
-   - ⚠️ This shall be used only for computation and must **NOT** access `shared`.
-   - ⚠️ If retries are enabled, ensure idempotent implementation.
-   - Return `exec_res`, which is passed to `post()`.
+### 2. `async exec(prep_res)`
 
-3. `async post(shared, prep_res, exec_res)`
-   - **Postprocess and write data** back to `shared`.
-   - Examples: Update databases, change states, log results.
-   - **Decide the next action** by returning a string (`action = "default"` if `None` is returned).
+**Purpose**: Execute the core computation logic.
+
+- Performs the main computation (often an LLM call or API request)
+- ⚠️ Must **NOT** access the `shared` store directly
+- ⚠️ Should be designed for idempotence when retries are enabled
+- Returns `exec_res`, which is passed to `post()`
+
+### 3. `async post(shared, prep_res, exec_res)`
+
+**Purpose**: Process results and update the shared store.
+
+- Writes computation results back to the `shared` store
+- Has access to both the original input (`prep_res`) and result (`exec_res`)
+- Returns an action string that determines the next node in the flow
+  - If no value is returned, defaults to `"default"`
+
+{% hint style="info" %}
+**Why 3 steps?** This design enforces separation of concerns:
+
+- `prep`: Data access and preparation
+- `exec`: Pure computation (no side effects)
+- `post`: Result processing and state updates
+
+All steps are **optional**. For example, you can implement only `prep` and `post` if you just need to process data without external computation.
+{% endhint %}
 
 ```mermaid
 sequenceDiagram
@@ -54,37 +61,23 @@ sequenceDiagram
 
 ## Fault Tolerance & Retries
 
-You can **retry** `exec()` if it raises an exception via two parameters when defining the Node:
-
-- `max_retries` (int): Maximum times to run `exec()`. The default is `1` (**no** retry).
-- `wait` (int): The time to wait (in **seconds**) before the next retry. By default, `wait=0` (no waiting).
-
-`wait` is helpful when you encounter rate-limits or quota errors from your LLM provider and need to back off.
-
-{% tabs %}
-{% tab title="Python" %}
+Nodes support automatic retries for handling transient failures in `exec()` calls:
 
 ```python
-my_node = SummarizeFile(max_retries=3, wait=10)
+# Python
+my_node = MyNode(max_retries=3, wait=10)  # Retry up to 3 times with 10s delay
+
+# TypeScript
+const myNode = new MyNode({ maxRetries: 3, wait: 10 }) // Retry up to 3 times with 10s delay
 ```
 
-{% endtab %}
+Key retry parameters:
 
-{% tab title="TypeScript" %}
+- `max_retries` (int): Maximum number of execution attempts (default: 1, meaning no retry)
+- `wait` (int): Seconds to wait between retries (default: 0)
 
-```typescript
-const myNode = new SummarizeFile({ maxRetries: 3, wait: 10 })
-```
-
-{% endtab %}
-{% endtabs %}
-
-When an exception occurs in `exec()`, the Node automatically retries until:
-
-- It either succeeds, or
-- The Node has retried `max_retries - 1` times already and fails on the last attempt.
-
-You can get the current retry count (0-based) from `cur_retry`.
+`wait` is specially helpful when you encounter rate-limits or quota errors from your LLM provider and need to back off.
+During retries, you can access the current retry count (0-based) via `self.cur_retry` (Python) or `this.curRetry` (TypeScript).
 
 {% tabs %}
 {% tab title="Python" %}
@@ -92,7 +85,7 @@ You can get the current retry count (0-based) from `cur_retry`.
 ```python
 class RetryNode(Node):
     async def exec(self, prep_res):
-        print(f"Retry {self.cur_retry} times")
+        print(f"Retried {self.cur_retry} times")
         raise Exception("Failed")
 ```
 
@@ -103,18 +96,15 @@ class RetryNode(Node):
 ```typescript
 class RetryNode extends Node {
   async exec(prepRes: any): Promise {
-    console.log(`Retry ${this.curRetry} times`)
+    console.log(`Retried ${this.curRetry} times`)
     throw new Error('Failed')
   }
 }
 ```
 
-{% endtab %}
-{% endtabs %}
+## Graceful Fallbacks
 
-## Graceful Fallback
-
-To **gracefully handle** exceptions (after all retries) rather than raising them, override:
+To handle failures gracefully after all retries are exhausted, override the `exec_fallback` method:
 
 {% tabs %}
 {% tab title="Python" %}
@@ -218,3 +208,20 @@ console.log('Summary stored:', shared['summary'])
 
 {% endtab %}
 {% endtabs %}
+
+## Running Individual Nodes
+
+Nodes have an extra method `run(shared)`, which calls `prep->exec->post` and returns the action.
+
+{% hint style="warning" %}
+`Node.run` **does not** proceed to a successor!
+
+This method is useful for debugging or testing a single node, but not for running a [flow](./flow.md)!
+
+Always use `Flow.run` instead to ensure the full pipeline runs correctly.
+{% endhint %}
+
+Compare it with `Flow.run`:
+
+- `node.run(shared)`: Just runs that node alone (calls `prep->exec->post()`), returns an Action.
+- `flow.run(shared)`: Executes from the start node, follows Actions to the next node, and so on until the flow can't continue.

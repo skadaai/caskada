@@ -1,41 +1,37 @@
----
-title: 'Communication'
----
-
 # Communication
 
-Nodes and Flows **communicate** in 2 ways:
+Nodes and Flows in BrainyFlow communicate through two primary mechanisms:
 
-1. **Shared Store (for almost all cases)**
+1. **Shared Store (recommended for most cases)**
 
-   - A global data structure (often an in-memory dictionary) that all nodes can read (`prep()`) and write (`post()`).
-   - Great for data results, large content, or anything multiple nodes need.
-   - You shall design the data structure and populate it ahead.
-     {% hint style="success" %}
-     **Separation of Concerns:** Use `Shared Store` for almost all cases to separate _Data Schema_ from _Compute Logic_! This approach is both flexible and easy to manage, resulting in more maintainable code. `Params` is more a syntax sugar for [Batch](./batch.md).
-     {% endhint %}
+   - A global data structure (typically an in-memory dictionary) that all nodes can read from (`prep()`) and write to (`post()`)
+   - Ideal for sharing data results, large content, or information needed by multiple nodes
+   - Follows the principle of separation of concerns by keeping data separate from computation logic
 
-2. **Params (only for [Batch](./batch.md))**
-   - Each node has a local, ephemeral `params` dict passed in by the **parent Flow**, used as an identifier for tasks. Parameter keys and values shall be **immutable**.
-   - Good for identifiers like filenames or numeric IDs, in Batch mode.
+2. **Params (primarily for [Batch](./batch.md) operations)**
+   - Node-specific configuration passed down from parent flows
+   - Best for identifiers like filenames or IDs, especially in Batch processing
+   - Parameter keys and values should be **immutable** during execution
 
 If you know memory management, think of the **Shared Store** like a **heap** (shared by all function calls), and **Params** like a **stack** (assigned by the caller).
 
-## 1. Shared Store
+## Shared Store
+
+The Shared Store is the primary communication mechanism in BrainyFlow, embodying the principle of separation between data storage and computation logic.
 
 ### Overview
 
-A shared store is typically an in-memory dictionary, like:
+A shared store is typically an in-memory dictionary that serves as a global data repository:
 
 {% tabs %}
 {% tab title="Python" %}
 
 ```python
 shared = {
-    "data": {},
-    "summary": {},
+    "data": {...},
+    "results": {...},
     "config": {...},
-    # ...
+    # Any other data you need to share
 }
 ```
 
@@ -45,19 +41,26 @@ shared = {
 
 ```typescript
 const shared = {
-  data: {},
-  summary: {},
+  data: {...},
+  results: {...},
   config: {...},
-  // ...
+  // Any other data you need to share
 }
 ```
 
 {% endtab %}
 {% endtabs %}
 
-It can also contain local file handlers, database connections, or a combination for persistence. We recommend deciding the data structure or DB schema first based on your app requirements.
+The shared store can also contain file handlers, database connections, or other resources that need to be accessible across nodes.
 
-### Example
+### Best Practices
+
+1. **Define a Clear Schema**: Plan your shared store structure before implementation
+2. **Use Namespaces**: Group related data under descriptive keys
+3. **Document Structure**: Comment on expected data types and formats
+4. **Avoid Deep Nesting**: Keep the structure reasonably flat for readability
+
+### Example Usage
 
 {% tabs %}
 {% tab title="Python" %}
@@ -65,12 +68,12 @@ It can also contain local file handlers, database connections, or a combination 
 ```python
 class LoadData(Node):
     async def post(self, shared, prep_res, exec_res):
-        # We write data to shared store
+        # Write data to shared store
         shared["data"] = "Some text content"
 
 class Summarize(Node):
     async def prep(self, shared):
-        # We read data from shared store
+        # Read data from shared store
         return shared["data"]
 
     async def exec(self, prep_res):
@@ -80,9 +83,8 @@ class Summarize(Node):
         return summary
 
     async def post(self, shared, prep_res, exec_res):
-        # We write summary to shared store
+        # Write summary to shared store
         shared["summary"] = exec_res
-        return "default"
 
 load_data = LoadData()
 summarize = Summarize()
@@ -99,29 +101,28 @@ await flow.run(shared)
 
 ```typescript
 class LoadData extends Node {
-  async post(shared: any, prepRes: any, execRes: any): Promise {
-    // We write data to shared store
+  async post(shared: Record): Promise {
+    // Write data to shared store
     shared.data = 'Some text content'
   }
 }
 
 class Summarize extends Node {
-  async prep(shared: any): Promise {
-    // We read data from shared store
+  async prep(shared: Record): Promise {
+    // Read data from shared store
     return shared.data
   }
 
-  async exec(prepRes: any): Promise {
+  async exec(prepRes: string): Promise {
     // Call LLM to summarize
     const prompt = `Summarize: ${prepRes}`
     const summary = await callLLM(prompt)
     return summary
   }
 
-  async post(shared: any, prepRes: any, execRes: string): Promise {
-    // We write summary to shared store
+  async post(shared: Record, prepRes: string, execRes: string): Promise {
+    // Write summary to shared store
     shared.summary = execRes
-    return 'default'
   }
 }
 
@@ -137,28 +138,23 @@ await flow.run(shared)
 {% endtab %}
 {% endtabs %}
 
-Here:
+## Params
 
-- `LoadData` writes to `shared["data"]`.
-- `Summarize` reads from `shared["data"]`, summarizes, and writes to `shared["summary"]`.
+While the Shared Store is the primary communication mechanism, Params provide a way to configure individual nodes with specific settings.
 
-## 2. Params
+### Key Characteristics
 
-**Params** let you store _per-Node_ or _per-Flow_ config that doesn't need to live in the shared store. They are:
+- **Immutable**: Params don't change during a node's execution cycle
+- **Hierarchical**: Params are passed down from parent flows to child nodes
+- **Local**: Each node or flow has its own params that don't affect other nodes
 
-- **Immutable** during a Node's run cycle (i.e., they don't change mid-`prep->exec->post`).
-- **Set** via `set_params()`.
-- **Cleared** and updated each time a parent Flow calls it.
+### When to Use Params
 
-{% hint style="warning" %}
-Only set the uppermost Flow params because others will be overwritten by the parent Flow.
+- **Batch Processing**: To identify which item is being processed
+- **Configuration**: For node-specific settings that don't need to be shared
+- **Identification**: For tracking the source or purpose of a computation
 
-If you need to set child node params, see [Batch](./batch.md).
-{% endhint %}
-
-Typically, **Params** are identifiers (e.g., file name, page number). Use them to fetch the task you assigned or write to a specific part of the shared store.
-
-### Example
+### Example Usage
 
 {% tabs %}
 {% tab title="Python" %}
@@ -178,21 +174,16 @@ class SummarizeFile(Node):
     async def post(self, shared, prep_res, exec_res):
         filename = self.params["filename"]
         shared["summary"][filename] = exec_res
-        return "default"
 
-# 2) Set params
+# 2) Set params directly on a node (for testing)
 node = SummarizeFile()
-
-# 3) Set Node params directly (for testing)
 node.set_params({"filename": "doc1.txt"})
 await node.run(shared)
 
-# 4) Create Flow
+# 3) Set params on a flow (overrides node params)
 flow = Flow(start=node)
-
-# 5) Set Flow params (overwrites node params)
 flow.set_params({"filename": "doc2.txt"})
-await flow.run(shared)  # The node summarizes doc2, not doc1
+await flow.run(shared)  # The node summarizes doc2.txt, not doc1.txt
 ```
 
 {% endtab %}
@@ -202,7 +193,7 @@ await flow.run(shared)  # The node summarizes doc2, not doc1
 ```typescript
 // 1) Create a Node that uses params
 class SummarizeFile extends Node {
-  async prep(shared: any): Promise {
+  async prep(shared: Record): Promise {
     // Access the node's param
     const filename = this.params.filename
     return shared.data[filename] || ''
@@ -213,27 +204,35 @@ class SummarizeFile extends Node {
     return await callLLM(prompt)
   }
 
-  async post(shared: any, prepRes: string, execRes: string): Promise<string> {
+  async post(shared: Record, prepRes: string, execRes: string): Promise {
     const filename = this.params.filename
     shared.summary[filename] = execRes
-    return 'default'
   }
 }
 
-// 2) Set params
+// 2) Set params directly on a node (for testing)
 const node = new SummarizeFile()
-
-// 3) Set Node params directly (for testing)
 node.setParams({ filename: 'doc1.txt' })
 await node.run(shared)
 
-// 4) Create Flow
+// 3) Set params on a flow (overrides node params)
 const flow = new Flow(node)
-
-// 5) Set Flow params (overwrites node params)
 flow.setParams({ filename: 'doc2.txt' })
-await flow.run(shared) // The node summarizes doc2, not doc1
+await flow.run(shared) // The node summarizes doc2.txt, not doc1.txt
 ```
 
 {% endtab %}
 {% endtabs %}
+
+## Choosing Between Shared Store and Params
+
+| Use Shared Store when...                    | Use Params when...                           |
+| ------------------------------------------- | -------------------------------------------- |
+| Data needs to be accessed by multiple nodes | Configuration is specific to a single node   |
+| Information persists across the entire flow | Working with Batch processing                |
+| Storing large amounts of data               | Passing identifiers or simple values         |
+| Maintaining state throughout execution      | Configuring behavior without affecting state |
+
+{% hint style="success" %}
+**Best Practice**: Use Shared Store for almost all cases to maintain separation of concerns. Params are primarily useful for Batch processing and node-specific configuration.
+{% endhint %}
