@@ -18,10 +18,10 @@ cd cookbook/typescript-agent
 cp .env.example .env # add your API key
 
 npm install
-npm run agent
+npm run agent -- "this is your question"
 ```
 
-Default question is inside `main.ts`, change it and see the result.
+Default question is "who is the ceo of microsoft?" if you did not provide any argument after `npm run agent`
 
 ## Features
 
