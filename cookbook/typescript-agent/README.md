@@ -27,18 +27,17 @@ Default question is inside `main.ts`, change it and see the result.
 - Performs web searches to gather information
 - Collects and processes information from search results
 - Answers user questions based on the gathered information
-### How it work
+## How It Works
 
-The flow is comprise of 3 node
+The agent flow comprises three nodes:
 
-1. **DecideNode** is the core of agent flow, it will decide based on context that it can answer the question or not.
-2. **SearchNode** is the utility node that if DecideNode decide to perform a search this node will execute.
-3. **AnswerNode** if all the context is sufficient for DecideNode to decide to answer the question, this node will execute.
+1. **DecideNode**: The core of the agent flow that determines whether it can answer the question directly or needs to search for more information.
+2. **SearchNode**: Executes web searches when the DecideNode determines that more information is needed.
+3. **AnswerNode**: Generates a comprehensive answer when the DecideNode determines that sufficient context is available.
 
-The flow will start with DecideNode and then SearchNode and AnswerNode depending on whether DecideNode decide the action through condition in *post* method ("answer", "search")
+The flow starts with the DecideNode, which decides whether to search (triggering SearchNode) or answer (triggering AnswerNode) based on the current context. This decision is made in the `post` method, which returns either "search" or "answer".
 
-Also *post* method in SearchNode will always give the result back to DecideNode through "decide" action to let it decide whether it will search again or give final answer if context is sufficient.
-
+After completing a search, the SearchNode's `post` method returns results to the DecideNode via the "decide" action. This allows the DecideNode to determine whether to search again or provide a final answer when the context is sufficient.
 ```mermaid
 graph TD
     A[DecideNode] -->|"search"| B[SearchNode]
