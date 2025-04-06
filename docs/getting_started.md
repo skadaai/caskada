@@ -57,7 +57,7 @@ class AnswerNode(Node):
         return shared["question"]
 
     async def exec(self, question):
-        return await call_llm(question)
+        return call_llm(question)
 
     async def post(self, shared, prep_res, exec_res):
         shared["answer"] = exec_res
@@ -96,7 +96,7 @@ class AnswerNode extends Node {
 {% endtab %}
 {% endtabs %}
 
-Please note that we intentionally do not provide a `callLLM` function but you can [use your own implementation](./utility-functions/llm.md).
+Please note that we intentionally do not provide a `callLLM` function but you can [use your own implementation](./utility_function/llm.md).
 
 ### Step 2: Create the Flow
 

@@ -92,7 +92,7 @@ class LLMNode(Node):
         return shared["prompt"]
 
     async def exec(self, prompt):
-        return await call_llm(prompt)
+        return call_llm(prompt)
 
     async def post(self, shared, prep_res, exec_res):
         shared["response"] = exec_res

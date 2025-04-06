@@ -51,7 +51,7 @@ class SequentialSummaries(SequentialBatchNode):
 
     async def exec(self, chunk):
         prompt = f"Summarize this chunk in 10 words: {chunk}"
-        return await call_llm_async(prompt)
+        return call_llm(prompt)
 
     async def post(self, shared, prep_res, exec_res_list):
         shared["summary"] = "\n".join(exec_res_list)
