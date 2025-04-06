@@ -28,6 +28,7 @@ Default question is "who is the ceo of microsoft?" if you did not provide any ar
 - Performs web searches to gather information
 - Collects and processes information from search results
 - Answers user questions based on the gathered information
+
 ## How It Works
 
 The agent flow comprises three nodes:
@@ -39,6 +40,7 @@ The agent flow comprises three nodes:
 The flow starts with the DecideNode, which decides whether to search (triggering SearchNode) or answer (triggering AnswerNode) based on the current context. This decision is made in the `post` method, which returns either "search" or "answer".
 
 After completing a search, the SearchNode's `post` method returns results to the DecideNode via the "decide" action. This allows the DecideNode to determine whether to search again or provide a final answer when the context is sufficient.
+
 ```mermaid
 graph TD
     A[DecideNode] -->|"search"| B[SearchNode]
