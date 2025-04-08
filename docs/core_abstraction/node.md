@@ -112,6 +112,9 @@ class RetryNode extends Node {
 }
 ```
 
+{% endtab %}
+{% endtabs %}
+
 ## Graceful Fallbacks
 
 To handle failures gracefully after all retries are exhausted, override the `exec_fallback` method:
@@ -214,6 +217,104 @@ const actionResult = await summarizeNode.run(shared)
 
 console.log('Action returned:', actionResult) // "default"
 console.log('Summary stored:', shared['summary'])
+```
+
+{% endtab %}
+{% endtabs %}
+
+## Example: Document Retrieval
+
+{% tabs %}
+{% tab title="Python" %}
+
+```python
+class RetrieveRelevantDocuments(Node):
+    """Node that retrieves relevant documents based on a query."""
+
+    async def prep(self, shared):
+        """Extract query and vector database from shared store."""
+        query = shared["input"]["query"]
+        vector_db = shared["resources"]["vector_db"]
+        return query, vector_db
+
+    async def exec(self, inputs):
+        """Retrieve relevant documents using vector similarity."""
+        query, vector_db = inputs
+
+        # Get query embedding
+        query_embedding = await get_embedding(query)
+
+        # Search vector database
+        results = await vector_db.search(
+            query_embedding,
+            limit=5,
+            min_score=0.7
+        )
+
+        return results
+
+    async def post(self, shared, prep_res, exec_res):
+        """Store retrieved documents in shared store."""
+        shared["processing"]["relevant_documents"] = exec_res
+        shared["metadata"]["processing_steps"].append({
+            "step": "document_retrieval",
+            "timestamp": datetime.now().isoformat(),
+            "document_count": len(exec_res)
+        })
+
+        # Determine next action based on results
+        if not exec_res:
+            return "fallback_search"
+        return "generate_response"
+```
+
+{% endtab %}
+
+{% tab title="TypeScript" %}
+
+```typescript
+// Node that retrieves relevant documents based on a query
+class RetrieveRelevantDocuments extends Node {
+  async prep(shared: any): Promise<any> {
+    // Extract query and vector database from shared store
+    const query = shared['input']['query']
+    const vectorDb = shared['resources']['vector_db']
+    return [query, vectorDb]
+  }
+
+  async exec(inputs: any): Promise<any> {
+    // Retrieve relevant documents using vector similarity
+    const [query, vectorDb] = inputs
+
+    // Get query embedding
+    const queryEmbedding = await getEmbedding(query)
+
+    // Search vector database
+    const results = await vectorDb.search(
+      queryEmbedding,
+      limit: 5,
+      minScore: 0.7
+    )
+
+    return results
+  }
+
+  async post(shared: any, prepRes: any, execRes: any): Promise<string> {
+    // Store retrieved documents in shared store
+    shared['processing']['relevant_documents'] = execRes
+    shared['metadata']['processing_steps'].push({
+      'step': 'document_retrieval',
+      'timestamp': new Date().toISOString(),
+      'document_count': execRes.length
+    })
+
+    // Determine next action based on results
+    if (!execRes) {
+      return 'fallback_search'
+    }
+    return 'generate_response'
+  }
+}
 ```
 
 {% endtab %}

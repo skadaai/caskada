@@ -8,62 +8,68 @@ title: 'Agentic Coding'
 If you are an AI agents involved in building LLM Systems, read this guide **VERY, VERY** carefully! This is the most important chapter in the entire document. Throughout development, you should always (1) start with a small and simple solution, (2) design at a high level (`docs/design.md`) before implementation, and (3) frequently ask humans for feedback and clarification.
 {% endhint %}
 
-## Introduction
+BrainyFlow embraces a collaborative approach to AI system development where humans and AI assistants work together iteratively, leveraging their complementary strengths to create robust, maintainable solutions.
 
-Agentic Coding represents a paradigm shift in software development where humans focus on high-level design and strategic decisions while AI agents handle implementation details. This approach leverages the complementary strengths of both humans and AI to create more efficient, robust, and maintainable LLM applications.
+## The Human-AI Co-Design Philosophy
 
-## The Agentic Coding Workflow
+The most effective AI systems emerge when humans focus on high-level design and strategic decisions while AI assistants handle implementation details. This approach recognizes that:
 
-The development process follows seven key stages, with varying levels of human and AI involvement:
+1. **Humans excel at:**
 
-| Stage             | Human Involvement | AI Involvement | Primary Responsibility                                                                        |
-| ----------------- | :---------------: | :------------: | --------------------------------------------------------------------------------------------- |
-| 1. Requirements   |     ★★★ High      |    ★☆☆ Low     | Human defines problem scope and success criteria                                              |
-| 2. Flow Design    |    ★★☆ Medium     |   ★★☆ Medium   | Human outlines high-level architecture; AI refines details                                    |
-| 3. Utilities      |    ★★☆ Medium     |   ★★☆ Medium   | Humans provide available external APIs and integrations, and the AI helps with implementation |
-| 4. Node Design    |      ★☆☆ Low      |    ★★★ High    | AI helps design the node types and data handling based on the flow.                           |
-| 5. Implementation |      ★☆☆ Low      |    ★★★ High    | AI writes code based on the established design                                                |
-| 6. Optimization   |    ★★☆ Medium     |   ★★☆ Medium   | Human evaluates results; AI suggests improvements                                             |
-| 7. Reliability    |      ★☆☆ Low      |    ★★★ High    | AI implements error handling and addresses corner cases.                                      |
+   - Disambiguating business requirements
+   - Making strategic architectural decisions
+   - Evaluating outputs based on real-world experience
+   - Selecting appropriate external tools and APIs
+   - Identifying edge cases from domain knowledge
+
+2. **AI assistants excel at:**
+   - Implementing detailed code
+   - Generating comprehensive documentation
+   - Exploring design variations rapidly
+   - Handling repetitive implementation tasks
+   - Optimizing for performance metrics
+
+## The Co-Design Workflow
+
+The development process follows these key stages, with varying levels of human and AI involvement:
+
+| Stage             | Human Involvement | AI Involvement | Primary Responsibility                                                                |
+| ----------------- | :---------------: | :------------: | ------------------------------------------------------------------------------------- |
+| 1. Requirements   |     ★★★ High      |    ★☆☆ Low     | Human defines problem scope and success criteria                                      |
+| 2. Flow Design    |    ★★☆ Medium     |   ★★☆ Medium   | Human outlines high-level architecture; AI refines details                            |
+| 3. Utilities      |    ★★☆ Medium     |   ★★☆ Medium   | Humans provide available external APIs and integrations; AI helps with implementation |
+| 4. Node Design    |      ★☆☆ Low      |    ★★★ High    | AI designs node types and data handling based on the flow                             |
+| 5. Implementation |      ★☆☆ Low      |    ★★★ High    | AI writes code based on the established design                                        |
+| 6. Optimization   |    ★★☆ Medium     |   ★★☆ Medium   | Human evaluates results; AI suggests improvements                                     |
+| 7. Reliability    |      ★☆☆ Low      |    ★★★ High    | AI implements error handling and addresses corner cases                               |
 
 ## Detailed Stage Breakdown
 
-### 1. Requirements Analysis
+### 1. Requirements Specification
 
-Before building an LLM application, thoroughly evaluate whether AI is the right solution for your problem:
+The human partner takes the lead in defining what the system should accomplish:
 
-**Ideal Use Cases:**
+**Key Activities:**
 
-- Content generation and transformation (summaries, translations, rewrites)
-- Information extraction and classification
-- Conversational interfaces with well-defined domains
-- Decision support with clear parameters
-
-**Less Suitable Use Cases:**
-
-- Problems requiring perfect accuracy or deterministic outputs
-- Tasks needing specialized domain expertise beyond LLM training
-- Complex decision-making with high-stakes consequences
-- Problems with ambiguous success criteria
+- Define the problem scope and business objectives
+- Establish clear success criteria
+- Provide example inputs and expected outputs
+- Identify constraints and limitations
 
 **Best Practices:**
 
 - **User-Centric Approach:** Define problems from the user's perspective rather than listing features
 - **Concrete Examples:** Develop several example inputs and expected outputs
-- **Manual Walkthrough:** Solve examples by hand to understand the process before automation
+- **Manual Walkthrough:** Solve examples by hand to understand the process before automating it
 - **Value vs. Complexity:** Prioritize high-value features with manageable complexity
 
 ### 2. Flow Design
 
-{% hint style="warning" %}
-**If Humans can't specify the flow, AI Agents can't automate it!** Before building an LLM system, thoroughly understand the problem and potential solution by manually solving example inputs to develop intuition.  
-{% endhint %}
-
-The flow design stage establishes the application's architecture and processing pipeline:
+The human outlines the high-level architecture while the AI assistant helps refine the details:
 
 **Key Activities:**
 
-- Identify applicable [design patterns](./design_pattern/index.md) (Agent, RAG, MapReduce, etc.)
+- Identify applicable [design patterns](../design_pattern/index.md) (Agent, RAG, MapReduce, etc.)
 - Map out information flow between components
   - For each node in the flow, start with a high-level one-line description of what it does.
 - Define decision points and branching logic
@@ -98,6 +104,8 @@ flowchart LR
 - **Appropriate Granularity:** Balance between too coarse (complex) and too granular (fragmented)
 
 ### 3. Utility Functions
+
+The human identifies necessary external tools and APIs while the AI helps implement the interfaces.
 
 {% hint style="success" %}
 **Sometimes, design Utilies before Flow:** For example, for an LLM project to automate a legacy system, the bottleneck will likely be the available interface to that system. Start by designing the hardest utilities for interfacing, and then build the flow around them.
@@ -186,20 +194,21 @@ export async function callLLM(prompt: string): Promise<string> {
 
 ### 4. Node Design
 
-Nodes are the processing units within your application flow, each with a specific responsibility:
+The AI assistant takes the lead in designing the processing units within the application flow:
 
 **Node Design Principles:**
 
 - **Data Isolation:** Use the shared store for communication between nodes
-- **Clear Lifecycle:** Follow the `prep -> exec -> post` pattern
+- **Clear Lifecycle:** Follow the `prep → exec → post` pattern
 - **Idempotent Operations:** Design for safe retries when possible
 - **Graceful Degradation:** Implement fallbacks for failure scenarios
 
 **Shared Store Design:**
-Start by designing your shared store schema to facilitate data flow between nodes:
+Design your shared store schema to facilitate data flow between nodes:
 
 ```python
 # Example shared store structure
+
 shared = {
     "input": {
         "query": "How do neural networks learn?",
@@ -221,6 +230,7 @@ shared = {
         "processing_steps": []
     }
 }
+
 ```
 
 **Node Specification:**
@@ -235,10 +245,10 @@ For each node, define how it reads and writes data, and which utility function i
 ### 5. Implementation
 
 {% hint style="success" %}
-🎉 If you've reached this step, humans have finished the design. Now _Agentic Coding_ begins!
+🎉 If you've reached this step, humans have finished the design. Now _Agentic Coding_ should be on its own!
 {% endhint %}
 
-The implementation stage transforms the design into working code:
+The AI assistant transforms the design into working code:
 
 **Implementation Guidelines:**
 
@@ -246,85 +256,80 @@ The implementation stage transforms the design into working code:
 - **Incremental Development:** Add features one at a time with testing
 - **Fail Fast:** Avoid error suppression as much as you can to quickly identify issues
 - **Comprehensive Logging:** Add detailed logging throughout the code for debugging
+- **Root Cause Analysis:** Try to fix things at the cause, not the symptom
 
-**Example Node Implementation:**
-
-```python
-class RetrieveRelevantDocuments(Node):
-    """Node that retrieves relevant documents based on a query."""
-
-    async def prep(self, shared):
-        """Extract query and vector database from shared store."""
-        query = shared["input"]["query"]
-        vector_db = shared["resources"]["vector_db"]
-        return query, vector_db
-
-    async def exec(self, inputs):
-        """Retrieve relevant documents using vector similarity."""
-        query, vector_db = inputs
-
-        # Get query embedding
-        query_embedding = await get_embedding(query)
-
-        # Search vector database
-        results = await vector_db.search(
-            query_embedding,
-            limit=5,
-            min_score=0.7
-        )
-
-        return results
-
-    async def post(self, shared, prep_res, exec_res):
-        """Store retrieved documents in shared store."""
-        shared["processing"]["relevant_documents"] = exec_res
-        shared["metadata"]["processing_steps"].append({
-            "step": "document_retrieval",
-            "timestamp": datetime.now().isoformat(),
-            "document_count": len(exec_res)
-        })
-
-        # Determine next action based on results
-        if not exec_res:
-            return "fallback_search"
-        return "generate_response"
-```
-
-### 6. Optimization
+### 6. Evaluation and Optimization
 
 {% hint style="success" %}
-**You'll likely iterate a lot!** Expect to repeat Steps 3–6 countless times.
+**You'll likely iterate a lot!** Expect to repeat Steps 3–6 numerous times.
 
 <div align="center"><img src="https://github.com/the-pocket/.github/raw/main/assets/success.png?raw=true" width="400"/></div>
 {% endhint %}
 
-- **Use Intuition**: For a quick initial evaluation, human intuition is often a good start.
-- **Redesign Flow (Back to Step 3)**: Consider breaking down tasks further, introducing agentic decisions, or better managing input contexts.
-- **Context Management:** Optimize the information provided to each node
-- If your flow design is already solid, move on to micro-optimizations:
-- **Prompt Engineering**: Use clear, specific instructions with examples to reduce ambiguity.
-- **In-Context Learning**: Provide robust examples for tasks that are difficult to specify with instructions alone.
+The human evaluates the system's performance while the AI suggests improvements.
+For a quick initial evaluation, human intuition is often a good start.
 
-7. **Reliability**
-   - **Node Retries**: Add checks in the node `exec` to ensure outputs meet requirements, and consider increasing `max_retries` and `wait` times.
-   - **Logging and Visualization**: Maintain logs of all attempts and visualize node results for easier debugging.
-   - **Self-Evaluation**: Add a separate node and have the LLM evaluate and improve its own outputs
+**Evaluation Activities:**
 
-## Iterative Development Process
+- Test with diverse inputs to identify edge cases
+- Assess output quality against success criteria
+- Measure performance metrics (speed, accuracy, etc.)
+- Gather user feedback if possible
+
+Consider breaking down tasks further, redesigning the flow (Back to Step 3), introducing agentic decisions, or better managing input contexts.
+If your flow design is already solid, move on to optimizing it:
+
+**Optimization Strategies:**
+
+- **Context Management:** Optimize information provided to each node
+- **Prompt Engineering:** Refine instructions to reduce ambiguity
+- **In-Context Learning:** Provide examples for difficult tasks
+- **Architectural Refinements:** Adjust flow based on performance insights
+
+### 7. Reliability Enhancement
+
+The AI assistant implements error handling and addresses corner cases:
+
+**Reliability Techniques:**
+
+- **Node Retries**: Add checks in the node `exec` to ensure outputs meet requirements. Also, consider increasing `max_retries` and `wait` times.
+- **Logging:** Maintain logs of all attempts for debugging
+- **Self-Evaluation:** Add a separate node and have the LLM evaluate its own outputs
+- **Graceful Degradation:** Implement fallbacks for when primary approaches fail
+
+## The Iterative Development Process
 
 Agentic Coding is inherently iterative. Expect to cycle through these stages multiple times:
 
-1. **Start Small:** Begin with a minimal implementation of the core functionality
+1. **Start Small:** Begin with a minimal implementation of core functionality
 2. **Test and Evaluate:** Gather feedback on performance and output quality
 3. **Identify Improvements:** Determine which aspects need enhancement
 4. **Refine Design:** Update flow, nodes, or utilities as needed
 5. **Implement Changes:** Make targeted improvements
 6. **Repeat:** Continue the cycle until quality targets are met
 
+## Best Practices for Effective Co-Design
+
+### For Human Partners:
+
+- **Be Specific:** Provide clear, unambiguous requirements
+- **Offer Examples:** Illustrate desired behavior with concrete examples
+- **Provide Feedback:** Give specific, actionable feedback on AI implementations
+- **Embrace Iteration:** Expect multiple cycles of refinement
+- **Focus on Design:** Concentrate on high-level architecture and evaluation
+
+### For AI Assistants:
+
+- **Ask Questions:** Seek clarification when requirements are ambiguous
+- **Explain Reasoning:** Document design decisions and implementation choices
+- **Suggest Alternatives:** Offer multiple approaches when appropriate
+- **Identify Limitations:** Be transparent about potential issues or edge cases
+- **Learn from Feedback:** Incorporate human feedback into subsequent iterations
+
 ## Conclusion
 
-Agentic Coding represents a powerful approach to developing LLM applications by combining human design expertise with AI implementation capabilities. By following this structured process, you can create more effective, maintainable, and reliable AI systems while focusing your human effort where it adds the most value.
+Agentic Coding represents a powerful approach to developing AI systems by combining human design expertise with AI implementation capabilities. By following this structured process, you can create more effective, maintainable, and reliable AI systems while focusing human effort where it adds the most value.
 
-Remember that the most successful projects start simple, iterate quickly, and continuously incorporate feedback. Let humans handle the "why" and "what" while AI agents handle the "how" of implementation.
+Remember that the most successful projects start simple, iterate quickly, and continuously incorporate feedback. Let humans handle the "why" and "what" while AI assistants handle the "how" of implementation.
 
 Human-AI collaboration is a journey of continuous learning and improvement. Embrace the iterative nature of the process, and you'll build increasingly sophisticated applications that deliver real value to users.
