@@ -1,7 +1,7 @@
 # Agentic Coding with BrainyFlow
 
 {% hint style="warning" %}
-If you are an AI agent involved in building AI systems, read this guide **VERY, VERY** carefully! This is the most important chapter in the entire document. Throughout development, you should always:
+**For AI Assistants**: This is your implementation playbook. Use the design document as your single source of truth. Never proceed to code without explicit human approval of the design.
 
 1.  start with a small and simple solution
 2.  design at a high level (`docs/design.md`) before implementation
@@ -13,7 +13,21 @@ Agentic coding represents a powerful approach to software development where huma
 
 ## The AI Implementation Brief
 
-Before writing any code, create a comprehensive AI Implementation Brief at `docs/design.md`. This document serves as the foundation for human-AI collaboration and should contain these essential sections:
+```mermaid
+flowchart TD
+    A[Human Request] --> B{AI Asks Questions}
+    B --> C[AI Generates Structured Design Draft]
+    C --> D{Human Validates/Edits}
+    D -->|Approved| E[AI Implements]
+    D -->|Needs Changes| B
+    E --> F[Continuous Co-Refinement]
+```
+
+- **AI-Driven Structuring:** Convert vague requests into technical specifications through dialogue
+- **Essentialism:** Only capture requirements that directly impact implementation
+- **Living Documentation:** Design evolves organically through implementation insights
+
+Before writing any code, create a comprehensive AI Implementation Brief at `docs/design.md`. This document serves as the foundation for human-AI collaboration and should contain all the essential sections listed below.
 
 ### 1. Requirements Definition
 
@@ -142,6 +156,18 @@ After completing your design document:
 4. **Collaborative Implementation**: Work with AI to implement the design
 5. **Test and Validate**: Verify the implementation against success criteria
 
-By creating a thorough AI Implementation Brief, you provide your AI assistant with the clear direction needed to implement an effective BrainyFlow solution while maintaining human oversight of the critical design decisions.
+## Conclusion: Precision Through Structure
+
+This approach ensures all BrainyFlow solutions maintain:
+
+- **Human Focus:** Strategic requirements and validation
+
+- **AI Precision:** Structured implementation targets
+
+- **System Integrity:** Clear component boundaries
+
+By enforcing these four pillars through adaptive dialogue rather than rigid templates, we achieve flexible yet reliable AI system development. The design document becomes a living contract between human intent and AI execution.
+
+You provide your AI assistant with the clear direction needed to implement an effective BrainyFlow solution while maintaining human oversight of the critical design decisions.
 
 Remember: The quality of your design document directly impacts the quality of the implementation. Invest time in creating a comprehensive brief to ensure successful outcomes.
