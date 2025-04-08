@@ -43,6 +43,176 @@ The development process follows these key stages, with varying levels of human a
 | 6. Optimization   |    ★★☆ Medium     |   ★★☆ Medium   | Human evaluates results; AI suggests improvements                                     |
 | 7. Reliability    |      ★☆☆ Low      |    ★★★ High    | AI implements error handling and addresses corner cases                               |
 
+## The Design Document
+
+Having a clear and consistent design is paramount for successful development, and specifing the workflow design through documentation is a key part of this process. Unless your whole workflow is automated, we recommend starting the process by defining a design document (typically a markdown file) that outlines the high-level architecture and the expected outputs. This document - _typically located at `docs/design.md`_ - can be used as a reference for the AI assistant during the implementation phase and should be your main focus until you have a working prototype built.
+
+You should iterate over steps 1 to 4 as many times as needed, improving your design file, before you move to step 5 (implementation).
+
+<details>
+  <summary>Design Document Template</summary>
+  
+````markdown
+# Design Doc: Your Project Name
+
+> Please DON'T remove notes for AI
+
+## Requirements
+
+> Notes for AI: Keep it simple and clear.
+> If the requirements are abstract, write concrete user stories
+
+### Problem Statement
+
+[Describe the problem you're trying to solve in 2-3 sentences]
+
+### Business Objectives
+
+- [list few objectives; keep it concise]
+
+### Success Criteria
+
+- [Measurable outcome 1]
+- [Measurable outcome 2]
+
+### Sample Scenarios
+
+1. **Scenario 1**: [Describe an example input]
+   - Expected Output: [What should happen]
+2. **Scenario 2**: [Describe another example input]
+   - Expected Output: [What should happen]
+
+## Flow Design
+
+> Notes for AI:
+>
+> 1. Consider the design patterns of agent, map-reduce, rag, and workflow. Apply them if they fit.
+> 2. Present a concise, high-level description of the workflow.
+
+### Applicable Design Pattern:
+
+1. Map the file summary into chunks, then reduce these chunks into a final summary.
+2. Agentic file finder
+   - _Context_: The entire summary of the file
+   - _Action_: Find the file
+
+### Flow high-level Design:
+
+1. **[Node Name]**: [Purporse: This node is for ...]
+2. **[Node Name]**: [Purporse: This node is for ...]
+3. **[Node Name]**: [Purporse: This node is for ...]
+
+> Notes for AI:
+>
+> Sketch a simple diagram or describe the flow of data
+
+```mermaid
+flowchart TD
+    firstNode[First Node] --> secondNode[Second Node]
+    secondNode --> thirdNode[Third Node]
+```
+
+### Decision Points
+
+- When [condition], the system should [action]
+- When [condition], the system should [action]
+
+### External Integrations
+
+[list only the integrations that are strictly necessary, if any!]
+
+- [Integration point]: [What data is exchanged]
+- [Integration point]: [What data is exchanged]
+
+## Utility Functions
+
+> Notes for AI:
+>
+> 1. Understand the utility function definition thoroughly by reviewing the doc.
+> 2. Include only the necessary utility functions, based on nodes in the flow.
+
+### Function: [Name] ([file path])
+
+#### Purpose
+
+[1-2 sentences describing what this function does]
+
+#### Input Parameters
+
+- `[param1]` ([type]): [Description]
+- `[param2]` ([type]): [Description]
+
+#### Expected Output
+
+- [Return type]: [Description of what's returned; keep it concise!]
+
+#### Error Handling
+
+- When [error condition], the function should [expected behavior]
+
+#### External Dependencies
+
+[list only the dependencies that are strictly necessary, if any!]
+
+- [Dependency 1]: [Why it's needed]
+- [Dependency 2]: [Why it's needed]
+
+## Node Design
+
+### Shared Store Schema
+
+> Notes for AI: Try to minimize data redundancy
+
+The shared memory structure is organized as follows:
+
+```python
+shared = {
+    "key": "value"
+}
+```
+
+### Node Steps
+
+> Notes for AI: Carefully decide whether to use Sequential/Parallel Batch.
+
+1. First Node
+
+- _Purpose_: Provide a short explanation of the node’s function
+- _Type_: Decide between Regular, Batch, or Async
+- _Steps_:
+  - _prep_: Read "key" from the shared store
+  - _exec_: Call the utility function
+  - _post_: Write "key" to the shared store
+
+2. Second Node
+   ...
+
+## Evaluation Criteria
+
+### Output Quality
+
+- [Criterion 1]: [Description of what makes a good output]
+  - Score 1-5: [What each score means]
+- [Criterion 2]: [Description]
+  - Score 1-5: [What each score means]
+
+### System Performance
+
+- [Metric 1]: [Target value and why it matters]
+- [Metric 2]: [Target value and why it matters]
+
+### Edge Cases to Test
+
+[list only the edge cases that are strictly relevant, if any!]
+
+1. [Edge case description]
+   - Expected handling: [What should happen]
+2. [Edge case description]
+   - Expected handling: [What should happen]
+
+````
+</details>
+
 ## Detailed Stage Breakdown
 
 ### 1. Requirements Specification
@@ -230,7 +400,6 @@ shared = {
         "processing_steps": []
     }
 }
-
 ```
 
 **Node Specification:**
