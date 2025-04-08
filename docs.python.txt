@@ -11,23 +11,9 @@ Welcome to BrainyFlow! This framework helps you build powerful, modular AI appli
 
 First, ensure you have BrainyFlow installed:
 
-{% tabs %}
-{% tab title="Python" %}
-
 ```bash
 pip install brainyflow
 ```
-
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-```bash
-npm install brainyflow
-```
-
-{% endtab %}
-{% endtabs %}
 
 For detailed installation options, see the [Installation Guide](./installation.md).
 
@@ -58,9 +44,6 @@ graph LR
 
 ### Step 2: Implement the Nodes
 
-{% tabs %}
-{% tab title="Python" %}
-
 ```python
 from brainyflow import Node
 from utils import call_llm  # Your LLM implementation
@@ -84,39 +67,6 @@ class AnswerNode(Node):
         shared["answer"] = exec_res
 ```
 
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-```typescript
-import { Node } from 'brainyflow'
-import { input } from '@inquirer/prompts'
-import { callLLM } from './utils/callLLM' // Your LLM implementation
-
-class GetQuestionNode extends Node {
-  async prep(shared: Record): Promise {
-    shared.question = await input({ message: 'Enter your question: ' })
-  }
-}
-
-class AnswerNode extends Node {
-  async prep(shared: Record): Promise {
-    return shared.question
-  }
-
-  async exec(question: string): Promise {
-    return await callLLM(question)
-  }
-
-  async post(shared: Record, prepRes: string, execRes: string): Promise {
-    shared.answer = execRes
-  }
-}
-```
-
-{% endtab %}
-{% endtabs %}
-
 {% hint style="info" %}
 
 **Review:** What was achieved here?
@@ -127,9 +77,6 @@ class AnswerNode extends Node {
 {% endhint %}
 
 ### Step 3: Connect the Nodes into a Flow
-
-{% tabs %}
-{% tab title="Python" %}
 
 ```python
 from brainyflow import Flow
@@ -144,27 +91,6 @@ def create_qa_flow():
     return Flow(start=get_question_node)
 ```
 
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-```typescript
-import { Flow } from 'brainyflow'
-
-function createQaFlow(): Flow {
-  const getQuestionNode = new GetQuestionNode()
-  const answerNode = new AnswerNode()
-
-  // Connect nodes: getQuestionNode → answerNode
-  getQuestionNode.next(answerNode)
-
-  return new Flow(getQuestionNode)
-}
-```
-
-{% endtab %}
-{% endtabs %}
-
 {% hint style="info" %}
 
 **Review:** What was achieved here?
@@ -174,9 +100,6 @@ function createQaFlow(): Flow {
 {% endhint %}
 
 ### Step 4: Run the Flow
-
-{% tabs %}
-{% tab title="Python" %}
 
 ```python
 import asyncio
@@ -192,26 +115,6 @@ async def main():
 if __name__ == "__main__":
     asyncio.run(main())
 ```
-
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-```typescript
-async function main() {
-  const shared: Record = {} // Initialize empty shared store
-  const qaFlow = createQaFlow()
-  await qaFlow.run(shared)
-
-  console.log(`Question: ${shared.question}`)
-  console.log(`Answer: ${shared.answer}`)
-}
-
-main().catch(console.error)
-```
-
-{% endtab %}
-{% endtabs %}
 
 ## 4. Key Design Principles
 
@@ -384,23 +287,9 @@ sequenceDiagram
 
 Nodes support automatic retries for handling transient failures in `exec()` calls:
 
-{% tabs %}
-{% tab title="Python" %}
-
 ```python
 my_node = MyNode(max_retries=3, wait=10)  # Retry up to 3 times with 10s delay
 ```
-
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-```typescript
-const myNode = new MyNode({ maxRetries: 3, wait: 10 }) // Retry up to 3 times with 10s delay
-```
-
-{% endtab %}
-{% endtabs %}
 
 Key retry parameters:
 
@@ -410,9 +299,6 @@ Key retry parameters:
 `wait` is specially helpful when you encounter rate-limits or quota errors from your LLM provider and need to back off.
 During retries, you can access the current retry count (0-based) via `self.cur_retry` (Python) or `this.curRetry` (TypeScript).
 
-{% tabs %}
-{% tab title="Python" %}
-
 ```python
 class RetryNode(Node):
     async def exec(self, prep_res):
@@ -420,50 +306,9 @@ class RetryNode(Node):
         raise Exception("Failed")
 ```
 
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-```typescript
-class RetryNode extends Node {
-  async exec(prepRes: any): Promise {
-    console.log(`Retried ${this.curRetry} times`)
-    throw new Error('Failed')
-  }
-}
-```
-
-## Graceful Fallbacks
-
-To handle failures gracefully after all retries are exhausted, override the `exec_fallback` method:
-
-{% tabs %}
-{% tab title="Python" %}
-
-```python
-async def exec_fallback(self, prep_res, exc):
-    raise exc  # Default behavior is to re-raise
-```
-
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-```typescript
-async execFallback(prepRes: any, exc: Error): Promise {
-  throw exc;  // Default behavior is to re-raise
-}
-```
-
-{% endtab %}
-{% endtabs %}
-
 By default, this method just re-raises the exception. You can override it to return a fallback result instead, which becomes the `exec_res` passed to `post()`.
 
 ## Example: Summarize File
-
-{% tabs %}
-{% tab title="Python" %}
 
 ```python
 class SummarizeFile(Node):
@@ -496,49 +341,6 @@ async def main():
 
 asyncio.run(main())
 ```
-
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-```typescript
-class SummarizeFile extends Node {
-  async prep(shared: any): Promise<any> {
-    return shared['data']
-  }
-
-  async exec(prepRes: any): Promise<string> {
-    if (!prepRes) {
-      return 'Empty file content'
-    }
-    const prompt = `Summarize this text in 10 words: ${prepRes}`
-    const summary = await callLLM(prompt) // might fail
-    return summary
-  }
-
-  async execFallback(prepRes: any, exc: Error): Promise<string> {
-    // Provide a simple fallback instead of crashing
-    return 'There was an error processing your request.'
-  }
-
-  async post(shared: any, prepRes: any, execRes: any): Promise<string> {
-    shared['summary'] = execRes
-    // Return "default" by not returning
-  }
-}
-
-const summarizeNode = new SummarizeFile({ maxRetries: 3 })
-
-// node.run() calls prep->exec->post
-// If exec() fails, it retries up to 3 times before calling execFallback()
-const actionResult = await summarizeNode.run(shared)
-
-console.log('Action returned:', actionResult) // "default"
-console.log('Summary stored:', shared['summary'])
-```
-
-{% endtab %}
-{% endtabs %}
 
 ## Running Individual Nodes
 
@@ -573,9 +375,6 @@ Each Node's `post()` method returns an **Action** string that determines which n
 
 ### Defining Transitions
 
-{% tabs %}
-{% tab title="Python" %}
-
 You can define transitions primarily with syntax sugar:
 
 1. **Basic default transition**: `node_a >> node_b`
@@ -595,39 +394,9 @@ node_a - "success" >> node_b  # If node_a returns "success", go to node_b
 node_a - "error" >> node_c    # If node_a returns "error", go to node_c
 ```
 
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-1. **Basic default transition**: `node_a.next(node_b)`
-   This means if `node_a.post()` returns `"default"`, go to `node_b`.
-
-2. **Named action transition**: `node_a.on('action_name', node_b)` or `node_a.next(node_b, 'action_name')`
-   This means if `node_a.post()` returns `"action_name"`, go to `node_b`.
-
-Note that `node_a.next(node_b)` is equivalent to both `node_a.next(node_b, 'default')` and `node_a.on('default', node_b)`
-
-```typescript
-// Basic default transition
-node_a.next(node_b) // If node_a returns "default", go to node_b
-
-// Named action transition
-node_a.on('success', node_b) // If node_a returns "success", go to node_b
-node_a.on('error', node_c) // If node_a returns "error", go to node_c
-
-// Alternative syntax
-node_a.next(node_b, 'success') // Same as node_a.on('success', node_b)
-```
-
-{% endtab %}
-{% endtabs %}
-
 ## Creating a Flow
 
 A Flow begins with a **start node** and follows the action-based transitions until it reaches a node with no matching transition for its returned action.
-
-{% tabs %}
-{% tab title="Python" %}
 
 ```python
 from brainyflow import Flow
@@ -643,28 +412,6 @@ flow = Flow(start=node_a)
 # Run the flow with a shared store
 await flow.run(shared)
 ```
-
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-```typescript
-import { Flow } from 'brainyflow'
-
-// Define nodes and transitions
-node_a.next(node_b)
-node_b.on('success', node_c)
-node_b.on('error', node_d)
-
-// Create flow starting with node_a
-const flow = new Flow(node_a)
-
-// Run the flow with a shared store
-await flow.run(shared)
-```
-
-{% endtab %}
-{% endtabs %}
 
 ## Flow Execution Process
 
@@ -707,9 +454,6 @@ Flows support complex patterns like branching (conditionally following different
 
 Here's a simple expense approval flow that demonstrates branching and looping:
 
-{% tabs %}
-{% tab title="Python" %}
-
 ```python
 # Define the nodes first
 # review = ReviewExpenseNode()
@@ -729,33 +473,6 @@ payment >> finish  # After payment, finish the process
 # Create the flow
 expense_flow = Flow(start=review)
 ```
-
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-```typescript
-// Define the nodes first
-// const review = new ReviewExpenseNode()
-// const revise = new ReviseReportNode()
-// const payment = new ProcessPaymentNode()
-// const finish = new FinishProcessNode()
-// ..
-
-// Define the flow connections
-review.on('approved', payment) // If approved, process payment
-review.on('needs_revision', revise) // If needs changes, go to revision
-review.on('rejected', finish) // If rejected, finish the process
-
-revise.next(review) // After revision, go back for another review
-payment.next(finish) // After payment, finish the process
-
-// Create the flow
-const expenseFlow = new Flow(review)
-```
-
-{% endtab %}
-{% endtabs %}
 
 This flow creates the following execution paths:
 
@@ -795,9 +512,6 @@ When a Flow is used as a Node:
 
 Here's a practical example that breaks down order processing into nested flows:
 
-{% tabs %}
-{% tab title="Python" %}
-
 ```python
 # Payment processing sub-flow
 validate_payment >> process_payment >> payment_confirmation
@@ -820,36 +534,6 @@ order_pipeline = Flow(start=payment_flow)
 # Run the entire pipeline
 await order_pipeline.run(shared_data)
 ```
-
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-```typescript
-// Payment processing sub-flow
-validatePayment.next(processPayment).next(paymentConfirmation)
-const paymentFlow = new Flow(validatePayment)
-
-// Inventory sub-flow
-checkStock.next(reserveItems).next(updateInventory)
-const inventoryFlow = new Flow(checkStock)
-
-// Shipping sub-flow
-createLabel.next(assignCarrier).next(schedulePickup)
-const shippingFlow = new Flow(createLabel)
-
-// Connect the flows into a main order pipeline
-paymentFlow.next(inventoryFlow).next(shippingFlow)
-
-// Create the master flow
-const orderPipeline = new Flow(paymentFlow)
-
-// Run the entire pipeline
-await orderPipeline.run(sharedData)
-```
-
-{% endtab %}
-{% endtabs %}
 
 This creates a clean separation of concerns while maintaining a clear execution path:
 
@@ -877,9 +561,6 @@ flowchart LR
 
 When a Flow is used as a Node, you can pass parameters to it using `set_params()`. These parameters are then accessible within the Flow's nodes:
 
-{% tabs %}
-{% tab title="Python" %}
-
 ```python
 # Create a flow
 process_flow = Flow(start=some_node)
@@ -893,27 +574,6 @@ main_flow = Flow(start=process_flow)
 # Run the main flow
 await main_flow.run(shared)
 ```
-
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-```typescript
-// Create a flow
-const processFlow = new Flow(someNode)
-
-// Set parameters
-processFlow.setParams({ mode: 'fast', maxItems: 10 })
-
-// Use the flow in another flow
-const mainFlow = new Flow(processFlow)
-
-// Run the main flow
-await mainFlow.run(shared)
-```
-
-{% endtab %}
-{% endtabs %}
 
 ## Best Practices
 
@@ -958,9 +618,6 @@ The Shared Store is the primary communication mechanism in BrainyFlow, embodying
 
 A shared store is typically an in-memory dictionary that serves as a global data repository:
 
-{% tabs %}
-{% tab title="Python" %}
-
 ```python
 shared = {
     "data": {...},
@@ -969,22 +626,6 @@ shared = {
     # Any other data you need to share
 }
 ```
-
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-```typescript
-const shared = {
-  data: {...},
-  results: {...},
-  config: {...},
-  // Any other data you need to share
-}
-```
-
-{% endtab %}
-{% endtabs %}
 
 The shared store can also contain file handlers, database connections, or other resources that need to be accessible across nodes.
 
@@ -996,9 +637,6 @@ The shared store can also contain file handlers, database connections, or other 
 4. **Avoid Deep Nesting**: Keep the structure reasonably flat for readability
 
 ### Example Usage
-
-{% tabs %}
-{% tab title="Python" %}
 
 ```python
 class LoadData(Node):
@@ -1030,49 +668,6 @@ shared = {}
 await flow.run(shared)
 ```
 
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-```typescript
-class LoadData extends Node {
-  async post(shared: Record): Promise {
-    // Write data to shared store
-    shared.data = 'Some text content'
-  }
-}
-
-class Summarize extends Node {
-  async prep(shared: Record): Promise {
-    // Read data from shared store
-    return shared.data
-  }
-
-  async exec(prepRes: string): Promise {
-    // Call LLM to summarize
-    const prompt = `Summarize: ${prepRes}`
-    const summary = await callLLM(prompt)
-    return summary
-  }
-
-  async post(shared: Record, prepRes: string, execRes: string): Promise {
-    // Write summary to shared store
-    shared.summary = execRes
-  }
-}
-
-const loadData = new LoadData()
-const summarize = new Summarize()
-loadData.next(summarize)
-const flow = new Flow(loadData)
-
-const shared = {}
-await flow.run(shared)
-```
-
-{% endtab %}
-{% endtabs %}
-
 ## Params
 
 While the Shared Store is the primary communication mechanism, Params provide a way to configure individual nodes with specific settings.
@@ -1090,9 +685,6 @@ While the Shared Store is the primary communication mechanism, Params provide a 
 - **Identification**: For tracking the source or purpose of a computation
 
 ### Example Usage
-
-{% tabs %}
-{% tab title="Python" %}
 
 ```python
 # 1) Create a Node that uses params
@@ -1120,44 +712,6 @@ flow = Flow(start=node)
 flow.set_params({"filename": "doc2.txt"})
 await flow.run(shared)  # The node summarizes doc2.txt, not doc1.txt
 ```
-
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-```typescript
-// 1) Create a Node that uses params
-class SummarizeFile extends Node {
-  async prep(shared: Record): Promise {
-    // Access the node's param
-    const filename = this.params.filename
-    return shared.data[filename] || ''
-  }
-
-  async exec(prepRes: string): Promise {
-    const prompt = `Summarize: ${prepRes}`
-    return await callLLM(prompt)
-  }
-
-  async post(shared: Record, prepRes: string, execRes: string): Promise {
-    const filename = this.params.filename
-    shared.summary[filename] = execRes
-  }
-}
-
-// 2) Set params directly on a node (for testing)
-const node = new SummarizeFile()
-node.setParams({ filename: 'doc1.txt' })
-await node.run(shared)
-
-// 3) Set params on a flow (overrides node params)
-const flow = new Flow(node)
-flow.setParams({ filename: 'doc2.txt' })
-await flow.run(shared) // The node summarizes doc2.txt, not doc1.txt
-```
-
-{% endtab %}
-{% endtabs %}
 
 ## Choosing Between Shared Store and Params
 
@@ -1206,8 +760,6 @@ It extends `Node`, with changes to:
 
 #### Example: Sequential Summarize File
 
-{% tabs %}
-{% tab title="Python" %}
 {% hint style="info" %}
 **Python GIL Note**: Due to Python's GIL, parallel nodes can't truly parallelize CPU-bound tasks but excel at I/O-bound work like API calls.
 {% endhint %}
@@ -1230,38 +782,6 @@ class SequentialSummaries(SequentialBatchNode):
         """Process all results after all items are processed."""
         shared["summary"] = "\n".join(exec_res_list)
 ```
-
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-```typescript
-class SequentialSummaries extends SequentialBatchNode {
-  async prep(shared: Record): Promise {
-    const content = shared.data
-    const chunkSize = 10000
-    const chunks: string[] = []
-
-    // Suppose we have a big file; chunk it!
-    for (let i = 0; i < content.length; i += chunkSize) {
-      chunks.push(content.slice(i, i + chunkSize))
-    }
-    return chunks
-  }
-
-  async exec(chunk: string): Promise<string> {
-    const prompt = `Summarize this chunk in 10 words: ${chunk}`
-    return await callLLM(prompt)
-  }
-
-  async post(shared: Record, prepRes: string[], execResList: string[]): Promise {
-    shared.summary = execResList.join('\n')
-  }
-}
-```
-
-{% endtab %}
-{% endtabs %}
 
 ### ParallelBatchNode
 
@@ -1288,9 +808,6 @@ It extends `Node`, with changes to:
 
 #### Example: Parallel Summarize of a Large File
 
-{% tabs %}
-{% tab title="Python" %}
-
 ```python
 class ParallelSummaries(ParallelBatchNode):
     async def prep(self, shared):
@@ -1310,38 +827,6 @@ class ParallelSummaries(ParallelBatchNode):
         shared["summary"] = "\n".join(exec_res_list)
 ```
 
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-```typescript
-class ParallelSummaries extends ParallelBatchNode {
-  async prep(shared: Record): Promise {
-    const content = shared.data
-    const chunkSize = 10000
-    const chunks: string[] = []
-
-    // Suppose we have a big file; chunk it!
-    for (let i = 0; i < content.length; i += chunkSize) {
-      chunks.push(content.slice(i, i + chunkSize))
-    }
-    return chunks
-  }
-
-  async exec(chunk: string): Promise<string> {
-    const prompt = `Summarize this chunk in 10 words: ${chunk}`
-    return await callLLM(prompt)
-  }
-
-  async post(shared: Record, prepRes: string[], execResList: string[]): Promise {
-    shared.summary = execResList.join('\n')
-  }
-}
-```
-
-{% endtab %}
-{% endtabs %}
-
 ## Flow-Level Batch Processing
 
 BrainyFlow also supports batch processing at the flow level, allowing you to run an entire flow multiple times with different parameters:
@@ -1357,9 +842,6 @@ A `SequentialBatchFlow` runs a flow multiple times in sequence, with different `
 
 #### Example: Summarize Many Files
 
-{% tabs %}
-{% tab title="Python" %}
-
 ```python
 class SummarizeAllFiles(SequentialBatchFlow):
     async def prep(self, shared):
@@ -1374,28 +856,6 @@ summarize_all_files = SummarizeAllFiles(start=summarize_file)
 await summarize_all_files.run(shared)
 ```
 
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-```typescript
-class SummarizeAllFiles extends SequentialBatchFlow {
-  async prep(shared: Record): Promise<Array<Record<string, string>>> {
-    const filenames = Object.keys(shared.data) // e.g., ["file1.txt", "file2.txt", ...]
-    return filenames.map(fn => ({ filename: fn }))
-  }
-}
-
-const summarizeFile = new Flow(loadFile)
-
-// Create a batch flow that processes all files sequentially
-const summarizeAllFiles = new SummarizeAllFiles(summarizeFile)
-await summarizeAllFiles.run(shared)
-```
-
-{% endtab %}
-{% endtabs %}
-
 #### Under the Hood
 
 1. `prep(shared)` returns a list of param dicts—e.g., `[{filename: "file1.txt"}, {filename: "file2.txt"}, ...]`.
@@ -1408,9 +868,6 @@ await summarizeAllFiles.run(shared)
 ### ParallelBatchFlow
 
 A `ParallelBatchFlow` runs a flow multiple times concurrently, with different `params` each time:
-
-{% tabs %}
-{% tab title="Python" %}
 
 ```python
 class SummarizeAllFiles(ParallelBatchFlow):
@@ -1427,29 +884,6 @@ summarize_all_files = ParallelBatchFlow(start=summarize_file)
 await summarize_all_files.run(shared)
 ```
 
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-```typescript
-class SummarizeAllFiles extends ParallelBatchFlow {
-  async prep(shared: Record): Promise>> {
-    const filenames = Object.keys(shared.data)
-    return filenames.map(fn => ({ filename: fn }))
-  }
-}
-
-// Create a flow for processing a single file
-const summarizeFile = new Flow(loadFile)
-
-// Create a batch flow that processes all files in parallel
-const summarizeAllFiles = new ParallelBatchFlow(summarizeFile)
-await summarizeAllFiles.run(shared)
-```
-
-{% endtab %}
-{% endtabs %}
-
 ## Nested Batch Processing
 
 You can nest a **SequentialBatchFlow** or **ParallelBatchFlow** in another batch flow. For instance:
@@ -1458,9 +892,6 @@ You can nest a **SequentialBatchFlow** or **ParallelBatchFlow** in another batch
 - **Inner** batch: returning a list of per-file param dicts.
 
 At each level, **BatchFlow** merges its own param dict with the parent’s. By the time you reach the **innermost** node, the final `params` is the merged result of **all** parents in the chain. This way, a nested structure can keep track of the entire context (e.g., directory + file name) at once.
-
-{% tabs %}
-{% tab title="Python" %}
 
 ```python
 class FileBatchFlow(SequentialBatchFlow):
@@ -1480,36 +911,6 @@ inner_flow = FileBatchFlow(start=MapSummaries())
 outer_flow = DirectoryBatchFlow(start=inner_flow)
 await outer_flow.run(shared)
 ```
-
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-```typescript
-class FileBatchFlow extends SequentialBatchFlow {
-  async prep(shared: Record): Promise<Array<Record<string, string>>> {
-    const directory = this.params.directory
-    // In a real implementation, use fs.readdirSync or similar
-    const files = ['file1.txt', 'file2.txt']
-    return files.map(f => ({ filename: f }))
-  }
-}
-
-class DirectoryBatchFlow extends SequentialBatchFlow {
-  async prep(shared: Record): Promise<Array<Record<string, string>>> {
-    const directories = ['/path/to/dirA', '/path/to/dirB']
-    return directories.map(d => ({ directory: d }))
-  }
-}
-
-// MapSummaries have params like {"directory": "/path/to/dirA", "filename": "file1.txt"}
-const innerFlow = new FileBatchFlow(new MapSummaries())
-const outerFlow = new DirectoryBatchFlow(innerFlow)
-await outerFlow.run(shared)
-```
-
-{% endtab %}
-{% endtabs %}
 
 In this nested batch example:
 
@@ -1590,9 +991,6 @@ class LimitedParallelNode extends Node {
 
 ## Rate Limiting with Window Limits
 
-{% tabs %}
-{% tab title="Python" %}
-
 ```python
 from ratelimit import limits, sleep_and_retry
 
@@ -1604,29 +1002,7 @@ def call_api():
     pass
 ```
 
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-```typescript
-import { RateLimiter } from 'limiter'
-
-// 30 calls per minute
-const limiter = new RateLimiter({ tokensPerInterval: 30, interval: 'minute' })
-
-async function callApi() {
-  await limiter.removeTokens(1)
-  // Your API call here
-}
-```
-
-{% endtab %}
-{% endtabs %}
-
 ## Throttler Utility
-
-{% tabs %}
-{% tab title="Python" %}
 
 ```python
 from tenacity import retry, wait_exponential, stop_after_attempt
@@ -1640,36 +1016,9 @@ def call_api_with_retry():
     pass
 ```
 
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-```typescript
-import pRetry from 'p-retry'
-
-async function callApiWithRetry() {
-  return pRetry(
-    async () => {
-      // Your API call here
-    },
-    {
-      retries: 5,
-      minTimeout: 4000,
-      maxTimeout: 10000,
-    },
-  )
-}
-```
-
-{% endtab %}
-{% endtabs %}
-
 ## Advanced Throttling Patterns
 
 ### 1. Token Bucket Rate Limiter
-
-{% tabs %}
-{% tab title="Python" %}
 
 ```python
 from pyrate_limiter import Duration, Rate, Limiter
@@ -1684,33 +1033,7 @@ async def call_api():
     pass
 ```
 
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-```typescript
-import { TokenBucket } from 'limiter'
-
-// 10 requests per minute
-const limiter = new TokenBucket({
-  bucketSize: 10,
-  tokensPerInterval: 10,
-  interval: 'minute',
-})
-
-async function callApi() {
-  await limiter.removeTokens(1)
-  // Your API call here
-}
-```
-
-{% endtab %}
-{% endtabs %}
-
 ### 2. Sliding Window Rate Limiter
-
-{% tabs %}
-{% tab title="Python" %}
 
 ```python
 from slidingwindow import SlidingWindowRateLimiter
@@ -1725,28 +1048,6 @@ async def call_api():
         raise RateLimitExceeded()
     # Your API call here
 ```
-
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-```typescript
-import { SlidingWindowRateLimiter } from 'sliding-window-rate-limiter'
-
-const limiter = SlidingWindowRateLimiter.createLimiter({
-  interval: 60, // 60 seconds
-  maxInInterval: 100,
-})
-
-async function callApi() {
-  const isAllowed = await limiter.check('key', 1)
-  if (!isAllowed) throw new Error('Rate limit exceeded')
-  // Your API call here
-}
-```
-
-{% endtab %}
-{% endtabs %}
 
 {% hint style="info" %}
 **Related Concepts**: Many throttling patterns are used with [Batch Processing](./batch.md) operations, particularly when dealing with parallel execution of API calls.
@@ -1866,9 +1167,6 @@ Agent is a powerful design pattern in which nodes can take dynamic actions based
 2. **Branching:** Use branching to connect each action node to an agent node. Use action to allow the agent to direct the [flow](../core_abstraction/flow.md) between nodes—and potentially loop back for multi-step.
 3. **Agent Node:** Provide a prompt to decide action—for example:
 
-{% tabs %}
-{% tab title="Python" %}
-
 ````python
 f"""
 ### CONTEXT
@@ -1900,43 +1198,6 @@ parameters:
 ```"""
 ````
 
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-```typescript
-;`### CONTEXT
-Task: ${taskDescription}
-Previous Actions: ${previousActions}
-Current State: ${currentState}
-
-### ACTION SPACE
-[1] search
-  Description: Use web search to get results
-  Parameters:
-    - query (string): What to search for
-
-[2] answer
-  Description: Conclude based on the results  
-  Parameters:
-    - result (string): Final answer to provide
-
-### NEXT ACTION
-Decide the next action based on the current context and available action space.
-Return your response in the following format:
-
-\`\`\`yaml
-thinking: |
-    <your step-by-step reasoning process>
-action: <action_name>
-parameters:
-    <parameter_name>: <parameter_value>
-\`\`\``
-```
-
-{% endtab %}
-{% endtabs %}
-
 The core of building **high-performance** and **reliable** agents boils down to:
 
 1. **Context Management:** Provide _relevant, minimal context._ For example, rather than including an entire chat history, retrieve the most relevant via [RAG](./rag.md). Even with larger context windows, LLMs still fall victim to ["lost in the middle"](https://arxiv.org/abs/2307.03172), overlooking mid-prompt content.
@@ -1960,9 +1221,6 @@ This agent:
 1. Decides whether to search or answer
 2. If searches, loops back to decide if more search needed
 3. Answers when enough context gathered
-
-{% tabs %}
-{% tab title="Python" %}
 
 ````python
 import asyncio
@@ -2005,69 +1263,6 @@ search_term: search phrase if action is search
         return exec_res["action"]
 ````
 
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-````typescript
-class DecideAction extends Node {
-  async prep(shared: any): Promise<[string, string]> {
-    const context = shared.context || 'No previous search'
-    const query = shared.query
-    return [query, context]
-  }
-
-  async exec(inputs: [string, string]): Promise<any> {
-    const [query, context] = inputs
-    const prompt = `
-Given input: ${query}
-Previous search results: ${context}
-Should I: 1) Search web for more info 2) Answer with current knowledge
-Output in yaml:
-\`\`\`yaml
-action: search/answer
-reason: why this action  
-search_term: search phrase if action is search
-\`\`\``
-
-    const resp = await callLLM(prompt)
-    const yamlStr = resp.split('```yaml')[1].split('```')[0].trim()
-    const result = parseYaml(yamlStr)
-
-    if (typeof result !== 'object' || !result) {
-      throw new Error('Invalid YAML response')
-    }
-    if (!('action' in result)) {
-      throw new Error('Missing action in response')
-    }
-    if (!('reason' in result)) {
-      throw new Error('Missing reason in response')
-    }
-    if (!['search', 'answer'].includes(result.action)) {
-      throw new Error('Invalid action value')
-    }
-    if (result.action === 'search' && !('search_term' in result)) {
-      throw new Error('Missing search_term for search action')
-    }
-
-    return result
-  }
-
-  async post(shared: any, prepRes: any, execRes: any): Promise<string> {
-    if (execRes.action === 'search') {
-      shared.search_term = execRes.search_term
-    }
-    return execRes.action
-  }
-}
-````
-
-{% endtab %}
-{% endtabs %}
-
-{% tabs %}
-{% tab title="Python" %}
-
 ```python
 class SearchWeb(Node):
     async def prep(self, shared):
@@ -2084,34 +1279,6 @@ class SearchWeb(Node):
         return "decide"
 ```
 
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-```typescript
-class SearchWeb extends Node {
-  async prep(shared: any): Promise<string> {
-    return shared.search_term
-  }
-
-  async exec(searchTerm: string): Promise<any> {
-    return await searchWeb(searchTerm)
-  }
-
-  async post(shared: any, prepRes: any, execRes: any): Promise<string> {
-    const prevSearches = shared.context || []
-    shared.context = [...prevSearches, { term: shared.search_term, result: execRes }]
-    return 'decide'
-  }
-}
-```
-
-{% endtab %}
-{% endtabs %}
-
-{% tabs %}
-{% tab title="Python" %}
-
 ```python
 class DirectAnswer(Node):
     async def prep(self, shared):
@@ -2125,34 +1292,6 @@ class DirectAnswer(Node):
        print(f"Answer: {exec_res}")
        shared["answer"] = exec_res
 ```
-
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-```typescript
-class DirectAnswer extends Node {
-  async prep(shared: any): Promise<[string, string]> {
-    return [shared.query, shared.context || '']
-  }
-
-  async exec(inputs: [string, string]): Promise<string> {
-    const [query, context] = inputs
-    return await callLLM(`Context: ${context}\nAnswer: ${query}`)
-  }
-
-  async post(shared: any, prepRes: any, execRes: string): Promise<void> {
-    console.log(`Answer: ${execRes}`)
-    shared.answer = execRes
-  }
-}
-```
-
-{% endtab %}
-{% endtabs %}
-
-{% tabs %}
-{% tab title="Python" %}
 
 ```python
 # Connect nodes
@@ -2175,36 +1314,6 @@ async def main():
 if __name__ == "__main__":
     asyncio.run(main())
 ```
-
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-```typescript
-// Connect nodes
-const decide = new DecideAction()
-const search = new SearchWeb()
-const answer = new DirectAnswer()
-
-// Using operator overloading equivalents
-decide.on('search', search)
-decide.on('answer', answer)
-search.on('decide', decide) // Loop back
-
-const flow = new Flow(decide)
-
-async function main() {
-  const sharedData = { query: 'Who won the Nobel Prize in Physics 2024?' }
-  const result = await flow.run(sharedData) // Added await
-  console.log(result) // Or handle result as needed
-  console.log(sharedData) // See final shared state
-}
-
-main().catch(console.error) // Execute async main function
-```
-
-{% endtab %}
-{% endtabs %}
 
 
 
@@ -2232,9 +1341,6 @@ You usually need multiple _iterations_ to find the _sweet spot_. If the task has
 {% endhint %}
 
 ### Example: Article Writing
-
-{% tabs %}
-{% tab title="Python" %}
 
 ```python
 import asyncio
@@ -2274,69 +1380,6 @@ if __name__ == "__main__":
     asyncio.run(main())
 ```
 
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-```typescript
-class GenerateOutline extends Node {
-  async prep(shared: any): Promise<any> {
-    return shared['topic']
-  }
-  async exec(topic: string): Promise<any> {
-    return await callLLM(`Create a detailed outline for an article about ${topic}`)
-  }
-  async post(shared: any, prepRes: any, execRes: any): Promise<void> {
-    shared['outline'] = execRes
-  }
-}
-
-class WriteSection extends Node {
-  async prep(shared: any): Promise<any> {
-    return shared['outline']
-  }
-  async exec(outline: string): Promise<any> {
-    return await callLLM(`Write content based on this outline: ${outline}`)
-  }
-  async post(shared: any, prepRes: any, execRes: any): Promise<void> {
-    shared['draft'] = execRes
-  }
-}
-
-class ReviewAndRefine extends Node {
-  async prep(shared: any): Promise<any> {
-    return shared['draft']
-  }
-  async exec(draft: string): Promise<any> {
-    return await callLLM(`Review and improve this draft: ${draft}`)
-  }
-  async post(shared: any, prepRes: any, execRes: any): Promise<void> {
-    shared['final_article'] = execRes
-  }
-}
-
-// Connect nodes
-const outline = new GenerateOutline()
-const write = new WriteSection()
-const review = new ReviewAndRefine()
-
-outline.next(write).next(review)
-
-// Create and run flow
-const writingFlow = new Flow(outline)
-
-async function main() {
-  const shared = { topic: 'AI Safety' }
-  await writingFlow.run(shared)
-  console.log(`Final Article: ${shared['final_article'] || 'Not generated'}`)
-}
-
-main().catch(console.error) // Execute async main function
-```
-
-{% endtab %}
-{% endtabs %}
-
 For _dynamic cases_, consider using [Agents](./agent.md).
 
 
@@ -2370,9 +1413,6 @@ We create three Nodes:
 2. `EmbedDocs` – [embeds](../utility_function/embedding.md) each chunk.
 3. `StoreIndex` – stores embeddings into a [vector database](../utility_function/vector.md).
 
-{% tabs %}
-{% tab title="Python" %}
-
 ```python
 import asyncio
 from brainyflow import Node, Flow, SequentialBatchNode
@@ -2402,47 +1442,6 @@ class ChunkDocs(SequentialBatchNode):
         shared["all_chunks"] = all_chunks
 ```
 
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-```typescript
-class ChunkDocs extends SequentialBatchNode {
-  async prep(shared: any): Promise<string[]> {
-    // A list of file paths in shared["files"]. We process each file.
-    return shared['files']
-  }
-
-  async exec(filepath: string): Promise<string[]> {
-    // read file content. In real usage, do error handling.
-    const text = fs.readFileSync(filepath, 'utf-8')
-    // chunk by 100 chars each
-    const chunks: string[] = []
-    const size = 100
-    for (let i = 0; i < text.length; i += size) {
-      chunks.push(text.slice(i, i + size))
-    }
-    return chunks
-  }
-
-  async post(shared: any, prepRes: string[], execResList: string[][]): Promise<void> {
-    // execResList is a list of chunk-lists, one per file.
-    // flatten them all into a single list of chunks.
-    const allChunks: string[] = []
-    for (const chunkList of execResList) {
-      allChunks.push(...chunkList)
-    }
-    shared['all_chunks'] = allChunks
-  }
-}
-```
-
-{% endtab %}
-{% endtabs %}
-
-{% tabs %}
-{% tab title="Python" %}
-
 ```python
 class EmbedDocs(SequentialBatchNode):
     async def prep(self, shared):
@@ -2456,34 +1455,6 @@ class EmbedDocs(SequentialBatchNode):
         shared["all_embeds"] = exec_res_list
         print(f"Total embeddings: {len(exec_res_list)}")
 ```
-
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-```typescript
-class EmbedDocs extends SequentialBatchNode {
-  async prep(shared: any): Promise<string[]> {
-    return shared['all_chunks']
-  }
-
-  async exec(chunk: string): Promise<number[]> {
-    return await getEmbedding(chunk)
-  }
-
-  async post(shared: any, prepRes: string[], execResList: number[][]): Promise<void> {
-    // Store the list of embeddings.
-    shared['all_embeds'] = execResList
-    console.log(`Total embeddings: ${execResList.length}`)
-  }
-}
-```
-
-{% endtab %}
-{% endtabs %}
-
-{% tabs %}
-{% tab title="Python" %}
 
 ```python
 class StoreIndex(Node):
@@ -2500,35 +1471,6 @@ class StoreIndex(Node):
         shared["index"] = index
 ```
 
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-```typescript
-class StoreIndex extends Node {
-  async prep(shared: any): Promise<number[][]> {
-    // We'll read all embeds from shared.
-    return shared['all_embeds']
-  }
-
-  async exec(allEmbeds: number[][]): Promise<any> {
-    // Create a vector index (faiss or other DB in real usage).
-    const index = createIndex(allEmbeds)
-    return index
-  }
-
-  async post(shared: any, prepRes: number[][], index: any): Promise<void> {
-    shared['index'] = index
-  }
-}
-```
-
-{% endtab %}
-{% endtabs %}
-
-{% tabs %}
-{% tab title="Python" %}
-
 ```python
 # Wire them in sequence
 chunk_node = ChunkDocs()
@@ -2540,28 +1482,7 @@ chunk_node >> embed_node >> store_node
 OfflineFlow = Flow(start=chunk_node)
 ```
 
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-```typescript
-// Wire them in sequence
-const chunkNode = new ChunkDocs()
-const embedNode = new EmbedDocs()
-const storeNode = new StoreIndex()
-
-chunkNode.next(embedNode).next(storeNode)
-
-const OfflineFlow = new Flow(chunkNode)
-```
-
-{% endtab %}
-{% endtabs %}
-
 Usage example:
-
-{% tabs %}
-{% tab title="Python" %}
 
 ```python
 shared = {
@@ -2569,20 +1490,6 @@ shared = {
 }
 await OfflineFlow.run(shared)
 ```
-
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-```typescript
-const shared = {
-  files: ['doc1.txt', 'doc2.txt'], // any text files
-}
-await OfflineFlow.run(shared)
-```
-
-{% endtab %}
-{% endtabs %}
 
 ---
 
@@ -2593,9 +1500,6 @@ We have 3 nodes:
 1. `EmbedQuery` – embeds the user’s question.
 2. `RetrieveDocs` – retrieves top chunk from the index.
 3. `GenerateAnswer` – calls the LLM with the question + chunk to produce the final answer.
-
-{% tabs %}
-{% tab title="Python" %}
 
 ```python
 class EmbedQuery(Node):
@@ -2608,32 +1512,6 @@ class EmbedQuery(Node):
     async def post(self, shared, prep_res, q_emb):
         shared["q_emb"] = q_emb
 ```
-
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-```typescript
-class EmbedQuery extends Node {
-  async prep(shared: any): Promise<string> {
-    return shared['question']
-  }
-
-  async exec(question: string): Promise<number[]> {
-    return await getEmbedding(question)
-  }
-
-  async post(shared: any, prepRes: string, qEmb: number[]): Promise<void> {
-    shared['q_emb'] = qEmb
-  }
-}
-```
-
-{% endtab %}
-{% endtabs %}
-
-{% tabs %}
-{% tab title="Python" %}
 
 ```python
 class RetrieveDocs(Node):
@@ -2653,42 +1531,6 @@ class RetrieveDocs(Node):
         print("Retrieved chunk:", relevant_chunk[:60], "...")
 ```
 
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-```typescript
-class RetrieveDocs extends Node {
-  async prep(shared: any): Promise<[number[], any, string[]]> {
-    // We'll need the query embedding, plus the offline index/chunks
-    return [shared['q_emb'], shared['index'], shared['all_chunks']]
-  }
-
-  async exec(inputs: [number[], any, string[]]): Promise<string> {
-    const [qEmb, index, chunks] = inputs
-    const [I, D] = searchIndex(index, qEmb, 1)
-    const bestId = I[0][0]
-    const relevantChunk = chunks[bestId]
-    return relevantChunk
-  }
-
-  async post(
-    shared: any,
-    prepRes: [number[], any, string[]],
-    relevantChunk: string,
-  ): Promise<void> {
-    shared['retrieved_chunk'] = relevantChunk
-    console.log(`Retrieved chunk: ${relevantChunk.slice(0, 60)}...`)
-  }
-}
-```
-
-{% endtab %}
-{% endtabs %}
-
-{% tabs %}
-{% tab title="Python" %}
-
 ```python
 class GenerateAnswer(Node):
     async def prep(self, shared):
@@ -2704,35 +1546,6 @@ class GenerateAnswer(Node):
         print("Answer:", answer)
 ```
 
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-```typescript
-class GenerateAnswer extends Node {
-  async prep(shared: any): Promise<[string, string]> {
-    return [shared['question'], shared['retrieved_chunk']]
-  }
-
-  async exec(inputs: [string, string]): Promise<string> {
-    const [question, chunk] = inputs
-    const prompt = `Question: ${question}\nContext: ${chunk}\nAnswer:`
-    return await callLLM(prompt)
-  }
-
-  async post(shared: any, prepRes: [string, string], answer: string): Promise<void> {
-    shared['answer'] = answer
-    console.log(`Answer: ${answer}`)
-  }
-}
-```
-
-{% endtab %}
-{% endtabs %}
-
-{% tabs %}
-{% tab title="Python" %}
-
 ```python
 embed_qnode = EmbedQuery()
 retrieve_node = RetrieveDocs()
@@ -2742,26 +1555,7 @@ embed_qnode >> retrieve_node >> generate_node
 OnlineFlow = Flow(start=embed_qnode)
 ```
 
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-```typescript
-const embedQNode = new EmbedQuery()
-const retrieveNode = new RetrieveDocs()
-const generateNode = new GenerateAnswer()
-
-embedQNode.next(retrieveNode).next(generateNode)
-const OnlineFlow = new Flow(embedQNode)
-```
-
-{% endtab %}
-{% endtabs %}
-
 Usage example:
-
-{% tabs %}
-{% tab title="Python" %}
 
 ```python
 async def run_online(shared_from_offline):
@@ -2782,34 +1576,6 @@ async def main():
 if __name__ == "__main__":
     asyncio.run(main())
 ```
-
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-```typescript
-async function runOnline(sharedFromOffline: any): Promise<any> {
-  // Suppose we already ran OfflineFlow (runOffline) and have:
-  // sharedFromOffline["all_chunks"], sharedFromOffline["index"], etc.
-  sharedFromOffline['question'] = 'Why do people like cats?'
-
-  await OnlineFlow.run(sharedFromOffline)
-  // final answer in sharedFromOffline["answer"]
-  console.log(`Final Answer: ${sharedFromOffline['answer']}`)
-  return sharedFromOffline
-}
-
-// Example usage combining both stages
-async function main() {
-  const offlineShared = await runOffline()
-  await runOnline(offlineShared)
-}
-
-main().catch(console.error) // Execute async main function
-```
-
-{% endtab %}
-{% endtabs %}
 
 
 
@@ -2837,9 +1603,6 @@ and there is a logical way to break the task into smaller, ideally independent p
 You first break down the task using [BatchNode](../core_abstraction/batch.md) in the map phase, followed by aggregation in the reduce phase.
 
 ### Example: Document Summarization
-
-{% tabs %}
-{% tab title="Python" %}
 
 ```python
 import asyncio
@@ -2895,74 +1658,6 @@ async def main():
 if __name__ == "__main__":
     asyncio.run(main())
 ```
-
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-```typescript
-class SummarizeAllFiles extends SequentialBatchNode {
-  async prep(shared: any): Promise<[string, string][]> {
-    const filesDict = shared.files // e.g. 10 files
-    return Object.entries(filesDict) // [["file1.txt", "aaa..."], ["file2.txt", "bbb..."], ...]
-  }
-
-  async exec(oneFile: [string, string]): Promise<[string, string]> {
-    const [filename, fileContent] = oneFile
-    const summaryText = await callLLM(`Summarize the following file:\n${fileContent}`)
-    return [filename, summaryText]
-  }
-
-  async post(shared: any, prepRes: any, execResList: [string, string][]): Promise<void> {
-    shared.file_summaries = Object.fromEntries(execResList)
-  }
-}
-
-class CombineSummaries extends Node {
-  async prep(shared: any): Promise<Record<string, string>> {
-    return shared.file_summaries
-  }
-
-  async exec(fileSummaries: Record<string, string>): Promise<string> {
-    // format as: "File1: summary\nFile2: summary...\n"
-    const textList: string[] = []
-    for (const [fname, summ] of Object.entries(fileSummaries)) {
-      textList.push(`${fname} summary:\n${summ}\n`)
-    }
-    const bigText = textList.join('\n---\n')
-
-    return await callLLM(`Combine these file summaries into one final summary:\n${bigText}`)
-  }
-
-  async post(shared: any, prepRes: any, finalSummary: string): Promise<void> {
-    shared.all_files_summary = finalSummary
-  }
-}
-
-const batchNode = new SummarizeAllFiles()
-const combineNode = new CombineSummaries()
-batchNode.next(combineNode)
-
-const flow = new Flow(batchNode)
-
-async function main() {
-  const shared = {
-    files: {
-      'file1.txt': 'Alice was beginning to get very tired of sitting by her sister...',
-      'file2.txt': 'Some other interesting text ...',
-      // ...
-    },
-  }
-  await flow.run(shared)
-  console.log('Individual Summaries:', shared.file_summaries)
-  console.log('\nFinal Summary:\n', shared.all_files_summary)
-}
-
-main().catch(console.error)
-```
-
-{% endtab %}
-{% endtabs %}
 
 
 
@@ -3026,9 +1721,6 @@ When prompting the LLM to produce **structured** output:
 
 ### Example Text Summarization
 
-{% tabs %}
-{% tab title="Python" %}
-
 ````python
 import yaml
 
@@ -3057,48 +1749,6 @@ summary:
 
         return structured_result
 ````
-
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-````typescript
-class SummarizeNode extends Node {
-  async exec(prepRes: string): Promise<any> {
-    // Suppose prepRes is the text to summarize
-    const prompt = `
-Please summarize the following text as YAML, with exactly 3 bullet points
-
-${prepRes}
-
-Now, output:
-\`\`\`yaml
-summary:
-  - bullet 1
-  - bullet 2
-  - bullet 3
-\`\`\``
-
-    const response = await callLLM(prompt)
-    const yamlStr = response.split('```yaml')[1].split('```')[0].trim()
-
-    // In TypeScript we would typically use a YAML parser like 'yaml'
-    const structuredResult = require('yaml').parse(yamlStr)
-
-    if (!('summary' in structuredResult)) {
-      throw new Error("Missing 'summary' in result")
-    }
-    if (!Array.isArray(structuredResult.summary)) {
-      throw new Error('Summary must be an array')
-    }
-
-    return structuredResult
-  }
-}
-````
-
-{% endtab %}
-{% endtabs %}
 
 {% hint style="info" %}
 Besides using `assert` statements, another popular way to validate schemas is [Pydantic](https://github.com/pydantic/pydantic)
@@ -3155,9 +1805,6 @@ Most of time, you don't need Multi-Agents. Start with a simple solution first.
 Here's a simple example showing how to implement agent communication using `asyncio.Queue`.
 The agent listens for messages, processes them, and continues listening:
 
-{% tabs %}
-{% tab title="Python" %}
-
 ```python
 import asyncio
 from brainyflow import Node, Flow
@@ -3204,81 +1851,6 @@ async def main():
 asyncio.run(main())
 ```
 
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-```typescript
-class AgentNode extends Node {
-  async prep(_: any): Promise<string> {
-    const messageQueue = this.params.messages as AsyncQueue<string>
-    const message = await messageQueue.get()
-    console.log(`Agent received: ${message}`)
-    return message
-  }
-}
-
-// Create node and flow
-const agent = new AgentNode()
-agent.next(agent) // connect to self
-const flow = new Flow(agent)
-
-// Create heartbeat sender
-async function sendSystemMessages(messageQueue: AsyncQueue<string>) {
-  let counter = 0
-  const messages = [
-    'System status: all systems operational',
-    'Memory usage: normal',
-    'Network connectivity: stable',
-    'Processing load: optimal',
-  ]
-
-  while (true) {
-    const message = `${messages[counter % messages.length]} | timestamp_${counter}`
-    await messageQueue.put(message)
-    counter++
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-  }
-}
-
-async function main() {
-  const messageQueue = new AsyncQueue<string>()
-  const shared = {}
-  flow.setParams({ messages: messageQueue })
-
-  // Run both coroutines
-  await Promise.all([flow.run(shared), sendSystemMessages(messageQueue)])
-}
-
-class AsyncQueue<T> {
-  private queue: T[] = []
-  private waiting: ((value: T) => void)[] = []
-
-  async get(): Promise<T> {
-    if (this.queue.length > 0) {
-      return this.queue.shift()!
-    }
-    return new Promise((resolve) => {
-      this.waiting.push(resolve)
-    })
-  }
-
-  async put(item: T): Promise<void> {
-    if (this.waiting.length > 0) {
-      const resolve = this.waiting.shift()!
-      resolve(item)
-    } else {
-      this.queue.push(item)
-    }
-  }
-}
-
-main().catch(console.error)
-```
-
-{% endtab %}
-{% endtabs %}
-
 The output:
 
 ```
@@ -3292,9 +1864,6 @@ Agent received: Processing load: optimal | timestamp_3
 
 Here's a more complex example where two agents play the word-guessing game Taboo.
 One agent provides hints while avoiding forbidden words, and another agent tries to guess the target word:
-
-{% tabs %}
-{% tab title="Python" %}
 
 ```python
 import asyncio
@@ -3388,116 +1957,6 @@ async def main():
 asyncio.run(main())
 ```
 
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-```typescript
-class Hinter extends Node {
-  async prep(shared: any): Promise<any> {
-    const guess = await shared.hinterQueue.get()
-    if (guess === 'GAME_OVER') {
-      return null
-    }
-    return [shared.targetWord, shared.forbiddenWords, shared.pastGuesses || []]
-  }
-
-  async exec(inputs: any): Promise<string | null> {
-    if (inputs === null) return null
-    const [target, forbidden, pastGuesses] = inputs
-    let prompt = `Generate hint for '${target}'\nForbidden words: ${forbidden}`
-    if (pastGuesses.length > 0) {
-      prompt += `\nPrevious wrong guesses: ${pastGuesses}\nMake hint more specific.`
-    }
-    prompt += '\nUse at most 5 words.'
-
-    const hint = await callLLM(prompt)
-    console.log(`\nHinter: Here's your hint - ${hint}`)
-    return hint
-  }
-
-  async post(shared: any, prepRes: any, execRes: any): Promise<string> {
-    if (execRes === null) return 'end'
-    await shared.guesserQueue.put(execRes)
-    return 'continue'
-  }
-}
-
-class Guesser extends Node {
-  async prep(shared: any): Promise<any> {
-    const hint = await shared.guesserQueue.get()
-    return [hint, shared.pastGuesses || []]
-  }
-
-  async exec(inputs: any): Promise<string> {
-    const [hint, pastGuesses] = inputs
-    const prompt = `Given hint: ${hint}, past wrong guesses: ${pastGuesses}, make a new guess. Directly reply a single word:`
-    const guess = await callLLM(prompt)
-    console.log(`Guesser: I guess it's - ${guess}`)
-    return guess
-  }
-
-  async post(shared: any, prepRes: any, execRes: any): Promise<string> {
-    if (execRes.toLowerCase() === shared.targetWord.toLowerCase()) {
-      console.log('Game Over - Correct guess!')
-      await shared.hinterQueue.put('GAME_OVER')
-      return 'end'
-    }
-
-    if (!shared.pastGuesses) {
-      shared.pastGuesses = []
-    }
-    shared.pastGuesses.push(execRes)
-
-    await shared.hinterQueue.put(execRes)
-    return 'continue'
-  }
-}
-
-async function main() {
-  // Set up game
-  const shared = {
-    targetWord: 'nostalgia',
-    forbiddenWords: ['memory', 'past', 'remember', 'feeling', 'longing'],
-    hinterQueue: new AsyncQueue<string>(),
-    guesserQueue: new AsyncQueue<string>(),
-  }
-
-  console.log('Game starting!')
-  console.log(`Target word: ${shared.targetWord}`)
-  console.log(`Forbidden words: ${shared.forbiddenWords}`)
-
-  // Initialize by sending empty guess to hinter
-  await shared.hinterQueue.put('')
-
-  // Create nodes and flows
-  const hinter = new Hinter()
-  const guesser = new Guesser()
-
-  // Set up flows
-  const hinterFlow = new Flow(hinter)
-  const guesserFlow = new Flow(guesser)
-
-  // Connect nodes to themselves
-  hinter.on('continue', hinter)
-  guesser.on('continue', guesser)
-
-  // Run both agents concurrently
-  await Promise.all([hinterFlow.run(shared), guesserFlow.run(shared)])
-}
-
-// Mock LLM call for TypeScript
-async function callLLM(prompt: string): Promise<string> {
-  // In a real implementation, this would call an actual LLM API
-  return 'Mock LLM response'
-}
-
-main().catch(console.error)
-```
-
-{% endtab %}
-{% endtabs %}
-
 The Output:
 
 ```
@@ -3561,9 +2020,6 @@ When implementing utility functions for your BrainyFlow project:
 
 Example structure:
 
-{% tabs %}
-{% tab title="Python" %}
-
 ```
 my_project/
 ├── utils/
@@ -3573,22 +2029,6 @@ my_project/
 │   └── embed_text.py
 └── ...
 ```
-
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-```
-my_project/
-├── utils/
-│   ├── callLlm.ts
-│   ├── searchWeb.ts
-│   └── embedText.ts
-└── ...
-```
-
-{% endtab %}
-{% endtabs %}
 
 By following this approach, you can easily maintain and update your utility functions as needed, without being constrained by the framework's built-in utilities.
 
@@ -3732,9 +2172,6 @@ necessity: Used by the second node to embed text
 
 **Example Utility Implementation:**
 
-{% tabs %}
-{% tab title="Python" %}
-
 ```python
 # utils/call_llm.py
 from openai import OpenAI
@@ -3752,37 +2189,6 @@ if __name__ == "__main__":
     prompt = "What is the meaning of life?"
     print(call_llm(prompt))
 ```
-
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-```typescript
-// utils/callLLM.ts
-import OpenAI from 'openai'
-
-export async function callLLM(prompt: string): Promise<string> {
-  const openai = new OpenAI({
-    apiKey: 'YOUR_API_KEY_HERE',
-  })
-
-  const response = await openai.chat.completions.create({
-    model: 'gpt-4o',
-    messages: [{ role: 'user', content: prompt }],
-  })
-
-  return response.choices[0]?.message?.content || ''
-}
-
-// Simple test case
-;(async () => {
-  const prompt = 'What is the meaning of life?'
-  console.log(await callLLM(prompt))
-})()
-```
-
-{% endtab %}
-{% endtabs %}
 
 ### 4. Node Design
 
@@ -3962,9 +2368,6 @@ File: docs/guides/best_practices.md
 
 A well-organized project structure enhances maintainability and collaboration:
 
-{% tabs %}
-{% tab title="Python (simple)" %}
-
 ```
 my_simple_project/
 ├── main.py
@@ -3978,95 +2381,6 @@ my_simple_project/
 └── docs/
     └── design.md
 ```
-
-{% endtab %}
-
-{% tab title="Python (complex)" %}
-
-```
-my_complex_project/
-├── main.py                # Entry point
-├── nodes/                 # Node implementations
-│   ├── __init__.py
-│   ├── input_nodes.py
-│   ├── processing_nodes.py
-│   └── output_nodes.py
-├── flows/                 # Flow definitions
-│   ├── __init__.py
-│   └── main_flow.py
-├── utils/                 # Utility functions
-│   ├── __init__.py
-│   ├── llm.py
-│   ├── database.py
-│   └── web_search.py
-├── tests/                 # Test cases
-│   ├── test_nodes.py
-│   └── test_flows.py
-├── config/                # Configuration
-│   └── settings.py
-├── requirements.txt       # Dependencies
-└── docs/                  # Documentation
-    ├── design.md          # High-level design
-    └── api.md             # API documentation
-```
-
-{% endtab %}
-
-{% tab title="TypeScript (simple)" %}
-
-```
-my_project/
-├── src/
-│   ├── main.ts
-│   ├── nodes.ts
-│   ├── flow.ts
-│   └── utils/
-│       ├── callLLM.ts
-│       └── searchWeb.ts
-├── package.json
-└── docs/
-    └── design.md
-```
-
-{% endtab %}
-
-{% tab title="TypeScript (complex)" %}
-
-```
-my_complex_project/
-├── src/                      # Source code
-│   ├── index.ts              # Entry point
-│   ├── nodes/                # Node implementations
-│   │   ├── index.ts          # Exports all nodes
-│   │   ├── inputNodes.ts
-│   │   ├── processingNodes.ts
-│   │   └── outputNodes.ts
-│   ├── flows/                # Flow definitions
-│   │   ├── index.ts          # Exports all flows
-│   │   └── mainFlow.ts
-│   ├── utils/                # Utility functions
-│   │   ├── index.ts          # Exports all utilities
-│   │   ├── llm.ts
-│   │   ├── database.ts
-│   │   └── webSearch.ts
-│   ├── types/                # Type definitions
-│   │   ├── index.ts          # Exports all types
-│   │   ├── node.types.ts
-│   │   └── flow.types.ts
-│   └── config/               # Configuration
-│       └── settings.ts
-├── dist/                     # Compiled JavaScript
-├── tests/                    # Test cases
-│   ├── nodes.test.ts
-│   └── flows.test.ts
-├── package.json              # Dependencies and scripts
-└── docs/                     # Documentation
-    ├── design.md             # High-level design
-    └── api.md                # API documentation
-```
-
-{% endtab %}
-{% endtabs %}
 
 - **`docs/design.md`**: Contains project documentation for each step designed in [agentic coding](./agentic_coding.md). This should be _high-level_ and _no-code_.
 - **`utils/`**: Contains all utility functions.
