@@ -6,13 +6,23 @@ Welcome to BrainyFlow! This framework helps you build powerful, modular AI appli
 
 First, ensure you have BrainyFlow installed:
 
-```bash
-# For Python
-pip install brainyflow
+{% tabs %}
+{% tab title="Python" %}
 
-# For TypeScript
+```bash
+pip install brainyflow
+```
+
+{% endtab %}
+
+{% tab title="TypeScript" %}
+
+```bash
 npm install brainyflow
 ```
+
+{% endtab %}
+{% endtabs %}
 
 For detailed installation options, see the [Installation Guide](./installation.md).
 
@@ -150,6 +160,14 @@ function createQaFlow(): Flow {
 {% endtab %}
 {% endtabs %}
 
+{% hint style="info" %}
+
+**Review:** What was achieved here?
+
+- `qaFlow` has connected the nodes, letting the user's question propagate from `GetQuestionNode` to `AnswerNode` to generate an answer.
+
+{% endhint %}
+
 ### Step 4: Run the Flow
 
 {% tabs %}
@@ -186,14 +204,6 @@ async function main() {
 
 main().catch(console.error)
 ```
-
-{% hint style="info" %}
-
-**Review:** What was achieved here?
-
-- `qaFlow` has connected the nodes, letting the user's question flow from `GetQuestionNode` to `AnswerNode` to generate an answer.
-
-{% endhint %}
 
 {% endtab %}
 {% endtabs %}
