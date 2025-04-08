@@ -63,13 +63,23 @@ sequenceDiagram
 
 Nodes support automatic retries for handling transient failures in `exec()` calls:
 
-```python
-# Python
-my_node = MyNode(max_retries=3, wait=10)  # Retry up to 3 times with 10s delay
+{% tabs %}
+{% tab title="Python" %}
 
-# TypeScript
+```python
+my_node = MyNode(max_retries=3, wait=10)  # Retry up to 3 times with 10s delay
+```
+
+{% endtab %}
+
+{% tab title="TypeScript" %}
+
+```typescript
 const myNode = new MyNode({ maxRetries: 3, wait: 10 }) // Retry up to 3 times with 10s delay
 ```
+
+{% endtab %}
+{% endtabs %}
 
 Key retry parameters:
 
