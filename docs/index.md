@@ -19,29 +19,19 @@ machine-display: false
 <p align="center">
 
   <a href="https://pypi.org/project/brainyflow">
-    <picture>
-      <img src="https://img.shields.io/pypi/dw/brainyflow?logo=python&label=Python&style=flat-square" >
-    </picture>
+   <img src="https://img.shields.io/pypi/dw/brainyflow?logo=python&label=Python&style=flat-square" >
   </a>
   <a href="https://npm.com/packages/brainyflow">
-    <picture>
-      <img src="https://img.shields.io/npm/d18m/brainyflow?logo=typescript&label=Typescript&style=flat-square" >
-    </picture>
+   <img src="https://img.shields.io/npm/d18m/brainyflow?logo=typescript&label=Typescript&style=flat-square" >
   </a>
   <a href="https://discord.gg/hUHHE9Sa6T">
-    <picture>
-      <img src="https://img.shields.io/discord/1346833819172601907?logo=discord&style=flat-square" >
-    </picture>
+    <img src="https://img.shields.io/discord/1346833819172601907?logo=discord&style=flat-square" >
   </a>
   <a href="https://github.com/zvictor/brainyflow">
-    <picture>
-      <img src="https://img.shields.io/github/stars/zvictor/BrainyFlow?logo=github&style=flat-square" >
-    </picture>
+    <img src="https://img.shields.io/github/stars/zvictor/BrainyFlow?logo=github&style=flat-square" >
   </a>
   <a href="https://github.com/sponsors/zvictor">
-    <picture>
-      <img src="https://img.shields.io/github/sponsors/zvictor?logo=github&style=flat-square" >
-    </picture>
+    <img src="https://img.shields.io/github/sponsors/zvictor?logo=github&style=flat-square" >
   </a>
 </p>
 
@@ -59,19 +49,13 @@ It enables both humans and AI assistants to collaborate effectively on designing
 - **Powerful 💪**: Supports everything you love—([Multi-](./design_pattern/multi_agent))[Agents](./design_pattern/agent), [Workflow](./design_pattern/workflow), [RAG](./design_pattern/rag), and more.
 - **Agentic-Coding 🤖**: Let AI Agents (e.g., Cursor AI) build Agents for 10x productivity
 - **Universal 🌈**: Works with any LLM provider or API
-- **Polyglot 🌍**: <a href="https://pypi.org/project/brainyflow"><picture><img src="https://iconduck.com/vectors/vctrahatphfa/media/svg/download" width="16" height="16"  style="vertical-align: middle; margin: 0 2px;"></picture></a> Python and <a href="https://npm.com/packages/brainyflow"><picture><img src="https://iconduck.com/vectors/vctrk180y7wy/media/svg/download" width="16" height="16"  style="vertical-align: middle; margin: 0 2px;"></picture></a> Typescript are both supported.
-
-![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
-
 
 ## Why Brainy Flow?
 
 Current LLM frameworks are bloated... You actually only need 65 lines for a robust LLM Framework!
 
 <div align="center">
-<picture>
   <img src="https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/meme.jpg" width="500"/>
-</picture>
 
 |                | **Abstraction** |                     **App-Specific Wrappers**                      |                       **Vendor-Specific Wrappers**                       |                **Lines**                 |                  **Size**                   |
 | -------------- | :-------------: | :----------------------------------------------------------------: | :----------------------------------------------------------------------: | :--------------------------------------: | :-----------------------------------------: |
@@ -88,110 +72,3 @@ Current LLM frameworks are bloated... You actually only need 65 lines for a robu
 
 ## How does BrainyFlow work?
 
-The single file in <a href="https://github.com/zvictor/BrainyFlow/blob/main/python/brainyflow.py"><picture><img src="https://iconduck.com/vectors/vctrahatphfa/media/svg/download" width="16" height="16"  style="vertical-align: middle; margin: 0 2px;"></picture> Python</a> or <a href="https://github.com/zvictor/BrainyFlow/blob/main/typescript/brainyflow.ts"><picture><img src="https://iconduck.com/vectors/vctrk180y7wy/media/svg/download" width="16" height="16"  style="vertical-align: middle; margin: 0 2px;"></picture> Typescript</a> capture the core abstraction of LLM frameworks: Graph!
-<br>
-
-<div align="center">
-<picture>
-  <img src="https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/abstraction.jpg" width="1300"/>
-</picture>
-</div>
-<br>
-
-- [Node](./core_abstraction/node.md) handles simple (LLM) tasks with a clear lifecycle.
-- [Flow](./core_abstraction/flow.md) connects nodes through **Actions** (labeled edges).
-- [Shared Store](./core_abstraction/communication.md) enables communication between nodes within flows.
-- [Batch](./core_abstraction/batch.md) nodes/flows allow for data-intensive tasks.
-
-From there, it's easy to implement all popular design patterns:
-<br>
-
-<div align="center">
-<picture>
-  <img src="https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/design.jpg" width="1300"/>
-</picture>
-</div>
-<br>
-
-- [Agent](./design_pattern/agent.md) autonomously makes decisions based on context.
-- [Workflow](./design_pattern/workflow.md) chains multiple tasks into sequential pipelines.
-- [RAG](./design_pattern/rag.md) integrates data retrieval with generation.
-- [Map Reduce](./design_pattern/mapreduce.md) splits data tasks into Map and Reduce steps.
-- [Structured Output](./design_pattern/structure.md) formats outputs consistently.
-- [Multi-Agents](./design_pattern/multi_agent.md) coordinate multiple agents.
-
-![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
-
-## Tutorials
-
-<div align="center">
-  
-|  Name  | Difficulty    |  Description  |  
-| :-------------:  | :-------------: | :--------------------- |  
-| [Chat](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-chat) | ☆☆☆ <br> *Dummy*   | A basic chat bot with conversation history |
-| [RAG](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-rag) | ☆☆☆ <br> *Dummy*   | A simple Retrieval-augmented Generation process |
-| [Workflow](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-workflow) | ☆☆☆ <br> *Dummy*   | A writing workflow that outlines, writes content, and applies styling |
-| [Map-Reduce](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-map-reduce) | ☆☆☆ <br> *Dummy* | A resume qualification processor using map-reduce pattern for batch evaluation |
-| [Agent](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-agent) | ☆☆☆ <br> *Dummy*   | A research agent that can search the web and answer questions |
-| [Streaming](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-llm-streaming) | ☆☆☆ <br> *Dummy*   | A real-time LLM streaming demo with user interrupt capability |
-| [Multi-Agent](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-multi-agent) | ★☆☆ <br> *Beginner* | A Taboo word game for asynchronous communication between two agents |
-| [Supervisor](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-supervisor) | ★☆☆ <br> *Beginner* | Research agent is getting unreliable... Let's build a supervision process|
-| [Parallel](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-parallel-batch) | ★☆☆ <br> *Beginner*   | A parallel execution demo that shows 3x speedup |
-| [Thinking](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-thinking) | ★☆☆ <br> *Beginner*   | Solve complex reasoning problems through Chain-of-Thought |
-| [Memory](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-chat-memory) | ★☆☆ <br> *Beginner* | A chat bot with short-term and long-term memory |
-
-</div>
-
-And many more available for all levels! [Check them all out!](https://github.com/zvictor/BrainyFlow/tree/main/cookbook)
-
-![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
-
-<!-- ## How to Use Brainy Flow?
-
-🚀 Through **Agentic Coding**—the fastest LLM App development paradigm-where _humans design_ and _agents code_!
-
-<br />
-
-- Want to learn **Agentic Coding**?
-  - To setup, read this [post](https://zacharyhuang.substack.com/p/agentic-coding-the-most-fun-way-to)!
-  - Check out [my YouTube](https://www.youtube.com/@ZacharyLLM?sub_confirmation=1)! Read this [Guide](./agentic_coding)!
-- Want to build your own LLM App? Start with our [Python template](https://github.com/zvictor/Brainyflow-Template-Python) or [Typescript template](https://github.com/zvictor/Brainyflow-Template-Typescript)!
-
-![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png) -->
-
-## Quick Start
-
-New to BrainyFlow? Check out our [Getting Started](./introduction/getting_started.md) guide to build your first flow in no time.
-
-## Ready to Build Self-Coding Apps?
-
-Check out [Agentic Coding Guidance](./guides/agentic_coding.md), the fastest way to develop self-coding LLM projects with BrainyFlow!
-
-![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
-
-## Acknowledgement
-
-We would like to extend our deepest gratitude to the creators and contributors of the PocketFlow framework, from which brainyFlow originated as a fork.
-
-## Liability Disclaimer
-
-BrainyFlow is provided "as is" without any warranties or guarantees.  
-We do not take responsibility for how the generated output is used, including but not limited to its accuracy, legality, or any potential consequences arising from its use.
-
-## Sponsors
-
-<p align="center">
-  <a style="color: inherit" href="https://github.com/sponsors/zvictor?utm_source=brainyflow&utm_medium=sponsorship&utm_campaign=brainyflow&utm_id=brainyflow">
-    <picture>
-      <img width="150" src="https://cdn.jsdelivr.net/gh/zvictor/brainyflow@main/.github/media/brain.png"  />
-    </picture>
-  </a><br /><br />
-  BrainyFlow runs on 65 lines of code and your generosity! 💰<br />
-    <a style="color: inherit" href="https://github.com/sponsors/zvictor?utm_source=brainyflow&utm_medium=sponsorship&utm_campaign=brainyflow&utm_id=brainyflow">
-      Help us deliver more AI with less code (but maybe more caffeine)
-    </a> ☕<br /><br />
-    <a style="color: inherit" href="https://github.com/sponsors/zvictor?utm_source=brainyflow&utm_medium=sponsorship&utm_campaign=brainyflow&utm_id=brainyflow">Your support</a> helps keep it minimal, powerful, and dependency-free! 🚀
-  </a>
-</p>
-
-![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
