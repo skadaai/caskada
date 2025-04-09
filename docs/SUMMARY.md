@@ -28,7 +28,6 @@
 
 - [Overview](utility_function/index.md)
 - [LLM Wrapper](utility_function/llm.md)
-- [Visualization & Debug](utility_function/viz.md)
 - [Web Search](utility_function/websearch.md)
 - [Chunking](utility_function/chunking.md)
 - [Embedding](utility_function/embedding.md)
@@ -37,7 +36,8 @@
 
 ## Guides
 
+- [Best Practices](guides/best_practices.md)
+- [Visualization & Logging](guides/visualization_logging.md)
 - [Agentic Coding Guide](guides/agentic_coding.md)
 - [Throttling](guides/throttling.md)
-- [Best Practices](guides/best_practices.md)
 - [Migrating from PocketFlow](guides/migrating_from_pocketflow.md)
