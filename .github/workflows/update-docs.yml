@@ -23,10 +23,13 @@ jobs:
         with:
           node-version: '23'
 
-      - name: Generate docs/index.md from README.md with front matter
+      - name: Generate docs/index.md from README.md
         run: |
           printf -- "---\ntitle: 'BrainyFlow'\nmachine-display: false\n---\n" > docs/index.md
-          sed '/<!-- gitbook-ignore-start -->/,/<!-- gitbook-ignore-end -->/d' README.md | sed 's|https://brainy.gitbook.io/flow|.|g' >> docs/index.md
+          sed '/<!-- gitbook-ignore-start -->/,/<!-- gitbook-ignore-end -->/d' README.md \
+            | sed 's|https://brainy.gitbook.io/flow|.|g' \
+            | sed 's/alt\s*=\s*"[^"]*"//g; s/alt\s*=\s*'\''[^'\'']*'\''//g' \
+            >> docs/index.md
 
       - name: Commit and push updated docs/index.md
         uses: stefanzweifel/git-auto-commit-action@v5

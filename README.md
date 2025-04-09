@@ -48,7 +48,7 @@ It enables both humans and AI assistants to collaborate effectively on designing
 - **Polyglot 🌍**: <a href="https://pypi.org/project/brainyflow">
   <img src="https://iconduck.com/vectors/vctrahatphfa/media/svg/download" width="16" height="16" alt="Python Logo" style="vertical-align: middle; margin: 0 2px;"></a> Python and <a href="https://npm.com/packages/brainyflow"><img src="https://iconduck.com/vectors/vctrk180y7wy/media/svg/download" width="16" height="16" alt="Typescript Logo" style="vertical-align: middle; margin: 0 2px;"></a> Typescript are both supported.
 
-![divider](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
+![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
 
 <!-- gitbook-ignore-start -->
 
@@ -61,7 +61,7 @@ Start by selecting your condition - or perhaps _the one you've been conditioned 
 
 \>> [I'm Silicon-Based 🤖](https://flow.brainy.sh/docs.txt) <<
 
-![divider](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
+![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
 
 <!-- gitbook-ignore-end -->
 
@@ -83,7 +83,7 @@ Current LLM frameworks are bloated... You actually only need 65 lines for a robu
 
 </div>
 
-![divider](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
+![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
 
 ## How does BrainyFlow work?
 
@@ -115,7 +115,7 @@ From there, it's easy to implement all popular design patterns:
 - [Structured Output](https://brainy.gitbook.io/flow/design_pattern/structure.md) formats outputs consistently.
 - [Multi-Agents](https://brainy.gitbook.io/flow/design_pattern/multi_agent.md) coordinate multiple agents.
 
-![divider](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
+![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
 
 ## Tutorials
 
@@ -139,7 +139,7 @@ From there, it's easy to implement all popular design patterns:
 
 And many more available for all levels! [Check them all out!](https://github.com/zvictor/BrainyFlow/tree/main/cookbook)
 
-![divider](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
+![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
 
 <!-- ## How to Use Brainy Flow?
 
@@ -152,7 +152,7 @@ And many more available for all levels! [Check them all out!](https://github.com
   - Check out [my YouTube](https://www.youtube.com/@ZacharyLLM?sub_confirmation=1)! Read this [Guide](https://brainy.gitbook.io/flow/agentic_coding)!
 - Want to build your own LLM App? Start with our [Python template](https://github.com/zvictor/Brainyflow-Template-Python) or [Typescript template](https://github.com/zvictor/Brainyflow-Template-Typescript)!
 
-![divider](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png) -->
+![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png) -->
 
 ## Quick Start
 
@@ -162,7 +162,7 @@ New to BrainyFlow? Check out our [Getting Started](https://brainy.gitbook.io/flo
 
 Check out [Agentic Coding Guidance](https://brainy.gitbook.io/flow/guides/agentic_coding.md), the fastest way to develop self-coding LLM projects with BrainyFlow!
 
-![divider](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
+![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
 
 ## Acknowledgement
 
@@ -187,4 +187,4 @@ We do not take responsibility for how the generated output is used, including bu
   </a>
 </p>
 
-![divider](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
+![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
