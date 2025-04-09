@@ -26,7 +26,7 @@ BrainyFlow는 [100줄](https://github.com/zvictor/BrainyFlow/blob/main/python/__
 현재 LLM 프레임워크들은 너무 비대합니다... LLM 프레임워크는 100줄만 필요합니다!
 
 <div align="center">
-  <img src="https://github.com/The-Pocket/.github/raw/main/assets/meme.jpg" width="400"/>
+  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/meme.jpg" width="400"/>
 
 |                |    **추상화**    |                         **앱 특화 래퍼**                         |                         **벤더 특화 래퍼**                          |            **코드 줄 수**             |                 **크기**                 |
 | -------------- | :--------------: | :--------------------------------------------------------------: | :-----------------------------------------------------------------: | :-----------------------------------: | :--------------------------------------: |
@@ -45,7 +45,7 @@ BrainyFlow는 [100줄](https://github.com/zvictor/BrainyFlow/blob/main/python/__
 <br>
 
 <div align="center">
-  <img src="https://github.com/The-Pocket/.github/raw/main/assets/abstraction.png" width="900"/>
+  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/abstraction.png" width="900"/>
 </div>
 <br>
 
@@ -53,7 +53,7 @@ BrainyFlow는 [100줄](https://github.com/zvictor/BrainyFlow/blob/main/python/__
 <br>
 
 <div align="center">
-  <img src="https://github.com/The-Pocket/.github/raw/main/assets/design.png" width="900"/>
+  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/design.png" width="900"/>
 </div>
 <br>
 ✨ 아래는 기본 튜토리얼입니다:

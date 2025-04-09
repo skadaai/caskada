@@ -12,7 +12,7 @@ MapReduce is a design pattern suitable when you have either:
 and there is a logical way to break the task into smaller, ideally independent parts.
 
 <div align="center">
-  <img src="https://github.com/the-pocket/.github/raw/main/assets/mapreduce.png?raw=true" width="400"/>
+  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/mapreduce.png?raw=true" width="400"/>
 </div>
 
 You first break down the task using [BatchNode](../core_abstraction/batch.md) in the map phase, followed by aggregation in the reduce phase.

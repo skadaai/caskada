@@ -26,7 +26,7 @@ BrainyFlow 是一个[仅有100行代码](https://github.com/zvictor/BrainyFlow/b
 当前的LLM框架过于臃肿... LLM框架只需要100行代码就够了！
 
 <div align="center">
-  <img src="https://github.com/The-Pocket/.github/raw/main/assets/meme.jpg" width="400"/>
+  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/meme.jpg" width="400"/>
 
 |                | **抽象概念** |                        **特定应用包装器**                        |                         **特定厂商包装器**                         |             **代码行数**              |                 **大小**                 |
 | -------------- | :----------: | :--------------------------------------------------------------: | :----------------------------------------------------------------: | :-----------------------------------: | :--------------------------------------: |
@@ -45,7 +45,7 @@ BrainyFlow 是一个[仅有100行代码](https://github.com/zvictor/BrainyFlow/b
 <br>
 
 <div align="center">
-  <img src="https://github.com/The-Pocket/.github/raw/main/assets/abstraction.png" width="900"/>
+  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/abstraction.png" width="900"/>
 </div>
 <br>
 
@@ -53,7 +53,7 @@ BrainyFlow 是一个[仅有100行代码](https://github.com/zvictor/BrainyFlow/b
 <br>
 
 <div align="center">
-  <img src="https://github.com/The-Pocket/.github/raw/main/assets/design.png" width="900"/>
+  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/design.png" width="900"/>
 </div>
 <br>
 ✨ 以下是基础教程：

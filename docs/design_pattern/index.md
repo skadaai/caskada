@@ -4,6 +4,10 @@ BrainyFlow makes it easy to implement popular design patterns for LLM applicatio
 
 ## Available Design Patterns
 
+<div align="center">
+  <img src="https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/design.png" width="1300"/>
+</div>
+
 ### Core Patterns
 
 1. [Agent](./agent.md): Create autonomous agents that can make decisions and take actions based on context.

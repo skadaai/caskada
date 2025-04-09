@@ -5,7 +5,7 @@ A **Node** is the smallest reusable unit in BrainyFlow. Each Node follows a 3-st
 ## Node Lifecycle
 
 <div align="center">
-  <img src="https://github.com/the-pocket/.github/raw/main/assets/node.png?raw=true" width="400"/>
+  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/node.png?raw=true" width="400"/>
 </div>
 
 ### 1. `async prep(shared)`

@@ -66,7 +66,7 @@ Start by selecting the reality that resonates with you, or perhaps _the one you'
 Current LLM frameworks are bloated... You actually only need 65 lines for a robust LLM Framework!
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/The-Pocket/.github/main/assets/meme.jpg" width="500"/>
+  <img src="https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/meme.jpg" width="500"/>
 
 |                | **Abstraction** |                     **App-Specific Wrappers**                      |                       **Vendor-Specific Wrappers**                       |                **Lines**                 |                  **Size**                   |
 | -------------- | :-------------: | :----------------------------------------------------------------: | :----------------------------------------------------------------------: | :--------------------------------------: | :-----------------------------------------: |
@@ -87,7 +87,7 @@ The single file in <a href="https://github.com/zvictor/BrainyFlow/blob/main/pyth
 <br>
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/The-Pocket/.github/main/assets/abstraction.png" width="1300"/>
+  <img src="https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/abstraction.png" width="1300"/>
 </div>
 <br>
 
@@ -95,7 +95,7 @@ From there, it's easy to implement popular design patterns like ([Multi-](https:
 <br>
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/The-Pocket/.github/main/assets/design.png" width="1300"/>
+  <img src="https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/design.png" width="1300"/>
 </div>
 <br>
 ✨ Below are basic tutorials:

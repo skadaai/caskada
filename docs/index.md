@@ -12,7 +12,7 @@ A [65-line](https://github.com/zvictor/BrainyFlow/blob/main/python/brainyflow.py
 - **Agentic-Coding**: Intuitive enough for AI agents to help humans build complex LLM applications.
 
 <div align="center">
-  <img src="https://github.com/the-pocket/.github/raw/main/assets/meme.jpg?raw=true" width="400"/>
+  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/meme.jpg?raw=true" width="400"/>
 </div>
 
 ## Core Abstraction
@@ -26,7 +26,7 @@ BrainyFlow models LLM workflows as a **Graph + Shared Store**:
 - [(Advanced) Throttling](./core_abstraction/throttling.md) helps manage concurrency and rate limits.
 
 <div align="center">
-  <img src="https://github.com/the-pocket/.github/raw/main/assets/abstraction.png" width="500"/>
+  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/abstraction.png" width="500"/>
 </div>
 
 ## Design Patterns
@@ -41,7 +41,7 @@ BrainyFlow makes it easy to implement popular design patterns:
 - [(Advanced) Multi-Agents](./design_pattern/multi_agent.md) coordinate multiple agents.
 
 <div align="center">
-  <img src="https://github.com/the-pocket/.github/raw/main/assets/design.png" width="500"/>
+  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/design.png" width="500"/>
 </div>
 
 ## Quick Start

@@ -26,7 +26,7 @@ BrainyFlow é um framework LLM minimalista de [100 linhas](https://github.com/zv
 Os frameworks LLM atuais são inchados... Você só precisa de 100 linhas para um Framework LLM!
 
 <div align="center">
-  <img src="https://github.com/The-Pocket/.github/raw/main/assets/meme.jpg" width="400"/>
+  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/meme.jpg" width="400"/>
 
 |                | **Abstração**  |                        **Wrappers Específicos de App**                        |                  **Wrappers Específicos de Fornecedor**                   |                  **Linhas**                  |                   **Tamanho**                   |
 | -------------- | :------------: | :---------------------------------------------------------------------------: | :-----------------------------------------------------------------------: | :------------------------------------------: | :---------------------------------------------: |
@@ -45,7 +45,7 @@ As [100 linhas](https://github.com/zvictor/BrainyFlow/blob/main/python/__init__.
 <br>
 
 <div align="center">
-  <img src="https://github.com/The-Pocket/.github/raw/main/assets/abstraction.png" width="900"/>
+  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/abstraction.png" width="900"/>
 </div>
 <br>
 
@@ -53,7 +53,7 @@ A partir daí, é fácil implementar padrões de design populares como ([Multi-]
 <br>
 
 <div align="center">
-  <img src="https://github.com/The-Pocket/.github/raw/main/assets/design.png" width="900"/>
+  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/design.png" width="900"/>
 </div>
 <br>
 ✨ Abaixo estão tutoriais básicos:

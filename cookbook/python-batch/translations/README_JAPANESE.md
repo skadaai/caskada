@@ -26,7 +26,7 @@ BrainyFlowは[100行](https://github.com/zvictor/BrainyFlow/blob/main/python/__i
 現在のLLMフレームワークは膨大すぎます... LLMフレームワークには100行だけで十分です！
 
 <div align="center">
-  <img src="https://github.com/The-Pocket/.github/raw/main/assets/meme.jpg" width="400"/>
+  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/meme.jpg" width="400"/>
 
 |                |       **抽象化**       |                             **アプリ固有のラッパー**                              |                        **ベンダー固有のラッパー**                        |                **行数**                 |                 **サイズ**                 |
 | -------------- | :--------------------: | :-------------------------------------------------------------------------------: | :----------------------------------------------------------------------: | :-------------------------------------: | :----------------------------------------: |
@@ -45,7 +45,7 @@ BrainyFlowは[100行](https://github.com/zvictor/BrainyFlow/blob/main/python/__i
 <br>
 
 <div align="center">
-  <img src="https://github.com/The-Pocket/.github/raw/main/assets/abstraction.png" width="900"/>
+  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/abstraction.png" width="900"/>
 </div>
 <br>
 
@@ -53,7 +53,7 @@ BrainyFlowは[100行](https://github.com/zvictor/BrainyFlow/blob/main/python/__i
 <br>
 
 <div align="center">
-  <img src="https://github.com/The-Pocket/.github/raw/main/assets/design.png" width="900"/>
+  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/design.png" width="900"/>
 </div>
 <br>
 ✨ 以下は基本的なチュートリアルです：

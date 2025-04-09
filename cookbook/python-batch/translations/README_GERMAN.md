@@ -26,7 +26,7 @@ BrainyFlow ist ein [100-Zeilen](https://github.com/zvictor/BrainyFlow/blob/main/
 Aktuelle LLM-Frameworks sind aufgebläht... Du brauchst nur 100 Zeilen für ein LLM-Framework!
 
 <div align="center">
-  <img src="https://github.com/The-Pocket/.github/raw/main/assets/meme.jpg" width="400"/>
+  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/meme.jpg" width="400"/>
 
 |                | **Abstraktion** |                    **App-spezifische Wrapper**                     |                     **Anbieter-spezifische Wrapper**                      |               **Zeilen**                |                 **Größe**                  |
 | -------------- | :-------------: | :----------------------------------------------------------------: | :-----------------------------------------------------------------------: | :-------------------------------------: | :----------------------------------------: |
@@ -45,7 +45,7 @@ Die [100 Zeilen](https://github.com/zvictor/BrainyFlow/blob/main/python/__init__
 <br>
 
 <div align="center">
-  <img src="https://github.com/The-Pocket/.github/raw/main/assets/abstraction.png" width="900"/>
+  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/abstraction.png" width="900"/>
 </div>
 <br>
 
@@ -53,7 +53,7 @@ Von dort aus ist es einfach, beliebte Designmuster wie ([Multi-](https://brainy.
 <br>
 
 <div align="center">
-  <img src="https://github.com/The-Pocket/.github/raw/main/assets/design.png" width="900"/>
+  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/design.png" width="900"/>
 </div>
 <br>
 ✨ Hier sind grundlegende Tutorials:

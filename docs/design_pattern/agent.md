@@ -7,7 +7,7 @@ title: 'Agent'
 Agent is a powerful design pattern in which nodes can take dynamic actions based on the context.
 
 <div align="center">
-  <img src="https://github.com/the-pocket/.github/raw/main/assets/agent.png?raw=true" width="350"/>
+  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/agent.png?raw=true" width="350"/>
 </div>
 
 ## Implement Agent with Graph

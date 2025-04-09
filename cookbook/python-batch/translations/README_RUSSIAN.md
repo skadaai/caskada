@@ -26,7 +26,7 @@ BrainyFlow — это минималистичный фреймворк для L
 Текущие фреймворки для LLM перегружены... Для фреймворка LLM вам нужно всего 100 строк!
 
 <div align="center">
-  <img src="https://github.com/The-Pocket/.github/raw/main/assets/meme.jpg" width="400"/>
+  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/meme.jpg" width="400"/>
 
 |                | **Абстракция** |                **Специфичные обертки для приложений**                |                      **Специфичные обертки для вендоров**                       |               **Строк кода**               |                  **Размер**                   |
 | -------------- | :------------: | :------------------------------------------------------------------: | :-----------------------------------------------------------------------------: | :----------------------------------------: | :-------------------------------------------: |
@@ -45,7 +45,7 @@ BrainyFlow — это минималистичный фреймворк для L
 <br>
 
 <div align="center">
-  <img src="https://github.com/The-Pocket/.github/raw/main/assets/abstraction.png" width="900"/>
+  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/abstraction.png" width="900"/>
 </div>
 <br>
 
@@ -53,7 +53,7 @@ BrainyFlow — это минималистичный фреймворк для L
 <br>
 
 <div align="center">
-  <img src="https://github.com/The-Pocket/.github/raw/main/assets/design.png" width="900"/>
+  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/design.png" width="900"/>
 </div>
 <br>
 ✨ Ниже представлены базовые руководства:
