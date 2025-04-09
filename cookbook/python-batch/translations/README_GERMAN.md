@@ -4,7 +4,7 @@
 
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 [![Docs](https://img.shields.io/badge/docs-latest-blue)](https://brainy.gitbook.io/flow/)
-<a href="https://discord.gg/hUHHE9Sa6T">
+<a href="https://discord.gg/MdJJ29Xd">
 <img src="https://img.shields.io/discord/1346833819172601907?logo=discord&style=flat">
 </a>
 
@@ -17,7 +17,7 @@ BrainyFlow ist ein [100-Zeilen](https://github.com/zvictor/BrainyFlow/blob/main/
 
 - Zur Installation, `pip install brainyflow` oder kopiere einfach den [Quellcode](https://github.com/zvictor/BrainyFlow/blob/main/python/__init__.py) (nur 100 Zeilen).
 - Um mehr zu erfahren, schau dir die [Dokumentation](https://brainy.gitbook.io/flow/) an. Um die Motivation zu verstehen, lies die [Geschichte](https://zacharyhuang.substack.com/p/i-built-an-llm-framework-in-just).
-- 🎉 Tritt unserem [Discord](https://discord.gg/hUHHE9Sa6T) bei!
+- 🎉 Tritt unserem [Discord](https://discord.gg/MdJJ29Xd) bei!
 
 - 🎉 Dank [@zvictor](https://www.github.com/zvictor), [@jackylee941130](https://www.github.com/jackylee941130) und [@ZebraRoy](https://www.github.com/ZebraRoy) haben wir jetzt eine [TypeScript-Version](https://github.com/The-Pocket/PocketFlow-Typescript)!
 
