@@ -8,11 +8,11 @@
 <!-- <img src="https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/divider.png" alt="divider" width="100%" style="max-width: 920px"> -->
 
 <nav align="center">
-  <a href="https://brainy.gitbook.io/flow/introduction/getting_started">Getting started 🐣</a>
-  <a href="https://brainy.gitbook.io/flow/introduction/installation">Installation 🚜</a>
+  <a href="https://brainy.gitbook.io/flow/">What is BrainyFlow? 🐣</a>
   <a href="https://github.com/zvictor/brainyflow/tree/master/cookbook">Examples 🌈 </a>
   <a href="https://pypi.org/project/brainyflow">PyPI <img src="https://iconduck.com/vectors/vctrahatphfa/media/svg/download" width="17" height="17" alt="Python Logo" style="vertical-align: sub; margin: 0 2px;"></a>
   <a href="https://www.npmjs.com/package/brainyflow">NPM <img src="https://iconduck.com/vectors/vctrk180y7wy/media/svg/download" width="17" height="17" alt="Typescript Logo" style="vertical-align: sub; margin: 0 2px;"></a>
+  <a href="https://discord.gg/MdJJ29Xd">Chat <img src="https://cdn.prod.website-files.com/6257adef93867e50d84d30e2/66e3d80db9971f10a9757c99_Symbol.svg" width="17" height="17" alt="Discord Logo" style="vertical-align: sub; margin: 0 2px;"></a>
   <a href="https://github.com/zvictor/brainyflow">Github <img src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/github-white-icon.svg" width="17" height="17" alt="Github Logo" style="vertical-align: sub; margin: 0 2px;"></a>
   <!-- Dropdown container -->
   <div id="docs-dropdown-container">
