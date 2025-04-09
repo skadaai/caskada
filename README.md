@@ -1,3 +1,8 @@
+---
+title: 'BrainyFlow'
+machine-display: false
+---
+
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="https://cdn.jsdelivr.net/gh/zvictor/brainyflow@main/.github/media/logo-dark.png">
@@ -50,16 +55,20 @@ It enables both humans and AI assistants to collaborate effectively on designing
 
 ![divider](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
 
+<!-- gitbook-ignore-start -->
+
 ## Documentation
 
 Our documentation is inclusive, suitable for both biological and synthetic minds.<br />
-Start by selecting the reality that resonates with you, or perhaps _the one you've been conditioned to believe_:
+Start by selecting your condition - or perhaps _the one you've been conditioned to believe_:
 
-\>> [I'm Carbon-Based 🐥](https://brainy.gitbook.io/flow) <<
+\>> [I'm Carbon-Based 🐥](https://brainy.gitbook.io/flow/introduction/getting_started) <<
 
 \>> [I'm Silicon-Based 🤖](https://flow.brainy.sh/docs.txt) <<
 
 ![divider](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
+
+<!-- gitbook-ignore-end -->
 
 ## Why Brainy Flow?
 
@@ -81,7 +90,7 @@ Current LLM frameworks are bloated... You actually only need 65 lines for a robu
 
 ![divider](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
 
-## How does Brainy Flow work?
+## How does BrainyFlow work?
 
 The single file in <a href="https://github.com/zvictor/BrainyFlow/blob/main/python/brainyflow.py"><img src="https://iconduck.com/vectors/vctrahatphfa/media/svg/download" width="16" height="16" alt="Python Logo" style="vertical-align: middle; margin: 0 2px;"> Python</a> or <a href="https://github.com/zvictor/BrainyFlow/blob/main/typescript/brainyflow.ts"><img src="https://iconduck.com/vectors/vctrk180y7wy/media/svg/download" width="16" height="16" alt="Typescript Logo" style="vertical-align: middle; margin: 0 2px;"> Typescript</a> capture the core abstraction of LLM frameworks: Graph!
 <br>
@@ -91,14 +100,29 @@ The single file in <a href="https://github.com/zvictor/BrainyFlow/blob/main/pyth
 </div>
 <br>
 
-From there, it's easy to implement popular design patterns like ([Multi-](https://brainy.gitbook.io/flow/design_pattern/multi_agent))[Agents](https://brainy.gitbook.io/flow/design_pattern/agent), [Workflow](https://brainy.gitbook.io/flow/design_pattern/workflow), [RAG](https://brainy.gitbook.io/flow/design_pattern/rag), etc.
+- [Node](https://brainy.gitbook.io/flow/core_abstraction/node.md) handles simple (LLM) tasks with a clear lifecycle.
+- [Flow](https://brainy.gitbook.io/flow/core_abstraction/flow.md) connects nodes through **Actions** (labeled edges).
+- [Shared Store](https://brainy.gitbook.io/flow/core_abstraction/communication.md) enables communication between nodes within flows.
+- [Batch](https://brainy.gitbook.io/flow/core_abstraction/batch.md) nodes/flows allow for data-intensive tasks.
+
+From there, it's easy to implement all popular design patterns:
 <br>
 
 <div align="center">
   <img src="https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/design.jpg" width="1300"/>
 </div>
 <br>
-✨ Below are basic tutorials:
+
+- [Agent](https://brainy.gitbook.io/flow/design_pattern/agent.md) autonomously makes decisions based on context.
+- [Workflow](https://brainy.gitbook.io/flow/design_pattern/workflow.md) chains multiple tasks into sequential pipelines.
+- [RAG](https://brainy.gitbook.io/flow/design_pattern/rag.md) integrates data retrieval with generation.
+- [Map Reduce](https://brainy.gitbook.io/flow/design_pattern/mapreduce.md) splits data tasks into Map and Reduce steps.
+- [Structured Output](https://brainy.gitbook.io/flow/design_pattern/structure.md) formats outputs consistently.
+- [Multi-Agents](https://brainy.gitbook.io/flow/design_pattern/multi_agent.md) coordinate multiple agents.
+
+![divider](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
+
+## Tutorials
 
 <div align="center">
   
@@ -118,7 +142,7 @@ From there, it's easy to implement popular design patterns like ([Multi-](https:
 
 </div>
 
-👀 Want to see other tutorials for dummies? [Create an issue!](https://github.com/zvictor/BrainyFlow/issues/new)
+And many more available for all levels! [Check them all out!](https://github.com/zvictor/BrainyFlow/tree/main/cookbook)
 
 ![divider](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
 
@@ -134,6 +158,16 @@ From there, it's easy to implement popular design patterns like ([Multi-](https:
 - Want to build your own LLM App? Start with our [Python template](https://github.com/zvictor/Brainyflow-Template-Python) or [Typescript template](https://github.com/zvictor/Brainyflow-Template-Typescript)!
 
 ![divider](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png) -->
+
+## Quick Start
+
+New to BrainyFlow? Check out our [Getting Started](https://brainy.gitbook.io/flow/introduction/getting_started.md) guide to build your first flow in no time.
+
+## Ready to Build Self-Coding Apps?
+
+Check out [Agentic Coding Guidance](https://brainy.gitbook.io/flow/guides/agentic_coding.md), the fastest way to develop self-coding LLM projects with BrainyFlow!
+
+![divider](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
 
 ## Acknowledgement
 
@@ -152,7 +186,7 @@ We do not take responsibility for how the generated output is used, including bu
   </a><br /><br />
   BrainyFlow runs on 65 lines of code and your generosity! 💰<br />
     <a style="color: inherit" href="https://github.com/sponsors/zvictor?utm_source=brainyflow&utm_medium=sponsorship&utm_campaign=brainyflow&utm_id=brainyflow">
-      Help us deliver more AI with less code (but maybe more coffee)
+      Help us deliver more AI with less code (but maybe more caffeine)
     </a> ☕<br /><br />
     <a style="color: inherit" href="https://github.com/sponsors/zvictor?utm_source=brainyflow&utm_medium=sponsorship&utm_campaign=brainyflow&utm_id=brainyflow">Your support</a> helps keep it minimal, powerful, and dependency-free! 🚀
   </a>

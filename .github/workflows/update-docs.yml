@@ -22,6 +22,17 @@ jobs:
         with:
           node-version: '23'
 
+      - name: Copy, process, and replace links in README.md to docs/index.md
+        run: sed '/<!-- gitbook-ignore-start -->/,/<!-- gitbook-ignore-end -->/d' README.md | sed 's|https://brainy.gitbook.io/flow|.|g' > docs/index.md
+
+      - name: Commit and push updated docs/index.md
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: Update docs/index.md from README.md [skip ci]
+          file_pattern: docs/index.md
+          # The action defaults to pushing to the branch that triggered the workflow (main)
+          # It also uses the github-actions[bot] user by default
+
       - name: Concatenate docs using script
         run: bash .github/scripts/concatenate-docs.sh
 
