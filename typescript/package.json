@@ -1,6 +1,6 @@
 {
   "name": "brainyflow",
-  "version": "0.0.5",
+  "version": "0.2.0",
   "type": "module",
   "types": "./dist/brainyflow.d.ts",
   "exports": {
@@ -17,6 +17,7 @@
     "dist",
     "README.md"
   ],
+  "homepage": "https://flow.brainy.sh",
   "repository": "github:zvictor/brainyFlow",
   "bugs": {
     "url": "https://github.com/zvictor/brainyFlow/issues"
