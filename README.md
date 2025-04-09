@@ -31,16 +31,22 @@
   </a>
 </p>
 
+BrainyFlow is a framework enabling _Agentic Coding_ through powerful abstractions.
+
+It provides a simple interface for building complex AI applications through _nested directed graphs_ with shared state.
+It enables both humans and AI assistants to collaborate effectively on designing and implementing AI systems.
+
 ## Features
 
+- **Simplicity**: Intuitive for both humans and AI assistants
+- **Minimalist Design**: Core abstractions in just (_you heard it right!_) 65 lines of code
+- **Independent**: Zero bloat, zero dependencies, zero vendor lock-in.
+- **Powerful Composition**: Build complex systems from simple, reusable components
+- **Expressive**: Supports everything you love—([Multi-](https://brainy.gitbook.io/flow/design_pattern/multi_agent))[Agents](https://brainy.gitbook.io/flow/design_pattern/agent), [Workflow](https://brainy.gitbook.io/flow/design_pattern/workflow), [RAG](https://brainy.gitbook.io/flow/design_pattern/rag), and more.
+- **Agentic Coding**: Let AI Agents (e.g., Cursor AI) build Agents like never before—10x productivity boost!
+- **Framework Agnostic**: Works with any LLM provider or API
 - **Multi-language**: <a href="https://pypi.org/project/brainyflow">
-  <img src="https://iconduck.com/vectors/vctrahatphfa/media/svg/download" width="16" height="16" alt="Python Logo" style="vertical-align: middle; margin: 0 2px;"></a> Python and <a href="https://npm.com/packages/brainyflow"><img src="https://iconduck.com/vectors/vctrk180y7wy/media/svg/download" width="16" height="16" alt="Typescript Logo" style="vertical-align: middle; margin: 0 2px;"></a> Typescript support.
-
-- **Lightweight**: Zero bloat, zero dependencies, zero vendor lock-in.
-
-- **Expressive**: Everything you love—([Multi-](https://brainy.gitbook.io/flow/design_pattern/multi_agent))[Agents](https://brainy.gitbook.io/flow/design_pattern/agent), [Workflow](https://brainy.gitbook.io/flow/design_pattern/workflow), [RAG](https://brainy.gitbook.io/flow/design_pattern/rag), and more.
-
-- **[Agentic Coding](https://zacharyhuang.substack.com/p/agentic-coding-the-most-fun-way-to)**: Let AI Agents (e.g., Cursor AI) build Agents—10x productivity boost!
+  <img src="https://iconduck.com/vectors/vctrahatphfa/media/svg/download" width="16" height="16" alt="Python Logo" style="vertical-align: middle; margin: 0 2px;"></a> Python and <a href="https://npm.com/packages/brainyflow"><img src="https://iconduck.com/vectors/vctrk180y7wy/media/svg/download" width="16" height="16" alt="Typescript Logo" style="vertical-align: middle; margin: 0 2px;"></a> Typescript are both supported.
 
 ![divider](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
 
@@ -57,10 +63,10 @@ Start by selecting the reality that resonates with you, or perhaps _the one you'
 
 ## Why Brainy Flow?
 
-Current LLM frameworks are bloated... You only need 65 lines for LLM Framework!
+Current LLM frameworks are bloated... You actually only need 65 lines for a robust LLM Framework!
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/The-Pocket/.github/main/assets/meme.jpg" width="400"/>
+  <img src="https://raw.githubusercontent.com/The-Pocket/.github/main/assets/meme.jpg" width="500"/>
 
 |                | **Abstraction** |                     **App-Specific Wrappers**                      |                       **Vendor-Specific Wrappers**                       |                **Lines**                 |                  **Size**                   |
 | -------------- | :-------------: | :----------------------------------------------------------------: | :----------------------------------------------------------------------: | :--------------------------------------: | :-----------------------------------------: |
@@ -81,7 +87,7 @@ The single file in [python](python/brainyflow.py) or [typescript](python/brainyf
 <br>
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/The-Pocket/.github/main/assets/abstraction.png" width="900"/>
+  <img src="https://raw.githubusercontent.com/The-Pocket/.github/main/assets/abstraction.png" width="1300"/>
 </div>
 <br>
 
@@ -89,7 +95,7 @@ From there, it's easy to implement popular design patterns like ([Multi-](https:
 <br>
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/The-Pocket/.github/main/assets/design.png" width="900"/>
+  <img src="https://raw.githubusercontent.com/The-Pocket/.github/main/assets/design.png" width="1300"/>
 </div>
 <br>
 ✨ Below are basic tutorials:
@@ -116,7 +122,7 @@ From there, it's easy to implement popular design patterns like ([Multi-](https:
 
 ![divider](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
 
-## How to Use Brainy Flow?
+<!-- ## How to Use Brainy Flow?
 
 🚀 Through **Agentic Coding**—the fastest LLM App development paradigm-where _humans design_ and _agents code_!
 
@@ -127,7 +133,7 @@ From there, it's easy to implement popular design patterns like ([Multi-](https:
   - Check out [my YouTube](https://www.youtube.com/@ZacharyLLM?sub_confirmation=1)! Read this [Guide](https://brainy.gitbook.io/flow/agentic_coding)!
 - Want to build your own LLM App? Start with our [Python template](https://github.com/zvictor/Brainyflow-Template-Python) or [Typescript template](https://github.com/zvictor/Brainyflow-Template-Typescript)!
 
-![divider](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
+![divider](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png) -->
 
 ## Acknowledgement
 
