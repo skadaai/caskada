@@ -9,7 +9,9 @@
 
 {% endhint %}
 
-Agentic coding represents a powerful approach to software development where humans focus on high-level design and strategic decisions while AI agents handle implementation details. This guide will help you create effective design documents that enable successful BrainyFlow implementations.
+In the context of Human-AI Co-Design, agentic coding involves humans providing high-level guidance while AI agents handle implementation details:
+It represents a powerful approach to software development where humans are freed up to focus solely in strategic decisions.
+This guide will help you create effective design documents that enable successful BrainyFlow implementations.
 
 ## The AI Implementation Brief
 
