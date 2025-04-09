@@ -22,9 +22,6 @@ jobs:
         with:
           node-version: '23'
 
-      - name: Create temporary directory for gh-pages content
-        run: mkdir gh-pages-content
-
       - name: Concatenate docs using script
         run: bash .github/scripts/concatenate-docs.sh
 

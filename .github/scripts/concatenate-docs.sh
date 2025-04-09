@@ -9,7 +9,7 @@ SUMMARY_FILE="docs/SUMMARY.md"
 DOCS_DIR="docs"
 
 # Ensure the output directory exists (it's created in the workflow step before this script runs)
-# mkdir -p "$(dirname "$OUTPUT_FILE")" # This is handled by the workflow step
+mkdir -p "$(dirname "$OUTPUT_FILE")"
 
 # Clear the output file if it exists, or create it if it doesn't
 > "$OUTPUT_FILE"
