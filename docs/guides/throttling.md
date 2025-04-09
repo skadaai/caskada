@@ -212,7 +212,7 @@ async function callApi() {
 {% endtabs %}
 
 {% hint style="info" %}
-**Related Concepts**: Many throttling patterns are used with [Batch Processing](./batch.md) operations, particularly when dealing with parallel execution of API calls.
+**Related Concepts**: Many throttling patterns are used with [Batch Processing](../core_abstraction/batch.md) operations, particularly when dealing with parallel execution of API calls.
 {% endhint %}
 
 ## Best Practices
@@ -225,4 +225,4 @@ async function callApi() {
 
 ## Linking to Related Concepts
 
-For batch processing patterns, see [Batch Processing](./batch.md).
+For batch processing patterns, see [Batch Processing](../core_abstraction/batch.md).
