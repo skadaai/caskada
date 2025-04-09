@@ -45,7 +45,7 @@ Les [100 lignes](https://github.com/zvictor/BrainyFlow/blob/main/python/__init__
 <br>
 
 <div align="center">
-  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/abstraction.png" width="900"/>
+  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/abstraction.jpg" width="900"/>
 </div>
 <br>
 
@@ -53,7 +53,7 @@ Les [100 lignes](https://github.com/zvictor/BrainyFlow/blob/main/python/__init__
 <br>
 
 <div align="center">
-  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/design.png" width="900"/>
+  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/design.jpg" width="900"/>
 </div>
 <br>
 ✨ Voici les tutoriels de base :

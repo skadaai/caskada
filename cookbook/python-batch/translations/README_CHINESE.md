@@ -45,7 +45,7 @@ BrainyFlow 是一个[仅有100行代码](https://github.com/zvictor/BrainyFlow/b
 <br>
 
 <div align="center">
-  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/abstraction.png" width="900"/>
+  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/abstraction.jpg" width="900"/>
 </div>
 <br>
 
@@ -53,7 +53,7 @@ BrainyFlow 是一个[仅有100行代码](https://github.com/zvictor/BrainyFlow/b
 <br>
 
 <div align="center">
-  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/design.png" width="900"/>
+  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/design.jpg" width="900"/>
 </div>
 <br>
 ✨ 以下是基础教程：

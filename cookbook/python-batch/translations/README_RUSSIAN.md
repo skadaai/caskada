@@ -45,7 +45,7 @@ BrainyFlow — это минималистичный фреймворк для L
 <br>
 
 <div align="center">
-  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/abstraction.png" width="900"/>
+  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/abstraction.jpg" width="900"/>
 </div>
 <br>
 
@@ -53,7 +53,7 @@ BrainyFlow — это минималистичный фреймворк для L
 <br>
 
 <div align="center">
-  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/design.png" width="900"/>
+  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/design.jpg" width="900"/>
 </div>
 <br>
 ✨ Ниже представлены базовые руководства:

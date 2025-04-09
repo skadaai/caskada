@@ -25,7 +25,7 @@ BrainyFlow models LLM workflows as a **Graph + Shared Store**:
 - [Batch](./core_abstraction/batch.md) nodes/flows allow for data-intensive tasks.
 
 <div align="center">
-  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/abstraction.png" width="500"/>
+  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/abstraction.jpg" width="500"/>
 </div>
 
 ## Design Patterns
@@ -40,7 +40,7 @@ BrainyFlow makes it easy to implement popular design patterns:
 - [(Advanced) Multi-Agents](./design_pattern/multi_agent.md) coordinate multiple agents.
 
 <div align="center">
-  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/design.png" width="500"/>
+  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/design.jpg" width="500"/>
 </div>
 
 ## Quick Start

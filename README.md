@@ -87,7 +87,7 @@ The single file in <a href="https://github.com/zvictor/BrainyFlow/blob/main/pyth
 <br>
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/abstraction.png" width="1300"/>
+  <img src="https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/abstraction.jpg" width="1300"/>
 </div>
 <br>
 
@@ -95,7 +95,7 @@ From there, it's easy to implement popular design patterns like ([Multi-](https:
 <br>
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/design.png" width="1300"/>
+  <img src="https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/design.jpg" width="1300"/>
 </div>
 <br>
 ✨ Below are basic tutorials:
