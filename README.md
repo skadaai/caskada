@@ -33,19 +33,19 @@
 
 BrainyFlow is a framework enabling _Agentic Coding_ through powerful abstractions.
 
-It provides a simple interface for building complex AI applications through _nested directed graphs_ with shared state.
+It provides a simple interface for building complex AI applications based on _nested directed graphs_ with shared state.
 It enables both humans and AI assistants to collaborate effectively on designing and implementing AI systems.
 
 ## Features
 
-- **Simplicity**: Intuitive for both humans and AI assistants
-- **Minimalist Design**: Core abstractions in just (_you heard it right!_) 65 lines of code
-- **Independent**: Zero bloat, zero dependencies, zero vendor lock-in.
-- **Powerful Composition**: Build complex systems from simple, reusable components
-- **Expressive**: Supports everything you love—([Multi-](https://brainy.gitbook.io/flow/design_pattern/multi_agent))[Agents](https://brainy.gitbook.io/flow/design_pattern/agent), [Workflow](https://brainy.gitbook.io/flow/design_pattern/workflow), [RAG](https://brainy.gitbook.io/flow/design_pattern/rag), and more.
-- **Agentic Coding**: Let AI Agents (e.g., Cursor AI) build Agents like never before—10x productivity boost!
-- **Framework Agnostic**: Works with any LLM provider or API
-- **Multi-language**: <a href="https://pypi.org/project/brainyflow">
+- **Brain-Easy 🧠**: Intuitive for both humans and AI assistants
+- **Minimalist Design ✨**: Core abstractions in just (_you heard it right!_) 65 lines of code
+- **Freedom 🔓**: Zero bloat, zero dependencies, zero vendor lock-in.
+- **Composable 🧩**: Build complex systems from simple, reusable components
+- **Powerful 💪**: Supports everything you love—([Multi-](https://brainy.gitbook.io/flow/design_pattern/multi_agent))[Agents](https://brainy.gitbook.io/flow/design_pattern/agent), [Workflow](https://brainy.gitbook.io/flow/design_pattern/workflow), [RAG](https://brainy.gitbook.io/flow/design_pattern/rag), and more.
+- **Agentic-Coding 🤖**: Let AI Agents (e.g., Cursor AI) build Agents for 10x productivity
+- **Universal 🌈**: Works with any LLM provider or API
+- **Polyglot 🌍**: <a href="https://pypi.org/project/brainyflow">
   <img src="https://iconduck.com/vectors/vctrahatphfa/media/svg/download" width="16" height="16" alt="Python Logo" style="vertical-align: middle; margin: 0 2px;"></a> Python and <a href="https://npm.com/packages/brainyflow"><img src="https://iconduck.com/vectors/vctrk180y7wy/media/svg/download" width="16" height="16" alt="Typescript Logo" style="vertical-align: middle; margin: 0 2px;"></a> Typescript are both supported.
 
 ![divider](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
@@ -83,7 +83,7 @@ Current LLM frameworks are bloated... You actually only need 65 lines for a robu
 
 ## How does Brainy Flow work?
 
-The single file in [python](python/brainyflow.py) or [typescript](python/brainyflow.ts) capture the core abstraction of LLM frameworks: Graph!
+The single file in <a href="https://github.com/zvictor/BrainyFlow/blob/main/python/brainyflow.py"><img src="https://iconduck.com/vectors/vctrahatphfa/media/svg/download" width="16" height="16" alt="Python Logo" style="vertical-align: middle; margin: 0 2px;"> Python</a> or <a href="https://github.com/zvictor/BrainyFlow/blob/main/typescript/brainyflow.ts"><img src="https://iconduck.com/vectors/vctrk180y7wy/media/svg/download" width="16" height="16" alt="Typescript Logo" style="vertical-align: middle; margin: 0 2px;"> Typescript</a> capture the core abstraction of LLM frameworks: Graph!
 <br>
 
 <div align="center">
