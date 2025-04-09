@@ -26,7 +26,7 @@ jobs:
       - name: Generate docs/index.md from README.md
         run: |
           printf -- "---\ntitle: 'BrainyFlow'\nmachine-display: false\n---\n" > docs/index.md
-          sed '/<!-- gitbook-ignore-start -->/,/<!-- gitbook-ignore-end -->/d' README.md \
+          perl -0777 -pe 's/<!-- gitbook-ignore-start -->.*?<!-- gitbook-ignore-end -->//gs' README.md \
             | sed 's|https://brainy.gitbook.io/flow|.|g' \
             | sed 's/alt\s*=\s*"[^"]*"//g; s/alt\s*=\s*'\''[^'\'']*'\''//g' \
             >> docs/index.md
