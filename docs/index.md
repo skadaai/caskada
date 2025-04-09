@@ -12,10 +12,14 @@ A [65-line](https://github.com/zvictor/BrainyFlow/blob/main/python/brainyflow.py
 - **Agentic-Coding**: Intuitive enough for AI agents to help humans build complex LLM applications.
 
 <div align="center">
-  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/meme.jpg?raw=true" width="400"/>
+  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/meme.jpg?raw=true" width="500"/>
 </div>
 
 ## Core Abstraction
+
+<div align="center">
+  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/abstraction.jpg" width="1300"/>
+</div>
 
 BrainyFlow models LLM workflows as a **Graph + Shared Store**:
 
@@ -24,11 +28,11 @@ BrainyFlow models LLM workflows as a **Graph + Shared Store**:
 - [Shared Store](./core_abstraction/communication.md) enables communication between nodes within flows.
 - [Batch](./core_abstraction/batch.md) nodes/flows allow for data-intensive tasks.
 
-<div align="center">
-  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/abstraction.jpg" width="500"/>
-</div>
-
 ## Design Patterns
+
+<div align="center">
+  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/design.jpg" width="1300"/>
+</div>
 
 BrainyFlow makes it easy to implement popular design patterns:
 
@@ -38,10 +42,6 @@ BrainyFlow makes it easy to implement popular design patterns:
 - [Map Reduce](./design_pattern/mapreduce.md) splits data tasks into Map and Reduce steps.
 - [Structured Output](./design_pattern/structure.md) formats outputs consistently.
 - [(Advanced) Multi-Agents](./design_pattern/multi_agent.md) coordinate multiple agents.
-
-<div align="center">
-  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/design.jpg" width="500"/>
-</div>
 
 ## Quick Start
 

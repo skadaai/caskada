@@ -1,8 +1,4 @@
----
-title: '(Advanced) Multi-Agents'
----
-
-# (Advanced) Multi-Agents
+# Multi-Agents (Advanced)
 
 Multiple [Agents](./flow.md) can work together by handling subtasks and communicating the progress.
 Communication between agents is typically implemented using message queues in shared storage.

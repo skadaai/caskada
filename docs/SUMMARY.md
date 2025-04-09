@@ -22,7 +22,7 @@
 - [RAG](design_pattern/rag.md)
 - [Map Reduce](design_pattern/mapreduce.md)
 - [Structured Output](design_pattern/structure.md)
-- [(Advanced) Multi-Agents](design_pattern/multi_agent.md)
+- [Multi-Agents (Advanced)](design_pattern/multi_agent.md)
 
 ## Utility Functions
 
@@ -37,7 +37,6 @@
 ## Guides
 
 - [Best Practices](guides/best_practices.md)
-- [Visualization & Logging](guides/visualization_logging.md)
 - [Agentic Coding Guide](guides/agentic_coding.md)
 - [Throttling](guides/throttling.md)
 - [Visualization & Logging](guides/visualization_logging.md)
