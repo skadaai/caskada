@@ -40,4 +40,6 @@
 - [Visualization & Logging](guides/visualization_logging.md)
 - [Agentic Coding Guide](guides/agentic_coding.md)
 - [Throttling](guides/throttling.md)
+- [Visualization & Logging](guides/visualization_logging.md)
+- [Testing](guides/testing.md)
 - [Migrating from PocketFlow](guides/migrating_from_pocketflow.md)
