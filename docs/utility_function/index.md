@@ -9,12 +9,11 @@ BrainyFlow does not provide built-in utilities. Instead, we offer examples that 
 ## Available Utility Function Examples
 
 1. [LLM Wrapper](./llm.md): Interact with Language Models
-2. [Visualization and Debugging](./viz.md): Tools for visualizing and debugging flows
-3. [Web Search](./websearch.md): Perform web searches
-4. [Chunking](./chunking.md): Split large texts into manageable chunks
-5. [Embedding](./embedding.md): Generate vector embeddings for text
-6. [Vector Databases](./vector.md): Store and query vector embeddings
-7. [Text-to-Speech](./text_to_speech.md): Convert text to speech
+2. [Web Search](./websearch.md): Perform web searches
+3. [Chunking](./chunking.md): Split large texts into manageable chunks
+4. [Embedding](./embedding.md): Generate vector embeddings for text
+5. [Vector Databases](./vector.md): Store and query vector embeddings
+6. [Text-to-Speech](./text_to_speech.md): Convert text to speech
 
 ## Why Not Built-in?
 

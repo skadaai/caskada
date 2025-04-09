@@ -5,6 +5,7 @@ on:
     branches:
       - main
     paths:
+      - 'README.md'
       - 'docs/**'
 
 permissions:
@@ -22,8 +23,10 @@ jobs:
         with:
           node-version: '23'
 
-      - name: Copy, process, and replace links in README.md to docs/index.md
-        run: sed '/<!-- gitbook-ignore-start -->/,/<!-- gitbook-ignore-end -->/d' README.md | sed 's|https://brainy.gitbook.io/flow|.|g' > docs/index.md
+      - name: Generate docs/index.md from README.md with front matter
+        run: |
+          printf -- "---\ntitle: 'BrainyFlow'\nmachine-display: false\n---\n" > docs/index.md
+          sed '/<!-- gitbook-ignore-start -->/,/<!-- gitbook-ignore-end -->/d' README.md | sed 's|https://brainy.gitbook.io/flow|.|g' >> docs/index.md
 
       - name: Commit and push updated docs/index.md
         uses: stefanzweifel/git-auto-commit-action@v5

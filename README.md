@@ -1,8 +1,3 @@
----
-title: 'BrainyFlow'
-machine-display: false
----
-
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="https://cdn.jsdelivr.net/gh/zvictor/brainyflow@main/.github/media/logo-dark.png">
