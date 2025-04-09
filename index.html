@@ -61,6 +61,8 @@
         --cover-border-width: 2px;
         --cover-border-color: var(--theme-color);
         --cover-heading-font-weight: 700;
+
+        --cover-navigation-background-color: 33, 37, 43;
       }
 
       a {
@@ -69,13 +71,20 @@
 
       nav a {
         margin: 5px;
-        background-color: #21252b;
+        background-color: rgb(var(--cover-navigation-background-color));
         padding: 7px 12px;
         border-radius: 10px;
         display: inline-block;
       }
 
+      nav a:hover {
+        color: var(--theme-color) !important;
+        background-color: rgba(var(--cover-navigation-background-color), 0.75);
+      }
+
+      nav a:active,
       nav a.active {
+        color: inherit !important;
         background-color: var(--theme-color);
       }
 
