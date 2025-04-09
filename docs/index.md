@@ -6,7 +6,7 @@ machine-display: false
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="https://cdn.jsdelivr.net/gh/zvictor/brainyflow@main/.github/media/logo-dark.png">
     <source media="(prefers-color-scheme: light)" srcset="https://cdn.jsdelivr.net/gh/zvictor/brainyflow@main/.github/media/logo-light.png">
-    <img width="280px" alt="Brainyflow's logo" src="https://cdn.jsdelivr.net/gh/zvictor/brainyflow@main/.github/media/logo-light.png">
+    <img width="280px"  src="https://cdn.jsdelivr.net/gh/zvictor/brainyflow@main/.github/media/logo-light.png">
   </picture>
 <p>
 
@@ -19,19 +19,19 @@ machine-display: false
 <p align="center">
 
   <a href="https://pypi.org/project/brainyflow">
-   <img src="https://img.shields.io/pypi/dw/brainyflow?logo=python&label=Python&style=flat-square" alt="python version">
+   <img src="https://img.shields.io/pypi/dw/brainyflow?logo=python&label=Python&style=flat-square" >
   </a>
   <a href="https://npm.com/packages/brainyflow">
-   <img src="https://img.shields.io/npm/d18m/brainyflow?logo=typescript&label=Typescript&style=flat-square" alt="typescript version">
+   <img src="https://img.shields.io/npm/d18m/brainyflow?logo=typescript&label=Typescript&style=flat-square" >
   </a>
   <a href="https://discord.gg/hUHHE9Sa6T">
-    <img src="https://img.shields.io/discord/1346833819172601907?logo=discord&style=flat-square" alt="Discord">
+    <img src="https://img.shields.io/discord/1346833819172601907?logo=discord&style=flat-square" >
   </a>
   <a href="https://github.com/zvictor/brainyflow">
-    <img src="https://img.shields.io/github/stars/zvictor/BrainyFlow?logo=github&style=flat-square" alt="GitHub Repository">
+    <img src="https://img.shields.io/github/stars/zvictor/BrainyFlow?logo=github&style=flat-square" >
   </a>
   <a href="https://github.com/sponsors/zvictor">
-    <img src="https://img.shields.io/github/sponsors/zvictor?logo=github&style=flat-square" alt="GitHub Sponsors">
+    <img src="https://img.shields.io/github/sponsors/zvictor?logo=github&style=flat-square" >
   </a>
 </p>
 
@@ -50,9 +50,9 @@ It enables both humans and AI assistants to collaborate effectively on designing
 - **Agentic-Coding 🤖**: Let AI Agents (e.g., Cursor AI) build Agents for 10x productivity
 - **Universal 🌈**: Works with any LLM provider or API
 - **Polyglot 🌍**: <a href="https://pypi.org/project/brainyflow">
-  <img src="https://iconduck.com/vectors/vctrahatphfa/media/svg/download" width="16" height="16" alt="Python Logo" style="vertical-align: middle; margin: 0 2px;"></a> Python and <a href="https://npm.com/packages/brainyflow"><img src="https://iconduck.com/vectors/vctrk180y7wy/media/svg/download" width="16" height="16" alt="Typescript Logo" style="vertical-align: middle; margin: 0 2px;"></a> Typescript are both supported.
+  <img src="https://iconduck.com/vectors/vctrahatphfa/media/svg/download" width="16" height="16"  style="vertical-align: middle; margin: 0 2px;"></a> Python and <a href="https://npm.com/packages/brainyflow"><img src="https://iconduck.com/vectors/vctrk180y7wy/media/svg/download" width="16" height="16"  style="vertical-align: middle; margin: 0 2px;"></a> Typescript are both supported.
 
-![divider](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
+![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
 
 
 ## Why Brainy Flow?
@@ -73,11 +73,11 @@ Current LLM frameworks are bloated... You actually only need 65 lines for a robu
 
 </div>
 
-![divider](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
+![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
 
 ## How does BrainyFlow work?
 
-The single file in <a href="https://github.com/zvictor/BrainyFlow/blob/main/python/brainyflow.py"><img src="https://iconduck.com/vectors/vctrahatphfa/media/svg/download" width="16" height="16" alt="Python Logo" style="vertical-align: middle; margin: 0 2px;"> Python</a> or <a href="https://github.com/zvictor/BrainyFlow/blob/main/typescript/brainyflow.ts"><img src="https://iconduck.com/vectors/vctrk180y7wy/media/svg/download" width="16" height="16" alt="Typescript Logo" style="vertical-align: middle; margin: 0 2px;"> Typescript</a> capture the core abstraction of LLM frameworks: Graph!
+The single file in <a href="https://github.com/zvictor/BrainyFlow/blob/main/python/brainyflow.py"><img src="https://iconduck.com/vectors/vctrahatphfa/media/svg/download" width="16" height="16"  style="vertical-align: middle; margin: 0 2px;"> Python</a> or <a href="https://github.com/zvictor/BrainyFlow/blob/main/typescript/brainyflow.ts"><img src="https://iconduck.com/vectors/vctrk180y7wy/media/svg/download" width="16" height="16"  style="vertical-align: middle; margin: 0 2px;"> Typescript</a> capture the core abstraction of LLM frameworks: Graph!
 <br>
 
 <div align="center">
@@ -105,7 +105,7 @@ From there, it's easy to implement all popular design patterns:
 - [Structured Output](./design_pattern/structure.md) formats outputs consistently.
 - [Multi-Agents](./design_pattern/multi_agent.md) coordinate multiple agents.
 
-![divider](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
+![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
 
 ## Tutorials
 
@@ -129,7 +129,7 @@ From there, it's easy to implement all popular design patterns:
 
 And many more available for all levels! [Check them all out!](https://github.com/zvictor/BrainyFlow/tree/main/cookbook)
 
-![divider](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
+![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
 
 <!-- ## How to Use Brainy Flow?
 
@@ -142,7 +142,7 @@ And many more available for all levels! [Check them all out!](https://github.com
   - Check out [my YouTube](https://www.youtube.com/@ZacharyLLM?sub_confirmation=1)! Read this [Guide](./agentic_coding)!
 - Want to build your own LLM App? Start with our [Python template](https://github.com/zvictor/Brainyflow-Template-Python) or [Typescript template](https://github.com/zvictor/Brainyflow-Template-Typescript)!
 
-![divider](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png) -->
+![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png) -->
 
 ## Quick Start
 
@@ -152,7 +152,7 @@ New to BrainyFlow? Check out our [Getting Started](./introduction/getting_starte
 
 Check out [Agentic Coding Guidance](./guides/agentic_coding.md), the fastest way to develop self-coding LLM projects with BrainyFlow!
 
-![divider](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
+![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
 
 ## Acknowledgement
 
@@ -167,7 +167,7 @@ We do not take responsibility for how the generated output is used, including bu
 
 <p align="center">
   <a style="color: inherit" href="https://github.com/sponsors/zvictor?utm_source=brainyflow&utm_medium=sponsorship&utm_campaign=brainyflow&utm_id=brainyflow">
-    <img width="150px" src="https://cdn.jsdelivr.net/gh/zvictor/brainyflow@main/.github/media/brain.png" alt="Brainyflow's logo" />
+    <img width="150px" src="https://cdn.jsdelivr.net/gh/zvictor/brainyflow@main/.github/media/brain.png"  />
   </a><br /><br />
   BrainyFlow runs on 65 lines of code and your generosity! 💰<br />
     <a style="color: inherit" href="https://github.com/sponsors/zvictor?utm_source=brainyflow&utm_medium=sponsorship&utm_campaign=brainyflow&utm_id=brainyflow">
@@ -177,4 +177,4 @@ We do not take responsibility for how the generated output is used, including bu
   </a>
 </p>
 
-![divider](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
+![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
