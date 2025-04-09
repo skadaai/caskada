@@ -169,7 +169,7 @@ function createQaFlow(): Flow {
 
 **Review:** What was achieved here?
 
-- `qaFlow` has connected the nodes, letting the user's question propagate from `GetQuestionNode` to `AnswerNode` to generate an answer.
+- We created a flow that connects the nodes, letting the user's question propagate from `GetQuestionNode` to `AnswerNode` to generate an answer.
 
 {% endhint %}
 
@@ -213,6 +213,14 @@ main().catch(console.error)
 {% endtab %}
 {% endtabs %}
 
+{% hint style="info" %}
+
+**Review:** What was achieved here?
+
+- `qaFlow` has executed the flow, writing the user's question and answer to the `shared` store.
+
+{% endhint %}
+
 ## 4. Key Design Principles
 
 BrainyFlow follows these core design principles:
@@ -242,7 +250,7 @@ File: docs/core_abstraction/index.md
 BrainyFlow is built around a simple yet powerful abstraction: the **nested directed graph with shared store**. This mental model separates _data flow_ from _computation_, making complex LLM applications more maintainable and easier to reason about.
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/abstraction.png" width="1300"/>
+  <img src="https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/abstraction.jpg" width="1300"/>
 </div>
 
 ## Core Philosophy
@@ -279,7 +287,6 @@ BrainyFlow's architecture is based on these fundamental building blocks:
 | [Flow](./flow.md)                   | Connects nodes together | Action-based transitions, branching, looping, nesting                       |
 | [Communication](./communication.md) | Enables data sharing    | Shared Store (global), Params (node-specific)                               |
 | [Batch](./batch.md)                 | Handles multiple items  | Sequential or parallel processing, nested batching                          |
-| [Throttling](./throttling.md)       | Manages concurrency     | Rate limiting, concurrency control                                          |
 
 ## How They Work Together
 
@@ -313,7 +320,6 @@ If you're new to BrainyFlow, we recommend exploring these core abstractions in t
 2. [Flow](./flow.md) - Learn how to connect nodes together
 3. [Communication](./communication.md) - See how nodes share data
 4. [Batch](./batch.md) - Explore handling multiple items
-5. [Throttling](./throttling.md) - Learn about managing concurrency
 
 Once you understand these core abstractions, you'll be ready to implement various [Design Patterns](../design_pattern/index.md) to solve real-world problems.
 
@@ -1381,7 +1387,7 @@ A `ParallelBatchNode` processes items concurrently, which is useful when:
 
 - Ensure operations are truly independent before using parallel processing
 - Be mindful of rate limits when making API calls
-- Consider using [Throttling](./throttling.md) to control concurrency
+- Consider using [Throttling](../guides/throttling.md) to control concurrency
 
 {% endhint %}
 
@@ -1455,9 +1461,8 @@ BrainyFlow also supports batch processing at the flow level, allowing you to run
 
 A `SequentialBatchFlow` runs a flow multiple times in sequence, with different `params` each time. Think of it as a loop that replays the Flow for each parameter set.
 
-
 {% hint style="info" %}
-**When to use**: Choose sequential processing when order matters or when working with APIs that have strict rate limits. See [Throttling](./throttling.md) for managing rate limits.
+**When to use**: Choose sequential processing when order matters or when working with APIs that have strict rate limits. See [Throttling](../guides/throttling.md) for managing rate limits.
 {% endhint %}
 
 #### Example: Summarize Many Files
@@ -1487,7 +1492,7 @@ await summarize_all_files.run(shared)
 class SummarizeAllFiles extends SequentialBatchFlow {
   async prep(shared: Record): Promise<Array<Record<string, string>>> {
     const filenames = Object.keys(shared.data) // e.g., ["file1.txt", "file2.txt", ...]
-    return filenames.map(fn => ({ filename: fn }))
+    return filenames.map((fn) => ({ filename: fn }))
   }
 }
 
@@ -1508,7 +1513,6 @@ await summarizeAllFiles.run(shared)
    - It merges the dict with the BatchFlow’s own `params`.
    - It calls `flow.run(shared)` using the merged result.
 3. This means the sub-Flow is run **repeatedly**, once for every param dict.
-
 
 ### ParallelBatchFlow
 
@@ -1596,14 +1600,14 @@ class FileBatchFlow extends SequentialBatchFlow {
     const directory = this.params.directory
     // In a real implementation, use fs.readdirSync or similar
     const files = ['file1.txt', 'file2.txt']
-    return files.map(f => ({ filename: f }))
+    return files.map((f) => ({ filename: f }))
   }
 }
 
 class DirectoryBatchFlow extends SequentialBatchFlow {
   async prep(shared: Record): Promise<Array<Record<string, string>>> {
     const directories = ['/path/to/dirA', '/path/to/dirB']
-    return directories.map(d => ({ directory: d }))
+    return directories.map((d) => ({ directory: d }))
   }
 }
 
@@ -1634,283 +1638,43 @@ In this nested batch example:
 
 
 ================================================
-File: docs/core_abstraction/throttling.md
-================================================
----
-title: '(Advanced) Throttling'
----
-
-# (Advanced) Throttling
-
-**Throttling** helps manage concurrency and avoid rate limits when making API calls. This is particularly important when:
-
-1. Calling external APIs with rate limits
-2. Managing expensive operations (like LLM calls)
-3. Preventing system overload from too many parallel requests
-
-## Concurrency Control Patterns
-
-### 1. Using Semaphores (Python)
-
-```python
-import asyncio
-
-class LimitedParallelNode(Node):
-    def __init__(self, concurrency=3):
-        self.semaphore = asyncio.Semaphore(concurrency)
-
-    async def exec(self, items):
-        async def limited_process(item):
-            async with self.semaphore:
-                return await self.process_item(item)
-
-        tasks = [limited_process(item) for item in items]
-        return await asyncio.gather(*tasks)
-
-    async def process_item(self, item):
-        # Process a single item
-        pass
-```
-
-### 2. Using p-limit (TypeScript)
-
-```typescript
-import pLimit from 'p-limit'
-
-class LimitedParallelNode extends Node {
-  constructor(private concurrency = 3) {
-    super()
-  }
-
-  async exec(items) {
-    const limit = pLimit(this.concurrency)
-    return Promise.all(items.map((item) => limit(() => this.processItem(item))))
-  }
-
-  async processItem(item) {
-    // Process a single item
-  }
-}
-```
-
-## Rate Limiting with Window Limits
-
-{% tabs %}
-{% tab title="Python" %}
-
-```python
-from ratelimit import limits, sleep_and_retry
-
-# 30 calls per minute
-@sleep_and_retry
-@limits(calls=30, period=60)
-def call_api():
-    # Your API call here
-    pass
-```
-
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-```typescript
-import { RateLimiter } from 'limiter'
-
-// 30 calls per minute
-const limiter = new RateLimiter({ tokensPerInterval: 30, interval: 'minute' })
-
-async function callApi() {
-  await limiter.removeTokens(1)
-  // Your API call here
-}
-```
-
-{% endtab %}
-{% endtabs %}
-
-## Throttler Utility
-
-{% tabs %}
-{% tab title="Python" %}
-
-```python
-from tenacity import retry, wait_exponential, stop_after_attempt
-
-@retry(
-    wait=wait_exponential(multiplier=1, min=4, max=10),
-    stop=stop_after_attempt(5)
-)
-def call_api_with_retry():
-    # Your API call here
-    pass
-```
-
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-```typescript
-import pRetry from 'p-retry'
-
-async function callApiWithRetry() {
-  return pRetry(
-    async () => {
-      // Your API call here
-    },
-    {
-      retries: 5,
-      minTimeout: 4000,
-      maxTimeout: 10000,
-    },
-  )
-}
-```
-
-{% endtab %}
-{% endtabs %}
-
-## Advanced Throttling Patterns
-
-### 1. Token Bucket Rate Limiter
-
-{% tabs %}
-{% tab title="Python" %}
-
-```python
-from pyrate_limiter import Duration, Rate, Limiter
-
-# 10 requests per minute
-rate = Rate(10, Duration.MINUTE)
-limiter = Limiter(rate)
-
-@limiter.ratelimit("api_calls")
-async def call_api():
-    # Your API call here
-    pass
-```
-
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-```typescript
-import { TokenBucket } from 'limiter'
-
-// 10 requests per minute
-const limiter = new TokenBucket({
-  bucketSize: 10,
-  tokensPerInterval: 10,
-  interval: 'minute',
-})
-
-async function callApi() {
-  await limiter.removeTokens(1)
-  // Your API call here
-}
-```
-
-{% endtab %}
-{% endtabs %}
-
-### 2. Sliding Window Rate Limiter
-
-{% tabs %}
-{% tab title="Python" %}
-
-```python
-from slidingwindow import SlidingWindowRateLimiter
-
-limiter = SlidingWindowRateLimiter(
-    max_requests=100,
-    window_size=60  # 60 seconds
-)
-
-async def call_api():
-    if not limiter.allow_request():
-        raise RateLimitExceeded()
-    # Your API call here
-```
-
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-```typescript
-import { SlidingWindowRateLimiter } from 'sliding-window-rate-limiter'
-
-const limiter = SlidingWindowRateLimiter.createLimiter({
-  interval: 60, // 60 seconds
-  maxInInterval: 100,
-})
-
-async function callApi() {
-  const isAllowed = await limiter.check('key', 1)
-  if (!isAllowed) throw new Error('Rate limit exceeded')
-  // Your API call here
-}
-```
-
-{% endtab %}
-{% endtabs %}
-
-{% hint style="info" %}
-**Related Concepts**: Many throttling patterns are used with [Batch Processing](./batch.md) operations, particularly when dealing with parallel execution of API calls.
-{% endhint %}
-
-## Best Practices
-
-1. **Monitor API Responses**: Watch for 429 (Too Many Requests) responses and adjust your rate limiting accordingly
-2. **Implement Retry Logic**: When hitting rate limits, implement exponential backoff for retries
-3. **Distribute Load**: If possible, spread requests across multiple API keys or endpoints
-4. **Cache Responses**: Cache frequent identical requests to reduce API calls
-5. **Batch Requests**: Combine multiple requests into single API calls when possible
-
-## Linking to Related Concepts
-
-For batch processing patterns, see [Batch Processing](./batch.md).
-
-
-
-
-================================================
 File: docs/design_pattern/index.md
 ================================================
 # Design Patterns
 
-BrainyFlow makes it easy to implement popular design patterns for LLM applications. This section covers the key patterns you can build with the framework.
+BrainyFlow supports a variety of design patterns that enable you to build complex AI applications. These patterns leverage the core abstractions of nodes, flows, and shared store to implement common AI system architectures.
 
-## Available Design Patterns
+## Overview of Design Patterns
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/design.png" width="1300"/>
+  <img src="https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/design.jpg" width="1300"/>
 </div>
 
-### Core Patterns
+BrainyFlow's minimalist design allows it to support various high-level AI design paradigms:
 
-1. [Agent](./agent.md): Create autonomous agents that can make decisions and take actions based on context.
-2. [Workflow](./workflow.md): Chain multiple tasks into sequential pipelines for complex operations.
-3. [RAG](./rag.md): Integrate data retrieval with generation for knowledge-augmented responses.
-4. [Map Reduce](./mapreduce.md): Process large datasets by splitting work into parallel tasks and combining results.
-5. [Structured Output](./structure.md): Format LLM outputs consistently using structured formats like YAML or JSON.
-
-### Advanced Patterns
-
-6. [Multi-Agents](./multi_agent.md): Coordinate multiple agents working together on complex tasks.
+| Pattern                             | Description                                                     | Use Cases                                       |
+| ----------------------------------- | --------------------------------------------------------------- | ----------------------------------------------- |
+| [RAG](./rag.md)                     | Retrieval-Augmented Generation for knowledge-grounded responses | Question answering, knowledge-intensive tasks   |
+| [Agent](./agent.md)                 | Autonomous entities that can perceive, reason, and act          | Virtual assistants, autonomous decision-making  |
+| [Workflow](./workflow.md)           | Sequential or branching business processes                      | Form processing, approval flows                 |
+| [MapReduce](./map_reduce.md)        | Distributed processing of large datasets                        | Document summarization, parallel processing     |
+| [Structured Output](./structure.md) | Generating outputs that follow specific schemas                 | Data extraction, configuration generation       |
+| [Multi-Agents](./multi_agent.md)    | Multiple agents working together on complex tasks               | Collaborative problem-solving, role-based tasks |
 
 ## Choosing the Right Pattern
 
-When building your LLM application, consider these factors when selecting a design pattern:
+When designing your application, consider these factors when selecting a pattern:
 
 | Pattern           | Best For                  | When To Use                                             |
 | ----------------- | ------------------------- | ------------------------------------------------------- |
+| RAG               | Knowledge-intensive tasks | When external information is needed for responses       |
 | Agent             | Dynamic problem-solving   | When tasks require reasoning and decision-making        |
 | Workflow          | Sequential processing     | When steps are well-defined and follow a clear order    |
-| RAG               | Knowledge-intensive tasks | When external information is needed for responses       |
 | Map Reduce        | Large data processing     | When handling datasets too large for a single operation |
 | Structured Output | Consistent formatting     | When outputs need to follow specific schemas            |
 | Multi-Agents      | Complex collaboration     | When tasks benefit from specialized agent roles         |
 
-## Decision Tree
+### Decision Tree
 
 Use this decision tree to help determine which pattern best fits your use case:
 
@@ -1926,30 +1690,73 @@ flowchart TD
     D -->|Yes| G{Complex, multi-step reasoning?}
     D -->|No| H[Simple Workflow]
 
-    G -->|Yes| I[Agent]
+    G -->|Yes| I{Need multiple specialized roles?}
     G -->|No| J{Need external knowledge?}
 
-    J -->|Yes| K[RAG]
-    J -->|No| L[Structured Output]
+    I -->|Yes| K[Multi-Agents]
+    I -->|No| L[Agent]
+
+    J -->|Yes| M[RAG]
+    J -->|No| N[Structured Output]
 ```
 
-## Combining Patterns
+## Pattern Composition
 
-Many real-world applications combine multiple patterns. For example:
+BrainyFlow's nested flow capability allows you to compose multiple patterns. For instance:
+
+```mermaid
+graph TD
+    subgraph "Agent Pattern"
+        A[Perceive] --> B[Think]
+        B --> C[Act]
+        C --> A
+    end
+
+    subgraph "RAG Pattern"
+        D[Query] --> E[Retrieve]
+        E --> F[Generate]
+    end
+
+    A --> D
+    F --> B
+```
+
+This composition enables powerful applications that combine the strengths of different patterns.
+For example, an agent might use RAG to access knowledge, then apply chain-of-thought reasoning to solve a problem.
+Other examples include:
 
 - An **Agent** that uses **RAG** to retrieve information before making decisions
 - A **Workflow** that includes **Map Reduce** steps for processing large datasets
 - **Multi-Agents** that each use **Structured Output** for consistent communication
 
-The modular nature of BrainyFlow makes it easy to combine these patterns to solve complex problems.
+## Implementation Examples
 
-## Next Steps
+Each pattern can be implemented using BrainyFlow's core abstractions. Here's a simple example of the agent pattern:
 
-Explore each design pattern in detail to understand how to implement it in your application:
+```python
+# Define the agent's components
+perceive = PerceiveNode()
+think = ThinkNode()
+act = ActNode()
 
-- Start with [Agent](./agent.md) to learn about autonomous decision-making
-- Check out [Workflow](./workflow.md) for sequential processing patterns
-- Dive into [RAG](./rag.md) to see how to augment LLMs with external knowledge
+# Connect them in a cycle
+perceive >> think >> act >> perceive
+
+# Create the agent flow
+agent_flow = Flow(start=perceive)
+```
+
+For more detailed implementations of each pattern, see the individual pattern documentation pages.
+
+## Best Practices
+
+1. **Start Simple**: Begin with the simplest pattern that meets your needs
+2. **Modular Design**: Design patterns to be composable and reusable
+3. **Clear Interfaces**: Define clear interfaces between pattern components
+4. **Test Incrementally**: Test each pattern component before integration
+5. **Monitor Performance**: Watch for bottlenecks in your pattern implementation
+
+By understanding and applying these design patterns, you can build sophisticated AI applications that are both powerful and maintainable.
 
 
 
@@ -3705,6 +3512,153 @@ By following this approach, you can easily maintain and update your utility func
 
 
 ================================================
+File: docs/guides/best_practices.md
+================================================
+# BrainyFlow Best Practices
+
+## Node Design
+
+1. **Keep Nodes Focused**: Each node should do one thing well
+2. **Idempotent Execution**: Design `exec()` methods to be safely retryable
+3. **Graceful Degradation**: Implement fallbacks for when things go wrong
+4. **Proper Error Handling**: Use `exec_fallback` to handle failures gracefully
+
+## Shared Store Management
+
+1. **Schema Design**: Define a clear schema for your shared store
+2. **Namespacing**: Use namespaces to avoid key collisions
+3. **Immutability**: Treat shared store values as immutable when possible
+4. **Documentation**: Document the expected structure of your shared store
+
+## Flow Design
+
+1. **Visualization First**: Design your flow visually before coding
+2. **Test Incrementally**: Build and test one section of your flow at a time
+3. **Error Paths**: Always include paths for handling errors
+4. **Monitoring**: Add logging at key points in your flow
+
+## Project Structure
+
+A well-organized project structure enhances maintainability and collaboration:
+
+{% tabs %}
+{% tab title="Python (simple)" %}
+
+```
+my_simple_project/
+├── main.py
+├── nodes.py
+├── flow.py
+├── utils/
+│   ├── __init__.py
+│   ├── call_llm.py
+│   └── search_web.py
+├── requirements.txt
+└── docs/
+    └── design.md
+```
+
+{% endtab %}
+
+{% tab title="Python (complex)" %}
+
+```
+my_complex_project/
+├── main.py                # Entry point
+├── nodes/                 # Node implementations
+│   ├── __init__.py
+│   ├── input_nodes.py
+│   ├── processing_nodes.py
+│   └── output_nodes.py
+├── flows/                 # Flow definitions
+│   ├── __init__.py
+│   └── main_flow.py
+├── utils/                 # Utility functions
+│   ├── __init__.py
+│   ├── llm.py
+│   ├── database.py
+│   └── web_search.py
+├── tests/                 # Test cases
+│   ├── test_nodes.py
+│   └── test_flows.py
+├── config/                # Configuration
+│   └── settings.py
+├── requirements.txt       # Dependencies
+└── docs/                  # Documentation
+    ├── design.md          # High-level design
+    └── api.md             # API documentation
+```
+
+{% endtab %}
+
+{% tab title="TypeScript (simple)" %}
+
+```
+my_project/
+├── src/
+│   ├── main.ts
+│   ├── nodes.ts
+│   ├── flow.ts
+│   └── utils/
+│       ├── callLLM.ts
+│       └── searchWeb.ts
+├── package.json
+└── docs/
+    └── design.md
+```
+
+{% endtab %}
+
+{% tab title="TypeScript (complex)" %}
+
+```
+my_complex_project/
+├── src/                      # Source code
+│   ├── index.ts              # Entry point
+│   ├── nodes/                # Node implementations
+│   │   ├── index.ts          # Exports all nodes
+│   │   ├── inputNodes.ts
+│   │   ├── processingNodes.ts
+│   │   └── outputNodes.ts
+│   ├── flows/                # Flow definitions
+│   │   ├── index.ts          # Exports all flows
+│   │   └── mainFlow.ts
+│   ├── utils/                # Utility functions
+│   │   ├── index.ts          # Exports all utilities
+│   │   ├── llm.ts
+│   │   ├── database.ts
+│   │   └── webSearch.ts
+│   ├── types/                # Type definitions
+│   │   ├── index.ts          # Exports all types
+│   │   ├── node.types.ts
+│   │   └── flow.types.ts
+│   └── config/               # Configuration
+│       └── settings.ts
+├── dist/                     # Compiled JavaScript
+├── tests/                    # Test cases
+│   ├── nodes.test.ts
+│   └── flows.test.ts
+├── package.json              # Dependencies and scripts
+└── docs/                     # Documentation
+    ├── design.md             # High-level design
+    └── api.md                # API documentation
+```
+
+{% endtab %}
+{% endtabs %}
+
+- **`docs/design.md`**: Contains project documentation for each step designed in [agentic coding](./agentic_coding.md). This should be _high-level_ and _no-code_.
+- **`utils/`**: Contains all utility functions.
+  - It's recommended to dedicate one file to each API call, for example `call_llm.py` or `search_web.ts`.
+  - Each file should also include a `main()` function to try that API call
+- **`nodes.py`** or **`nodes.ts`**: Contains all the node definitions.
+- **`flow.py`** or **`flow.ts`**: Implements functions that create flows by importing node definitions and connecting them.
+- **`main.py`** or **`main.ts`**: Serves as the project's entry point.
+
+
+
+
+================================================
 File: docs/guides/agentic_coding.md
 ================================================
 # Agentic Coding with BrainyFlow
@@ -3718,7 +3672,9 @@ File: docs/guides/agentic_coding.md
 
 {% endhint %}
 
-Agentic coding represents a powerful approach to software development where humans focus on high-level design and strategic decisions while AI agents handle implementation details. This guide will help you create effective design documents that enable successful BrainyFlow implementations.
+In the context of Human-AI Co-Design, agentic coding involves humans providing high-level guidance while AI agents handle implementation details:
+It represents a powerful approach to software development where humans are freed up to focus solely in strategic decisions.
+This guide will help you create effective design documents that enable successful BrainyFlow implementations.
 
 ## The AI Implementation Brief
 
@@ -3885,147 +3841,446 @@ Remember: The quality of your design document directly impacts the quality of th
 
 
 ================================================
-File: docs/guides/best_practices.md
+File: docs/guides/throttling.md
 ================================================
-# BrainyFlow Best Practices
+# Throttling
 
-## Node Design
+**Throttling** helps manage concurrency and avoid rate limits when making API calls. This is particularly important when:
 
-1. **Keep Nodes Focused**: Each node should do one thing well
-2. **Idempotent Execution**: Design `exec()` methods to be safely retryable
-3. **Graceful Degradation**: Implement fallbacks for when things go wrong
-4. **Proper Error Handling**: Use `exec_fallback` to handle failures gracefully
+1. Calling external APIs with rate limits
+2. Managing expensive operations (like LLM calls)
+3. Preventing system overload from too many parallel requests
 
-## Shared Store Management
+## Concurrency Control Patterns
 
-1. **Schema Design**: Define a clear schema for your shared store
-2. **Namespacing**: Use namespaces to avoid key collisions
-3. **Immutability**: Treat shared store values as immutable when possible
-4. **Documentation**: Document the expected structure of your shared store
+### 1. Using Semaphores (Python)
 
-## Flow Design
+```python
+import asyncio
 
-1. **Visualization First**: Design your flow visually before coding
-2. **Test Incrementally**: Build and test one section of your flow at a time
-3. **Error Paths**: Always include paths for handling errors
-4. **Monitoring**: Add logging at key points in your flow
+class LimitedParallelNode(Node):
+    def __init__(self, concurrency=3):
+        self.semaphore = asyncio.Semaphore(concurrency)
 
-## Project Structure
+    async def exec(self, items):
+        async def limited_process(item):
+            async with self.semaphore:
+                return await self.process_item(item)
 
-A well-organized project structure enhances maintainability and collaboration:
+        tasks = [limited_process(item) for item in items]
+        return await asyncio.gather(*tasks)
+
+    async def process_item(self, item):
+        # Process a single item
+        pass
+```
+
+### 2. Using p-limit (TypeScript)
+
+```typescript
+import pLimit from 'p-limit'
+
+class LimitedParallelNode extends Node {
+  constructor(private concurrency = 3) {
+    super()
+  }
+
+  async exec(items) {
+    const limit = pLimit(this.concurrency)
+    return Promise.all(items.map((item) => limit(() => this.processItem(item))))
+  }
+
+  async processItem(item) {
+    // Process a single item
+  }
+}
+```
+
+## Rate Limiting with Window Limits
 
 {% tabs %}
-{% tab title="Python (simple)" %}
+{% tab title="Python" %}
 
-```
-my_simple_project/
-├── main.py
-├── nodes.py
-├── flow.py
-├── utils/
-│   ├── __init__.py
-│   ├── call_llm.py
-│   └── search_web.py
-├── requirements.txt
-└── docs/
-    └── design.md
+```python
+from ratelimit import limits, sleep_and_retry
+
+# 30 calls per minute
+@sleep_and_retry
+@limits(calls=30, period=60)
+def call_api():
+    # Your API call here
+    pass
 ```
 
 {% endtab %}
 
-{% tab title="Python (complex)" %}
+{% tab title="TypeScript" %}
 
-```
-my_complex_project/
-├── main.py                # Entry point
-├── nodes/                 # Node implementations
-│   ├── __init__.py
-│   ├── input_nodes.py
-│   ├── processing_nodes.py
-│   └── output_nodes.py
-├── flows/                 # Flow definitions
-│   ├── __init__.py
-│   └── main_flow.py
-├── utils/                 # Utility functions
-│   ├── __init__.py
-│   ├── llm.py
-│   ├── database.py
-│   └── web_search.py
-├── tests/                 # Test cases
-│   ├── test_nodes.py
-│   └── test_flows.py
-├── config/                # Configuration
-│   └── settings.py
-├── requirements.txt       # Dependencies
-└── docs/                  # Documentation
-    ├── design.md          # High-level design
-    └── api.md             # API documentation
-```
+```typescript
+import { RateLimiter } from 'limiter'
 
-{% endtab %}
+// 30 calls per minute
+const limiter = new RateLimiter({ tokensPerInterval: 30, interval: 'minute' })
 
-{% tab title="TypeScript (simple)" %}
-
-```
-my_project/
-├── src/
-│   ├── main.ts
-│   ├── nodes.ts
-│   ├── flow.ts
-│   └── utils/
-│       ├── callLLM.ts
-│       └── searchWeb.ts
-├── package.json
-└── docs/
-    └── design.md
-```
-
-{% endtab %}
-
-{% tab title="TypeScript (complex)" %}
-
-```
-my_complex_project/
-├── src/                      # Source code
-│   ├── index.ts              # Entry point
-│   ├── nodes/                # Node implementations
-│   │   ├── index.ts          # Exports all nodes
-│   │   ├── inputNodes.ts
-│   │   ├── processingNodes.ts
-│   │   └── outputNodes.ts
-│   ├── flows/                # Flow definitions
-│   │   ├── index.ts          # Exports all flows
-│   │   └── mainFlow.ts
-│   ├── utils/                # Utility functions
-│   │   ├── index.ts          # Exports all utilities
-│   │   ├── llm.ts
-│   │   ├── database.ts
-│   │   └── webSearch.ts
-│   ├── types/                # Type definitions
-│   │   ├── index.ts          # Exports all types
-│   │   ├── node.types.ts
-│   │   └── flow.types.ts
-│   └── config/               # Configuration
-│       └── settings.ts
-├── dist/                     # Compiled JavaScript
-├── tests/                    # Test cases
-│   ├── nodes.test.ts
-│   └── flows.test.ts
-├── package.json              # Dependencies and scripts
-└── docs/                     # Documentation
-    ├── design.md             # High-level design
-    └── api.md                # API documentation
+async function callApi() {
+  await limiter.removeTokens(1)
+  // Your API call here
+}
 ```
 
 {% endtab %}
 {% endtabs %}
 
-- **`docs/design.md`**: Contains project documentation for each step designed in [agentic coding](./agentic_coding.md). This should be _high-level_ and _no-code_.
-- **`utils/`**: Contains all utility functions.
-  - It's recommended to dedicate one file to each API call, for example `call_llm.py` or `search_web.ts`.
-  - Each file should also include a `main()` function to try that API call
-- **`nodes.py`** or **`nodes.ts`**: Contains all the node definitions.
-- **`flow.py`** or **`flow.ts`**: Implements functions that create flows by importing node definitions and connecting them.
-- **`main.py`** or **`main.ts`**: Serves as the project's entry point.
+## Throttler Utility
+
+{% tabs %}
+{% tab title="Python" %}
+
+```python
+from tenacity import retry, wait_exponential, stop_after_attempt
+
+@retry(
+    wait=wait_exponential(multiplier=1, min=4, max=10),
+    stop=stop_after_attempt(5)
+)
+def call_api_with_retry():
+    # Your API call here
+    pass
+```
+
+{% endtab %}
+
+{% tab title="TypeScript" %}
+
+```typescript
+import pRetry from 'p-retry'
+
+async function callApiWithRetry() {
+  return pRetry(
+    async () => {
+      // Your API call here
+    },
+    {
+      retries: 5,
+      minTimeout: 4000,
+      maxTimeout: 10000,
+    },
+  )
+}
+```
+
+{% endtab %}
+{% endtabs %}
+
+## Advanced Throttling Patterns
+
+### 1. Token Bucket Rate Limiter
+
+{% tabs %}
+{% tab title="Python" %}
+
+```python
+from pyrate_limiter import Duration, Rate, Limiter
+
+# 10 requests per minute
+rate = Rate(10, Duration.MINUTE)
+limiter = Limiter(rate)
+
+@limiter.ratelimit("api_calls")
+async def call_api():
+    # Your API call here
+    pass
+```
+
+{% endtab %}
+
+{% tab title="TypeScript" %}
+
+```typescript
+import { TokenBucket } from 'limiter'
+
+// 10 requests per minute
+const limiter = new TokenBucket({
+  bucketSize: 10,
+  tokensPerInterval: 10,
+  interval: 'minute',
+})
+
+async function callApi() {
+  await limiter.removeTokens(1)
+  // Your API call here
+}
+```
+
+{% endtab %}
+{% endtabs %}
+
+### 2. Sliding Window Rate Limiter
+
+{% tabs %}
+{% tab title="Python" %}
+
+```python
+from slidingwindow import SlidingWindowRateLimiter
+
+limiter = SlidingWindowRateLimiter(
+    max_requests=100,
+    window_size=60  # 60 seconds
+)
+
+async def call_api():
+    if not limiter.allow_request():
+        raise RateLimitExceeded()
+    # Your API call here
+```
+
+{% endtab %}
+
+{% tab title="TypeScript" %}
+
+```typescript
+import { SlidingWindowRateLimiter } from 'sliding-window-rate-limiter'
+
+const limiter = SlidingWindowRateLimiter.createLimiter({
+  interval: 60, // 60 seconds
+  maxInInterval: 100,
+})
+
+async function callApi() {
+  const isAllowed = await limiter.check('key', 1)
+  if (!isAllowed) throw new Error('Rate limit exceeded')
+  // Your API call here
+}
+```
+
+{% endtab %}
+{% endtabs %}
+
+{% hint style="info" %}
+**Related Concepts**: Many throttling patterns are used with [Batch Processing](./batch.md) operations, particularly when dealing with parallel execution of API calls.
+{% endhint %}
+
+## Best Practices
+
+1. **Monitor API Responses**: Watch for 429 (Too Many Requests) responses and adjust your rate limiting accordingly
+2. **Implement Retry Logic**: When hitting rate limits, implement exponential backoff for retries
+3. **Distribute Load**: If possible, spread requests across multiple API keys or endpoints
+4. **Cache Responses**: Cache frequent identical requests to reduce API calls
+5. **Batch Requests**: Combine multiple requests into single API calls when possible
+
+## Linking to Related Concepts
+
+For batch processing patterns, see [Batch Processing](./batch.md).
+
+
+
+
+================================================
+File: docs/guides/testing.md
+================================================
+# Testing and Debugging BrainyFlow Applications
+
+Effective testing and debugging are essential for building reliable applications. This guide covers strategies for testing and debugging complex flows, and monitoring applications in production.
+
+## Testing Approaches
+
+BrainyFlow supports multiple testing approaches to ensure your applications work correctly:
+
+### Unit Testing (Nodes)
+
+Individual nodes can be tested in isolation to verify their behavior:
+
+{% tabs %}
+{% tab title="Python" %}
+
+```python
+import unittest
+from unittest.mock import AsyncMock, patch
+from brainyflow import Node
+
+class TestSummarizeNode(unittest.TestCase):
+    async def test_summarize_node(self):
+        # Create the node
+        summarize_node = SummarizeNode()
+
+        # Create a mock shared store
+        shared = {"text": "This is a long text that needs to be summarized."}
+
+        # Mock the LLM call
+        with patch('utils.call_llm', new_callable=AsyncMock) as mock_llm:
+            mock_llm.return_value = "Short summary."
+
+            # Run the node
+            await summarize_node.run(shared)
+
+            # Verify the node called the LLM with the right prompt
+            mock_llm.assert_called_once()
+            call_args = mock_llm.call_args[0][0]
+            self.assertIn("summarize", call_args.lower())
+
+            # Verify the result was stored correctly
+            self.assertEqual(shared["summary"], "Short summary.")
+
+if __name__ == '__main__':
+    unittest.main()
+```
+
+{% endtab %}
+
+{% tab title="TypeScript" %}
+
+```typescript
+import { describe, expect, it, vi } from 'vitest'
+import { SummarizeNode } from './SummarizeNode'
+import { callLLM } from './utils/callLLM'
+
+// Mock the LLM utility
+vi.mock('./utils/callLLM', () => ({
+  callLLM: vi.fn().mockResolvedValue('Short summary.'),
+}))
+
+describe('SummarizeNode', () => {
+  it('should summarize text correctly', async () => {
+    // Create the node
+    const summarizeNode = new SummarizeNode()
+
+    // Create a mock shared store
+    const shared = { text: 'This is a long text that needs to be summarized.' }
+
+    // Run the node
+    await summarizeNode.run(shared)
+
+    // Verify the node called the LLM with the right prompt
+    expect(callLLM).toHaveBeenCalledTimes(1)
+    const callArgs = vi.mocked(callLLM).mock.calls[0][0]
+    expect(callArgs.toLowerCase()).toContain('summarize')
+
+    // Verify the result was stored correctly
+    expect(shared.summary).toBe('Short summary.')
+  })
+})
+```
+
+{% endtab %}
+{% endtabs %}
+
+### Integration Testing (Flows)
+
+Test complete flows to verify that nodes work together correctly:
+
+{% tabs %}
+{% tab title="Python" %}
+
+```python
+import unittest
+from unittest.mock import AsyncMock, patch
+from brainyflow import Flow
+
+class TestQuestionAnsweringFlow(unittest.TestCase):
+    async def test_qa_flow(self):
+        # Create the flow
+        qa_flow = create_qa_flow()
+
+        # Create a mock shared store
+        shared = {"question": "What is the capital of France?"}
+
+        # Mock all LLM calls
+        with patch('utils.call_llm', new_callable=AsyncMock) as mock_llm:
+            # Configure the mock to return different values for different prompts
+            def mock_llm_side_effect(prompt):
+                if "search" in prompt.lower():
+                    return "Paris is the capital of France."
+                elif "answer" in prompt.lower():
+                    return "The capital of France is Paris."
+                return "Unexpected prompt"
+
+            mock_llm.side_effect = mock_llm_side_effect
+
+            # Run the flow
+            await qa_flow.run(shared)
+
+            # Verify the final answer
+            self.assertEqual(shared["answer"], "The capital of France is Paris.")
+
+            # Verify the LLM was called the expected number of times
+            self.assertEqual(mock_llm.call_count, 2)
+
+if __name__ == '__main__':
+    unittest.main()
+```
+
+{% endtab %}
+
+{% tab title="TypeScript" %}
+
+```typescript
+import { describe, expect, it, vi } from 'vitest'
+import { createQaFlow } from './qaFlow'
+import { callLLM } from './utils/callLLM'
+
+// Mock the LLM utility
+vi.mock('./utils/callLLM')
+
+describe('Question Answering Flow', () => {
+  it('should process questions correctly', async () => {
+    // Configure the mock to return different values for different prompts
+    vi.mocked(callLLM).mockImplementation((prompt: string) => {
+      if (prompt.toLowerCase().includes('search')) {
+        return Promise.resolve('Paris is the capital of France.')
+      } else if (prompt.toLowerCase().includes('answer')) {
+        return Promise.resolve('The capital of France is Paris.')
+      }
+      return Promise.resolve('Unexpected prompt')
+    })
+
+    // Create the flow
+    const qaFlow = createQaFlow()
+
+    // Create a mock shared store
+    const shared = { question: 'What is the capital of France?' }
+
+    // Run the flow
+    await qaFlow.run(shared)
+
+    // Verify the final answer
+    expect(shared.answer).toBe('The capital of France is Paris.')
+
+    // Verify the LLM was called the expected number of times
+    expect(callLLM).toHaveBeenCalledTimes(2)
+  })
+})
+```
+
+{% endtab %}
+{% endtabs %}
+
+## Best Practices
+
+### Testing Best Practices
+
+1. **Test Each Node Individually**: Verify that each node performs its specific task correctly
+2. **Test Flows as Integration Tests**: Ensure nodes work together as expected
+3. **Mock External Dependencies**: Use mocks for LLMs, APIs, and databases to ensure consistent testing
+4. **Test Error Handling**: Explicitly test how your application handles failures
+5. **Automate Tests**: Include BrainyFlow tests in your CI/CD pipeline
+
+### Debugging Best Practices
+
+1. **Start Simple**: Begin with a minimal flow and add complexity incrementally
+2. **Visualize Your Flow**: Generate flow diagrams to understand the structure
+3. **Isolate Issues**: Test individual nodes to narrow down problems
+4. **Check Shared Store**: Verify that data is correctly passed between nodes
+5. **Monitor Actions**: Ensure nodes are returning the expected actions
+
+### Monitoring Best Practices
+
+1. **Monitor Node Performance**: Track execution time for each node
+2. **Watch for Bottlenecks**: Identify nodes that take longer than expected
+3. **Track Error Rates**: Monitor how often nodes and flows fail
+4. **Set Up Alerts**: Configure alerts for critical failures
+5. **Log Judiciously**: Log important events without overwhelming storage
+6. **Implement Distributed Tracing**: Use tracing for complex, distributed applications
+
+By following these testing, debugging, and monitoring practices, you can build reliable BrainyFlow applications that perform well in production environments.
 
 
