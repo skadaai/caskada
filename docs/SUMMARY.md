@@ -13,7 +13,6 @@
 - [Flow](core_abstraction/flow.md)
 - [Communication](core_abstraction/communication.md)
 - [Batch](core_abstraction/batch.md)
-- [(Advanced) Throttling](core_abstraction/throttling.md)
 
 ## Design Patterns
 
@@ -39,5 +38,6 @@
 ## Guides
 
 - [Agentic Coding Guide](guides/agentic_coding.md)
+- [Throttling](guides/throttling.md)
 - [Best Practices](guides/best_practices.md)
 - [Migrating from PocketFlow](guides/migrating_from_pocketflow.md)

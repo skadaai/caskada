@@ -40,7 +40,6 @@ BrainyFlow's architecture is based on these fundamental building blocks:
 | [Flow](./flow.md)                   | Connects nodes together | Action-based transitions, branching, looping, nesting                       |
 | [Communication](./communication.md) | Enables data sharing    | Shared Store (global), Params (node-specific)                               |
 | [Batch](./batch.md)                 | Handles multiple items  | Sequential or parallel processing, nested batching                          |
-| [Throttling](./throttling.md)       | Manages concurrency     | Rate limiting, concurrency control                                          |
 
 ## How They Work Together
 
@@ -74,6 +73,5 @@ If you're new to BrainyFlow, we recommend exploring these core abstractions in t
 2. [Flow](./flow.md) - Learn how to connect nodes together
 3. [Communication](./communication.md) - See how nodes share data
 4. [Batch](./batch.md) - Explore handling multiple items
-5. [Throttling](./throttling.md) - Learn about managing concurrency
 
 Once you understand these core abstractions, you'll be ready to implement various [Design Patterns](../design_pattern/index.md) to solve real-world problems.

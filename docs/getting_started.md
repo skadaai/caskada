@@ -164,7 +164,7 @@ function createQaFlow(): Flow {
 
 **Review:** What was achieved here?
 
-- `qaFlow` has connected the nodes, letting the user's question propagate from `GetQuestionNode` to `AnswerNode` to generate an answer.
+- We created a flow that connects the nodes, letting the user's question propagate from `GetQuestionNode` to `AnswerNode` to generate an answer.
 
 {% endhint %}
 
@@ -207,6 +207,14 @@ main().catch(console.error)
 
 {% endtab %}
 {% endtabs %}
+
+{% hint style="info" %}
+
+**Review:** What was achieved here?
+
+- `qaFlow` has executed the flow, writing the user's question and answer to the `shared` store.
+
+{% endhint %}
 
 ## 4. Key Design Principles
 

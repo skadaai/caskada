@@ -96,7 +96,7 @@ A `ParallelBatchNode` processes items concurrently, which is useful when:
 
 - Ensure operations are truly independent before using parallel processing
 - Be mindful of rate limits when making API calls
-- Consider using [Throttling](./throttling.md) to control concurrency
+- Consider using [Throttling](../guides/throttling.md) to control concurrency
 
 {% endhint %}
 
@@ -170,9 +170,8 @@ BrainyFlow also supports batch processing at the flow level, allowing you to run
 
 A `SequentialBatchFlow` runs a flow multiple times in sequence, with different `params` each time. Think of it as a loop that replays the Flow for each parameter set.
 
-
 {% hint style="info" %}
-**When to use**: Choose sequential processing when order matters or when working with APIs that have strict rate limits. See [Throttling](./throttling.md) for managing rate limits.
+**When to use**: Choose sequential processing when order matters or when working with APIs that have strict rate limits. See [Throttling](../guides/throttling.md) for managing rate limits.
 {% endhint %}
 
 #### Example: Summarize Many Files
@@ -202,7 +201,7 @@ await summarize_all_files.run(shared)
 class SummarizeAllFiles extends SequentialBatchFlow {
   async prep(shared: Record): Promise<Array<Record<string, string>>> {
     const filenames = Object.keys(shared.data) // e.g., ["file1.txt", "file2.txt", ...]
-    return filenames.map(fn => ({ filename: fn }))
+    return filenames.map((fn) => ({ filename: fn }))
   }
 }
 
@@ -223,7 +222,6 @@ await summarizeAllFiles.run(shared)
    - It merges the dict with the BatchFlow’s own `params`.
    - It calls `flow.run(shared)` using the merged result.
 3. This means the sub-Flow is run **repeatedly**, once for every param dict.
-
 
 ### ParallelBatchFlow
 
@@ -311,14 +309,14 @@ class FileBatchFlow extends SequentialBatchFlow {
     const directory = this.params.directory
     // In a real implementation, use fs.readdirSync or similar
     const files = ['file1.txt', 'file2.txt']
-    return files.map(f => ({ filename: f }))
+    return files.map((f) => ({ filename: f }))
   }
 }
 
 class DirectoryBatchFlow extends SequentialBatchFlow {
   async prep(shared: Record): Promise<Array<Record<string, string>>> {
     const directories = ['/path/to/dirA', '/path/to/dirB']
-    return directories.map(d => ({ directory: d }))
+    return directories.map((d) => ({ directory: d }))
   }
 }
 

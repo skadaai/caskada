@@ -23,7 +23,6 @@ BrainyFlow models LLM workflows as a **Graph + Shared Store**:
 - [Flow](./core_abstraction/flow.md) connects nodes through **Actions** (labeled edges).
 - [Shared Store](./core_abstraction/communication.md) enables communication between nodes within flows.
 - [Batch](./core_abstraction/batch.md) nodes/flows allow for data-intensive tasks.
-- [(Advanced) Throttling](./core_abstraction/throttling.md) helps manage concurrency and rate limits.
 
 <div align="center">
   <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/abstraction.png" width="500"/>

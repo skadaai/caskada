@@ -1,8 +1,4 @@
----
-title: '(Advanced) Throttling'
----
-
-# (Advanced) Throttling
+# Throttling
 
 **Throttling** helps manage concurrency and avoid rate limits when making API calls. This is particularly important when:
 
