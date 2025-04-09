@@ -144,6 +144,10 @@ File: docs/core_abstraction/index.md
 
 BrainyFlow is built around a simple yet powerful abstraction: the **nested directed graph with shared store**. This mental model separates _data flow_ from _computation_, making complex LLM applications more maintainable and easier to reason about.
 
+<div align="center">
+  <img src="https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/abstraction.png" width="1300"/>
+</div>
+
 ## Core Philosophy
 
 BrainyFlow follows these fundamental principles:
@@ -229,7 +233,7 @@ A **Node** is the smallest reusable unit in BrainyFlow. Each Node follows a 3-st
 ## Node Lifecycle
 
 <div align="center">
-  <img src="https://github.com/the-pocket/.github/raw/main/assets/node.png?raw=true" width="400"/>
+  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/node.png?raw=true" width="400"/>
 </div>
 
 ### 1. `async prep(shared)`
@@ -1129,6 +1133,10 @@ BrainyFlow makes it easy to implement popular design patterns for LLM applicatio
 
 ## Available Design Patterns
 
+<div align="center">
+  <img src="https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/design.png" width="1300"/>
+</div>
+
 ### Core Patterns
 
 1. [Agent](./agent.md): Create autonomous agents that can make decisions and take actions based on context.
@@ -1210,7 +1218,7 @@ title: 'Agent'
 Agent is a powerful design pattern in which nodes can take dynamic actions based on the context.
 
 <div align="center">
-  <img src="https://github.com/the-pocket/.github/raw/main/assets/agent.png?raw=true" width="350"/>
+  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/agent.png?raw=true" width="350"/>
 </div>
 
 ## Implement Agent with Graph
@@ -1382,7 +1390,7 @@ title: 'Workflow'
 Many real-world tasks are too complex for one LLM call. The solution is **Task Decomposition**: decompose them into a [chain](../core_abstraction/flow.md) of multiple Nodes.
 
 <div align="center">
-  <img src="https://github.com/the-pocket/.github/raw/main/assets/workflow.png?raw=true" width="400"/>
+  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/workflow.png?raw=true" width="400"/>
 </div>
 
 {% hint style="success" %}
@@ -1449,7 +1457,7 @@ title: 'RAG'
 For certain LLM tasks like answering questions, providing relevant context is essential. One common architecture is a **two-stage** RAG pipeline:
 
 <div align="center">
-  <img src="https://github.com/the-pocket/.github/raw/main/assets/rag.png?raw=true" width="400"/>
+  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/rag.png?raw=true" width="400"/>
 </div>
 
 1. **Offline stage**: Preprocess and index documents ("building the index").
@@ -1649,7 +1657,7 @@ MapReduce is a design pattern suitable when you have either:
 and there is a logical way to break the task into smaller, ideally independent parts.
 
 <div align="center">
-  <img src="https://github.com/the-pocket/.github/raw/main/assets/mapreduce.png?raw=true" width="400"/>
+  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/mapreduce.png?raw=true" width="400"/>
 </div>
 
 You first break down the task using [BatchNode](../core_abstraction/batch.md) in the map phase, followed by aggregation in the reduce phase.
