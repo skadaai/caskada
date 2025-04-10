@@ -21,7 +21,7 @@ machine-display: false
   <a href="https://pypi.org/project/brainyflow">
    <img src="https://img.shields.io/pypi/dw/brainyflow?logo=python&label=Python&style=flat-square" >
   </a>
-  <a href="https://npm.com/packages/brainyflow">
+  <a href="https://npmjs.com/packages/brainyflow">
    <img src="https://img.shields.io/npm/d18m/brainyflow?logo=typescript&label=Typescript&style=flat-square" >
   </a>
   <a href="https://discord.gg/MdJJ29Xd">

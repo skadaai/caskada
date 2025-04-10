@@ -17,7 +17,7 @@
   <a href="https://pypi.org/project/brainyflow">
    <img src="https://img.shields.io/pypi/dw/brainyflow?logo=python&label=Python&style=flat-square" alt="python version">
   </a>
-  <a href="https://npm.com/packages/brainyflow">
+  <a href="https://npmjs.com/packages/brainyflow">
    <img src="https://img.shields.io/npm/d18m/brainyflow?logo=typescript&label=Typescript&style=flat-square" alt="typescript version">
   </a>
   <a href="https://discord.gg/MdJJ29Xd">
@@ -45,7 +45,7 @@ It enables both humans and AI assistants to collaborate effectively on designing
 - **Powerful 💪**: Supports everything you love—([Multi-](https://brainy.gitbook.io/flow/design_pattern/multi_agent))[Agents](https://brainy.gitbook.io/flow/design_pattern/agent), [Workflow](https://brainy.gitbook.io/flow/design_pattern/workflow), [RAG](https://brainy.gitbook.io/flow/design_pattern/rag), and more.
 - **Agentic-Coding 🤖**: Let AI Agents (e.g., Cursor AI) build Agents for 10x productivity
 - **Universal 🌈**: Works with any LLM provider or API
-- **Polyglot 🌍**: <!-- gitbook-ignore-start --><a href="https://pypi.org/project/brainyflow"><img src="https://iconduck.com/vectors/vctrahatphfa/media/svg/download" width="16" height="16" alt="Python Logo" style="vertical-align: middle; margin: 0 2px;"></a><!-- gitbook-ignore-end --> Python and <!-- gitbook-ignore-start --><a href="https://npm.com/packages/brainyflow"><img src="https://iconduck.com/vectors/vctrk180y7wy/media/svg/download" width="16" height="16" alt="Typescript Logo" style="vertical-align: middle; margin: 0 2px;"></a><!-- gitbook-ignore-end --> Typescript are both supported.
+- **Polyglot 🌍**: <!-- gitbook-ignore-start --><a href="https://pypi.org/project/brainyflow"><img src="https://iconduck.com/vectors/vctrahatphfa/media/svg/download" width="16" height="16" alt="Python Logo" style="vertical-align: middle; margin: 0 2px;"></a><!-- gitbook-ignore-end --> Python and <!-- gitbook-ignore-start --><a href="https://npmjs.com/packages/brainyflow"><img src="https://iconduck.com/vectors/vctrk180y7wy/media/svg/download" width="16" height="16" alt="Typescript Logo" style="vertical-align: middle; margin: 0 2px;"></a><!-- gitbook-ignore-end --> Typescript are both supported.
 
 ![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
 
@@ -94,10 +94,10 @@ The single file in <a href="https://github.com/zvictor/BrainyFlow/blob/main/pyth
 </div>
 <br>
 
-- [Node](https://brainy.gitbook.io/flow/core_abstraction/node.md) handles simple (LLM) tasks with a clear lifecycle.
-- [Flow](https://brainy.gitbook.io/flow/core_abstraction/flow.md) connects nodes through **Actions** (labeled edges).
-- [Shared Store](https://brainy.gitbook.io/flow/core_abstraction/communication.md) enables communication between nodes within flows.
-- [Batch](https://brainy.gitbook.io/flow/core_abstraction/batch.md) nodes/flows allow for data-intensive tasks.
+- [Node](https://brainy.gitbook.io/flow/core_abstraction/node) handles simple (LLM) tasks with a clear lifecycle.
+- [Flow](https://brainy.gitbook.io/flow/core_abstraction/flow) connects nodes through **Actions** (labeled edges).
+- [Shared Store](https://brainy.gitbook.io/flow/core_abstraction/communication) enables communication between nodes within flows.
+- [Batch](https://brainy.gitbook.io/flow/core_abstraction/batch) nodes/flows allow for data-intensive tasks.
 
 From there, it's easy to implement all popular design patterns:
 <br>
@@ -107,12 +107,12 @@ From there, it's easy to implement all popular design patterns:
 </div>
 <br>
 
-- [Agent](https://brainy.gitbook.io/flow/design_pattern/agent.md) autonomously makes decisions based on context.
-- [Workflow](https://brainy.gitbook.io/flow/design_pattern/workflow.md) chains multiple tasks into sequential pipelines.
-- [RAG](https://brainy.gitbook.io/flow/design_pattern/rag.md) integrates data retrieval with generation.
-- [Map Reduce](https://brainy.gitbook.io/flow/design_pattern/mapreduce.md) splits data tasks into Map and Reduce steps.
-- [Structured Output](https://brainy.gitbook.io/flow/design_pattern/structure.md) formats outputs consistently.
-- [Multi-Agents](https://brainy.gitbook.io/flow/design_pattern/multi_agent.md) coordinate multiple agents.
+- [Agent](https://brainy.gitbook.io/flow/design_pattern/agent) autonomously makes decisions based on context.
+- [Workflow](https://brainy.gitbook.io/flow/design_pattern/workflow) chains multiple tasks into sequential pipelines.
+- [RAG](https://brainy.gitbook.io/flow/design_pattern/rag) integrates data retrieval with generation.
+- [Map Reduce](https://brainy.gitbook.io/flow/design_pattern/mapreduce) splits data tasks into Map and Reduce steps.
+- [Structured Output](https://brainy.gitbook.io/flow/design_pattern/structure) formats outputs consistently.
+- [Multi-Agents](https://brainy.gitbook.io/flow/design_pattern/multi_agent) coordinate multiple agents.
 
 ![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
 
@@ -155,11 +155,11 @@ And many more available for all levels! [Check them all out!](https://github.com
 
 ## Quick Start
 
-New to BrainyFlow? Check out our [Getting Started](https://brainy.gitbook.io/flow/introduction/getting_started.md) guide to build your first flow in no time.
+New to BrainyFlow? Check out our [Getting Started](https://brainy.gitbook.io/flow/introduction/getting_started) guide to build your first flow in no time.
 
 ## Ready to Build Self-Coding Apps?
 
-Check out [Agentic Coding Guidance](https://brainy.gitbook.io/flow/guides/agentic_coding.md), the fastest way to develop self-coding LLM projects with BrainyFlow!
+Check out [Agentic Coding Guidance](https://brainy.gitbook.io/flow/guides/agentic_coding), the fastest way to develop self-coding LLM projects with BrainyFlow!
 
 ![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
 
