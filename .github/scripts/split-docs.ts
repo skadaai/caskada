@@ -71,7 +71,7 @@ async function splitDocs() {
   const pythonContent = processContentForLanguage(content, /^python/i)
 
   console.log('Processing content for TypeScript...')
-  const typescriptContent = processContentForLanguage(content, /^typescript/i)
+  const typescriptContent = processContentForLanguage(content, /^(typescript|javascript)/i)
 
   try {
     console.log(`Writing Python docs to: ${pythonOutputFilePath}`)

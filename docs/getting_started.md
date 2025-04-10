@@ -24,7 +24,7 @@ npm install brainyflow
 {% endtab %}
 {% endtabs %}
 
-For detailed installation options, see the [Installation Guide](./installation.md).
+For more installation options, see the [Installation Guide](./installation.md).
 
 ## 2. Core Concepts
 

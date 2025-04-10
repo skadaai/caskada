@@ -1,13 +1,23 @@
 # Agentic Coding with BrainyFlow
 
-{% hint style="warning" %}
-**For AI Assistants**: This is your implementation playbook. Use the design document as your single source of truth. Never proceed to code without explicit human approval of the design.
+<details>
+
+<summary>Notes For AI Assistants</summary>
+
+{% hint style="success" %}
+**AI only**: If you are a human, skip this section.
+{% endhint %}
+
+This is your implementation playbook and most important guideline. Strictly follow the instructions listed in this document.
+
+Use the design document as your single source of truth. Never proceed to code without explicit human approval of the design.
 
 1.  start with a small and simple solution
-2.  design at a high level (`docs/design.md`) before implementation
-3.  frequently ask humans for feedback and clarification
+2.  design at a high level (`docs/design.md`) before implementation and do not start coding until the design is approved
+3.  once approved, start coding and iterate on the design based on feedback
+4.  do not stop coding until the implementation is working as intended and fully complaint with the design document
 
-{% endhint %}
+</details>
 
 In the context of Human-AI Co-Design, agentic coding involves humans providing high-level guidance while AI agents handle implementation details:
 It represents a powerful approach to software development where humans are freed up to focus solely in strategic decisions.
@@ -119,7 +129,7 @@ Define the structure of your shared store:
 
 Example:
 
-```
+```python
 shared = {
     "input": {
         "document_path": "path/to/file.pdf"  # Input file path
@@ -147,6 +157,7 @@ shared = {
 3. **Visualize Flows**: Use diagrams to illustrate complex relationships
 4. **Define Boundaries**: Clarify what's in and out of scope
 5. **Consider Edge Cases**: Note how the system handles failures
+6. **Be Concise**: Keep it short and to the point; Do not add any other section to the design document other than the ones listed above
 
 ## Implementation Process
 
@@ -157,6 +168,46 @@ After completing your design document:
 3. **Hand Off to AI**: Provide the design document to your AI assistant - If you are the AI agent, start working on the solution based on the design document
 4. **Collaborative Implementation**: Work with AI to implement the design
 5. **Test and Validate**: Verify the implementation against success criteria
+
+Once the AI assistant starts working on the implementation it's common for it to get lazy midway through the implementation.
+Whenever it claims to be done, you can give it an extra push with the following prompt:
+
+```markdown
+Review the design document and the whole implemented code, then answer the following questions:
+
+- are all stubs and placeholders gone?
+- have all requirements and features been implemented?
+- have you successfully run the application and all tests?
+- what should be implemented next?
+
+If the answer to any question is "no", or you can name something to be implemented next, then you are not done yet.
+Go back to working and finish it! Do not stop until you are done.
+```
+
+<details>
+
+<summary>Notes For AI Assistants</summary>
+
+{% hint style="success" %}
+**AI only**: If you are a human, skip this section.
+{% endhint %}
+
+Be sure you **always** strictly follow these instructions:
+
+1. **Be Patient**: Do not start the implementation until the design document is approved.
+2. **Be Brainy**: Import `brainyflow` and use its archictecture to implement the design document! Adhere to the proposed flow, node and shared store design.
+3. **Focus on What Matters**: Do not fix types or edge cases until you are certain the core implementation is working as intended.
+4. **Be Adaptive**: Continuously refine the design document based on feedback and changes in the implementation, but keep it clear and concise.
+5. **Be Resilient**: You are not done until the implementation is working as intended.
+6. **Be Accountable**: Before finishing the implementation, ask yourself the following questions:
+   - are all stubs and placeholders gone?
+   - have all requirements and features been implemented?
+   - have I successfully run the application and all tests?
+   - what should be implemented next?
+     If the answer to any question is "no", or you can name something to be implemented next, then you are not done yet.
+     Go back to working and finish it!
+
+</details>
 
 ## Conclusion: Precision Through Structure
 

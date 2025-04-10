@@ -1,7 +1,3 @@
----
-machine-display: false
----
-
 # Installation
 
 BrainyFlow is currently available for both Python and TypeScript.
@@ -25,6 +21,20 @@ pnpm add brainyflow
 npm install brainyflow
 # or
 yarn add brainyflow
+```
+
+{% endtab %}
+
+{% tab title="JavaScript (Browser)" %}
+You can import the JavaScript file directly in the browser using a `<script>` tag:
+
+```html
+<script type="module">
+  import brainyflow from 'https://unpkg.com/brainyflow@latest/dist/brainyflow.js'
+
+  // optional: expose globally
+  globalThis.brainyflow = brainyflow
+</script>
 ```
 
 {% endtab %}
