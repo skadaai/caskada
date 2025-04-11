@@ -223,5 +223,10 @@ class TestFlowBasic(unittest.IsolatedAsyncioTestCase):
         
         self.assertEqual(len(node.times), 3)
 
+        # Verify that there are delays of at least 0.1 seconds between executions
+        time_diffs = [node.times[i+1] - node.times[i] for i in range(len(node.times)-1)]
+        for diff in time_diffs:
+            self.assertGreaterEqual(diff, 0.09, f"Time difference {diff} is less than expected throttle delay")
+
 if __name__ == '__main__':
     unittest.main()
