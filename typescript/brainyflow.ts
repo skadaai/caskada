@@ -158,3 +158,18 @@ export class ParallelBatchFlow extends Flow {
     return this.post(shared, pr, undefined)
   }
 }
+
+// Make classes available globally in the browser
+// @ts-ignore
+if (typeof window !== 'undefined' && !globalThis.brainyflow) {
+  // @ts-ignore
+  globalThis.brainyflow = {
+    BaseNode,
+    Node,
+    Flow,
+    SequentialBatchNode,
+    ParallelBatchNode,
+    SequentialBatchFlow,
+    ParallelBatchFlow,
+  }
+}
