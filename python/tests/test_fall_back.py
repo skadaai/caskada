@@ -159,61 +159,57 @@ class TestExecFallback(unittest.IsolatedAsyncioTestCase):
         self.assertGreaterEqual(duration, 0.2)  # At least 2 retries * 0.1s wait
 
     async def test_parallel_batch_fallback(self):
-        """Test that fallback works with parallel batch processing"""
-        class ItemProcessor(Node):
+        """Test that fallback works with a node inheriting from ParallelBatchNode"""
+        class ParallelItemProcessor(ParallelBatchNode):
             def __init__(self):
-                super().__init__(max_retries=1)
-                
-            async def prep(self, shared):
-                return shared.get('item')
-                
+                # Initialize ParallelBatchNode which inherits from Node
+                super().__init__(max_retries=1) 
+
             async def exec(self, item):
-                # Process a single item
+                # This method processes a SINGLE item. 
+                # ParallelBatchNode._exec handles running this in parallel.
                 if item.get('should_fail'):
                     raise ValueError("Intentional failure")
-                return item
-                
+                return {**item, 'processed': True}
+
             async def exec_fallback(self, item, exc):
-                return {**item, 'fallback': True}
-                
-            async def post(self, shared, prep_res, exec_res):
-                shared['item'] = exec_res
-                return None
-        
+                 # This method handles fallback for a SINGLE item.
+                return {**item, 'fallback': True, 'error': str(exc)}
+
         # Create test items
         test_items = [
             {'id': 1},
             {'id': 2, 'should_fail': True},
             {'id': 3}
         ]
+
+        # Instantiate the node that inherits from ParallelBatchNode
+        processor_node = ParallelItemProcessor()
         
-        # Create a custom batch processor that handles items in parallel
-        class BatchProcessor(Node):
-            async def exec(self, items):
-                # Process items in parallel using asyncio.gather
-                processor = ItemProcessor()
-                results = []
-                
-                # Process each item individually
-                for item in items:
-                    shared = {'item': item}
-                    await processor.run(shared)
-                    results.append(shared['item'])
-                
-                return results
-        
-        # Run the test
-        node = BatchProcessor()
-        results = await node.exec(test_items)
-        
-        # Verify results
+        # Call _exec directly to test the parallel execution and fallback logic
+        # Note: _exec takes the list of items directly
+        results = await processor_node._exec(test_items)
+
+        # Verify results - asyncio.gather preserves order
         self.assertEqual(len(results), 3)
+        
+        # Check item 1 (success) - results[0] corresponds to test_items[0]
         self.assertEqual(results[0]['id'], 1)
+        self.assertTrue(results[0].get('processed'))
+        self.assertIsNone(results[0].get('fallback'))
+        self.assertIsNone(results[0].get('error'))
+
+        # Check item 2 (fallback) - results[1] corresponds to test_items[1]
         self.assertEqual(results[1]['id'], 2)
-        self.assertEqual(results[2]['id'], 3)
+        self.assertIsNone(results[1].get('processed'))
         self.assertTrue(results[1].get('fallback'))
-        self.assertFalse(results[0].get('fallback'))
-        self.assertFalse(results[2].get('fallback'))
+        self.assertIn("Intentional failure", results[1].get('error', ''))
+
+        # Check item 3 (success) - results[2] corresponds to test_items[2]
+        self.assertEqual(results[2]['id'], 3)
+        self.assertTrue(results[2].get('processed'))
+        self.assertIsNone(results[2].get('fallback'))
+        self.assertIsNone(results[2].get('error'))
         
     async def test_fallback_with_async_side_effects(self):
         cleanup_called = False
