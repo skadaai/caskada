@@ -4,7 +4,7 @@
 
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 [![Docs](https://img.shields.io/badge/docs-latest-blue)](https://brainy.gitbook.io/flow/)
-<a href="https://discord.gg/hUHHE9Sa6T">
+<a href="https://discord.gg/MdJJ29Xd">
 <img src="https://img.shields.io/discord/1346833819172601907?logo=discord&style=flat">
 </a>
 
@@ -17,7 +17,7 @@ BrainyFlow는 [100줄](https://github.com/zvictor/BrainyFlow/blob/main/python/__
 
 - 설치하려면, `pip install brainyflow`또는 [소스 코드](https://github.com/zvictor/BrainyFlow/blob/main/python/__init__.py)(단 100줄)를 복사하세요.
 - 더 알아보려면, [문서](https://brainy.gitbook.io/flow/)를 확인하세요. 개발 동기를 알아보려면, [이야기](https://zacharyhuang.substack.com/p/i-built-an-llm-framework-in-just)를 읽어보세요.
-- 🎉 우리의 [디스코드](https://discord.gg/hUHHE9Sa6T)에 참여하세요!
+- 🎉 우리의 [디스코드](https://discord.gg/MdJJ29Xd)에 참여하세요!
 
 - 🎉 [@zvictor](https://www.github.com/zvictor), [@jackylee941130](https://www.github.com/jackylee941130), [@ZebraRoy](https://www.github.com/ZebraRoy) 덕분에 이제 [TypeScript 버전](https://github.com/The-Pocket/PocketFlow-Typescript)이 있습니다!
 
@@ -26,7 +26,7 @@ BrainyFlow는 [100줄](https://github.com/zvictor/BrainyFlow/blob/main/python/__
 현재 LLM 프레임워크들은 너무 비대합니다... LLM 프레임워크는 100줄만 필요합니다!
 
 <div align="center">
-  <img src="https://github.com/The-Pocket/.github/raw/main/assets/meme.jpg" width="400"/>
+  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/meme.jpg" width="400"/>
 
 |                |    **추상화**    |                         **앱 특화 래퍼**                         |                         **벤더 특화 래퍼**                          |            **코드 줄 수**             |                 **크기**                 |
 | -------------- | :--------------: | :--------------------------------------------------------------: | :-----------------------------------------------------------------: | :-----------------------------------: | :--------------------------------------: |
@@ -45,7 +45,7 @@ BrainyFlow는 [100줄](https://github.com/zvictor/BrainyFlow/blob/main/python/__
 <br>
 
 <div align="center">
-  <img src="https://github.com/The-Pocket/.github/raw/main/assets/abstraction.png" width="900"/>
+  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/abstraction.jpg" width="900"/>
 </div>
 <br>
 
@@ -53,7 +53,7 @@ BrainyFlow는 [100줄](https://github.com/zvictor/BrainyFlow/blob/main/python/__
 <br>
 
 <div align="center">
-  <img src="https://github.com/The-Pocket/.github/raw/main/assets/design.png" width="900"/>
+  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/design.jpg" width="900"/>
 </div>
 <br>
 ✨ 아래는 기본 튜토리얼입니다:

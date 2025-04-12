@@ -5,6 +5,7 @@ on:
     branches:
       - main
     paths:
+      - 'README.md'
       - 'docs/**'
 
 permissions:
@@ -20,43 +21,38 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20' # Use a recent LTS version
+          node-version: '23'
 
-      - name: Create temporary directory for gh-pages content
-        run: mkdir gh-pages-content
-
-      - name: Concatenate docs based on SUMMARY.md order
+      - name: Generate docs/index.md from README.md
         run: |
-          OUTPUT_FILE="gh-pages-content/docs.txt"
-          SUMMARY_FILE="docs/SUMMARY.md"
-          DOCS_DIR="docs"
+          printf -- "---\ntitle: 'BrainyFlow'\nmachine-display: false\n---\n" > docs/index.md
+          perl -0777 -pe 's/<!-- gitbook-ignore-start -->.*?<!-- gitbook-ignore-end -->//gs' README.md \
+            | sed 's|https://brainy.gitbook.io/flow|.|g' \
+            | sed 's/alt\s*=\s*"[^"]*"//g; s/alt\s*=\s*'\''[^'\'']*'\''//g' \
+            >> docs/index.md
 
-          # Extract markdown file paths from SUMMARY.md, filter, and process
-          grep -oE '\[.*\]\(([^)]+\.md)\)' "$SUMMARY_FILE" | \
-          sed -E 's/\[.*\]\(([^)]+\.md)\)/\1/' | \
-          grep -vE '^utility_function/' | \
-          while IFS= read -r filepath; do
-            fullpath="$DOCS_DIR/$filepath"
-            if [ -f "$fullpath" ]; then
-              echo "Processing: $fullpath"
-              printf "\n\n================================================\nFile: $fullpath\n================================================\n" >> "$OUTPUT_FILE"
-              cat "$fullpath" >> "$OUTPUT_FILE"
-              printf "\n\n" >> "$OUTPUT_FILE"
-            else
-              echo "Warning: File not found in $DOCS_DIR - $filepath (skipped)"
-            fi
-          done
+      - name: Commit and push updated docs/index.md
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: Update docs/index.md from README.md [skip ci]
+          file_pattern: docs/index.md
+          # The action defaults to pushing to the branch that triggered the workflow (main)
+          # It also uses the github-actions[bot] user by default
 
-          echo "Finished concatenating files based on $SUMMARY_FILE"
+      - name: Concatenate docs using script
+        run: bash .github/scripts/concatenate-docs.sh
 
-      - name: Deploy docs.txt to gh-pages branch
+      - name: Split docs into language-specific files
+        run: node --experimental-strip-types .github/scripts/split-docs.ts
+
+      - name: Deploy docs to gh-pages branch
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./gh-pages-content # Directory containing only docs.txt
+          publish_dir: ./gh-pages-content # Directory containing docs.txt, docs.python.txt, and docs.typescript.txt
           publish_branch: gh-pages # Target branch
           keep_files: true # Keep existing files in gh-pages branch
           user_name: 'github-actions[bot]'
           user_email: 'github-actions[bot]@users.noreply.github.com'
-          commit_message: 'Update docs.txt from main branch [skip ci]'
+          commit_message: 'Update docs.txt and language-specific docs from main branch [skip ci]'
           # force_orphan: false (default) - Updates existing branch

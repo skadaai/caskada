@@ -4,7 +4,7 @@
 
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 [![Docs](https://img.shields.io/badge/docs-latest-blue)](https://brainy.gitbook.io/flow/)
-<a href="https://discord.gg/hUHHE9Sa6T">
+<a href="https://discord.gg/MdJJ29Xd">
 <img src="https://img.shields.io/discord/1346833819172601907?logo=discord&style=flat">
 </a>
 
@@ -17,7 +17,7 @@ BrainyFlow es un framework minimalista para LLM de [100 líneas](https://github.
 
 - Para instalar, `pip install brainyflow` o simplemente copia el [código fuente](https://github.com/zvictor/BrainyFlow/blob/main/python/__init__.py) (solo 100 líneas).
 - Para saber más, consulta la [documentación](https://brainy.gitbook.io/flow/). Para conocer la motivación, lee la [historia](https://zacharyhuang.substack.com/p/i-built-an-llm-framework-in-just).
-- 🎉 ¡Únete a nuestro [discord](https://discord.gg/hUHHE9Sa6T)!
+- 🎉 ¡Únete a nuestro [discord](https://discord.gg/MdJJ29Xd)!
 
 - 🎉 Gracias a [@zvictor](https://www.github.com/zvictor), [@jackylee941130](https://www.github.com/jackylee941130) y [@ZebraRoy](https://www.github.com/ZebraRoy), ¡ahora tenemos una [versión TypeScript](https://github.com/The-Pocket/PocketFlow-Typescript)!
 
@@ -26,7 +26,7 @@ BrainyFlow es un framework minimalista para LLM de [100 líneas](https://github.
 Los frameworks LLM actuales están sobrecargados... ¡Solo necesitas 100 líneas para un Framework LLM!
 
 <div align="center">
-  <img src="https://github.com/The-Pocket/.github/raw/main/assets/meme.jpg" width="400"/>
+  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/meme.jpg" width="400"/>
 
 |                | **Abstracción** |               **Envoltorios específicos de aplicación**               |                   **Envoltorios específicos de proveedor**                   |                 **Líneas**                 |                  **Tamaño**                   |
 | -------------- | :-------------: | :-------------------------------------------------------------------: | :--------------------------------------------------------------------------: | :----------------------------------------: | :-------------------------------------------: |
@@ -45,7 +45,7 @@ Las [100 líneas](https://github.com/zvictor/BrainyFlow/blob/main/python/__init_
 <br>
 
 <div align="center">
-  <img src="https://github.com/The-Pocket/.github/raw/main/assets/abstraction.png" width="900"/>
+  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/abstraction.jpg" width="900"/>
 </div>
 <br>
 
@@ -53,7 +53,7 @@ A partir de ahí, es fácil implementar patrones de diseño populares como ([Mul
 <br>
 
 <div align="center">
-  <img src="https://github.com/The-Pocket/.github/raw/main/assets/design.png" width="900"/>
+  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/design.jpg" width="900"/>
 </div>
 <br>
 ✨ A continuación se presentan tutoriales básicos:

@@ -7,7 +7,7 @@ title: 'Workflow'
 Many real-world tasks are too complex for one LLM call. The solution is **Task Decomposition**: decompose them into a [chain](../core_abstraction/flow.md) of multiple Nodes.
 
 <div align="center">
-  <img src="https://github.com/the-pocket/.github/raw/main/assets/workflow.png?raw=true" width="400"/>
+  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/workflow.png?raw=true" width="400"/>
 </div>
 
 {% hint style="success" %}
@@ -23,20 +23,23 @@ You usually need multiple _iterations_ to find the _sweet spot_. If the task has
 {% tab title="Python" %}
 
 ```python
+import asyncio
+from brainyflow import Node, Flow
+
 class GenerateOutline(Node):
-    def prep(self, shared): return shared["topic"]
-    def exec(self, topic): return call_llm(f"Create a detailed outline for an article about {topic}")
-    def post(self, shared, prep_res, exec_res): shared["outline"] = exec_res
+    async def prep(self, shared): return shared["topic"]
+    async def exec(self, topic): return call_llm(f"Create a detailed outline for an article about {topic}")
+    async def post(self, shared, prep_res, exec_res): shared["outline"] = exec_res
 
 class WriteSection(Node):
-    def prep(self, shared): return shared["outline"]
-    def exec(self, outline): return call_llm(f"Write content based on this outline: {outline}")
-    def post(self, shared, prep_res, exec_res): shared["draft"] = exec_res
+    async def prep(self, shared): return shared["outline"]
+    async def exec(self, outline): return call_llm(f"Write content based on this outline: {outline}")
+    async def post(self, shared, prep_res, exec_res): shared["draft"] = exec_res
 
 class ReviewAndRefine(Node):
-    def prep(self, shared): return shared["draft"]
-    def exec(self, draft): return call_llm(f"Review and improve this draft: {draft}")
-    def post(self, shared, prep_res, exec_res): shared["final_article"] = exec_res
+    async def prep(self, shared): return shared["draft"]
+    async def exec(self, draft): return call_llm(f"Review and improve this draft: {draft}")
+    async def post(self, shared, prep_res, exec_res): shared["final_article"] = exec_res
 
 # Connect nodes
 outline = GenerateOutline()
@@ -47,8 +50,14 @@ outline >> write >> review
 
 # Create and run flow
 writing_flow = Flow(start=outline)
-shared = {"topic": "AI Safety"}
-writing_flow.run(shared)
+
+async def main():
+    shared = {"topic": "AI Safety"}
+    await writing_flow.run(shared)
+    print("Final Article:", shared.get("final_article", "Not generated"))
+
+if __name__ == "__main__":
+    asyncio.run(main())
 ```
 
 {% endtab %}
@@ -57,37 +66,37 @@ writing_flow.run(shared)
 
 ```typescript
 class GenerateOutline extends Node {
-  prep(shared: any): any {
+  async prep(shared: any): Promise<any> {
     return shared['topic']
   }
-  exec(topic: string): any {
-    return callLLM(`Create a detailed outline for an article about ${topic}`)
+  async exec(topic: string): Promise<any> {
+    return await callLLM(`Create a detailed outline for an article about ${topic}`)
   }
-  post(shared: any, prepRes: any, execRes: any): void {
+  async post(shared: any, prepRes: any, execRes: any): Promise<void> {
     shared['outline'] = execRes
   }
 }
 
 class WriteSection extends Node {
-  prep(shared: any): any {
+  async prep(shared: any): Promise<any> {
     return shared['outline']
   }
-  exec(outline: string): any {
-    return callLLM(`Write content based on this outline: ${outline}`)
+  async exec(outline: string): Promise<any> {
+    return await callLLM(`Write content based on this outline: ${outline}`)
   }
-  post(shared: any, prepRes: any, execRes: any): void {
+  async post(shared: any, prepRes: any, execRes: any): Promise<void> {
     shared['draft'] = execRes
   }
 }
 
 class ReviewAndRefine extends Node {
-  prep(shared: any): any {
+  async prep(shared: any): Promise<any> {
     return shared['draft']
   }
-  exec(draft: string): any {
-    return callLLM(`Review and improve this draft: ${draft}`)
+  async exec(draft: string): Promise<any> {
+    return await callLLM(`Review and improve this draft: ${draft}`)
   }
-  post(shared: any, prepRes: any, execRes: any): void {
+  async post(shared: any, prepRes: any, execRes: any): Promise<void> {
     shared['final_article'] = execRes
   }
 }
@@ -101,8 +110,14 @@ outline.next(write).next(review)
 
 // Create and run flow
 const writingFlow = new Flow(outline)
-const shared = { topic: 'AI Safety' }
-writingFlow.run(shared)
+
+async function main() {
+  const shared = { topic: 'AI Safety' }
+  await writingFlow.run(shared)
+  console.log(`Final Article: ${shared['final_article'] || 'Not generated'}`)
+}
+
+main().catch(console.error) // Execute async main function
 ```
 
 {% endtab %}

@@ -1,8 +1,17 @@
 ---
 title: 'Embedding'
+machine-display: false
 ---
 
 # Embedding
+
+{% hint style="warning" %}
+
+**BrainyFlow does NOT provide built-in utilities**
+
+Instead, we offer examples that you can implement yourself. This approach gives you [more flexibility and control](./index#why-not-built-in) over your project's dependencies and functionality.
+
+{% endhint %}
 
 Below you will find an overview table of various text embedding APIs, along with example Python code.
 
