@@ -1,8 +1,17 @@
 ---
 title: 'Vector Databases'
+machine-display: false
 ---
 
 # Vector Databases
+
+{% hint style="warning" %}
+
+**BrainyFlow does NOT provide built-in utilities**
+
+Instead, we offer examples that you can implement yourself. This approach gives you [more flexibility and control](./index#why-not-built-in) over your project's dependencies and functionality.
+
+{% endhint %}
 
 Below is a table of the popular vector search solutions:
 

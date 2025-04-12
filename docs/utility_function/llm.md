@@ -1,148 +1,133 @@
 ---
 title: 'LLM Wrapper'
+machine-display: false
 ---
 
 # LLM Wrappers
 
-Check out libraries like [litellm](https://github.com/BerriAI/litellm).
-Here, we provide some minimal example implementations:
+{% hint style="warning" %}
 
-1. OpenAI
+**BrainyFlow does NOT provide built-in utilities**
 
-   ```python
-   def call_llm(prompt):
-       from openai import OpenAI
-       client = OpenAI(api_key="YOUR_API_KEY_HERE")
-       r = client.chat.completions.create(
-           model="gpt-4o",
-           messages=[{"role": "user", "content": prompt}]
-       )
-       return r.choices[0].message.content
+Instead, we offer examples that you can implement yourself. This approach gives you [more flexibility and control](./index#why-not-built-in) over your project's dependencies and functionality.
 
-   # Example usage
-   call_llm("How are you?")
-   ```
-
-   {% hint style="success" %}
-   Store the API key in an environment variable like OPENAI_API_KEY for security.
-   {% endhint %}
-
-2. Claude (Anthropic)
-
-   ```python
-   def call_llm(prompt):
-       from anthropic import Anthropic
-       client = Anthropic(api_key="YOUR_API_KEY_HERE")
-       response = client.messages.create(
-           model="claude-3-7-sonnet-20250219",
-           max_tokens=3000,
-           messages=[
-               {"role": "user", "content": prompt}
-           ]
-       )
-       return response.content[0].text
-   ```
-
-3. Google (Generative AI Studio / PaLM API)
-
-   ```python
-   def call_llm(prompt):
-       import google.generativeai as genai
-       genai.configure(api_key="YOUR_API_KEY_HERE")
-       response = genai.generate_text(
-           model="models/text-bison-001",
-           prompt=prompt
-       )
-       return response.result
-   ```
-
-4. Azure (Azure OpenAI)
-
-   ```python
-   def call_llm(prompt):
-       from openai import AzureOpenAI
-       client = AzureOpenAI(
-           azure_endpoint="https://<YOUR_RESOURCE_NAME>.openai.azure.com/",
-           api_key="YOUR_API_KEY_HERE",
-           api_version="2023-05-15"
-       )
-       r = client.chat.completions.create(
-           model="<YOUR_DEPLOYMENT_NAME>",
-           messages=[{"role": "user", "content": prompt}]
-       )
-       return r.choices[0].message.content
-   ```
-
-5. Ollama (Local LLM)
-   ```python
-   def call_llm(prompt):
-       from ollama import chat
-       response = chat(
-           model="llama2",
-           messages=[{"role": "user", "content": prompt}]
-       )
-       return response.message.content
-   ```
-
-## Improvements
-
-Feel free to enhance your `call_llm` function as needed. Here are examples:
-
-- Handle chat history:
-
-```python
-def call_llm(messages):
-    from openai import OpenAI
-    client = OpenAI(api_key="YOUR_API_KEY_HERE")
-    r = client.chat.completions.create(
-        model="gpt-4o",
-        messages=messages
-    )
-    return r.choices[0].message.content
-```
-
-- Add in-memory caching
-
-```python
-from functools import lru_cache
-
-@lru_cache(maxsize=1000)
-def call_llm(prompt):
-    # Your implementation here
-    pass
-```
-
-{% hint style="danger" %}
-Caching conflicts with Node retries, as retries yield the same result.
-
-To address this, you could use cached results only if not retried.
 {% endhint %}
 
-```python
-from functools import lru_cache
+BrainyFlow doesn't provide built-in LLM wrappers.
+You are better of checking out libraries like [litellm](https://github.com/BerriAI/litellm) (Python).
+Here's a simple example of how you might implement your own wrapper:
 
-@lru_cache(maxsize=1000)
-def cached_call(prompt):
-    pass
+## Basic Implementation
 
-def call_llm(prompt, use_cache):
-    if use_cache:
-        return cached_call(prompt)
-    # Call the underlying function directly
-    return cached_call.__wrapped__(prompt)
-
-class SummarizeNode(Node):
-    def exec(self, text):
-        return call_llm(f"Summarize: {text}", self.cur_retry==0)
-```
-
-- Enable logging:
+{% tabs %}
+{% tab title="Python" %}
 
 ```python
-def call_llm(prompt):
-    import logging
-    logging.info(f"Prompt: {prompt}")
-    response = ... # Your implementation here
-    logging.info(f"Response: {response}")
-    return response
+# utils/call_llm.py
+import os
+from openai import OpenAI
+
+def call_llm(prompt, model="gpt-4o", temperature=0.7):
+    """Simple wrapper for calling OpenAI's API"""
+    client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+    response = client.chat.completions.create(
+        model=model,
+        messages=[{"role": "user", "content": prompt}],
+        temperature=temperature
+    )
+    return response.choices[0].message.content
 ```
+
+{% endtab %}
+
+{% tab title="TypeScript" %}
+
+```typescript
+// utils/callLLM.ts
+import OpenAI from 'openai'
+
+export async function callLLM(
+  prompt: string,
+  model: string = 'gpt-4o',
+  temperature: number = 0.7,
+): Promise {
+  const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  })
+
+  const response = await openai.chat.completions.create({
+    model,
+    messages: [{ role: 'user', content: prompt }],
+    temperature,
+  })
+
+  return response.choices[0]?.message?.content || ''
+}
+```
+
+{% endtab %}
+{% endtabs %}
+
+## Why Implement Your Own?
+
+BrainyFlow intentionally doesn't include vendor-specific APIs for several reasons:
+
+1. **API Volatility**: External APIs change frequently
+2. **Flexibility**: You may want to switch providers or use fine-tuned models
+3. **Optimizations**: Custom implementations allow for caching, batching, and other optimizations
+
+## Integration with BrainyFlow
+
+Here's how to use your LLM wrapper in a BrainyFlow node:
+
+{% tabs %}
+{% tab title="Python" %}
+
+```python
+from brainyflow import Node
+from utils import call_llm
+
+class LLMNode(Node):
+    async def prep(self, shared):
+        return shared["prompt"]
+
+    async def exec(self, prompt):
+        return call_llm(prompt)
+
+    async def post(self, shared, prep_res, exec_res):
+        shared["response"] = exec_res
+```
+
+{% endtab %}
+
+{% tab title="TypeScript" %}
+
+```typescript
+import { Node } from 'brainyflow'
+import { callLLM } from './utils/callLLM'
+
+class LLMNode extends Node {
+  async prep(shared: any): Promise {
+    return shared.prompt
+  }
+
+  async exec(prompt: string): Promise {
+    return await callLLM(prompt)
+  }
+
+  async post(shared: any, prepRes: string, execRes: string): Promise {
+    shared.response = execRes
+  }
+}
+```
+
+{% endtab %}
+{% endtabs %}
+
+## Additional Considerations
+
+- Add error handling for API failures
+- Consider implementing caching for repeated queries
+- For production systems, add rate limiting to avoid quota issues
+
+Remember that this is just a starting point. You can extend this implementation based on your specific needs.

@@ -2,4 +2,4 @@
 - make use of pnpm instead of npm.
 - if you make changes to typescript make sure you run the tests with `node --import=tsx --experimental-test-snapshots --test-concurrency=1 --test <filepath>`
 - if you make changes to python make sure you run the tests with `python -m pytest <filepath> -v`
-- `typescript/tests/*.test.ts` or `python/tests/*.test.py` can be used as the filepath to test everything.
+- `typescript/tests/*.test.ts` or `python/tests/*.test.py` can be used as filepath to test everything.

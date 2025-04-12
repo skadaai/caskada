@@ -7,7 +7,7 @@ title: 'RAG'
 For certain LLM tasks like answering questions, providing relevant context is essential. One common architecture is a **two-stage** RAG pipeline:
 
 <div align="center">
-  <img src="https://github.com/the-pocket/.github/raw/main/assets/rag.png?raw=true" width="400"/>
+  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/rag.png?raw=true" width="400"/>
 </div>
 
 1. **Offline stage**: Preprocess and index documents ("building the index").
@@ -27,12 +27,15 @@ We create three Nodes:
 {% tab title="Python" %}
 
 ```python
-class ChunkDocs(BatchNode):
-    def prep(self, shared):
+import asyncio
+from brainyflow import Node, Flow, SequentialBatchNode
+
+class ChunkDocs(SequentialBatchNode):
+    async def prep(self, shared):
         # A list of file paths in shared["files"]. We process each file.
         return shared["files"]
 
-    def exec(self, filepath):
+    async def exec(self, filepath):
         # read file content. In real usage, do error handling.
         with open(filepath, "r", encoding="utf-8") as f:
             text = f.read()
@@ -43,7 +46,7 @@ class ChunkDocs(BatchNode):
             chunks.append(text[i : i + size])
         return chunks
 
-    def post(self, shared, prep_res, exec_res_list):
+    async def post(self, shared, prep_res, exec_res_list):
         # exec_res_list is a list of chunk-lists, one per file.
         # flatten them all into a single list of chunks.
         all_chunks = []
@@ -57,13 +60,13 @@ class ChunkDocs(BatchNode):
 {% tab title="TypeScript" %}
 
 ```typescript
-class ChunkDocs extends BatchNode {
-  prep(shared: any): string[] {
+class ChunkDocs extends SequentialBatchNode {
+  async prep(shared: any): Promise<string[]> {
     // A list of file paths in shared["files"]. We process each file.
     return shared['files']
   }
 
-  exec(filepath: string): string[] {
+  async exec(filepath: string): Promise<string[]> {
     // read file content. In real usage, do error handling.
     const text = fs.readFileSync(filepath, 'utf-8')
     // chunk by 100 chars each
@@ -75,7 +78,7 @@ class ChunkDocs extends BatchNode {
     return chunks
   }
 
-  post(shared: any, prepRes: string[], execResList: string[][]): void {
+  async post(shared: any, prepRes: string[], execResList: string[][]): Promise<void> {
     // execResList is a list of chunk-lists, one per file.
     // flatten them all into a single list of chunks.
     const allChunks: string[] = []
@@ -94,14 +97,14 @@ class ChunkDocs extends BatchNode {
 {% tab title="Python" %}
 
 ```python
-class EmbedDocs(BatchNode):
-    def prep(self, shared):
+class EmbedDocs(SequentialBatchNode):
+    async def prep(self, shared):
         return shared["all_chunks"]
 
-    def exec(self, chunk):
+    async def exec(self, chunk):
         return get_embedding(chunk)
 
-    def post(self, shared, prep_res, exec_res_list):
+    async def post(self, shared, prep_res, exec_res_list):
         # Store the list of embeddings.
         shared["all_embeds"] = exec_res_list
         print(f"Total embeddings: {len(exec_res_list)}")
@@ -112,16 +115,16 @@ class EmbedDocs(BatchNode):
 {% tab title="TypeScript" %}
 
 ```typescript
-class EmbedDocs extends BatchNode {
-  prep(shared: any): string[] {
+class EmbedDocs extends SequentialBatchNode {
+  async prep(shared: any): Promise<string[]> {
     return shared['all_chunks']
   }
 
-  exec(chunk: string): number[] {
-    return getEmbedding(chunk)
+  async exec(chunk: string): Promise<number[]> {
+    return await getEmbedding(chunk)
   }
 
-  post(shared: any, prepRes: string[], execResList: number[][]): void {
+  async post(shared: any, prepRes: string[], execResList: number[][]): Promise<void> {
     // Store the list of embeddings.
     shared['all_embeds'] = execResList
     console.log(`Total embeddings: ${execResList.length}`)
@@ -137,16 +140,16 @@ class EmbedDocs extends BatchNode {
 
 ```python
 class StoreIndex(Node):
-    def prep(self, shared):
+    async def prep(self, shared):
         # We'll read all embeds from shared.
         return shared["all_embeds"]
 
-    def exec(self, all_embeds):
+    async def exec(self, all_embeds):
         # Create a vector index (faiss or other DB in real usage).
         index = create_index(all_embeds)
         return index
 
-    def post(self, shared, prep_res, index):
+    async def post(self, shared, prep_res, index):
         shared["index"] = index
 ```
 
@@ -156,18 +159,18 @@ class StoreIndex(Node):
 
 ```typescript
 class StoreIndex extends Node {
-  prep(shared: any): number[][] {
+  async prep(shared: any): Promise<number[][]> {
     // We'll read all embeds from shared.
     return shared['all_embeds']
   }
 
-  exec(allEmbeds: number[][]): any {
+  async exec(allEmbeds: number[][]): Promise<any> {
     // Create a vector index (faiss or other DB in real usage).
     const index = createIndex(allEmbeds)
     return index
   }
 
-  post(shared: any, prepRes: number[][], index: any): void {
+  async post(shared: any, prepRes: number[][], index: any): Promise<void> {
     shared['index'] = index
   }
 }
@@ -217,7 +220,7 @@ Usage example:
 shared = {
     "files": ["doc1.txt", "doc2.txt"],  # any text files
 }
-OfflineFlow.run(shared)
+await OfflineFlow.run(shared)
 ```
 
 {% endtab %}
@@ -228,7 +231,7 @@ OfflineFlow.run(shared)
 const shared = {
   files: ['doc1.txt', 'doc2.txt'], // any text files
 }
-OfflineFlow.run(shared)
+await OfflineFlow.run(shared)
 ```
 
 {% endtab %}
@@ -249,13 +252,13 @@ We have 3 nodes:
 
 ```python
 class EmbedQuery(Node):
-    def prep(self, shared):
+    async def prep(self, shared):
         return shared["question"]
 
-    def exec(self, question):
+    async def exec(self, question):
         return get_embedding(question)
 
-    def post(self, shared, prep_res, q_emb):
+    async def post(self, shared, prep_res, q_emb):
         shared["q_emb"] = q_emb
 ```
 
@@ -265,15 +268,15 @@ class EmbedQuery(Node):
 
 ```typescript
 class EmbedQuery extends Node {
-  prep(shared: any): string {
+  async prep(shared: any): Promise<string> {
     return shared['question']
   }
 
-  exec(question: string): number[] {
-    return getEmbedding(question)
+  async exec(question: string): Promise<number[]> {
+    return await getEmbedding(question)
   }
 
-  post(shared: any, prepRes: string, qEmb: number[]): void {
+  async post(shared: any, prepRes: string, qEmb: number[]): Promise<void> {
     shared['q_emb'] = qEmb
   }
 }
@@ -287,18 +290,18 @@ class EmbedQuery extends Node {
 
 ```python
 class RetrieveDocs(Node):
-    def prep(self, shared):
+    async def prep(self, shared):
         # We'll need the query embedding, plus the offline index/chunks
         return shared["q_emb"], shared["index"], shared["all_chunks"]
 
-    def exec(self, inputs):
+    async def exec(self, inputs):
         q_emb, index, chunks = inputs
         I, D = search_index(index, q_emb, top_k=1)
         best_id = I[0][0]
         relevant_chunk = chunks[best_id]
         return relevant_chunk
 
-    def post(self, shared, prep_res, relevant_chunk):
+    async def post(self, shared, prep_res, relevant_chunk):
         shared["retrieved_chunk"] = relevant_chunk
         print("Retrieved chunk:", relevant_chunk[:60], "...")
 ```
@@ -309,12 +312,12 @@ class RetrieveDocs(Node):
 
 ```typescript
 class RetrieveDocs extends Node {
-  prep(shared: any): [number[], any, string[]] {
+  async prep(shared: any): Promise<[number[], any, string[]]> {
     // We'll need the query embedding, plus the offline index/chunks
     return [shared['q_emb'], shared['index'], shared['all_chunks']]
   }
 
-  exec(inputs: [number[], any, string[]]): string {
+  async exec(inputs: [number[], any, string[]]): Promise<string> {
     const [qEmb, index, chunks] = inputs
     const [I, D] = searchIndex(index, qEmb, 1)
     const bestId = I[0][0]
@@ -322,7 +325,11 @@ class RetrieveDocs extends Node {
     return relevantChunk
   }
 
-  post(shared: any, prepRes: [number[], any, string[]], relevantChunk: string): void {
+  async post(
+    shared: any,
+    prepRes: [number[], any, string[]],
+    relevantChunk: string,
+  ): Promise<void> {
     shared['retrieved_chunk'] = relevantChunk
     console.log(`Retrieved chunk: ${relevantChunk.slice(0, 60)}...`)
   }
@@ -337,15 +344,15 @@ class RetrieveDocs extends Node {
 
 ```python
 class GenerateAnswer(Node):
-    def prep(self, shared):
+    async def prep(self, shared):
         return shared["question"], shared["retrieved_chunk"]
 
-    def exec(self, inputs):
+    async def exec(self, inputs):
         question, chunk = inputs
         prompt = f"Question: {question}\nContext: {chunk}\nAnswer:"
         return call_llm(prompt)
 
-    def post(self, shared, prep_res, answer):
+    async def post(self, shared, prep_res, answer):
         shared["answer"] = answer
         print("Answer:", answer)
 ```
@@ -356,17 +363,17 @@ class GenerateAnswer(Node):
 
 ```typescript
 class GenerateAnswer extends Node {
-  prep(shared: any): [string, string] {
+  async prep(shared: any): Promise<[string, string]> {
     return [shared['question'], shared['retrieved_chunk']]
   }
 
-  exec(inputs: [string, string]): string {
+  async exec(inputs: [string, string]): Promise<string> {
     const [question, chunk] = inputs
     const prompt = `Question: ${question}\nContext: ${chunk}\nAnswer:`
-    return callLLM(prompt)
+    return await callLLM(prompt)
   }
 
-  post(shared: any, prepRes: [string, string], answer: string): void {
+  async post(shared: any, prepRes: [string, string], answer: string): Promise<void> {
     shared['answer'] = answer
     console.log(`Answer: ${answer}`)
   }
@@ -410,12 +417,23 @@ Usage example:
 {% tab title="Python" %}
 
 ```python
-# Suppose we already ran OfflineFlow and have:
-# shared["all_chunks"], shared["index"], etc.
-shared["question"] = "Why do people like cats?"
+async def run_online(shared_from_offline):
+    # Suppose we already ran OfflineFlow (run_offline) and have:
+    # shared_from_offline["all_chunks"], shared_from_offline["index"], etc.
+    shared_from_offline["question"] = "Why do people like cats?"
 
-OnlineFlow.run(shared)
-# final answer in shared["answer"]
+    await OnlineFlow.run(shared_from_offline)
+    # final answer in shared_from_offline["answer"]
+    print("Final Answer:", shared_from_offline["answer"])
+    return shared_from_offline
+
+# Example usage combining both stages
+async def main():
+    offline_shared = await run_offline()
+    await run_online(offline_shared)
+
+if __name__ == "__main__":
+    asyncio.run(main())
 ```
 
 {% endtab %}
@@ -423,12 +441,24 @@ OnlineFlow.run(shared)
 {% tab title="TypeScript" %}
 
 ```typescript
-// Suppose we already ran OfflineFlow and have:
-// shared["all_chunks"], shared["index"], etc.
-shared['question'] = 'Why do people like cats?'
+async function runOnline(sharedFromOffline: any): Promise<any> {
+  // Suppose we already ran OfflineFlow (runOffline) and have:
+  // sharedFromOffline["all_chunks"], sharedFromOffline["index"], etc.
+  sharedFromOffline['question'] = 'Why do people like cats?'
 
-OnlineFlow.run(shared)
-// final answer in shared["answer"]
+  await OnlineFlow.run(sharedFromOffline)
+  // final answer in sharedFromOffline["answer"]
+  console.log(`Final Answer: ${sharedFromOffline['answer']}`)
+  return sharedFromOffline
+}
+
+// Example usage combining both stages
+async function main() {
+  const offlineShared = await runOffline()
+  await runOnline(offlineShared)
+}
+
+main().catch(console.error) // Execute async main function
 ```
 
 {% endtab %}

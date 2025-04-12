@@ -58,8 +58,10 @@ When prompting the LLM to produce **structured** output:
 {% tab title="Python" %}
 
 ````python
+import yaml
+
 class SummarizeNode(Node):
-    def exec(self, prep_res):
+    async def exec(self, prep_res):
         # Suppose `prep_res` is the text to summarize.
         prompt = f"""
 Please summarize the following text as YAML, with exactly 3 bullet points
@@ -76,7 +78,6 @@ summary:
         response = call_llm(prompt)
         yaml_str = response.split("```yaml")[1].split("```")[0].strip()
 
-        import yaml
         structured_result = yaml.safe_load(yaml_str)
 
         assert "summary" in structured_result
@@ -91,7 +92,7 @@ summary:
 
 ````typescript
 class SummarizeNode extends Node {
-  exec(prepRes: string): any {
+  async exec(prepRes: string): Promise<any> {
     // Suppose prepRes is the text to summarize
     const prompt = `
 Please summarize the following text as YAML, with exactly 3 bullet points
@@ -106,7 +107,7 @@ summary:
   - bullet 3
 \`\`\``
 
-    const response = callLLM(prompt)
+    const response = await callLLM(prompt)
     const yamlStr = response.split('```yaml')[1].split('```')[0].trim()
 
     // In TypeScript we would typically use a YAML parser like 'yaml'

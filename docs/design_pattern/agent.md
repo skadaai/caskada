@@ -7,7 +7,7 @@ title: 'Agent'
 Agent is a powerful design pattern in which nodes can take dynamic actions based on the context.
 
 <div align="center">
-  <img src="https://github.com/the-pocket/.github/raw/main/assets/agent.png?raw=true" width="350"/>
+  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/agent.png?raw=true" width="350"/>
 </div>
 
 ## Implement Agent with Graph
@@ -115,13 +115,16 @@ This agent:
 {% tab title="Python" %}
 
 ````python
+import asyncio
+import yaml # Assuming call_llm and search_web are defined elsewhere
+
 class DecideAction(Node):
-    def prep(self, shared):
+    async def prep(self, shared):
         context = shared.get("context", "No previous search")
         query = shared["query"]
         return query, context
 
-    def exec(self, inputs):
+    async def exec(self, inputs):
         query, context = inputs
         prompt = f"""
 Given input: {query}
@@ -146,7 +149,7 @@ search_term: search phrase if action is search
 
         return result
 
-    def post(self, shared, prep_res, exec_res):
+    async def post(self, shared, prep_res, exec_res):
         if exec_res["action"] == "search":
             shared["search_term"] = exec_res["search_term"]
         return exec_res["action"]
@@ -158,13 +161,13 @@ search_term: search phrase if action is search
 
 ````typescript
 class DecideAction extends Node {
-  prep(shared: any): [string, string] {
+  async prep(shared: any): Promise<[string, string]> {
     const context = shared.context || 'No previous search'
     const query = shared.query
     return [query, context]
   }
 
-  exec(inputs: [string, string]): any {
+  async exec(inputs: [string, string]): Promise<any> {
     const [query, context] = inputs
     const prompt = `
 Given input: ${query}
@@ -177,7 +180,7 @@ reason: why this action
 search_term: search phrase if action is search
 \`\`\``
 
-    const resp = callLLM(prompt)
+    const resp = await callLLM(prompt)
     const yamlStr = resp.split('```yaml')[1].split('```')[0].trim()
     const result = parseYaml(yamlStr)
 
@@ -200,7 +203,7 @@ search_term: search phrase if action is search
     return result
   }
 
-  post(shared: any, prepRes: any, execRes: any): string {
+  async post(shared: any, prepRes: any, execRes: any): Promise<string> {
     if (execRes.action === 'search') {
       shared.search_term = execRes.search_term
     }
@@ -217,13 +220,13 @@ search_term: search phrase if action is search
 
 ```python
 class SearchWeb(Node):
-    def prep(self, shared):
+    async def prep(self, shared):
         return shared["search_term"]
 
-    def exec(self, search_term):
-        return search_web(search_term)
+    async def exec(self, search_term):
+        return await search_web(search_term)
 
-    def post(self, shared, prep_res, exec_res):
+    async def post(self, shared, prep_res, exec_res):
         prev_searches = shared.get("context", [])
         shared["context"] = prev_searches + [
             {"term": shared["search_term"], "result": exec_res}
@@ -237,15 +240,15 @@ class SearchWeb(Node):
 
 ```typescript
 class SearchWeb extends Node {
-  prep(shared: any): string {
+  async prep(shared: any): Promise<string> {
     return shared.search_term
   }
 
-  exec(searchTerm: string): any {
-    return searchWeb(searchTerm)
+  async exec(searchTerm: string): Promise<any> {
+    return await searchWeb(searchTerm)
   }
 
-  post(shared: any, prepRes: any, execRes: any): string {
+  async post(shared: any, prepRes: any, execRes: any): Promise<string> {
     const prevSearches = shared.context || []
     shared.context = [...prevSearches, { term: shared.search_term, result: execRes }]
     return 'decide'
@@ -261,14 +264,14 @@ class SearchWeb extends Node {
 
 ```python
 class DirectAnswer(Node):
-    def prep(self, shared):
+    async def prep(self, shared):
         return shared["query"], shared.get("context", "")
 
-    def exec(self, inputs):
+    async def exec(self, inputs):
         query, context = inputs
         return call_llm(f"Context: {context}\nAnswer: {query}")
 
-    def post(self, shared, prep_res, exec_res):
+    async def post(self, shared, prep_res, exec_res):
        print(f"Answer: {exec_res}")
        shared["answer"] = exec_res
 ```
@@ -279,16 +282,16 @@ class DirectAnswer(Node):
 
 ```typescript
 class DirectAnswer extends Node {
-  prep(shared: any): [string, string] {
+  async prep(shared: any): Promise<[string, string]> {
     return [shared.query, shared.context || '']
   }
 
-  exec(inputs: [string, string]): string {
+  async exec(inputs: [string, string]): Promise<string> {
     const [query, context] = inputs
-    return callLLM(`Context: ${context}\nAnswer: ${query}`)
+    return await callLLM(`Context: ${context}\nAnswer: ${query}`)
   }
 
-  post(shared: any, prepRes: any, execRes: string): void {
+  async post(shared: any, prepRes: any, execRes: string): Promise<void> {
     console.log(`Answer: ${execRes}`)
     shared.answer = execRes
   }
@@ -312,7 +315,15 @@ decide - "answer" >> answer
 search - "decide" >> decide # Loop back
 
 flow = Flow(start=decide)
-flow.run({"query": "Who won the Nobel Prize in Physics 2024?"})
+
+async def main():
+    shared_data = {"query": "Who won the Nobel Prize in Physics 2024?"}
+    result = await flow.run(shared_data)
+    print(result) # Or handle result as needed
+    print(shared_data) # See final shared state
+
+if __name__ == "__main__":
+    asyncio.run(main())
 ```
 
 {% endtab %}
@@ -331,7 +342,15 @@ decide.on('answer', answer)
 search.on('decide', decide) // Loop back
 
 const flow = new Flow(decide)
-flow.run({ query: 'Who won the Nobel Prize in Physics 2024?' })
+
+async function main() {
+  const sharedData = { query: 'Who won the Nobel Prize in Physics 2024?' }
+  const result = await flow.run(sharedData) // Added await
+  console.log(result) // Or handle result as needed
+  console.log(sharedData) // See final shared state
+}
+
+main().catch(console.error) // Execute async main function
 ```
 
 {% endtab %}

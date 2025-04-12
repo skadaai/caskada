@@ -1,8 +1,4 @@
----
-title: '(Advanced) Multi-Agents'
----
-
-# (Advanced) Multi-Agents
+# Multi-Agents (Advanced)
 
 Multiple [Agents](./flow.md) can work together by handling subtasks and communicating the progress.
 Communication between agents is typically implemented using message queues in shared storage.
@@ -20,8 +16,11 @@ The agent listens for messages, processes them, and continues listening:
 {% tab title="Python" %}
 
 ```python
-class AgentNode(AsyncNode):
-    async def prep_async(self, _):
+import asyncio
+from brainyflow import Node, Flow
+
+class AgentNode(Node):
+    async def prep(self, _):
         message_queue = self.params["messages"]
         message = await message_queue.get()
         print(f"Agent received: {message}")
@@ -30,7 +29,7 @@ class AgentNode(AsyncNode):
 # Create node and flow
 agent = AgentNode()
 agent >> agent  # connect to self
-flow = AsyncFlow(start=agent)
+flow = Flow(start=agent)
 
 # Create heartbeat sender
 async def send_system_messages(message_queue):
@@ -55,7 +54,7 @@ async def main():
 
     # Run both coroutines
     await asyncio.gather(
-        flow.run_async(shared),
+        flow.run(shared),
         send_system_messages(message_queue)
     )
 
@@ -67,8 +66,8 @@ asyncio.run(main())
 {% tab title="TypeScript" %}
 
 ```typescript
-class AgentNode extends AsyncNode {
-  async prepAsync(_: any) {
+class AgentNode extends Node {
+  async prep(_: any): Promise<string> {
     const messageQueue = this.params.messages as AsyncQueue<string>
     const message = await messageQueue.get()
     console.log(`Agent received: ${message}`)
@@ -79,7 +78,7 @@ class AgentNode extends AsyncNode {
 // Create node and flow
 const agent = new AgentNode()
 agent.next(agent) // connect to self
-const flow = new AsyncFlow(agent)
+const flow = new Flow(agent)
 
 // Create heartbeat sender
 async function sendSystemMessages(messageQueue: AsyncQueue<string>) {
@@ -105,10 +104,9 @@ async function main() {
   flow.setParams({ messages: messageQueue })
 
   // Run both coroutines
-  await Promise.all([flow.runAsync(shared), sendSystemMessages(messageQueue)])
+  await Promise.all([flow.run(shared), sendSystemMessages(messageQueue)])
 }
 
-// Simple AsyncQueue implementation for TypeScript
 class AsyncQueue<T> {
   private queue: T[] = []
   private waiting: ((value: T) => void)[] = []
@@ -156,14 +154,17 @@ One agent provides hints while avoiding forbidden words, and another agent tries
 {% tab title="Python" %}
 
 ```python
-class AsyncHinter(AsyncNode):
-    async def prep_async(self, shared):
+import asyncio
+from brainyflow import Node, Flow
+
+class Hinter(Node):
+    async def prep(self, shared):
         guess = await shared["hinter_queue"].get()
         if guess == "GAME_OVER":
             return None
         return shared["target_word"], shared["forbidden_words"], shared.get("past_guesses", [])
 
-    async def exec_async(self, inputs):
+    async def exec(self, inputs):
         if inputs is None:
             return None
         target, forbidden, past_guesses = inputs
@@ -176,25 +177,25 @@ class AsyncHinter(AsyncNode):
         print(f"\nHinter: Here's your hint - {hint}")
         return hint
 
-    async def post_async(self, shared, prep_res, exec_res):
+    async def post(self, shared, prep_res, exec_res):
         if exec_res is None:
             return "end"
         await shared["guesser_queue"].put(exec_res)
         return "continue"
 
-class AsyncGuesser(AsyncNode):
-    async def prep_async(self, shared):
+class Guesser(Node):
+    async def prep(self, shared):
         hint = await shared["guesser_queue"].get()
         return hint, shared.get("past_guesses", [])
 
-    async def exec_async(self, inputs):
+    async def exec(self, inputs):
         hint, past_guesses = inputs
         prompt = f"Given hint: {hint}, past wrong guesses: {past_guesses}, make a new guess. Directly reply a single word:"
         guess = call_llm(prompt)
         print(f"Guesser: I guess it's - {guess}")
         return guess
 
-    async def post_async(self, shared, prep_res, exec_res):
+    async def post(self, shared, prep_res, exec_res):
         if exec_res.lower() == shared["target_word"].lower():
             print("Game Over - Correct guess!")
             await shared["hinter_queue"].put("GAME_OVER")
@@ -224,12 +225,12 @@ async def main():
     await shared["hinter_queue"].put("")
 
     # Create nodes and flows
-    hinter = AsyncHinter()
-    guesser = AsyncGuesser()
+    hinter = Hinter()
+    guesser = Guesser()
 
     # Set up flows
-    hinter_flow = AsyncFlow(start=hinter)
-    guesser_flow = AsyncFlow(start=guesser)
+    hinter_flow = Flow(start=hinter)
+    guesser_flow = Flow(start=guesser)
 
     # Connect nodes to themselves
     hinter - "continue" >> hinter
@@ -237,8 +238,8 @@ async def main():
 
     # Run both agents concurrently
     await asyncio.gather(
-        hinter_flow.run_async(shared),
-        guesser_flow.run_async(shared)
+        hinter_flow.run(shared),
+        guesser_flow.run(shared)
     )
 
 asyncio.run(main())
@@ -249,8 +250,8 @@ asyncio.run(main())
 {% tab title="TypeScript" %}
 
 ```typescript
-class AsyncHinter extends AsyncNode {
-  async prepAsync(shared: any) {
+class Hinter extends Node {
+  async prep(shared: any): Promise<any> {
     const guess = await shared.hinterQueue.get()
     if (guess === 'GAME_OVER') {
       return null
@@ -258,7 +259,7 @@ class AsyncHinter extends AsyncNode {
     return [shared.targetWord, shared.forbiddenWords, shared.pastGuesses || []]
   }
 
-  async execAsync(inputs: any) {
+  async exec(inputs: any): Promise<string | null> {
     if (inputs === null) return null
     const [target, forbidden, pastGuesses] = inputs
     let prompt = `Generate hint for '${target}'\nForbidden words: ${forbidden}`
@@ -272,20 +273,20 @@ class AsyncHinter extends AsyncNode {
     return hint
   }
 
-  async postAsync(shared: any, prepRes: any, execRes: any) {
+  async post(shared: any, prepRes: any, execRes: any): Promise<string> {
     if (execRes === null) return 'end'
     await shared.guesserQueue.put(execRes)
     return 'continue'
   }
 }
 
-class AsyncGuesser extends AsyncNode {
-  async prepAsync(shared: any) {
+class Guesser extends Node {
+  async prep(shared: any): Promise<any> {
     const hint = await shared.guesserQueue.get()
     return [hint, shared.pastGuesses || []]
   }
 
-  async execAsync(inputs: any) {
+  async exec(inputs: any): Promise<string> {
     const [hint, pastGuesses] = inputs
     const prompt = `Given hint: ${hint}, past wrong guesses: ${pastGuesses}, make a new guess. Directly reply a single word:`
     const guess = await callLLM(prompt)
@@ -293,7 +294,7 @@ class AsyncGuesser extends AsyncNode {
     return guess
   }
 
-  async postAsync(shared: any, prepRes: any, execRes: any) {
+  async post(shared: any, prepRes: any, execRes: any): Promise<string> {
     if (execRes.toLowerCase() === shared.targetWord.toLowerCase()) {
       console.log('Game Over - Correct guess!')
       await shared.hinterQueue.put('GAME_OVER')
@@ -327,19 +328,19 @@ async function main() {
   await shared.hinterQueue.put('')
 
   // Create nodes and flows
-  const hinter = new AsyncHinter()
-  const guesser = new AsyncGuesser()
+  const hinter = new Hinter()
+  const guesser = new Guesser()
 
   // Set up flows
-  const hinterFlow = new AsyncFlow(hinter)
-  const guesserFlow = new AsyncFlow(guesser)
+  const hinterFlow = new Flow(hinter)
+  const guesserFlow = new Flow(guesser)
 
   // Connect nodes to themselves
   hinter.on('continue', hinter)
   guesser.on('continue', guesser)
 
   // Run both agents concurrently
-  await Promise.all([hinterFlow.runAsync(shared), guesserFlow.runAsync(shared)])
+  await Promise.all([hinterFlow.run(shared), guesserFlow.run(shared)])
 }
 
 // Mock LLM call for TypeScript

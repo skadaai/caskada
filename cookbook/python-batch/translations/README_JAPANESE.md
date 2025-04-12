@@ -4,7 +4,7 @@
 
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 [![Docs](https://img.shields.io/badge/docs-latest-blue)](https://brainy.gitbook.io/flow/)
-<a href="https://discord.gg/hUHHE9Sa6T">
+<a href="https://discord.gg/MdJJ29Xd">
 <img src="https://img.shields.io/discord/1346833819172601907?logo=discord&style=flat">
 </a>
 
@@ -17,7 +17,7 @@ BrainyFlowは[100行](https://github.com/zvictor/BrainyFlow/blob/main/python/__i
 
 - インストールするには、`pip install brainyflow`または[ソースコード](https://github.com/zvictor/BrainyFlow/blob/main/python/__init__.py)をコピーするだけです（わずか100行）。
 - 詳細については[ドキュメント](https://brainy.gitbook.io/flow/)をご覧ください。動機について学ぶには、[ストーリー](https://zacharyhuang.substack.com/p/i-built-an-llm-framework-in-just)をお読みください。
-- 🎉 私たちの[Discord](https://discord.gg/hUHHE9Sa6T)に参加してください！
+- 🎉 私たちの[Discord](https://discord.gg/MdJJ29Xd)に参加してください！
 
 - 🎉 [@zvictor](https://www.github.com/zvictor)、[@jackylee941130](https://www.github.com/jackylee941130)、[@ZebraRoy](https://www.github.com/ZebraRoy)のおかげで、[TypeScriptバージョン](https://github.com/The-Pocket/PocketFlow-Typescript)もできました！
 
@@ -26,7 +26,7 @@ BrainyFlowは[100行](https://github.com/zvictor/BrainyFlow/blob/main/python/__i
 現在のLLMフレームワークは膨大すぎます... LLMフレームワークには100行だけで十分です！
 
 <div align="center">
-  <img src="https://github.com/The-Pocket/.github/raw/main/assets/meme.jpg" width="400"/>
+  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/meme.jpg" width="400"/>
 
 |                |       **抽象化**       |                             **アプリ固有のラッパー**                              |                        **ベンダー固有のラッパー**                        |                **行数**                 |                 **サイズ**                 |
 | -------------- | :--------------------: | :-------------------------------------------------------------------------------: | :----------------------------------------------------------------------: | :-------------------------------------: | :----------------------------------------: |
@@ -45,7 +45,7 @@ BrainyFlowは[100行](https://github.com/zvictor/BrainyFlow/blob/main/python/__i
 <br>
 
 <div align="center">
-  <img src="https://github.com/The-Pocket/.github/raw/main/assets/abstraction.png" width="900"/>
+  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/abstraction.jpg" width="900"/>
 </div>
 <br>
 
@@ -53,7 +53,7 @@ BrainyFlowは[100行](https://github.com/zvictor/BrainyFlow/blob/main/python/__i
 <br>
 
 <div align="center">
-  <img src="https://github.com/The-Pocket/.github/raw/main/assets/design.png" width="900"/>
+  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/design.jpg" width="900"/>
 </div>
 <br>
 ✨ 以下は基本的なチュートリアルです：

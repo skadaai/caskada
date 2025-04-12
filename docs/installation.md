@@ -24,6 +24,20 @@ yarn add brainyflow
 ```
 
 {% endtab %}
+
+{% tab title="JavaScript (Browser)" %}
+You can import the JavaScript file directly in the browser using a `<script>` tag:
+
+```html
+<script type="module">
+  import brainyflow from 'https://unpkg.com/brainyflow@latest/dist/brainyflow.js'
+
+  // optional: expose globally
+  globalThis.brainyflow = brainyflow
+</script>
+```
+
+{% endtab %}
 {% endtabs %}
 
 ## Alternative: Copy the Source Code
@@ -39,3 +53,7 @@ Copy [`python/brainyflow.py`](https://github.com/zvictor/BrainyFlow/blob/main/py
 Copy [`typescript/brainyflow.ts`](https://github.com/zvictor/BrainyFlow/blob/main/typescript/brainyflow.ts)
 {% endtab %}
 {% endtabs %}
+
+## Next Steps
+
+Once you have BrainyFlow installed, check out the [Getting Started](./getting_started.md) guide to build your first flow, or explore the [Core Abstractions](./core_abstraction/node.md) to understand the framework's fundamental concepts.
