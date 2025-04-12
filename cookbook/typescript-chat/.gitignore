@@ -1,2 +1,4 @@
 node_modules/
 .env
+tsconfig.json
+package-lock.json
