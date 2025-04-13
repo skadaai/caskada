@@ -34,7 +34,7 @@ describe('Throttling Tests', () => {
     }))
 
     const node = new LimitedNode()
-    const results = await (node as any)._exec(testItems)
+    const results = await (node as any).execRunner({}, testItems)
 
     // Verify concurrency was respected
     assert.strictEqual(maxConcurrent, concurrency)

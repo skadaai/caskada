@@ -8,7 +8,7 @@ class FallbackNode extends Node {
     maxRetries = 1,
     private customFallbackResult?: string,
   ) {
-    super(maxRetries)
+    super({ maxRetries })
     this.shouldFail = shouldFail
   }
 
@@ -148,7 +148,7 @@ describe('Fallback Tests', () => {
 
     // Verify both the shared state and flow return value
     assert.strictEqual(shared.result, 'success')
-    assert.strictEqual(result, undefined) // Flow returns the last action from InnerNode but value gets discarded unless `.post` is implemented
+    assert.strictEqual(result, 'default')
   })
 
   it('should track error context in fallback', async () => {

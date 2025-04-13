@@ -222,7 +222,6 @@ When a Flow is used as a Node:
 
 - It inherits the Node lifecycle (`prep → exec → post`)
 - Its `prep()` and `post()` methods can be overridden
-- `post()` always receives `None` for `exec_res` and should instead get the flow execution results from the shared store.
 - It won't allow for a custom `exec()` method since its main logic is to orchestrate its internal nodes
 - When run, it executes its internal nodes according to their transitions
 

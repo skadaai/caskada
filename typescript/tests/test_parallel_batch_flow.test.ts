@@ -74,10 +74,7 @@ class TestBatchFlow extends ParallelBatchFlow {
 
 class ErrorNode extends Node {
   async exec(item: any): Promise<any> {
-    if (item && item.should_fail) {
-      throw new Error('Intentional failure')
-    }
-    return item
+    throw new Error('Intentional failure')
   }
 }
 
@@ -144,10 +141,7 @@ describe('ParallelBatchFlow Tests', () => {
     }
 
     // Create a simpler test that directly throws an error
-    const errorNode = new Node()
-    errorNode.exec = async () => {
-      throw new Error('Intentional failure')
-    }
+    const errorNode = new ErrorNode()
 
     const flow = new ParallelBatchFlow(errorNode)
     flow.prep = async () => [1] // Just need one item to trigger the error
