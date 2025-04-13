@@ -3,36 +3,30 @@ import { describe, it } from 'node:test'
 import { Flow, Node } from '../brainyflow'
 
 // Test Node implementations
-class NumberNode extends Node {
+abstract class OperationNode extends Node {
   constructor(private number: number) {
     super()
   }
 
   async prep(sharedStorage: Record<string, any>) {
-    sharedStorage['current'] = this.number
-    return null
+    return [sharedStorage['current'] || 0, this.number]
+  }
+
+  abstract exec(prepResult: [number, number]): Promise<number>
+  async post(sharedStorage: Record<string, any>, prepResult: [number, number], execResult: number) {
+    sharedStorage['current'] = execResult
   }
 }
 
-class AddNode extends Node {
-  constructor(private number: number) {
-    super()
-  }
-
-  async prep(sharedStorage: Record<string, any>) {
-    sharedStorage['current'] += this.number
-    return null
+class AddNode extends OperationNode {
+  async exec([a, b]: [number, number]) {
+    return a + b
   }
 }
 
-class MultiplyNode extends Node {
-  constructor(private number: number) {
-    super()
-  }
-
-  async prep(sharedStorage: Record<string, any>) {
-    sharedStorage['current'] *= this.number
-    return null
+class MultiplyNode extends OperationNode {
+  async exec([a, b]: [number, number]) {
+    return a * b
   }
 }
 
@@ -41,8 +35,9 @@ describe('Flow Composition Tests', () => {
     const sharedStorage: Record<string, any> = {}
 
     // Inner flow f1
-    const f1 = new Flow(new NumberNode(5))
-    f1.start.next(new AddNode(10)).next(new MultiplyNode(2))
+    let start = new AddNode(5)
+    start.next(new AddNode(10)).next(new MultiplyNode(2))
+    const f1 = new Flow(start)
 
     // f2 starts with f1
     const f2 = new Flow(f1)
@@ -58,7 +53,7 @@ describe('Flow Composition Tests', () => {
     const sharedStorage: Record<string, any> = {}
 
     // Build the inner flow
-    const innerFlow = new Flow(new NumberNode(5))
+    const innerFlow = new Flow(new AddNode(5))
     innerFlow.start.next(new AddNode(3))
 
     // Build the middle flow whose start is the inner flow
@@ -76,7 +71,7 @@ describe('Flow Composition Tests', () => {
     const sharedStorage: Record<string, any> = {}
 
     // flow1
-    const numberNode = new NumberNode(10)
+    const numberNode = new AddNode(10)
     const addNode = new AddNode(10)
     numberNode.next(addNode)
     const flow1 = new Flow(numberNode)

@@ -1,161 +1,253 @@
-type Action = string
+export type SharedStore = Record<string, any>
 type Params = Record<string, any>
-type Successors = Record<Action, BaseNode>
 
+type Action = string
 const DEFAULT_ACTION = 'default'
 
-export class BaseNode {
-  params: Params = {}
-  successors: Successors = {}
-  curRetry = 0
+export type NodeError = Error & {
+  retryCount: number
+}
+
+export abstract class BaseNode<
+  PrepResult = any,
+  ExecResult = any,
+  PostResult extends Action = Action,
+> {
+  private successors: Map<Action, BaseNode> = new Map()
+  protected params: Params = {}
+
+  clone<T extends this>(this: T, seen = new Map()): T {
+    if (seen.has(this)) return seen.get(this) as T
+
+    const cloned = Object.create(Object.getPrototypeOf(this))
+    seen.set(this, cloned)
+
+    for (const key of Object.keys(this)) {
+      ;(cloned as any)[key] = (this as any)[key]
+    }
+
+    cloned.successors = new Map()
+    for (const [key, value] of this.successors.entries()) {
+      if (typeof value.clone === 'function') {
+        cloned.successors.set(key, value.clone(seen))
+      } else {
+        cloned.successors.set(key, value)
+      }
+    }
+    return cloned
+  }
 
   setParams(params: Params): this {
-    this.params = params
+    this.params = { ...params }
     return this
   }
 
-  next(node: BaseNode, action: Action = DEFAULT_ACTION): BaseNode {
+  on(action: Action, node: BaseNode): BaseNode {
     if (action in this.successors) {
       console.warn(`Overwriting successor for action '${action}'`)
     }
-    this.successors[action] = node
+    this.successors.set(action, node)
     return node
   }
 
-  on(action: string, node: BaseNode): BaseNode {
-    return this.next(node, action)
+  next(node: BaseNode, action: Action = DEFAULT_ACTION): BaseNode {
+    return this.on(action, node)
   }
 
-  async prep(shared: any): Promise<any> {}
-  async exec(prepRes: any): Promise<any> {}
-  async post(shared: any, prepRes: any, execRes: any): Promise<Action | void> {}
-
-  protected async _exec(prepRes: any): Promise<any> {
-    return this.exec(prepRes)
+  getNextNode(action: Action = DEFAULT_ACTION): BaseNode | null {
+    const next = this.successors.get(action)
+    if (!next && Object.keys(this.successors).length > 0) {
+      console.warn(`Flow ends: '${action}' not found in ${Object.keys(this.successors)}`)
+    }
+    return next || null
   }
 
-  protected async _run(shared: any): Promise<any> {
-    const p = await this.prep(shared)
-    const e = await this._exec(p)
-    return this.post(shared, p, e)
+  async prep(shared: SharedStore): Promise<PrepResult> {
+    return undefined as PrepResult
   }
+  async exec(prepRes: PrepResult): Promise<ExecResult> {
+    return undefined as ExecResult
+  }
+  async post(
+    shared: SharedStore,
+    prepRes: PrepResult,
+    execRes: ExecResult,
+  ): Promise<PostResult | void> {}
 
-  async run(shared: any): Promise<any> {
-    if (Object.keys(this.successors).length > 0) {
+  protected abstract execRunner(shared: SharedStore, prepRes: PrepResult): Promise<ExecResult>
+
+  async run(shared: SharedStore): Promise<Action> {
+    if (this.successors.size > 0) {
       console.warn("Node won't run successors. Use Flow!")
     }
-    return this._run(shared)
+
+    const prepRes = await this.prep(shared)
+    const execRes = await this.execRunner(shared, prepRes)
+    const action = (await this.post(shared, prepRes, execRes)) || DEFAULT_ACTION
+
+    return action
   }
 }
 
-export class Node extends BaseNode {
-  constructor(
-    public maxRetries = 1,
-    public wait = 0,
-  ) {
+class RetryNode<
+  PrepResult = any,
+  ExecResult = any,
+  PostResult extends Action = Action,
+> extends BaseNode<PrepResult, ExecResult, PostResult> {
+  private curRetry = 0
+  private maxRetries: number = 1
+  private wait: number = 0
+
+  constructor(options: { maxRetries?: number; wait?: number } = {}) {
     super()
+
+    this.maxRetries = options.maxRetries ?? 1
+    this.wait = options.wait ?? 0
   }
 
-  async execFallback(prepRes: any, exc: Error): Promise<any> {
-    throw exc
+  async execFallback(prepRes: PrepResult, error: NodeError): Promise<ExecResult> {
+    throw error
   }
 
-  protected async _exec(prepRes: any): Promise<any> {
+  protected async execRunner(shared: SharedStore, prepRes: PrepResult): Promise<ExecResult> {
     for (this.curRetry = 0; this.curRetry < this.maxRetries; this.curRetry++) {
       try {
         return await this.exec(prepRes)
-      } catch (e) {
-        if (this.curRetry === this.maxRetries - 1) {
-          return await this.execFallback(prepRes, e as Error)
+      } catch (error) {
+        if (this.curRetry < this.maxRetries - 1) {
+          if (this.wait > 0) {
+            await new Promise((resolve) => setTimeout(resolve, this.wait * 1000))
+          }
+          continue
         }
-        if (this.wait > 0) {
-          await new Promise((resolve) => setTimeout(resolve, this.wait * 1000))
-        }
+
+        ;(error as NodeError).retryCount = this.curRetry
+        return await this.execFallback(prepRes, error as NodeError)
       }
     }
+    throw new Error('Unreachable')
   }
 }
 
-export class SequentialBatchNode extends Node {
-  protected async _exec(items: any[]): Promise<any[]> {
-    const results: any[] = []
-    for (const item of items || []) {
-      results.push(await super._exec(item))
+export const Node = RetryNode
+
+export class Flow<
+  PrepResult = any,
+  ExecResult = any,
+  PostResult extends Action = Action,
+> extends BaseNode<PrepResult, ExecResult, PostResult> {
+  constructor(public start: BaseNode) {
+    super()
+  }
+
+  exec(prepRes: PrepResult): never {
+    throw new Error('This method should never be called')
+  }
+
+  protected async execRunner(
+    shared: SharedStore,
+    prepRes: PrepResult,
+    extraParams?: Params,
+  ): Promise<ExecResult> {
+    let currentNode: BaseNode | null = this.start
+    let action: Action = DEFAULT_ACTION
+
+    while (currentNode) {
+      action = await currentNode
+        .clone()
+        .setParams({ ...this.params, ...extraParams })
+        .run(shared)
+
+      currentNode = currentNode.getNextNode(action)
+    }
+
+    return action as ExecResult
+  }
+}
+
+export abstract class BatchNode<
+  ItemType = any,
+  ExecResult = any,
+  PostResult extends Action = Action,
+> extends RetryNode<ItemType[], ExecResult[], PostResult> {
+  async prep(shared: SharedStore): Promise<ItemType[]> {
+    return []
+  }
+
+  protected abstract processBatch(items: (() => Promise<ExecResult>)[]): Promise<ExecResult[]>
+
+  protected async execRunner(shared: SharedStore, items: ItemType[]): Promise<ExecResult[]> {
+    const queue = items.map((item) => () => super.execRunner(shared, item as any))
+    return this.processBatch(queue as (() => Promise<ExecResult>)[])
+  }
+}
+
+export abstract class BatchFlow<
+  ItemType = any,
+  ExecResult = any,
+  PostResult extends Action = Action,
+> extends Flow<ItemType[], ExecResult[], PostResult> {
+  async prep(shared: SharedStore): Promise<ItemType[]> {
+    return []
+  }
+
+  protected abstract processBatch(items: (() => Promise<ExecResult>)[]): Promise<ExecResult[]>
+
+  protected async execRunner(
+    shared: SharedStore,
+    items: ItemType[],
+    extraParams?: Params,
+  ): Promise<ExecResult[]> {
+    const queue = items.map((item) => () => super.execRunner(shared, item as any, extraParams))
+    return this.processBatch(queue as (() => Promise<ExecResult>)[])
+  }
+}
+
+export class SequentialBatchNode<
+  ItemType = any,
+  ExecResult extends Action = Action,
+  PostResult extends Action = Action,
+> extends BatchNode<ItemType[], ExecResult, PostResult> {
+  protected async processBatch(items: (() => Promise<ExecResult>)[]): Promise<ExecResult[]> {
+    const results: ExecResult[] = []
+    for (const runner of items) {
+      results.push(await runner())
     }
     return results
   }
 }
 
-export class ParallelBatchNode extends Node {
-  protected async _exec(items: any[]): Promise<any[]> {
-    return Promise.all((items || []).map((item) => super._exec(item)))
+export class ParallelBatchNode<
+  ItemType = any,
+  ExecResult extends Action = Action,
+  PostResult extends Action = Action,
+> extends BatchNode<ItemType[], ExecResult, PostResult> {
+  protected async processBatch(items: (() => Promise<ExecResult>)[]): Promise<ExecResult[]> {
+    return Promise.all(items.map((item) => item()))
   }
 }
 
-export class Flow extends BaseNode {
-  constructor(public start: BaseNode) {
-    super()
-  }
-
-  getNextNode(curr: BaseNode, action?: Action): BaseNode | null {
-    const next = curr.successors[action || DEFAULT_ACTION]
-    if (!next && Object.keys(curr.successors).length > 0) {
-      console.warn(`Flow ends: '${action}' not found in ${Object.keys(curr.successors)}`)
+export class SequentialBatchFlow<
+  PrepResult extends any[] = any[],
+  ExecResult extends Action = Action,
+  PostResult extends Action = Action,
+> extends BatchFlow<PrepResult[], ExecResult, PostResult> {
+  async processBatch(items: (() => Promise<ExecResult>)[]): Promise<ExecResult[]> {
+    let results: ExecResult[] = []
+    for (const runner of items) {
+      results.push(await runner())
     }
-    return next || null
-  }
-
-  protected async _orch(shared: any, params?: Params): Promise<any> {
-    let curr: BaseNode | null = this.start
-    let p = { ...this.params, ...(params || {}) }
-    let lastResult: any
-
-    while (curr) {
-      const node = Object.create(Object.getPrototypeOf(curr))
-      Object.assign(node, curr)
-      node.params = { ...curr.params }
-      node.successors = { ...curr.successors }
-
-      node.setParams(p)
-      lastResult = await node._run(shared)
-      curr = this.getNextNode(curr, lastResult)
-    }
-
-    return lastResult
-  }
-
-  async _run(shared: any): Promise<any> {
-    const pr = await this.prep(shared)
-    const result = await this._orch(shared)
-    // In flows, post() always receives None for exec_res
-    return this.post(shared, pr, undefined)
-  }
-
-  async exec(prepRes: any): Promise<never> {
-    throw new Error("Flow can't exec.")
+    return results
   }
 }
 
-export class SequentialBatchFlow extends Flow {
-  async _run(shared: any): Promise<any> {
-    const pr = (await this.prep(shared)) || []
-    let results = []
-    for (const bp of pr) {
-      results.push(await this._orch(shared, { ...this.params, ...bp }))
-    }
-    // In flows, post() always receives None for exec_res
-    return this.post(shared, pr, undefined)
-  }
-}
-
-export class ParallelBatchFlow extends Flow {
-  async _run(shared: any): Promise<any> {
-    const pr = (await this.prep(shared)) || []
-    const results = await Promise.all(
-      pr.map((bp: any) => this._orch(shared, { ...this.params, ...bp })),
-    )
-    // In flows, post() always receives None for exec_res
-    return this.post(shared, pr, undefined)
+export class ParallelBatchFlow<
+  PrepResult extends any[] = any[],
+  ExecResult extends Action = Action,
+  PostResult extends Action = Action,
+> extends BatchFlow<PrepResult[], ExecResult, PostResult> {
+  async processBatch(items: (() => Promise<ExecResult>)[]): Promise<ExecResult[]> {
+    return Promise.all(items.map((item) => item()))
   }
 }
 

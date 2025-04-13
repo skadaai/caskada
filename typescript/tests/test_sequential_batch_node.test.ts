@@ -37,14 +37,14 @@ describe('SequentialBatchNode Tests', () => {
       { key: 'c', value: 3 },
     ]
 
-    const node = new SequentialBatchNode(1)
-    node.exec = async (item: any) => {
-      processedOrder.push(item.key)
+    const node = new SequentialBatchNode({ maxRetries: 1 })
+    node.exec = async (prepRes: any) => {
+      processedOrder.push(prepRes.key)
       await new Promise((resolve) => setTimeout(resolve, 10))
-      return { [item.key]: item.value * 2 }
+      return { [prepRes.key]: prepRes.value * 2 }
     }
 
-    await (node as any)._exec(testItems)
+    await (node as any).execRunner({}, testItems)
     assert.deepStrictEqual(processedOrder, ['a', 'b', 'c'])
   })
 
@@ -56,10 +56,10 @@ describe('SequentialBatchNode Tests', () => {
     ]
 
     const statefulNode = new StatefulNode()
-    const node = new SequentialBatchNode(1)
+    const node = new SequentialBatchNode({ maxRetries: 1 })
     node.exec = statefulNode.exec.bind(statefulNode)
 
-    const results = await (node as any)._exec(testItems)
+    const results = await (node as any).execRunner({}, testItems)
     const combined = Object.assign({}, ...results)
     assert.deepStrictEqual(combined, {
       a: 2, // 1 + 1
@@ -76,7 +76,7 @@ describe('SequentialBatchNode Tests', () => {
     ]
 
     const context: Record<string, number> = {}
-    const node = new SequentialBatchNode(1)
+    const node = new SequentialBatchNode({ maxRetries: 1 })
     node.exec = async (item: any) => {
       if (item.dependsOn) {
         assert(context[item.dependsOn], `Missing dependency ${item.dependsOn}`)
@@ -86,7 +86,7 @@ describe('SequentialBatchNode Tests', () => {
       return { [item.id]: result }
     }
 
-    const results = await (node as any)._exec(testItems)
+    const results = await (node as any).execRunner({}, testItems)
     const combined = Object.assign({}, ...results)
     assert.deepStrictEqual(combined, { a: 2, b: 4, c: 6 })
   })
@@ -98,7 +98,7 @@ describe('SequentialBatchNode Tests', () => {
       { id: 'c', shouldFail: false, value: 3 },
     ]
 
-    const node = new SequentialBatchNode(1)
+    const node = new SequentialBatchNode({ maxRetries: 1 })
     node.exec = async (item: any) => {
       if (item.shouldFail) {
         throw new Error(`Failed processing ${item.id}`)
@@ -106,15 +106,15 @@ describe('SequentialBatchNode Tests', () => {
       return { [item.id]: item.value * 2 }
     }
 
-    await assert.rejects(() => (node as any)._exec(testItems))
+    await assert.rejects(() => (node as any).execRunner({}, testItems))
   })
 
   it('should handle empty input', async () => {
-    const node = new SequentialBatchNode(1)
+    const node = new SequentialBatchNode({ maxRetries: 1 })
     const processingNode = new TestProcessingNode()
     node.exec = processingNode.exec.bind(processingNode)
 
-    const results = await (node as any)._exec([])
+    const results = await (node as any).execRunner({}, [])
     assert.deepStrictEqual(results, [])
   })
 
@@ -126,14 +126,14 @@ describe('SequentialBatchNode Tests', () => {
       { key: 'c', value: 3 },
     ]
 
-    const node = new SequentialBatchNode(1)
+    const node = new SequentialBatchNode({ maxRetries: 1 })
     const errorNode = new ErrorNode()
     node.exec = async (item: any) => {
       processedItems.push(item.key)
       return errorNode.exec(item)
     }
 
-    await assert.rejects(() => (node as any)._exec(testItems))
+    await assert.rejects(() => (node as any).execRunner({}, testItems))
     assert.deepStrictEqual(processedItems, ['a', 'b'])
   })
 
@@ -160,12 +160,12 @@ describe('SequentialBatchNode Tests', () => {
       }
     }
 
-    const node = new SequentialBatchNode(1)
+    const node = new SequentialBatchNode({ maxRetries: 1 })
     const errorNode = new RecoverableErrorNode()
     node.exec = errorNode.exec.bind(errorNode)
     node.execFallback = errorNode.execFallback.bind(errorNode)
 
-    const results = await (node as any)._exec(testItems)
+    const results = await (node as any).execRunner({}, testItems)
     const combined = Object.assign({}, ...results)
     assert.deepStrictEqual(combined, {
       a: 1,
@@ -178,7 +178,7 @@ describe('SequentialBatchNode Tests', () => {
     let attempts = 0
     const testItems = [{ key: 'a', value: 1, shouldFail: true }]
 
-    const node = new SequentialBatchNode(3) // 3 retries
+    const node = new SequentialBatchNode({ maxRetries: 3 })
     node.exec = async (item: any) => {
       attempts++
       if (attempts < 3) {
@@ -187,7 +187,7 @@ describe('SequentialBatchNode Tests', () => {
       return { [item.key]: item.value }
     }
 
-    await (node as any)._exec(testItems)
+    await (node as any).execRunner({}, testItems)
     assert.strictEqual(attempts, 3)
   })
 
@@ -197,7 +197,7 @@ describe('SequentialBatchNode Tests', () => {
       { id: 2, data: { values: [4, 5] } },
     ]
 
-    const node = new SequentialBatchNode(1)
+    const node = new SequentialBatchNode({ maxRetries: 1 })
     node.exec = async (item: any) => {
       const sum = item.data.values.reduce((a: number, b: number) => a + b, 0)
       return {
@@ -208,7 +208,7 @@ describe('SequentialBatchNode Tests', () => {
       }
     }
 
-    const results = await (node as any)._exec(testItems)
+    const results = await (node as any).execRunner({}, testItems)
     const combined = Object.assign({}, ...results)
     assert.strictEqual(combined.result_1.sum, 6)
     assert.strictEqual(combined.result_2.sum, 9)

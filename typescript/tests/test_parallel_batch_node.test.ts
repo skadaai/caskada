@@ -2,11 +2,6 @@ import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 import { Node, ParallelBatchNode } from '../brainyflow'
 
-interface SharedState {
-  _batch_results?: any[]
-  [key: string]: any
-}
-
 class Semaphore {
   private queue: Array<(value: void) => void> = []
   constructor(private permits: number) {}
@@ -27,8 +22,8 @@ class Semaphore {
 }
 
 class TestProcessingNode extends Node {
-  async exec(item: any) {
-    const { key, value } = item
+  async exec(prepRes: any) {
+    const { key, value } = prepRes
     await new Promise((resolve) => setTimeout(resolve, 10)) // Simulate async work
     return { [key]: value * 2 }
   }
@@ -38,10 +33,10 @@ class ThrottledParallelNode extends ParallelBatchNode {
   private concurrency = 2
   private semaphore = new Semaphore(this.concurrency)
 
-  async exec(item: any) {
+  async exec(prepRes: any) {
     await this.semaphore.acquire()
     try {
-      const result = await super.exec(item)
+      const result = await super.exec(prepRes)
       return result
     } finally {
       this.semaphore.release()
@@ -57,11 +52,11 @@ describe('ParallelBatchNode Tests', () => {
       { key: 'c', value: 3 },
     ]
 
-    const node = new ParallelBatchNode(1) // maxRetries = 1
+    const node = new ParallelBatchNode({ maxRetries: 1 })
     const processingNode = new TestProcessingNode()
     node.exec = processingNode.exec.bind(processingNode)
 
-    const results = await (node as any)._exec(testItems)
+    const results = await (node as any).execRunner({}, testItems)
     const combined = Object.assign({}, ...results)
     assert.deepStrictEqual(combined, {
       a: 2,
@@ -78,12 +73,12 @@ describe('ParallelBatchNode Tests', () => {
       { key: 'd', value: 4 },
     ]
 
-    const node = new ThrottledParallelNode(1) // maxRetries = 1
+    const node = new ThrottledParallelNode({ maxRetries: 1 })
     const processingNode = new TestProcessingNode()
     node.exec = processingNode.exec.bind(processingNode)
 
     const start = Date.now()
-    const results = await (node as any)._exec(testItems)
+    const results = await (node as any).execRunner({}, testItems)
     const duration = Date.now() - start
 
     // Should take at least 5ms since we have 2 concurrency and 10ms per item
@@ -98,14 +93,14 @@ describe('ParallelBatchNode Tests', () => {
       { key: 'slow', value: 3, delay: 20 },
     ]
 
-    const node = new ParallelBatchNode(1)
-    node.exec = async (item: any) => {
-      await new Promise((resolve) => setTimeout(resolve, item.delay))
-      return { [item.key]: item.value * 2 }
+    const node = new ParallelBatchNode({ maxRetries: 1 })
+    node.exec = async (prepRes: any) => {
+      await new Promise((resolve) => setTimeout(resolve, prepRes.delay))
+      return { [prepRes.key]: prepRes.value * 2 }
     }
 
     const start = Date.now()
-    await (node as any)._exec(testItems)
+    await (node as any).execRunner({}, testItems)
     const duration = Date.now() - start
 
     // Should take roughly as long as the slowest task
@@ -119,11 +114,11 @@ describe('ParallelBatchNode Tests', () => {
       { key: 'c', value: 3 },
     ]
 
-    const node = new ParallelBatchNode(1)
+    const node = new ParallelBatchNode({ maxRetries: 1 })
     const processingNode = new TestProcessingNode()
     node.exec = processingNode.exec.bind(processingNode)
 
-    const results = await (node as any)._exec(testItems)
+    const results = await (node as any).execRunner({}, testItems)
 
     // Results should be in same order as input despite parallel execution
     assert.deepStrictEqual(
@@ -145,11 +140,11 @@ describe('ParallelBatchNode Tests', () => {
     }
 
     const testItems = [{ key: 'a', value: 1 }]
-    const node = new ParallelBatchNode(3) // maxRetries = 3
+    const node = new ParallelBatchNode({ maxRetries: 3 })
     const retryNode = new RetryNode()
     node.exec = retryNode.exec.bind(retryNode)
 
-    const results = await (node as any)._exec(testItems)
+    const results = await (node as any).execRunner({}, testItems)
     assert.deepStrictEqual(results, [{ a: 2 }])
     assert.strictEqual(attempt, 2)
   })
@@ -159,27 +154,27 @@ describe('ParallelBatchNode Tests', () => {
       async exec(item: any) {
         throw new Error('Always fails')
       }
-      async execFallback(item: any) {
-        return { [item.key]: 'fallback' }
+      async execFallback(prepRes: any, _error: any) {
+        return { [prepRes.key]: 'fallback' }
       }
     }
 
     const testItems = [{ key: 'a', value: 1 }]
-    const node = new ParallelBatchNode(1) // maxRetries = 1
+    const node = new ParallelBatchNode({ maxRetries: 1 }) // maxRetries = 1
     const fallbackNode = new FallbackNode()
     node.exec = fallbackNode.exec.bind(fallbackNode)
     node.execFallback = fallbackNode.execFallback.bind(fallbackNode)
 
-    const results = await (node as any)._exec(testItems)
+    const results = await (node as any).execRunner({}, testItems)
     assert.deepStrictEqual(results, [{ a: 'fallback' }])
   })
 
   it('should handle empty input', async () => {
-    const node = new ParallelBatchNode(1) // maxRetries = 1
+    const node = new ParallelBatchNode({ maxRetries: 1 })
     const processingNode = new TestProcessingNode()
     node.exec = processingNode.exec.bind(processingNode)
 
-    const results = await (node as any)._exec([])
+    const results = await (node as any).execRunner({}, [])
     assert.deepStrictEqual(results, [])
   })
 
@@ -195,11 +190,11 @@ describe('ParallelBatchNode Tests', () => {
       { key: 'b', value: 2 },
     ]
 
-    const node = new ParallelBatchNode(1) // maxRetries = 1
+    const node = new ParallelBatchNode({ maxRetries: 1 })
     const errorNode = new ErrorNode()
     node.exec = errorNode.exec.bind(errorNode)
 
-    await assert.rejects(() => (node as any)._exec(testItems), { message: 'Test error' })
+    await assert.rejects(() => (node as any).execRunner({}, testItems), { message: 'Test error' })
   })
 
   it('should handle errors with concurrency', async () => {
@@ -221,11 +216,11 @@ describe('ParallelBatchNode Tests', () => {
       { key: 'c', value: 3 },
     ]
 
-    const node = new ParallelBatchNode(1)
+    const node = new ParallelBatchNode({ maxRetries: 1 })
     const errorNode = new ErrorNode()
     node.exec = errorNode.exec.bind(errorNode)
 
-    await assert.rejects(() => (node as any)._exec(testItems))
+    await assert.rejects(() => (node as any).execRunner({}, testItems))
     assert(processed > 0, 'Some items should have processed before error')
   })
 })
