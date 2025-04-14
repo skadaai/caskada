@@ -140,19 +140,30 @@ await flow.run(shared)
 
 ## Params
 
-While the Shared Store is the primary communication mechanism, Params provide a way to configure individual nodes with specific settings.
+Params are used to configure nodes and flows with specific, immutable settings—such as filenames, IDs, or other identifiers. They are especially useful in batch processing.
 
-### Key Characteristics
+**Key Points:**
 
-- **Immutable**: Params don't change during a node's execution cycle
-- **Hierarchical**: Params are passed down from parent flows to child nodes
-- **Local**: Each node or flow has its own params that don't affect other nodes
+- Params are always set using the `.setParams({...})` method on a node or flow.
+- Params are merged for each run: batch item params (outermost) > flow params > node params (innermost).
+- Params are read-only during execution and do not change.
+- Params are for configuration only—never for sharing results or data between nodes.
 
-### When to Use Params
+**How Params Differ from Shared Store:**
 
-- **Batch Processing**: To identify which item is being processed
-- **Configuration**: For node-specific settings that don't need to be shared
-- **Identification**: For tracking the source or purpose of a computation
+- **Params**: Immutable, per-run configuration. Set before execution, never mutated. Used for things like filenames, IDs, or node options.
+- **Shared Store**: Mutable, global data. Used for sharing results, large data, or state between nodes.
+
+**Quick Example:**
+
+Suppose you have a batch flow that processes files, and you set:
+
+- Node params (innermost): `{ language: "en" }`
+- Flow params: `{ language: "es", mode: "fast" }`
+- Batch item params (outermost): `{ filename: "doc1.txt", language: "fr" }`
+
+**Resulting params for this run:**  
+`{ filename: "doc1.txt", language: "fr", mode: "fast" }`
 
 ### Example Usage
 

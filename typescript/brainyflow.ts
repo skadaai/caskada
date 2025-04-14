@@ -42,6 +42,10 @@ export abstract class BaseNode<
     return this
   }
 
+  addParams(params: Params): this {
+    return this.setParams({ ...this.params, ...params })
+  }
+
   on(action: Action, node: BaseNode): BaseNode {
     if (action in this.successors) {
       console.warn(`Overwriting successor for action '${action}'`)
@@ -144,19 +148,12 @@ export class Flow<
     throw new Error('This method should never be called')
   }
 
-  protected async execRunner(
-    shared: SharedStore,
-    prepRes: PrepResult,
-    extraParams?: Params,
-  ): Promise<ExecResult> {
+  protected async execRunner(shared: SharedStore, prepRes: PrepResult): Promise<ExecResult> {
     let currentNode: BaseNode | null = this.start
     let action: Action = DEFAULT_ACTION
 
     while (currentNode) {
-      action = await currentNode
-        .clone()
-        .setParams({ ...this.params, ...extraParams })
-        .run(shared)
+      action = await currentNode.clone().addParams(this.params).run(shared)
 
       currentNode = currentNode.getNextNode(action)
     }
@@ -193,12 +190,8 @@ export abstract class BatchFlow<
 
   protected abstract processBatch(items: (() => Promise<ExecResult>)[]): Promise<ExecResult[]>
 
-  protected async execRunner(
-    shared: SharedStore,
-    items: ItemType[],
-    extraParams?: Params,
-  ): Promise<ExecResult[]> {
-    const queue = items.map((item) => () => super.execRunner(shared, item as any, extraParams))
+  protected async execRunner(shared: SharedStore, items: ItemType[]): Promise<ExecResult[]> {
+    const queue = items.map((item) => () => super.execRunner(shared, item as any))
     return this.processBatch(queue as (() => Promise<ExecResult>)[])
   }
 }
