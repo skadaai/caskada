@@ -198,8 +198,15 @@ Be sure you **always** strictly follow these instructions:
 2. **Be Brainy**: Import `brainyflow` and use its archictecture to implement the design document! Adhere to the proposed flow, node and shared store design.
 3. **Focus on What Matters**: Do not fix types or edge cases until you are certain the core implementation is working as intended.
 4. **Be Adaptive**: Continuously refine the design document based on feedback and changes in the implementation, but keep it clear and concise.
-5. **Be Resilient**: You are not done until the implementation is working as intended.
-6. **Be Accountable**: Before finishing the implementation, ask yourself the following questions:
+5. **Be Compliant**: You must always write code that is compliant with the design document and the system's architecture. Remember to stick to the flow, node and shared store design:
+   - prep(shared)
+     Read and preprocess data from shared store.
+   - exec(prep_res)
+     Execute compute logic. Keep the core logic here and make it as simple as possible.
+   - post(shared, prep_res, exec_res)
+     Postprocess and write data back to shared.
+6. **Be Resilient**: You are not done until the implementation is working as intended.
+7. **Be Accountable**: Before finishing the implementation, ask yourself the following questions:
    - are all stubs and placeholders gone?
    - have all requirements and features been implemented?
    - have I successfully run the application and all tests?
