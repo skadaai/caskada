@@ -9,7 +9,7 @@ machine-display: false
 
 **BrainyFlow does NOT provide built-in utilities**
 
-Instead, we offer examples that you can implement yourself. This approach gives you [more flexibility and control](./index#why-not-built-in) over your project's dependencies and functionality.
+Instead, we offer examples that you can implement yourself. This approach gives you [more flexibility and control](./index.md#why-not-built-in) over your project's dependencies and functionality.
 
 {% endhint %}
 

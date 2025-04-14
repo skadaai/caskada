@@ -4,7 +4,7 @@
 
 <summary>Notes For AI Assistants</summary>
 
-{% hint style="success" %}
+{% hint style="warning" %}
 **AI only**: If you are a human, skip this section.
 {% endhint %}
 
@@ -188,7 +188,7 @@ Go back to working and finish it! Do not stop until you are done.
 
 <summary>Notes For AI Assistants</summary>
 
-{% hint style="success" %}
+{% hint style="warning" %}
 **AI only**: If you are a human, skip this section.
 {% endhint %}
 
