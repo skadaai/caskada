@@ -66,19 +66,18 @@ export abstract class BaseNode<
     return next || null
   }
 
-  async prep(shared: SharedStore): Promise<PrepResult> {
-    return undefined as PrepResult
-  }
-  async exec(prepRes: PrepResult): Promise<ExecResult> {
-    return undefined as ExecResult
-  }
+  async prep(shared: SharedStore): Promise<PrepResult | void> {}
+  async exec(prepRes: PrepResult | void): Promise<ExecResult | void> {}
   async post(
     shared: SharedStore,
-    prepRes: PrepResult,
-    execRes: ExecResult,
+    prepRes: PrepResult | void,
+    execRes: ExecResult | void,
   ): Promise<PostResult | void> {}
 
-  protected abstract execRunner(shared: SharedStore, prepRes: PrepResult): Promise<ExecResult>
+  protected abstract execRunner(
+    shared: SharedStore,
+    prepRes: PrepResult | void,
+  ): Promise<ExecResult | void>
 
   async run(shared: SharedStore): Promise<Action> {
     if (this.successors.size > 0) {
@@ -113,7 +112,7 @@ class RetryNode<
     throw error
   }
 
-  protected async execRunner(shared: SharedStore, prepRes: PrepResult): Promise<ExecResult> {
+  protected async execRunner(shared: SharedStore, prepRes: PrepResult): Promise<ExecResult | void> {
     for (this.curRetry = 0; this.curRetry < this.maxRetries; this.curRetry++) {
       try {
         return await this.exec(prepRes)
@@ -135,17 +134,17 @@ class RetryNode<
 
 export const Node = RetryNode
 
-export class Flow<
-  PrepResult = any,
-  ExecResult = any,
-  PostResult extends Action = Action,
-> extends BaseNode<PrepResult, ExecResult, PostResult> {
+export class Flow<PrepResult = any, PostResult extends Action = Action> extends BaseNode<
+  PrepResult,
+  PostResult,
+  PostResult
+> {
   constructor(public start: BaseNode) {
     super()
   }
 
   exec(prepRes: PrepResult): never {
-    throw new Error('This method should never be called')
+    throw new Error('This method should never be called in Flow')
   }
 
   async post(
@@ -156,7 +155,7 @@ export class Flow<
     return execRes as PostResult
   }
 
-  protected async execRunner(shared: SharedStore, prepRes: PrepResult): Promise<ExecResult> {
+  protected async execRunner(shared: SharedStore, prepRes: PrepResult): Promise<PostResult> {
     let currentNode: BaseNode | null = this.start
     let action: Action = DEFAULT_ACTION
 
@@ -166,7 +165,7 @@ export class Flow<
       currentNode = currentNode.getNextNode(action)
     }
 
-    return action as ExecResult
+    return action as PostResult
   }
 }
 
@@ -187,20 +186,19 @@ export abstract class BatchNode<
   }
 }
 
-export abstract class BatchFlow<
-  ItemType = any,
-  ExecResult = any,
-  PostResult extends Action = Action,
-> extends Flow<ItemType[], ExecResult[], PostResult> {
+export abstract class BatchFlow<ItemType = any, PostResult extends Action = Action> extends Flow<
+  ItemType[],
+  PostResult
+> {
   async prep(shared: SharedStore): Promise<ItemType[]> {
     return []
   }
 
-  protected abstract processBatch(items: (() => Promise<ExecResult>)[]): Promise<ExecResult[]>
+  protected abstract processBatch(items: (() => Promise<PostResult>)[]): Promise<PostResult[]>
 
-  protected async execRunner(shared: SharedStore, items: ItemType[]): Promise<ExecResult[]> {
+  protected async execRunner(shared: SharedStore, items: ItemType[]): Promise<PostResult[]> {
     const queue = items.map((item) => () => super.execRunner(shared, item as any))
-    return this.processBatch(queue as (() => Promise<ExecResult>)[])
+    return this.processBatch(queue as (() => Promise<PostResult>)[])
   }
 }
 
@@ -230,11 +228,10 @@ export class ParallelBatchNode<
 
 export class SequentialBatchFlow<
   PrepResult extends any[] = any[],
-  ExecResult extends Action = Action,
   PostResult extends Action = Action,
-> extends BatchFlow<PrepResult[], ExecResult, PostResult> {
-  async processBatch(items: (() => Promise<ExecResult>)[]): Promise<ExecResult[]> {
-    let results: ExecResult[] = []
+> extends BatchFlow<PrepResult[], PostResult> {
+  async processBatch(items: (() => Promise<PostResult>)[]): Promise<PostResult[]> {
+    let results: PostResult[] = []
     for (const runner of items) {
       results.push(await runner())
     }
@@ -244,10 +241,9 @@ export class SequentialBatchFlow<
 
 export class ParallelBatchFlow<
   PrepResult extends any[] = any[],
-  ExecResult extends Action = Action,
   PostResult extends Action = Action,
-> extends BatchFlow<PrepResult[], ExecResult, PostResult> {
-  async processBatch(items: (() => Promise<ExecResult>)[]): Promise<ExecResult[]> {
+> extends BatchFlow<PrepResult[], PostResult> {
+  async processBatch(items: (() => Promise<PostResult>)[]): Promise<PostResult[]> {
     return Promise.all(items.map((item) => item()))
   }
 }
