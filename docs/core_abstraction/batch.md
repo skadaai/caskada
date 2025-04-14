@@ -6,6 +6,12 @@ Batch processing in BrainyFlow enables efficient handling of multiple items, whe
 - Applying the same operation to multiple inputs
 - Dividing large tasks into manageable chunks
 
+## How Params Work in Batch Processing
+
+Batch item params override flow params, which override node params. Params are read-only during execution.
+
+For a full explanation, example, and cheat sheet, see [How Params Work](./communication.md#how-params-work).
+
 ## Node-Level Batch Processing
 
 BrainyFlow provides two specialized node types for batch processing:
