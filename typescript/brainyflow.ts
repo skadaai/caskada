@@ -148,6 +148,14 @@ export class Flow<
     throw new Error('This method should never be called')
   }
 
+  async post(
+    shared: SharedStore,
+    prepRes: void | PrepResult,
+    execRes: void | PostResult,
+  ): Promise<void | PostResult> {
+    return execRes as PostResult
+  }
+
   protected async execRunner(shared: SharedStore, prepRes: PrepResult): Promise<ExecResult> {
     let currentNode: BaseNode | null = this.start
     let action: Action = DEFAULT_ACTION
