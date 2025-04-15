@@ -16,6 +16,7 @@ export abstract class BaseNode<
 > {
   private successors: Map<Action, BaseNode<any, any, Action[]>[]> = new Map()
   protected params: Params = {}
+  protected triggers: { action: AllowedActions[number] }[] = []
 
   clone<T extends this>(this: T, seen = new Map()): T {
     if (seen.has(this)) return seen.get(this) as T
@@ -72,23 +73,37 @@ export abstract class BaseNode<
     shared: SharedStore,
     prepRes: PrepResult | void,
     execRes: ExecResult | void,
-  ): Promise<AllowedActions | void> {}
+  ): Promise<void> {}
+
+  trigger(action: AllowedActions[number]): void {
+    this.triggers.push({
+      action,
+    })
+  }
+
+  private listTriggers(): { action: AllowedActions[number] }[] {
+    if (!this.triggers.length) {
+      return [{ action: DEFAULT_ACTION }]
+    }
+
+    return this.triggers
+  }
 
   protected abstract execRunner(
     shared: SharedStore,
     prepRes: PrepResult | void,
   ): Promise<ExecResult | void>
 
-  async run(shared: SharedStore): Promise<AllowedActions> {
+  async run(shared: SharedStore): Promise<{ action: AllowedActions[number] }[]> {
     if (this.successors.size > 0) {
       console.warn("Node won't run successors. Use Flow!")
     }
 
     const prepRes = await this.prep(shared)
     const execRes = await this.execRunner(shared, prepRes)
-    const actions = (await this.post(shared, prepRes, execRes)) || [DEFAULT_ACTION]
+    await this.post(shared, prepRes, execRes)
 
-    return actions as AllowedActions
+    return this.listTriggers()
   }
 }
 
@@ -147,15 +162,6 @@ export class Flow<PrepResult = any, AllowedActions extends Action[] = Action[]> 
     throw new Error('This method should never be called in Flow')
   }
 
-  // @ts-ignore
-  async post(
-    shared: SharedStore,
-    prepRes: void | PrepResult,
-    execRes: NestedActions<AllowedActions>,
-  ): Promise<NestedActions<AllowedActions>> {
-    return execRes
-  }
-
   protected async execRunner(
     shared: SharedStore,
     prepRes: void | PrepResult,
@@ -182,12 +188,12 @@ export class Flow<PrepResult = any, AllowedActions extends Action[] = Action[]> 
     node: BaseNode,
     shared: SharedStore,
   ): Promise<NestedActions<AllowedActions>> {
-    const actions = await node.clone().addParams(this.params).run(shared)
-    if (!Array.isArray(actions)) {
+    const triggers = await node.clone().addParams(this.params).run(shared)
+    if (!Array.isArray(triggers)) {
       throw new Error('Node.run must return an array')
     }
 
-    const tasks = actions.map((action) => async () => {
+    const tasks = triggers.map(({ action }) => async () => {
       const nextNodes = node.getNextNodes(action)
       return !nextNodes.length ? [action] : [action, await this.executeNodes(nextNodes, shared)]
     })
