@@ -8,36 +8,18 @@ export type NodeError = Error & {
   retryCount: number
 }
 
-class Memory<G extends SharedStore, L extends SharedStore> {
+export class Memory<G extends SharedStore, L extends SharedStore> {
   constructor(
     private __global: G,
     private __local: L = {} as L,
   ) {}
 
-  get local(): L {
-    return structuredClone(this.__local)
-  }
-
-  /**
-   * Set values that will be forked to descendant nodes
-   */
-  fork(data: Partial<L>): void {
-    Object.assign(this.__local, data)
-  }
-
-  /**
-   * Set values in the global memory shared by all nodes
-   */
-  setGlobal(data: Partial<G>): void {
-    Object.assign(this.__global, data)
-  }
-
   // Allow property access on this object to check local memory first, then global
   [key: string]: any
 
   clone<T extends SharedStore = SharedStore>(forkingData: T = {} as T): Memory<G, L & T> {
-    return Memory.create(this.global, {
-      ...structuredClone(this.local),
+    return Memory.create(this.__global, {
+      ...structuredClone(this.__local),
       ...structuredClone(forkingData),
     })
   }
@@ -48,8 +30,9 @@ class Memory<G extends SharedStore, L extends SharedStore> {
   ): Memory<G, L> {
     return new Proxy(new Memory(global, local), {
       get: (target, prop) => {
-        if (prop === 'fork') return target.fork.bind(target)
-        if (prop === 'setGlobal') return target.setGlobal.bind(target)
+        // if (prop === 'setGlobal') return target.setGlobal.bind(target)
+        if (prop === 'clone') return target.clone.bind(target)
+        if (prop === 'local') return target.__local
 
         // Check local memory first, then fall back to global
         if (prop in target.__local) {
@@ -58,11 +41,11 @@ class Memory<G extends SharedStore, L extends SharedStore> {
         return target.__global[prop as string]
       },
       set: (target, prop, value) => {
-        if (['fork', 'setGlobal', 'global', 'local'].includes(prop as string))
+        if (['global', 'local', '__global', '__local'].includes(prop as string))
           throw new Error(`Reserved property '${String(prop)}' cannot be set`)
 
         // By default, set in global memory
-        if (typeof prop === 'string' && prop !== '__global' && prop !== '__local') {
+        if (typeof prop === 'string') {
           target.__global[prop as keyof G] = value
           return true
         }
@@ -82,11 +65,11 @@ interface Trigger<Action = string, L extends SharedStore = SharedStore> {
 export abstract class BaseNode<
   GlobalStore extends SharedStore = SharedStore,
   LocalStore extends SharedStore = SharedStore,
+  AllowedActions extends Action[] = Action[],
   PrepResult = any,
   ExecResult = any,
-  AllowedActions extends Action[] = Action[],
 > {
-  private successors: Map<Action, BaseNode<any, any, Action[]>[]> = new Map()
+  private successors: Map<Action, BaseNode[]> = new Map()
   private triggers: Trigger<AllowedActions[number], SharedStore>[] = []
   private locked = true
 
@@ -100,6 +83,7 @@ export abstract class BaseNode<
       ;(cloned as any)[key] = (this as any)[key]
     }
 
+    cloned.triggers = []
     cloned.successors = new Map()
     for (const [key, nodesArray] of this.successors.entries()) {
       const clonedNodesArray = nodesArray.map((node) =>
@@ -110,7 +94,7 @@ export abstract class BaseNode<
     return cloned
   }
 
-  on<T extends BaseNode<any, any, Action[]>>(action: Action, node: T): T {
+  on<T extends BaseNode>(action: Action, node: T): T {
     if (!this.successors.has(action)) {
       this.successors.set(action, [])
     }
@@ -118,11 +102,11 @@ export abstract class BaseNode<
     return node
   }
 
-  next<T extends BaseNode<any, any, Action[]>>(node: T, action: Action = DEFAULT_ACTION): T {
+  next<T extends BaseNode>(node: T, action: Action = DEFAULT_ACTION): T {
     return this.on(action, node)
   }
 
-  getNextNodes(action: Action = DEFAULT_ACTION): BaseNode<any, any, Action[]>[] {
+  getNextNodes(action: Action = DEFAULT_ACTION): BaseNode[] {
     const next = this.successors.get(action) || []
     if (!next.length && this.successors.size > 0 && action !== DEFAULT_ACTION) {
       console.warn(`Flow ends: '${action}' not found in ${Object.keys(this.successors)}`)
@@ -171,7 +155,16 @@ export abstract class BaseNode<
 
   async run(
     memory: Memory<GlobalStore, LocalStore> | GlobalStore,
-  ): Promise<ReturnType<typeof this.listTriggers>> {
+    propagate?: false,
+  ): Promise<ReturnType<typeof this.execRunner>>
+  async run(
+    memory: Memory<GlobalStore, LocalStore> | GlobalStore,
+    propagate: true,
+  ): Promise<ReturnType<typeof this.listTriggers>>
+  async run(
+    memory: Memory<GlobalStore, LocalStore> | GlobalStore,
+    propagate?: boolean,
+  ): Promise<ReturnType<typeof this.execRunner> | ReturnType<typeof this.listTriggers>> {
     if (this.successors.size > 0) {
       console.warn("Node won't run successors. Use Flow!")
     }
@@ -185,17 +178,21 @@ export abstract class BaseNode<
     await this.post(_memory, prepRes, execRes)
     this.locked = true
 
-    return this.listTriggers(_memory)
+    if (propagate) {
+      return this.listTriggers(_memory)
+    }
+
+    return execRes
   }
 }
 
 class RetryNode<
   GlobalStore extends SharedStore = SharedStore,
   LocalStore extends SharedStore = SharedStore,
+  AllowedActions extends Action[] = Action[],
   PrepResult = any,
   ExecResult = any,
-  AllowedActions extends Action[] = Action[],
-> extends BaseNode<GlobalStore, LocalStore, PrepResult, ExecResult, AllowedActions> {
+> extends BaseNode<GlobalStore, LocalStore, AllowedActions, PrepResult, ExecResult> {
   private curRetry = 0
   private maxRetries: number = 1
   private wait: number = 0
@@ -239,28 +236,20 @@ export const Node = RetryNode
 export class Flow<
   GlobalStore extends SharedStore = SharedStore,
   LocalStore extends SharedStore = SharedStore,
-  PrepResult = any,
   AllowedActions extends Action[] = Action[],
-> extends BaseNode<
-  GlobalStore,
-  LocalStore,
-  PrepResult,
-  NestedActions<AllowedActions>,
-  AllowedActions
-> {
-  constructor(public start: BaseNode<any, any, Action[]>) {
+> extends BaseNode<GlobalStore, LocalStore, AllowedActions, void, NestedActions<AllowedActions>> {
+  constructor(public start: BaseNode) {
     super()
   }
 
-  exec(prepRes: PrepResult): never {
-    throw new Error('This method should never be called in Flow')
+  exec(): never {
+    throw new Error('This method should never be called in a Flow')
   }
 
   protected async execRunner(
     memory: Memory<GlobalStore, LocalStore>,
-    prepRes: void | PrepResult,
   ): Promise<NestedActions<AllowedActions>> {
-    return await this.executeNode(this.start, memory)
+    return await this.runNode(this.start, memory)
   }
 
   async runTasks<T>(tasks: (() => T)[]): Promise<Awaited<T>[]> {
@@ -271,42 +260,40 @@ export class Flow<
     return res
   }
 
-  private async executeNodes(
+  private async runNodes(
     nodes: BaseNode[],
     memory: Memory<GlobalStore, LocalStore>,
   ): Promise<NestedActions<AllowedActions>[]> {
-    return await this.runTasks(nodes.map((node) => () => this.executeNode(node, memory)))
+    return await this.runTasks(nodes.map((node) => () => this.runNode(node, memory)))
   }
 
-  private async executeNode(
+  private async runNode(
     node: BaseNode,
     memory: Memory<GlobalStore, LocalStore>,
   ): Promise<NestedActions<AllowedActions>> {
-    const triggers = await node.clone().run(memory.clone())
+    const clone = node.clone()
+    const triggers = await clone.run(memory.clone(), true)
     if (!Array.isArray(triggers)) {
-      throw new Error('Node.run must return an array')
+      throw new Error('Node.run with propagate:true must return an array of triggers')
     }
 
     const tasks = triggers.map(([action, nodeMemory]) => async () => {
-      const nextNodes = node.getNextNodes(action)
+      const nextNodes = clone.getNextNodes(action)
       return !nextNodes.length
         ? [action]
-        : [
-            action,
-            await this.executeNodes(nextNodes, nodeMemory as Memory<GlobalStore, LocalStore>),
-          ]
+        : [action, await this.runNodes(nextNodes, nodeMemory as Memory<GlobalStore, LocalStore>)]
     })
 
-    return Object.fromEntries(await this.runTasks(tasks))
+    const tree = await this.runTasks(tasks)
+    return Object.fromEntries(tree)
   }
 }
 
 export class ParallelFlow<
   GlobalStore extends SharedStore = SharedStore,
   LocalStore extends SharedStore = SharedStore,
-  PrepResult = any,
   AllowedActions extends Action[] = Action[],
-> extends Flow<GlobalStore, LocalStore, PrepResult, AllowedActions> {
+> extends Flow<GlobalStore, LocalStore, AllowedActions> {
   async runTasks<T>(tasks: (() => T)[]): Promise<Awaited<T>[]> {
     return await Promise.all(tasks.map((task) => task()))
   }
