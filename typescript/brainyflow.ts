@@ -2,7 +2,7 @@ export const DEFAULT_ACTION = 'default' as const
 
 type SharedStore = Record<string, any>
 type Action = string | typeof DEFAULT_ACTION
-type NestedActions<T extends Action[]> = Record<T[number], NestedActions<T>[] | undefined>
+type NestedActions<T extends Action[]> = Record<T[number], NestedActions<T>[]>
 
 export type NodeError = Error & {
   retryCount: number
@@ -72,24 +72,29 @@ export abstract class BaseNode<
   private successors: Map<Action, BaseNode[]> = new Map()
   private triggers: Trigger<AllowedActions[number], SharedStore>[] = []
   private locked = true
+  private static __nextId = 0
+  readonly __nodeOrder = BaseNode.__nextId++
 
-  clone<T extends this>(this: T, seen = new Map()): T {
+  clone<T extends this>(this: T, seen: Map<BaseNode, BaseNode> = new Map()): T {
     if (seen.has(this)) return seen.get(this) as T
 
-    const cloned = Object.create(Object.getPrototypeOf(this))
+    const cloned = Object.create(Object.getPrototypeOf(this)) as T
     seen.set(this, cloned)
 
     for (const key of Object.keys(this)) {
       ;(cloned as any)[key] = (this as any)[key]
     }
 
-    cloned.triggers = []
     cloned.successors = new Map()
-    for (const [key, nodesArray] of this.successors.entries()) {
-      const clonedNodesArray = nodesArray.map((node) =>
-        typeof node.clone === 'function' ? node.clone(seen) : node,
+    for (const [key, value] of this.successors.entries()) {
+      cloned.successors.set(
+        key,
+        Symbol.iterator in value
+          ? value.map((node) =>
+              node && typeof node.clone === 'function' ? node.clone(seen) : node,
+            )
+          : value,
       )
-      cloned.successors.set(key, clonedNodesArray)
     }
     return cloned
   }
@@ -172,6 +177,7 @@ export abstract class BaseNode<
     const _memory: Memory<GlobalStore, LocalStore> =
       memory instanceof Memory ? memory : Memory.create(memory)
 
+    this.triggers = []
     const prepRes = await this.prep(_memory)
     const execRes = await this.execRunner(_memory, prepRes)
     this.locked = false
@@ -238,7 +244,12 @@ export class Flow<
   LocalStore extends SharedStore = SharedStore,
   AllowedActions extends Action[] = Action[],
 > extends BaseNode<GlobalStore, LocalStore, AllowedActions, void, NestedActions<AllowedActions>> {
-  constructor(public start: BaseNode) {
+  private visitCounts: Map<string, number> = new Map()
+
+  constructor(
+    public start: BaseNode,
+    private options: { maxVisits: number } = { maxVisits: 20 },
+  ) {
     super()
   }
 
@@ -271,6 +282,15 @@ export class Flow<
     node: BaseNode,
     memory: Memory<GlobalStore, LocalStore>,
   ): Promise<NestedActions<AllowedActions>> {
+    const nodeId = node.__nodeOrder.toString()
+    const currentCount = this.visitCounts.get(nodeId) || 0
+    this.visitCounts.set(nodeId, currentCount + 1)
+    if (currentCount >= this.options.maxVisits) {
+      throw new Error(
+        `Maximum cycle count reached (${this.options.maxVisits}) for ${nodeId}.${node.constructor.name}`,
+      )
+    }
+
     const clone = node.clone()
     const triggers = await clone.run(memory.clone(), true)
     if (!Array.isArray(triggers)) {
@@ -279,9 +299,12 @@ export class Flow<
 
     const tasks = triggers.map(([action, nodeMemory]) => async () => {
       const nextNodes = clone.getNextNodes(action)
-      return !nextNodes.length
-        ? [action]
-        : [action, await this.runNodes(nextNodes, nodeMemory as Memory<GlobalStore, LocalStore>)]
+      return [
+        action,
+        !nextNodes.length
+          ? []
+          : await this.runNodes(nextNodes, nodeMemory as Memory<GlobalStore, LocalStore>),
+      ]
     })
 
     const tree = await this.runTasks(tasks)
