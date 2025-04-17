@@ -1,6 +1,6 @@
 # BrainyFlow Communication Example
 
-This example demonstrates the [Communication](https://brainy.gitbook.io/flow/communication) concept in BrainyFlow, specifically focusing on the Shared Store pattern.
+This example demonstrates the [Memory](https://brainy.gitbook.io/flow/core-abstraction/memory) concept in BrainyFlow, specifically focusing on the Shared Store pattern.
 
 ## Overview
 
