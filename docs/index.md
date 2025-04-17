@@ -11,7 +11,7 @@ machine-display: false
 <p>
 
 <p align="center">
-  A <a href="https://github.com/zvictor/BrainyFlow/blob/main/python/brainyflow.py">65-line</a> minimalist AI framework 🤯
+  A minimalist AI framework (<a href="https://github.com/zvictor/BrainyFlow/blob/main/python/brainyflow.py">65 lines in Python</a>!) 🤯
   <br />
   <sub>Let Agents build Agents with zero bloat, zero dependencies, zero vendor lock-in 😮</sub>
 </p>
@@ -69,7 +69,7 @@ Current LLM frameworks are bloated... You actually only need 65 lines for a robu
 | SmolAgent      |      Agent      |   Some <br><sup><sub>(e.g., CodeAgent, VisitWebTool)</sub></sup>   |  Some <br><sup><sub>(e.g., DuckDuckGo, Hugging Face, etc.)</sub></sup>   |                    8K                    |                   +198MB                    |
 | LangGraph      |  Agent, Graph   |       Some <br><sup><sub>(e.g., Semantic Search)</sub></sup>       | Some <br><sup><sub>(e.g., PostgresStore, SqliteSaver, etc.) </sub></sup> |                   37K                    |                    +51MB                    |
 | AutoGen        |      Agent      |   Some <br><sup><sub>(e.g., Tool Agent, Chat Agent)</sub></sup>    | Many <sup><sub>[Optional]<br> (e.g., OpenAI, Pinecone, etc.)</sub></sup> | 7K <br><sup><sub>(core-only)</sub></sup> | +26MB <br><sup><sub>(core-only)</sub></sup> |
-| **BrainyFlow** |    **Graph**    |                              **None**                              |                                 **None**                                 |                  **65**                  |                 **few KB**                  |
+| **BrainyFlow** |    **Graph**    |                              **None**                              |                                 **None**                                 |             **65 (Python)**              |                 **few KB**                  |
 
 </div>
 
@@ -85,9 +85,9 @@ The single file in <a href="https://github.com/zvictor/BrainyFlow/blob/main/pyth
 </div>
 <br>
 
-- [Node](./core_abstraction/node.md) handles simple (LLM) tasks with a clear lifecycle.
-- [Flow](./core_abstraction/flow.md) connects nodes through **Actions** (labeled edges).
-- [Memory](./core_abstraction/memory.md) enables communication between nodes within flows.
+- [Node](./core_abstraction/node.md) handles simple (LLM) tasks with a clear lifecycle (`prep` → `exec` → `post`).
+- [Flow](./core_abstraction/flow.md) connects nodes through **Actions** (labeled edges), orchestrating execution.
+- [Memory](./core_abstraction/memory.md) manages shared (`global`) and isolated (`local`) state, enabling communication between nodes.
 
 From there, it's easy to implement all popular design patterns:
 <br>
@@ -145,7 +145,7 @@ And many more available for all levels! [Check them all out!](https://github.com
 
 ## Quick Start
 
-New to BrainyFlow? Check out our [Getting Started](./introduction/getting_started.md) guide to build your first flow in no time.
+New to BrainyFlow? Check out our [Getting Started](./getting_started.md) guide to build your first flow in no time.
 
 ## Ready to Build Self-Coding Apps?
 

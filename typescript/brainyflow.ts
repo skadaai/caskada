@@ -242,14 +242,13 @@ export const Node = RetryNode
 
 export class Flow<
   GlobalStore extends SharedStore = SharedStore,
-  LocalStore extends SharedStore = SharedStore,
   AllowedActions extends Action[] = Action[],
-> extends BaseNode<GlobalStore, LocalStore, AllowedActions, void, NestedActions<AllowedActions>> {
+> extends BaseNode<GlobalStore, SharedStore, AllowedActions, void, NestedActions<AllowedActions>> {
   private visitCounts: Map<string, number> = new Map()
 
   constructor(
-    public start: BaseNode,
-    private options: { maxVisits: number } = { maxVisits: 20 },
+    public start: BaseNode<GlobalStore>,
+    private options: { maxVisits: number } = { maxVisits: 5 },
   ) {
     super()
   }
@@ -259,7 +258,7 @@ export class Flow<
   }
 
   protected async execRunner(
-    memory: Memory<GlobalStore, LocalStore>,
+    memory: Memory<GlobalStore, SharedStore>,
   ): Promise<NestedActions<AllowedActions>> {
     return await this.runNode(this.start, memory)
   }
@@ -274,14 +273,14 @@ export class Flow<
 
   private async runNodes(
     nodes: BaseNode[],
-    memory: Memory<GlobalStore, LocalStore>,
+    memory: Memory<GlobalStore, SharedStore>,
   ): Promise<NestedActions<AllowedActions>[]> {
     return await this.runTasks(nodes.map((node) => () => this.runNode(node, memory)))
   }
 
   private async runNode(
     node: BaseNode,
-    memory: Memory<GlobalStore, LocalStore>,
+    memory: Memory<GlobalStore, SharedStore>,
   ): Promise<NestedActions<AllowedActions>> {
     const nodeId = node.__nodeOrder.toString()
     const currentCount = this.visitCounts.get(nodeId) || 0
@@ -304,7 +303,7 @@ export class Flow<
         action,
         !nextNodes.length
           ? []
-          : await this.runNodes(nextNodes, nodeMemory as Memory<GlobalStore, LocalStore>),
+          : await this.runNodes(nextNodes, nodeMemory as Memory<GlobalStore, SharedStore>),
       ]
     })
 
@@ -315,9 +314,8 @@ export class Flow<
 
 export class ParallelFlow<
   GlobalStore extends SharedStore = SharedStore,
-  LocalStore extends SharedStore = SharedStore,
   AllowedActions extends Action[] = Action[],
-> extends Flow<GlobalStore, LocalStore, AllowedActions> {
+> extends Flow<GlobalStore, AllowedActions> {
   async runTasks<T>(tasks: (() => T)[]): Promise<Awaited<T>[]> {
     return await Promise.all(tasks.map((task) => task()))
   }
