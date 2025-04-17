@@ -46,6 +46,7 @@ export class Memory<G extends SharedStore, L extends SharedStore> {
 
         // By default, set in global memory
         if (typeof prop === 'string') {
+          delete target.__local[prop as string]
           target.__global[prop as keyof G] = value
           return true
         }
