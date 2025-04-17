@@ -1,5 +1,5 @@
 import readline from 'node:readline';
-import { Node, Flow } from "../../typescript/brainyflow";
+import { Node, Flow } from "brainyflow";
 import { Message, callLLM } from './utils';
 
 function promptUser(): Promise<string> {
