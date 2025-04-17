@@ -38,8 +38,7 @@ BrainyFlow's architecture is based on these fundamental building blocks:
 | --------------------- | ----------------------- | --------------------------------------------------------------------------- |
 | [Node](./node.md)     | The basic unit of work  | Clear lifecycle (`prep → exec → post`), fault tolerance, graceful fallbacks |
 | [Flow](./flow.md)     | Connects nodes together | Action-based transitions, branching, looping, nesting                       |
-| [Memory](./memory.md) | Enables data sharing    | Shared Store (global), Params (node-specific)                               |
-| [Batch](./batch.md)   | Handles multiple items  | Sequential or parallel processing, nested batching                          |
+| [Memory](./memory.md) | Enables data sharing    | Shared Store (global), Local Store (node and children)                      |
 
 ## How They Work Together
 
@@ -54,16 +53,13 @@ BrainyFlow's architecture is based on these fundamental building blocks:
    - Starting with a designated node
    - Following action-based transitions between nodes
    - Supporting branching, looping, and nested flows
+   - Processing multiple items sequentially or in parallel
+   - Supporting nested batch operations
 
 3. **Communication** happens through:
 
-   - **Shared Store**: A global dictionary accessible to all nodes
-   - **Params**: Node-specific configuration passed down from parent flows
-
-4. **Batch Processing** enables:
-   - Processing multiple items sequentially or in parallel
-   - Handling large datasets efficiently
-   - Supporting nested batch operations
+   - **Global Store**: A global dictionary accessible to all nodes
+   - **Local Store**: Data passed down from parent flows
 
 ## Getting Started
 
@@ -72,6 +68,5 @@ If you're new to BrainyFlow, we recommend exploring these core abstractions in t
 1. [Node](./node.md) - Understand the basic building block
 2. [Flow](./flow.md) - Learn how to connect nodes together
 3. [Memory](./memory.md) - See how nodes share data
-4. [Batch](./batch.md) - Explore handling multiple items
 
 Once you understand these core abstractions, you'll be ready to implement various [Design Patterns](../design_pattern/index.md) to solve real-world problems.
