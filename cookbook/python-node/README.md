@@ -83,5 +83,5 @@ This example demonstrates several key BrainyFlow concepts:
 ## Additional Resources
 
 - [BrainyFlow Documentation](https://brainy.gitbook.io/flow/)
-- [Node Concept Guide](https://brainy.gitbook.io/flow/node)
-- [Flow Design Patterns](https://brainy.gitbook.io/flow/flow)
+- [Node Concept Guide](https://brainy.gitbook.io/flow/core-abstraction/node)
+- [Flow Design Patterns](https://brainy.gitbook.io/flow/core-abstraction/flow)
