@@ -13,7 +13,7 @@
 ```python
 import asyncio
 
-class LimitedParallelNode(Node):
+class LimitedParallelExec(Node):
     def __init__(self, concurrency=3):
         self.semaphore = asyncio.Semaphore(concurrency)
 
@@ -35,7 +35,7 @@ class LimitedParallelNode(Node):
 ```typescript
 import pLimit from 'p-limit'
 
-class LimitedParallelNode extends Node {
+class LimitedParallelExec extends Node {
   constructor(private concurrency = 3) {
     super()
   }
@@ -211,10 +211,6 @@ async function callApi() {
 {% endtab %}
 {% endtabs %}
 
-{% hint style="info" %}
-**Related Concepts**: Many throttling patterns are used with [Batch Processing](../core_abstraction/batch.md) operations, particularly when dealing with parallel execution of API calls.
-{% endhint %}
-
 ## Best Practices
 
 1. **Monitor API Responses**: Watch for 429 (Too Many Requests) responses and adjust your rate limiting accordingly
@@ -225,4 +221,4 @@ async function callApi() {
 
 ## Linking to Related Concepts
 
-For batch processing patterns, see [Batch Processing](../core_abstraction/batch.md).
+For batch processing patterns, see [Flow](../core_abstraction/flow.md).

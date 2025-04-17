@@ -33,7 +33,6 @@ BrainyFlow is built around a minimalist yet powerful abstraction that separates 
 - **[Node](./core_abstraction/node.md)**: The fundamental building block that performs a single task with a clear lifecycle (`prep → exec → post`).
 - **[Flow](./core_abstraction/flow.md)**: Orchestrates nodes in a directed graph, supporting branching, looping, and nesting.
 - **[Memory](./core_abstraction/memory.md)**: A global data structure that enables communication between nodes.
-- **[Batch](./core_abstraction/batch.md)**: Processes multiple items either sequentially or in parallel.
 
 ## 3. Your First Flow
 

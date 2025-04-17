@@ -88,7 +88,6 @@ The single file in <a href="https://github.com/zvictor/BrainyFlow/blob/main/pyth
 - [Node](./core_abstraction/node.md) handles simple (LLM) tasks with a clear lifecycle.
 - [Flow](./core_abstraction/flow.md) connects nodes through **Actions** (labeled edges).
 - [Memory](./core_abstraction/memory.md) enables communication between nodes within flows.
-- [Batch](./core_abstraction/batch.md) nodes/flows allow for data-intensive tasks.
 
 From there, it's easy to implement all popular design patterns:
 <br>
