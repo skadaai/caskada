@@ -1,6 +1,6 @@
-# Node: The Fundamental Building Block
+# Nodes
 
-A **Node** is the smallest reusable unit in BrainyFlow. Each Node follows a 3-step lifecycle that enforces the principle of separation of concerns.
+Nodes are the fundamental building blocks in BrainyFlow. Each node performs a specific task within your workflow, processing data and optionally triggering downstream nodes.
 
 ## Node Lifecycle
 
@@ -8,41 +8,37 @@ A **Node** is the smallest reusable unit in BrainyFlow. Each Node follows a 3-st
   <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/node.jpg" width="400"/>
 </div>
 
+Every node follows a three-phase lifecycle:
+
+1. **Prep**: Gather and prepare input data
+2. **Exec**: Perform the main processing task
+3. **Post**: Process results, update memory and trigger downstream actions
+
+{% hint style="info" %}
+**Why 3 steps?** This design enforces separation of concerns.
+
+All steps are **optional**. For example, you can implement only `prep` and `post` if you just need to process data without external computation.
+{% endhint %}
+
 ### 1. `async prep(shared)`
 
-**Purpose**: Read and preprocess data from the shared store.
-
-- Extracts necessary data from the `shared` store
+- Extracts necessary data from the `memory` store
 - Performs any required preprocessing or validation
 - Returns `prep_res`, which becomes input for `exec()` and `post()`
 
 ### 2. `async exec(prep_res)`
 
-**Purpose**: Execute the core computation logic.
-
 - Performs the main computation (often an LLM call or API request)
-- ⚠️ Must **NOT** access the `shared` store directly
-- ⚠️ Should be designed for idempotence when retries are enabled
+- ⚠️ Can **NOT** access the `memory` store directly
+- ⚠️ No side effects! It should be designed for idempotence when retries are enabled
 - Returns `exec_res`, which is passed to `post()`
 
 ### 3. `async post(shared, prep_res, exec_res)`
 
-**Purpose**: Process results and update the shared store.
-
-- Writes computation results back to the `shared` store
+- Writes computation results back to the `memory` store
 - Has access to both the original input (`prep_res`) and result (`exec_res`)
-- Returns an action string that determines the next node in the flow
-  - If no value is returned, defaults to `"default"`
-
-{% hint style="info" %}
-**Why 3 steps?** This design enforces separation of concerns:
-
-- `prep`: Data access and preparation
-- `exec`: Pure computation (no side effects)
-- `post`: Result processing and state updates
-
-All steps are **optional**. For example, you can implement only `prep` and `post` if you just need to process data without external computation.
-{% endhint %}
+- Triggers next actions in the flow
+  - If no action is triggered, defaults to `["default"]`
 
 ```mermaid
 sequenceDiagram
@@ -59,15 +55,50 @@ sequenceDiagram
     Note right of N: Return action string
 ```
 
-## Fault Tolerance & Retries
+## Creating Custom Nodes
 
-Nodes support automatic retries for handling transient failures in `exec()` calls:
+To create a custom node, extend the `Node` class and implement the lifecycle methods:
+
+```typescript
+class TextProcessorNode extends Node {
+  async prep(memory: Memory): Promise {
+    // Read input data
+    return memory.text
+  }
+
+  async exec(text: string): Promise {
+    // Process the text
+    return text.toUpperCase()
+  }
+
+  async post(memory: Memory, input: string, result: string): Promise {
+    // Store the result
+    memory.processedText = result
+
+    // Trigger next node
+    this.trigger('default')
+  }
+}
+```
+
+## Error Handling
+
+Nodes include built-in retry capabilities for handling transient failures in `exec()` calls.
+
+To handle failures gracefully after all retries are exhausted, override the `exec_fallback` method.
 
 {% tabs %}
 {% tab title="Python" %}
 
 ```python
-my_node = MyNode(max_retries=3, wait=10)  # Retry up to 3 times with 10s delay
+my_node = MyNode(max_retries=3, wait=10)  # Retry up to 3 times with 10s between retries
+
+# Custom error handling
+class CustomRetryNode(Node):
+    async def exec_fallback(self, prep_res, error) -> str:
+        # Handle the error after all retries have failed
+        print(f"Failed after {error.retry_count} retries")
+        return "Fallback response"
 ```
 
 {% endtab %}
@@ -75,11 +106,23 @@ my_node = MyNode(max_retries=3, wait=10)  # Retry up to 3 times with 10s delay
 {% tab title="TypeScript" %}
 
 ```typescript
-const myNode = new MyNode({ maxRetries: 3, wait: 10 }) // Retry up to 3 times with 10s delay
+// Create a node with retry options
+const myNode = new MyNode({ maxRetries: 3, wait: 10 }) // Retry up to 3 times with 10s between retries
+
+// Custom error handling
+class CustomRetryNode extends Node {
+  async execFallback(prepRes: string, error: NodeError): Promise {
+    // Handle the error after all retries have failed
+    console.error(`Failed after ${error.retryCount} retries`)
+    return 'Fallback response'
+  }
+}
 ```
 
 {% endtab %}
 {% endtabs %}
+
+By default, `execFallback` just re-raises the exception. You can override it to return a fallback result instead, which becomes the `exec_res` passed to `post()`.
 
 Key retry parameters:
 
@@ -89,250 +132,77 @@ Key retry parameters:
 `wait` is specially helpful when you encounter rate-limits or quota errors from your LLM provider and need to back off.
 During retries, you can access the current retry count (0-based) via `self.cur_retry` (Python) or `this.curRetry` (TypeScript).
 
-{% tabs %}
-{% tab title="Python" %}
+## Connecting Nodes
 
-```python
-class RetryNode(Node):
-    async def exec(self, prep_res):
-        print(f"Retried {self.cur_retry} times")
-        raise Exception("Failed")
-```
+Nodes end their execution by triggering actions in the flow.
+For each action triggered, the flow will run a corresponding node.
+Triggering an action is done using the `trigger(actionName[, forkingData])` method.
 
-{% endtab %}
+{% hint style="info" %}
+We've opted for including the documentation of Node's methods `next()` and `on()` in the [flow's chapter](./flow.md) because they are used primarily as part of the flow composition.
 
-{% tab title="TypeScript" %}
+Please check the [flow's chapter](./flow.md) for details on how to connect nodes, trigger and handle (multiple) actions, and control the process flow.
+{% endhint %}
 
-```typescript
-class RetryNode extends Node {
-  async exec(prepRes: any): Promise {
-    console.log(`Retried ${this.curRetry} times`)
-    throw new Error('Failed')
-  }
-}
-```
-
-{% endtab %}
-{% endtabs %}
-
-## Graceful Fallbacks
-
-To handle failures gracefully after all retries are exhausted, override the `exec_fallback` method:
-
-{% tabs %}
-{% tab title="Python" %}
-
-```python
-async def exec_fallback(self, prep_res, exc):
-    raise exc  # Default behavior is to re-raise
-```
-
-{% endtab %}
-
-{% tab title="TypeScript" %}
+### Single Successor
 
 ```typescript
-async execFallback(prepRes: any, exc: Error): Promise {
-  throw exc;  // Default behavior is to re-raise
-}
-```
-
-{% endtab %}
-{% endtabs %}
-
-By default, this method just re-raises the exception. You can override it to return a fallback result instead, which becomes the `exec_res` passed to `post()`.
-
-## Example: Summarize File
-
-{% tabs %}
-{% tab title="Python" %}
-
-```python
-class SummarizeFile(Node):
-    async def prep(self, shared):
-        return shared["data"]
-
-    async def exec(self, prep_res):
-        if not prep_res:
-            return "Empty file content"
-        prompt = f"Summarize this text in 10 words: {prep_res}"
-        summary = call_llm(prompt)  # might fail
-        return summary
-
-    async def exec_fallback(self, prep_res, exc):
-        # Provide a simple fallback instead of crashing
-        return "There was an error processing your request."
-
-    async def post(self, shared, prep_res, exec_res):
-        shared["summary"] = exec_res
-        # Return "default" by not returning
-
-summarize_node = SummarizeFile(max_retries=3)
-
-async def main():
-    # node.run() calls prep->exec->post
-    # If exec() fails, it retries up to 3 times before calling exec_fallback()
-    action_result = await summarize_node.run(shared)
-    print("Action returned:", action_result)  # "default"
-    print("Summary stored:", shared["summary"])
-
-asyncio.run(main())
-```
-
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-```typescript
-class SummarizeFile extends Node {
-  async prep(shared: any): Promise<any> {
-    return shared['data']
+class RouterNode extends Node {
+  async prep(memory: Memory): Promise {
+    return memory.content
   }
 
-  async exec(prepRes: any): Promise<string> {
-    if (!prepRes) {
-      return 'Empty file content'
+  async exec(content: string): Promise {
+    return detectLanguage(content)
+  }
+
+  async post(memory: Memory, content: string, language: string): Promise {
+    // Trigger different paths based on language
+    this.trigger(language)
+  }
+}
+
+// Connect nodes to different actions
+const router = new RouterNode()
+const englishProcessor = new EnglishProcessorNode()
+const spanishProcessor = new SpanishProcessorNode()
+
+router.on('english', englishProcessor)
+router.on('spanish', spanishProcessor)
+```
+
+### Multiple Successors
+
+Nodes can trigger multiple output paths, effectively turning a single execution into multiple parallel branches, triggering multiple child executions, each with their own [local memory](./memory.md):
+
+```typescript
+class BatchProcessor extends Node {
+  async post(memory: Memory, prepResult: any, items: string[]): Promise {
+    // Process each item in a separate branch
+    for (const item of items) {
+      this.trigger('default', { currentItem: item })
     }
-    const prompt = `Summarize this text in 10 words: ${prepRes}`
-    const summary = await callLLM(prompt) // might fail
-    return summary
-  }
-
-  async execFallback(prepRes: any, exc: Error): Promise<string> {
-    // Provide a simple fallback instead of crashing
-    return 'There was an error processing your request.'
-  }
-
-  async post(shared: any, prepRes: any, execRes: any): Promise<string> {
-    shared['summary'] = execRes
-    // Return "default" by not returning
-  }
-}
-
-const summarizeNode = new SummarizeFile({ maxRetries: 3 })
-
-// node.run() calls prep->exec->post
-// If exec() fails, it retries up to 3 times before calling execFallback()
-const actionResult = await summarizeNode.run(shared)
-
-console.log('Action returned:', actionResult) // "default"
-console.log('Summary stored:', shared['summary'])
-```
-
-{% endtab %}
-{% endtabs %}
-
-## Example: Document Retrieval
-
-{% tabs %}
-{% tab title="Python" %}
-
-```python
-class RetrieveRelevantDocuments(Node):
-    """Node that retrieves relevant documents based on a query."""
-
-    async def prep(self, shared):
-        """Extract query and vector database from shared store."""
-        query = shared["input"]["query"]
-        vector_db = shared["resources"]["vector_db"]
-        return query, vector_db
-
-    async def exec(self, inputs):
-        """Retrieve relevant documents using vector similarity."""
-        query, vector_db = inputs
-
-        # Get query embedding
-        query_embedding = await get_embedding(query)
-
-        # Search vector database
-        results = await vector_db.search(
-            query_embedding,
-            limit=5,
-            min_score=0.7
-        )
-
-        return results
-
-    async def post(self, shared, prep_res, exec_res):
-        """Store retrieved documents in shared store."""
-        shared["processing"]["relevant_documents"] = exec_res
-        shared["metadata"]["processing_steps"].append({
-            "step": "document_retrieval",
-            "timestamp": datetime.now().isoformat(),
-            "document_count": len(exec_res)
-        })
-
-        # Determine next action based on results
-        if not exec_res:
-            return "fallback_search"
-        return "generate_response"
-```
-
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-```typescript
-// Node that retrieves relevant documents based on a query
-class RetrieveRelevantDocuments extends Node {
-  async prep(shared: any): Promise<any> {
-    // Extract query and vector database from shared store
-    const query = shared['input']['query']
-    const vectorDb = shared['resources']['vector_db']
-    return [query, vectorDb]
-  }
-
-  async exec(inputs: any): Promise<any> {
-    // Retrieve relevant documents using vector similarity
-    const [query, vectorDb] = inputs
-
-    // Get query embedding
-    const queryEmbedding = await getEmbedding(query)
-
-    // Search vector database
-    const results = await vectorDb.search(
-      queryEmbedding,
-      limit: 5,
-      minScore: 0.7
-    )
-
-    return results
-  }
-
-  async post(shared: any, prepRes: any, execRes: any): Promise<string> {
-    // Store retrieved documents in shared store
-    shared['processing']['relevant_documents'] = execRes
-    shared['metadata']['processing_steps'].push({
-      'step': 'document_retrieval',
-      'timestamp': new Date().toISOString(),
-      'document_count': execRes.length
-    })
-
-    // Determine next action based on results
-    if (!execRes) {
-      return 'fallback_search'
-    }
-    return 'generate_response'
   }
 }
 ```
-
-{% endtab %}
-{% endtabs %}
 
 ## Running Individual Nodes
 
-Nodes have an extra method `run(shared)`, which calls `prep->exec->post` and returns the action.
+Nodes have an extra method `run(shared)`, which calls `prep → exec → post`. Use it only for debugging or testing a single node!
 
-{% hint style="warning" %}
+{% hint style="danger" %}
 `Node.run` **does not** proceed to a successor!
 
-This method is useful for debugging or testing a single node, but not for running a [flow](./flow.md)!
+This method is useful only for debugging or testing a single node, but not for running a [flow](./flow.md)!
 
 Always use `Flow.run` instead to ensure the full pipeline runs correctly.
 {% endhint %}
 
-Compare it with `Flow.run`:
+## Best Practices
 
-- `node.run(shared)`: Just runs that node alone (calls `prep->exec->post()`), returns an Action.
-- `flow.run(shared)`: Executes from the start node, follows Actions to the next node, and so on until the flow can't continue.
+- **Single Responsibility**: Keep nodes focused on a single task
+- **Read in Prep**: Use the prep phase to gather all required inputs
+- **Process in Exec**: Perform the main work in the exec phase
+- **Write in Post**: Update memory and trigger successors in post
+- **Immutability**: Treat inputs as immutable for predictable behavior
+- **Error Handling**: Use the retry mechanism for resilient flows
