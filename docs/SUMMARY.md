@@ -11,7 +11,7 @@
 - [Overview](core_abstraction/index.md)
 - [Node](core_abstraction/node.md)
 - [Flow](core_abstraction/flow.md)
-- [Communication](core_abstraction/communication.md)
+- [Memory](core_abstraction/memory.md)
 - [Batch](core_abstraction/batch.md)
 
 ## Design Patterns

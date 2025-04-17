@@ -96,7 +96,7 @@ The single file in <a href="https://github.com/zvictor/BrainyFlow/blob/main/pyth
 
 - [Node](https://brainy.gitbook.io/flow/core_abstraction/node) handles simple (LLM) tasks with a clear lifecycle.
 - [Flow](https://brainy.gitbook.io/flow/core_abstraction/flow) connects nodes through **Actions** (labeled edges).
-- [Shared Store](https://brainy.gitbook.io/flow/core_abstraction/communication) enables communication between nodes within flows.
+- [Memory](https://brainy.gitbook.io/flow/core_abstraction/memory) enables communication between nodes within flows.
 - [Batch](https://brainy.gitbook.io/flow/core_abstraction/batch) nodes/flows allow for data-intensive tasks.
 
 From there, it's easy to implement all popular design patterns:

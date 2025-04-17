@@ -34,12 +34,12 @@ This pattern offers several advantages:
 
 BrainyFlow's architecture is based on these fundamental building blocks:
 
-| Component                           | Description             | Key Features                                                                |
-| ----------------------------------- | ----------------------- | --------------------------------------------------------------------------- |
-| [Node](./node.md)                   | The basic unit of work  | Clear lifecycle (`prep → exec → post`), fault tolerance, graceful fallbacks |
-| [Flow](./flow.md)                   | Connects nodes together | Action-based transitions, branching, looping, nesting                       |
-| [Communication](./communication.md) | Enables data sharing    | Shared Store (global), Params (node-specific)                               |
-| [Batch](./batch.md)                 | Handles multiple items  | Sequential or parallel processing, nested batching                          |
+| Component             | Description             | Key Features                                                                |
+| --------------------- | ----------------------- | --------------------------------------------------------------------------- |
+| [Node](./node.md)     | The basic unit of work  | Clear lifecycle (`prep → exec → post`), fault tolerance, graceful fallbacks |
+| [Flow](./flow.md)     | Connects nodes together | Action-based transitions, branching, looping, nesting                       |
+| [Memory](./memory.md) | Enables data sharing    | Shared Store (global), Params (node-specific)                               |
+| [Batch](./batch.md)   | Handles multiple items  | Sequential or parallel processing, nested batching                          |
 
 ## How They Work Together
 
@@ -71,7 +71,7 @@ If you're new to BrainyFlow, we recommend exploring these core abstractions in t
 
 1. [Node](./node.md) - Understand the basic building block
 2. [Flow](./flow.md) - Learn how to connect nodes together
-3. [Communication](./communication.md) - See how nodes share data
+3. [Memory](./memory.md) - See how nodes share data
 4. [Batch](./batch.md) - Explore handling multiple items
 
 Once you understand these core abstractions, you'll be ready to implement various [Design Patterns](../design_pattern/index.md) to solve real-world problems.
