@@ -1,249 +1,154 @@
-# Communication
+# Communication Between Nodes
 
-Nodes and Flows in BrainyFlow communicate through two primary mechanisms:
+BrainyFlow provides a streamlined approach for components to communicate with each other. This chapter explains how data flows through your application.
 
-1. **Shared Store (recommended for most cases)**
+## Memory Types
 
-   - A global data structure (typically an in-memory dictionary) that all nodes can read from (`prep()`) and write to (`post()`)
-   - Ideal for sharing data results, large content, or information needed by multiple nodes
-   - Follows the principle of separation of concerns by keeping data separate from computation logic
+Each flow execution maintains two types of memory:
 
-2. **Params (primarily for [Batch](./batch.md) operations)**
-   - Node-specific configuration passed down from parent flows
-   - Best for identifiers like filenames or IDs, especially in Batch processing
-   - Parameter keys and values should be **immutable** during execution
+1. **Global Memory**: Shared across all nodes
+2. **Local Memory**: Passed from a node to its descendants only
 
-If you know memory management, think of the **Shared Store** like a **heap** (shared by all function calls), and **Params** like a **stack** (assigned by the caller).
+This dual memory system allows for both shared state and isolated communication paths.
 
-## Shared Store
+## Accessing Memory
 
-The Shared Store is the primary communication mechanism in BrainyFlow, embodying the principle of separation between data storage and computation logic.
-
-### Overview
-
-A shared store is typically an in-memory dictionary that serves as a global data repository:
-
-{% tabs %}
-{% tab title="Python" %}
-
-```python
-shared = {
-    "data": {...},
-    "results": {...},
-    "config": {...},
-    # Any other data you need to share
-}
-```
-
-{% endtab %}
-
-{% tab title="TypeScript" %}
+Nodes can read from memory using direct property access:
 
 ```typescript
-const shared = {
-  data: {...},
-  results: {...},
-  config: {...},
-  // Any other data you need to share
+async prep(memory: Memory): Promise {
+  // Read from memory (checks local first, then global)
+  const filePath = memory.filePath;
+  const config = memory.config;
+
+  return filePath;
 }
 ```
 
-{% endtab %}
-{% endtabs %}
+The memory system automatically checks local memory first, then falls back to global memory if the property isn't found locally.
 
-The shared store can also contain file handlers, database connections, or other resources that need to be accessible across nodes.
+## Writing to Memory
 
-### Best Practices
-
-1. **Define a Clear Schema**: Plan your shared store structure before implementation
-2. **Use Namespaces**: Group related data under descriptive keys
-3. **Document Structure**: Comment on expected data types and formats
-4. **Avoid Deep Nesting**: Keep the structure reasonably flat for readability
-
-### Example Usage
-
-{% tabs %}
-{% tab title="Python" %}
-
-```python
-class LoadData(Node):
-    async def post(self, shared, prep_res, exec_res):
-        # Write data to shared store
-        shared["data"] = "Some text content"
-
-class Summarize(Node):
-    async def prep(self, shared):
-        # Read data from shared store
-        return shared["data"]
-
-    async def exec(self, prep_res):
-        # Call LLM to summarize
-        prompt = f"Summarize: {prep_res}"
-        summary = call_llm(prompt)
-        return summary
-
-    async def post(self, shared, prep_res, exec_res):
-        # Write summary to shared store
-        shared["summary"] = exec_res
-
-load_data = LoadData()
-summarize = Summarize()
-load_data >> summarize
-flow = Flow(start=load_data)
-
-shared = {}
-await flow.run(shared)
-```
-
-{% endtab %}
-
-{% tab title="TypeScript" %}
+Writing directly to `memory` affects the global state:
 
 ```typescript
-class LoadData extends Node {
-  async post(shared: Record): Promise {
-    // Write data to shared store
-    shared.data = 'Some text content'
-  }
+async post(memory: Memory, prepResult: string, execResult: string): Promise {
+  // Write to global memory
+  memory.results = execResult;
 }
-
-class Summarize extends Node {
-  async prep(shared: Record): Promise {
-    // Read data from shared store
-    return shared.data
-  }
-
-  async exec(prepRes: string): Promise {
-    // Call LLM to summarize
-    const prompt = `Summarize: ${prepRes}`
-    const summary = await callLLM(prompt)
-    return summary
-  }
-
-  async post(shared: Record, prepRes: string, execRes: string): Promise {
-    // Write summary to shared store
-    shared.summary = execRes
-  }
-}
-
-const loadData = new LoadData()
-const summarize = new Summarize()
-loadData.next(summarize)
-const flow = new Flow(loadData)
-
-const shared = {}
-await flow.run(shared)
 ```
 
-{% endtab %}
-{% endtabs %}
+## Creating Local Memory for Descendants
 
-## Params
+There are two ways to create local memory for downstream nodes:
 
-Params are used to configure nodes and flows with specific, immutable settings—such as filenames, IDs, or other identifiers. They are especially useful in batch processing.
-
-**Key Points:**
-
-- Params are always set using the `.setParams({...})` method on a node or flow.
-- Params are merged for each run: batch item params (outermost) > flow params > node params (innermost).
-- Params are read-only during execution and do not change.
-- Params are for configuration only—never for sharing results or data between nodes.
-
-**How Params Differ from Shared Store:**
-
-- **Params**: Immutable, per-run configuration. Set before execution, never mutated. Used for things like filenames, IDs, or node options.
-- **Shared Store**: Mutable, global data. Used for sharing results, large data, or state between nodes.
-
-**Quick Example:**
-
-Suppose you have a batch flow that processes files, and you set:
-
-- Node params (innermost): `{ language: "en" }`
-- Flow params: `{ language: "es", mode: "fast" }`
-- Batch item params (outermost): `{ filename: "doc1.txt", language: "fr" }`
-
-**Resulting params for this run:**  
-`{ filename: "doc1.txt", language: "fr", mode: "fast" }`
-
-### Example Usage
-
-{% tabs %}
-{% tab title="Python" %}
-
-```python
-# 1) Create a Node that uses params
-class SummarizeFile(Node):
-    async def prep(self, shared):
-        # Access the node's param
-        filename = self.params["filename"]
-        return shared["data"].get(filename, "")
-
-    async def exec(self, prep_res):
-        prompt = f"Summarize: {prep_res}"
-        return call_llm(prompt)
-
-    async def post(self, shared, prep_res, exec_res):
-        filename = self.params["filename"]
-        shared["summary"][filename] = exec_res
-
-# 2) Set params directly on a node (for testing)
-node = SummarizeFile()
-node.set_params({"filename": "doc1.txt"})
-await node.run(shared)
-
-# 3) Set params on a flow (overrides node params)
-flow = Flow(start=node)
-flow.set_params({"filename": "doc2.txt"})
-await flow.run(shared)  # The node summarizes doc2.txt, not doc1.txt
-```
-
-{% endtab %}
-
-{% tab title="TypeScript" %}
+### 1. Using `memory.local`
 
 ```typescript
-// 1) Create a Node that uses params
-class SummarizeFile extends Node {
-  async prep(shared: Record): Promise {
-    // Access the node's param
-    const filename = this.params.filename
-    return shared.data[filename] || ''
-  }
+async post(memory: Memory, prepResult: string, fileList: string[]): Promise {
+  // Store in global memory
+  memory.fileList = fileList;
 
-  async exec(prepRes: string): Promise {
-    const prompt = `Summarize: ${prepRes}`
-    return await callLLM(prompt)
-  }
+  // Set local memory for child nodes
+  memory.local.currentFile = fileList[0];
 
-  async post(shared: Record, prepRes: string, execRes: string): Promise {
-    const filename = this.params.filename
-    shared.summary[filename] = execRes
+  // Trigger default action
+  this.trigger('default');
+}
+```
+
+### 2. Using `trigger()` with forking data
+
+```typescript
+async post(memory: Memory, prepResult: string, fileList: string[]): Promise {
+  // Store all files in global memory
+  memory.fileList = fileList;
+
+  // Process each file individually
+  for (const file of fileList) {
+    // Create local memory for this specific execution branch
+    this.trigger('default', { filePath: file });
+  }
+}
+```
+
+The `trigger()` method activates child nodes with the specified local memory, which is only accessible to those descendants.
+
+## Best Practices
+
+- **Read in `prep()`**: Gather input data at the beginning of execution
+- **Write in `post()`**: Update memory after processing is complete
+- **Always read from `memory`**: Never read directly from `memory.local`
+
+## Type Safety
+
+For better type safety, define your memory structure:
+
+```typescript
+interface MyGlobalMemory {
+  files: string[]
+  config: { apiKey: string }
+  results: Record
+}
+
+interface MyLocalMemory {
+  filePath: string
+  priority: number
+}
+
+class ProcessorNode extends Node {
+  async prep(memory: Memory): Promise {
+    // TypeScript now provides intellisense and type checking
+    return memory.filePath
+  }
+}
+```
+
+## Batch Processing Pattern
+
+A common pattern is to process multiple items in parallel:
+
+```typescript
+// Parent node generates items
+async post(memory: Memory, input: any, items: string[]): Promise {
+  for (const item of items) {
+    this.trigger('default', { currentItem: item });
   }
 }
 
-// 2) Set params directly on a node (for testing)
-const node = new SummarizeFile()
-node.setParams({ filename: 'doc1.txt' })
-await node.run(shared)
-
-// 3) Set params on a flow (overrides node params)
-const flow = new Flow(node)
-flow.setParams({ filename: 'doc2.txt' })
-await flow.run(shared) // The node summarizes doc2.txt, not doc1.txt
+// Child node processes each item independently
+async prep(memory: Memory): Promise {
+  return memory.currentItem; // Gets the local value
+}
 ```
 
-{% endtab %}
-{% endtabs %}
+## When to Use Memory
 
-## Choosing Between Shared Store and Params
+- **Ideal for**: Sharing data results, large content, or information needed by multiple components
+- **Benefits**: Separates data from computation logic (separation of concerns)
+- **Global Memory**: Use for application-wide state, configuration, and final results
+- **Local Memory**: Use for passing contextual data down a specific execution path
 
-| Use Shared Store when...                    | Use Params when...                           |
-| ------------------------------------------- | -------------------------------------------- |
-| Data needs to be accessed by multiple nodes | Configuration is specific to a single node   |
-| Information persists across the entire flow | Working with Batch processing                |
-| Storing large amounts of data               | Passing identifiers or simple values         |
-| Maintaining state throughout execution      | Configuring behavior without affecting state |
+## Technical Concepts
 
-{% hint style="success" %}
-**Best Practice**: Use Shared Store for almost all cases to maintain separation of concerns. Params are primarily useful for Batch processing and node-specific configuration.
-{% endhint %}
+The memory system in BrainyFlow implements several established computer science patterns:
+
+- **Lexical Scoping**: Local memory "shadows" global memory, similar to how local variables in functions can shadow global variables
+- **Context Propagation**: Local memory propagates down the execution tree, similar to how context flows in React or middleware systems
+- **Transparent Resolution**: The system automatically resolves properties from the appropriate memory scope
+
+## Analogy
+
+Think of the memory system like a river delta:
+
+- **Global Memory**: The main river water that flows everywhere
+- **Local Memory**: Specific channels that might carry unique properties that only affect downstream areas fed by that channel
+
+This model gives you the flexibility to share data across your entire flow or isolate it to specific execution paths as needed.
+
+## Remember
+
+1. Always read from `memory` directly
+2. Write to `memory` for global state, `memory.local` for downstream-only state
+3. Use `trigger(action, forkingData)` to start child nodes with specific local memory
+4. Maintain a clear read/write pattern with `prep()` and `post()`
