@@ -1,134 +1,119 @@
-# Communication Between Nodes
+# Memory: Managing State Between Nodes
 
-BrainyFlow provides a streamlined approach for components to communicate with each other. This chapter explains how data flows through your application.
+BrainyFlow provides a streamlined approach for components to communicate with each other. This chapter explains how data is stored, accessed, and isolated.
 
-## Memory Types
+## Memory Scopes: Global vs. Local
 
-Each flow execution maintains two types of memory:
+Each `Memory` instance encapsulates two distinct scopes:
 
-1. **Global Memory**: Shared across all nodes, known to all components in the flow (a _shared store_)
-2. **Local Memory**: Passed from a node to its descendants only (a _local store_)
+1.  **Global Store (`memory`)**: A single object shared across _all_ nodes within a single `flow.run()` execution. Changes made here persist throughout the flow. Think of it as the main shared state.
+2.  **Local Store (`memory.local`)**: An object specific to a particular execution path within the flow. It's created when a node `trigger`s a successor. Changes here are isolated to that specific branch and its descendants.
 
-This dual memory system allows for both shared state and isolated communication paths.
+This dual-scope system allows for both shared application state (global) and controlled, path-specific data propagation (local).
 
 {% hint style="success" %}
-**Real-World Analogy**:
+**Real-World Analogies**:
 
-Think of the memory system like a river delta:
+Think of the memory system like **a river delta**:
 
-- **Global Memory**: The main river water that flows everywhere
-- **Local Memory**: Specific channels that might carry unique properties that only affect downstream areas fed by that channel
+- **Global Store**: The main river water that flows everywhere
+- **Local Store**: Specific channels that might carry unique properties that only affect downstream areas fed by that channel
 
-This model gives you the flexibility to share data across your entire flow or isolate it to specific execution paths as needed.
 
+Alternatively, think of it like **nested scopes in programming**:
+
+- **Global Store**: Like variables declared in the outermost scope of a program, accessible everywhere.
+- **Local Store**: Like variables declared inside a function or block. They are only accessible within that block and any nested blocks (downstream nodes in the flow). If a local variable has the same name as a global one, the local variable "shadows" the global one within its scope.
+
+This model gives you the flexibility to share data across your entire flow (global) or isolate context to specific execution paths (local).
 {% endhint %}
 
-## Accessing Memory
+## Accessing Memory (Reading)
 
-Nodes can read from memory using direct property access:
+Nodes access data stored in either scope through the `memory` proxy instance passed to their `prep` and `post` methods. When you read a property (e.g., `memory.someValue`), the proxy automatically performs a lookup:
+
+1.  It checks the **local store (`memory.local`)** first.
+2.  If the property is not found locally, it checks the **global store (`memory`)**.
 
 ```typescript
-async prep(memory: Memory): Promise {
-  // Read from memory (checks local first, then global)
-  const filePath = memory.filePath;
-  const config = memory.config;
+import { Memory, Node } from 'brainyflow'
 
-  return filePath;
+interface MyGlobal {
+  config?: object
+  commonData?: string
+  pathSpecificData?: string
+}
+interface MyLocal {
+  pathSpecificData?: string
+} // Can shadow global
+
+class MyNode extends Node<MyGlobal, MyLocal> {
+  async prep(memory: Memory<MyGlobal, MyLocal>): Promise<void> {
+    // Reads from global store (assuming not set locally)
+    const config = memory.config
+    const common = memory.commonData
+
+    // Reads from local store if set via forkingData, otherwise reads from global
+    const specific = memory.pathSpecificData
+  }
+  // ... exec, post ...
 }
 ```
 
-The memory system automatically checks local memory first, then falls back to global memory if the property isn't found locally.
-
-## Writing to Memory
-
-- Writing directly to `memory` affects the global state.
-- Writing to `memory.local` affects the local state.
+When accessing memory, you should always use `memory.someValue` and let the `Memory` manager figure out where to fetch the value for you.
+You could also directly access the entire local store object using `memory.local` - or a value at `memory.local.someValue` - but that's an anti-pattern that should be avoided.
 
 ```typescript
-async post(memory: Memory, prepResult: string, fileList: string[]): Promise {
-  // Store in global memory
-  memory.fileList = fileList;
-
-  // Set local memory for current node and its child nodes
-  memory.local.currentFile = fileList[0];
-
-  // Trigger default action (clild node will inherit global & local memories)
-  this.trigger('default');
+async post(memory: Memory<MyGlobal, MyLocal>, /*...*/) {
+    const allLocalData = memory.local; // Access the internal __local object directly
+    console.log('Current local store:', allLocalData);
 }
 ```
 
-### Creating Exclusive Local Memory for a Descendant
+## Writing to Memory (Global Store)
 
-When triggering a child node, you can create exclusive local memory for that downstream node by passing forking data.
+- Writing properties directly onto the `memory` object (e.g., `memory.someValue = 'new data'`) modifies the **global store** by default. The proxy ensures that if a property with the same name existed in the local store, it is removed before setting the global value.
+- Writing properties directly onto the `memory.local` object (e.g., `memory.local.someValue = 'new data'`) modifies the **local store** by default.
+- The primary way to populate the **local store (`memory.local`)** for a specific execution branch is by providing the `forkingData` argument when calling `this.trigger()` in the parent node's `post` method.
 
 ```typescript
-async post(memory: Memory, prepResult: string, fileList: string[]): Promise {
-  // Store metadata in global memory
-  memory.filesAmount = fileList.length;
-  // Make list of files accessible to all child nodes (but not to outer world!)
-  memory.local.fileList = fileList;
+import { Memory, Node } from 'brainyflow'
 
-  // Process each file individually
-  for (const file of fileList) {
-    // Fork local memory for this specific execution branch
-    this.trigger('default', { filePath: file });
+interface MyGlobal {
+  fileList?: string[]
+  processedCount?: number
+}
+interface MyLocal {}
+
+class DataWriterNode extends Node<MyGlobal, MyLocal> {
+  async post(
+    memory: Memory<MyGlobal, MyLocal>,
+    prepRes: any,
+    execRes: { files: string[]; count: number }, // Assume exec returns in this format
+  ): Promise<void> {
+    // --- Writing to Global Store ---
+    // Accessible to all nodes in the flow
+    memory.fileList = execRes.files
+
+    // --- Writing to Local Store ---
+    // Accessible to this node and all descendants
+    memory.processedCount = execRes.count
+
+    console.log('Memory updated:', memory)
+
+    for(const file of fileList)
+      // Trigger next node with exclusive local value for `memory.file` (set at `memory.local.file`)
+      this.trigger('default', { file })
   }
 }
 ```
-
-The `trigger()` method activates child nodes with the specified local memory, which is only accessible to those descendants.
 
 ## Best Practices
 
-- **Read in `prep()`**: Gather input data at the beginning of execution
-- **Write in `post()`**: Update memory after processing is complete
-- **Always read from `memory`**: Never read directly from `memory.local`
-
-## Type Safety
-
-For better type safety, define your memory structure:
-
-```typescript
-interface MyGlobalMemory {
-  files: string[]
-  config: { apiKey: string }
-  results: Record
-}
-
-interface MyLocalMemory {
-  filePath: string
-  priority: number
-}
-
-class ProcessorNode extends Node {
-  async prep(memory: Memory<MyGlobalMemory, MyLocalMemory>): Promise {
-    // TypeScript now provides intellisense and type checking
-    return memory.filePath
-  }
-}
-```
-
-## Batch Processing Pattern
-
-A common pattern that explores the memory system well is to process multiple items in parallel:
-
-```typescript
-class ParentNode extends Node {
-  // Parent node generates items
-  async post(memory: Memory, input: any, items: string[]): Promise {
-    for (const item of items) {
-      this.trigger('default', { currentItem: item })
-    }
-  }
-}
-
-class ChildNode extends Node {
-  // Child node processes each item independently
-  async prep(memory: Memory): Promise {
-    return memory.currentItem // Gets the local value
-  }
-}
-```
+- **Read in `prep()`**: Gather necessary input data from `memory` at the beginning of a node's execution.
+- **Write Global State in `post()`**: Update the shared global store by writing to `memory` (e.g., `memory.results = ...`) in the `post()` phase after processing is complete.
+- **Set Local State via `forkingData`**: Pass branch-specific context to successors by providing the `forkingData` argument in `this.trigger()` within the parent's `post()` method.
+- **Read Transparently**: Always read data via the `memory` proxy (e.g., `memory.someValue`). It handles the local-then-global lookup automatically. Avoid reading directly from `memory.__global` or `memory.__local` unless you have a specific reason.
 
 ## When to Use The Memory
 
@@ -147,7 +132,7 @@ The memory system in BrainyFlow implements several established computer science 
 
 ## Remember
 
-1. Always read from `memory` directly
-2. Write to `memory` for global state, `memory.local` for downstream-only state
-3. Use `trigger(action, forkingData)` to start child nodes with specific local memory
-4. Maintain a clear read/write pattern with `prep()` and `post()`
+1.  **Reading**: Always read via the `memory` proxy (e.g., `memory.value`). It checks local then global.
+2.  **Writing**: Direct assignment `memory.property = value` writes to the **global** store.
+3.  **Local State Creation**: Use `trigger(action, forkingData)` in `post()` to populate the local store for the _next_ node(s) in a specific branch.
+4.  **Lifecycle**: Read in `prep`, compute in `exec` (no memory access), write global state and trigger successors (potentially with `forkingData` for local state) in `post`.

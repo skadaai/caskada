@@ -30,9 +30,9 @@ For more installation options, see the [Installation Guide](./installation.md).
 
 BrainyFlow is built around a minimalist yet powerful abstraction that separates data flow from computation:
 
-- **[Node](./core_abstraction/node.md)**: The fundamental building block that performs a single task with a clear lifecycle (`prep → exec → post`).
+- **[Node](./core_abstraction/node.md)**: The fundamental building block that performs a single task with a clear lifecycle (`prep` → `exec` → `post`).
 - **[Flow](./core_abstraction/flow.md)**: Orchestrates nodes in a directed graph, supporting branching, looping, and nesting.
-- **[Memory](./core_abstraction/memory.md)**: A global data structure that enables communication between nodes.
+- **[Memory](./core_abstraction/memory.md)**: Manages state, separating it into a shared `global` store and a forkable `local` store for isolated data flow between nodes.
 
 ## 3. Your First Flow
 
@@ -88,22 +88,22 @@ import { input } from '@inquirer/prompts'
 import { callLLM } from './utils/callLLM' // Your LLM implementation
 
 class GetQuestionNode extends Node {
-  async prep(shared: Record): Promise {
-    shared.question = await input({ message: 'Enter your question: ' })
+  async prep(memory): Promise {
+    memory.question = await input({ message: 'Enter your question: ' })
   }
 }
 
 class AnswerNode extends Node {
-  async prep(shared: Record): Promise {
-    return shared.question
+  async prep(memory): Promise {
+    return memory.question
   }
 
   async exec(question: string): Promise {
     return await callLLM(question)
   }
 
-  async post(shared: Record, prepRes: string, execRes: string): Promise {
-    shared.answer = execRes
+  async post(memory, prepRes: string, execRes: string): Promise {
+    memory.answer = execRes
   }
 }
 ```
@@ -132,9 +132,11 @@ def create_qa_flow():
     get_question_node = GetQuestionNode()
     answer_node = AnswerNode()
 
-    # Connect nodes: get_question_node → answer_node
-    get_question_node >> answer_node
+    # Connect nodes get_question_node → answer_node using the default action
+    get_question_node >> answer_node // // >> is shorthand for .on('default', node)
 
+    # Create the Flow, specifying the starting node
+    # The Flow itself can be typed with the GlobalStore structure
     return Flow(start=get_question_node)
 ```
 
@@ -149,9 +151,11 @@ function createQaFlow(): Flow {
   const getQuestionNode = new GetQuestionNode()
   const answerNode = new AnswerNode()
 
-  // Connect nodes: getQuestionNode → answerNode
-  getQuestionNode.next(answerNode)
+  // Connect nodes getQuestionNode → answerNode using the default action
+  getQuestionNode.next(answerNode) // .next() is shorthand for .on('default', node)
 
+  // Create the Flow, specifying the starting node
+  // The Flow itself can be typed with the GlobalStore structure
   return new Flow(getQuestionNode)
 }
 ```
@@ -176,10 +180,16 @@ function createQaFlow(): Flow {
 import asyncio
 
 async def main():
-    shared = {}  # Initialize empty shared store
+    shared = {}  # Initialize empty shared store (can be an empty dict)
     qa_flow = create_qa_flow()
+
+    
+    # Run the flow, passing the initial global store.
+    # The run method returns the final execution tree, but we can
+    # access the final state directly from our initial globalStore object.
     await qa_flow.run(shared)
 
+    # Access the results stored in the global store
     print(f"Question: {shared['question']}")
     print(f"Answer: {shared['answer']}")
 
@@ -193,12 +203,18 @@ if __name__ == "__main__":
 
 ```typescript
 async function main() {
-  const shared: Record = {} // Initialize empty shared store
+  // Initialize the global store (can be an empty object)
+  const globalStore: QAGlobalStore = {}
   const qaFlow = createQaFlow()
-  await qaFlow.run(shared)
 
-  console.log(`Question: ${shared.question}`)
-  console.log(`Answer: ${shared.answer}`)
+  // Run the flow, passing the initial global store.
+  // The run method returns the final execution tree, but we can
+  // access the final state directly from our initial globalStore object.
+  await qaFlow.run(globalStore)
+
+  // Access the results stored in the global store
+  console.log(`Question: ${globalStore.question}`)
+  console.log(`Answer: ${globalStore.answer}`)
 }
 
 main().catch(console.error)
@@ -211,7 +227,7 @@ main().catch(console.error)
 
 **Review:** What was achieved here?
 
-- `qaFlow` has executed the flow, writing the user's question and answer to the `shared` store.
+- `qaFlow.run(globalStore)` executed the flow. The `Memory` instance managed the state, and the final `question` and `answer` are available in the `globalStore` object we passed in.
 
 {% endhint %}
 
@@ -219,10 +235,10 @@ main().catch(console.error)
 
 BrainyFlow follows these core design principles:
 
-1. **Separation of Concerns**: Data storage (shared store) is separate from computation logic (nodes)
-2. **Explicit Data Flow**: Data dependencies between steps are clear and traceable
-3. **Composability**: Complex systems are built from simple, reusable components
-4. **Minimalism**: The framework provides only essential abstractions, avoiding vendor-specific implementations
+1. **Separation of Concerns**: Data storage (shared store) is separate from computation logic (`Node` classes).
+2. **Explicit Data Flow**: Data dependencies between steps are clear and traceable through `Memory` access and `prep`/`exec`/`post` results.
+3. **Composability**: Complex systems (`Flow`s) are built from simple, reusable components (`Node`s), and Flows can be nested.
+4. **Minimalism**: The framework provides only essential abstractions (`Node`, `Flow`, `Memory`), avoiding vendor-specific implementations.
 
 ## 5. Next Steps
 

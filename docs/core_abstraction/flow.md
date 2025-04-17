@@ -4,88 +4,9 @@ A **Flow** orchestrates a graph of Nodes, connecting them through action-based t
 
 They manage the execution order, handle data flow between nodes, and provide error handling and cycle detection.
 
-## Action-based Transitions
-
-Each **Node** can trigger multiple actions in the flow. The Node's `trigger(action_name)` method can run inside `post()` to schedule an **Action** string that determines which nodes to execute next. If a Node doesn't trigger anything, the default action `"default"` is used.
-
-### Defining Transitions
-
-{% tabs %}
-{% tab title="Python + sugar 🍭" %}
-
-You can define transitions with syntax sugar:
-
-1. **Basic default transition**: `node_a >> node_b`
-   This means if `node_a` triggers `"default"`, go to `node_b`.
-
-2. **Named action transition**: `node_a - "action_name" >> node_b`
-   This means if `node_a` triggers `"action_name"`, go to `node_b`.
-
-Note that `node_a >> node_b` is equivalent to `node_a - "default" >> node_b`
-
-```python
-# Basic default transition
-node_a >> node_b  # If node_a triggers "default", go to node_b
-
-# Named action transition
-node_a - "success" >> node_b  # If node_a triggers "success", go to node_b
-node_a - "error" >> node_c    # If node_a triggers "error", go to node_c
-```
-
-{% endtab %}
-
-{% tab title="Python" %}
-
-1. **Basic default transition**: `node_a.next(node_b)`
-   This means if `node_a` triggers `"default"`, go to `node_b`.
-
-2. **Named action transition**: `node_a.on('action_name', node_b)` or `node_a.next(node_b, 'action_name')`
-   This means if `node_a` triggers `"action_name"`, go to `node_b`.
-
-Note that `node_a.next(node_b)` is equivalent to both `node_a.next(node_b, 'default')` and `node_a.on('default', node_b)`
-
-```python
-# Basic default transition
-node_a.next(node_b) # If node_a triggers "default", go to node_b
-
-# Named action transition
-node_a.on('success', node_b) # If node_a triggers "success", go to node_b
-node_a.on('error', node_c) # If node_a triggers "error", go to node_c
-
-# Alternative syntax
-node_a.next(node_b, 'success') # Same as node_a.on('success', node_b)
-```
-
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-1. **Basic default transition**: `node_a.next(node_b)`
-   This means if `node_a` triggers `"default"`, go to `node_b`.
-
-2. **Named action transition**: `node_a.on('action_name', node_b)` or `node_a.next(node_b, 'action_name')`
-   This means if `node_a` triggers `"action_name"`, go to `node_b`.
-
-Note that `node_a.next(node_b)` is equivalent to both `node_a.next(node_b, 'default')` and `node_a.on('default', node_b)`
-
-```typescript
-// Basic default transition
-node_a.next(node_b) // If node_a triggers "default", go to node_b
-
-// Named action transition
-node_a.on('success', node_b) // If node_a triggers "success", go to node_b
-node_a.on('error', node_c) // If node_a triggers "error", go to node_c
-
-// Alternative syntax
-node_a.next(node_b, 'success') // Same as node_a.on('success', node_b)
-```
-
-{% endtab %}
-{% endtabs %}
-
 ## Creating a Flow
 
-A Flow begins with a **start node**, a memory state, and follows the action-based transitions (_described above_) until it reaches a node with no matching transition for its returned action.
+A Flow begins with a **start node**, a memory state, and follows the [action-based transitions defined by the nodes](./nodes.md) until it reaches a node with no matching transition for its returned action.
 
 {% tabs %}
 {% tab title="Python" %}
@@ -115,23 +36,35 @@ print(memory)
 {% tab title="TypeScript" %}
 
 ```typescript
-import { Flow } from 'brainyflow'
+import { Flow, Node } from 'brainyflow'
 
-// Define nodes and transitions
-node_a.next(node_b)
-node_b.on('success', node_c)
-node_b.on('error', node_d)
+// Define transitions
+node_a.next(node_b) // Default transition
+node_b.on('success', node_c) // Named transition
+node_b.on('error', node_d) // Named transition
 
-// Create a shared/global store
-const memory = {}
+// Define the expected Global Store structure (optional but recommended)
+interface MyGlobalStore {
+  input?: any
+  result?: any
+  error?: any
+}
+
+// Create a global store object
+const memory: MyGlobalStore = { input: 'some data' }
 
 // Create flow starting with node_a
-const flow = new Flow(node_a)
+const flow = new Flow<MyGlobalStore>(node_a)
 
-// Run the flow with a shared store
+// Run the flow with the store object; The flow will modify the memory object in place.
 await flow.run(memory)
-// Print the results
+
+// Print the final state of the global store
 console.log(memory)
+// Example output (depending on flow logic):
+// { input: 'some data', result: 'processed data from node_c' }
+// or
+// { input: 'some data', error: 'error details from node_d' }
 ```
 
 {% endtab %}
@@ -209,22 +142,23 @@ expense_flow = Flow(start=review)
 {% tab title="TypeScript" %}
 
 ```typescript
+import { Flow, Node } from 'brainyflow'
+
 // Define the nodes first
 // const review = new ReviewExpenseNode()
 // const revise = new ReviseReportNode()
 // const payment = new ProcessPaymentNode()
 // const finish = new FinishProcessNode()
-// ..
 
 // Define the flow connections
 review.on('approved', payment) // If approved, process payment
 review.on('needs_revision', revise) // If needs changes, go to revision
 review.on('rejected', finish) // If rejected, finish the process
 
-revise.next(review) // After revision, go back for another review
-payment.next(finish) // After payment, finish the process
+revise.next(review) // After revision (default trigger), go back for another review
+payment.next(finish) // After payment (default trigger), finish the process
 
-// Create the flow
+// Create the flow, starting with the review node
 const expenseFlow = new Flow(review)
 ```
 
@@ -249,14 +183,16 @@ flowchart TD
 
 ### Flow as a Node
 
-Every Flow is in fact a Node - _`Flow` is a subclass of `Node`_ - which means it can be used as a Node within another Flow, enabling powerful composition patterns.
+Every `Flow` is in fact a specialized type of `Node`. This means a `Flow` itself can be used as a node within another, larger `Flow`, enabling powerful composition and nesting patterns.
 
 {% hint style="info" %}
-The only technical difference from Node is that `Flow` has a specialized `exec()` method that orchestrates its internal nodes and which cannot be overridden.
+The difference from Node is that `Flow` has a specialized `execRunner()` method - _the internal caller of `exec()`_ - that orchestrates its internal nodes and which cannot be overridden.
+As such:
 
-- It inherits the Node lifecycle (`prep → exec → post`)
-- Its `prep()` and `post()` methods keep the same behavior and can be overridden, but `exec()` cannot
-- When run, it executes internal nodes according to their transitions
+- A `Flow`'s primary role is orchestration, not direct computation like a standard `Node`.
+- You cannot override `exec` or `execRunner` in a `Flow`.
+- It still has the `prep` and `post` lifecycle methods, which you _can_ override if you need to perform setup before the sub-flow runs or cleanup/processing after it completes.
+- When a `Flow` used as a node finishes its internal execution, it triggers its _own_ successors in the parent flow based on its `post` method's `trigger` calls (or the default action).
   {% endhint %}
 
 This allows you to:
@@ -312,14 +248,16 @@ const inventoryFlow = new Flow(checkStock)
 createLabel.next(assignCarrier).next(schedulePickup)
 const shippingFlow = new Flow(createLabel)
 
-// Connect the flows into a main order pipeline
-paymentFlow.next(inventoryFlow).next(shippingFlow)
+paymentFlow.next(inventoryFlow) // Default transition after paymentFlow completes
+inventoryFlow.next(shippingFlow) // Default transition after inventoryFlow completes
 
-// Create the master flow
+// Create the master flow, starting with the paymentFlow
 const orderPipeline = new Flow(paymentFlow)
 
-// Run the entire pipeline
-await orderPipeline.run(sharedData)
+// --- Run the entire pipeline ---
+// const sharedData = { orderId: 'XYZ789', customerId: 'CUST123' };
+// await orderPipeline.run(sharedData);
+// console.log('Order pipeline completed. Final state:', sharedData);
 ```
 
 {% endtab %}
@@ -360,39 +298,39 @@ This ensures that the flow does not get stuck in an infinite loop. If a node is 
 const flow = new Flow(startNode, { maxVisits: 10 })
 ```
 
-- The default value is `5`.
-- For no limit, set `maxVisits` to `Infinity`
+- The default value for `maxVisits` is `5`.
+- Set `maxVisits` to `Infinity` for no limit (use with caution!).
+- If a node is visited more times than `maxVisits` during a single `flow.run()`, an error will be thrown.
 
 ## Flow Parallelism
 
 BrainyFlow offers two built-in types - and the possibility to create custom ones\_ - of flows that provide different levels of parallelism when nodes trigger multiple successors:
 
-### 1. Sequential Flow
+### 1. `Flow` (Sequential Execution)
 
-The default `Flow` class executes nodes sequentially, waiting for each node to complete before proceeding to the next one.
+The default `Flow` class executes the tasks generated by multiple triggers **sequentially**. It waits for the entire branch initiated by the first trigger to complete before starting the branch for the second trigger, and so on.
 
 ```typescript
 const sequentialFlow = new Flow(startNode)
 ```
 
-### 2. Parallel Flow
+### 2. `ParallelFlow` (Concurrent Execution)
 
-The `ParallelFlow` class executes multiple branches in parallel when a node triggers multiple successors.
+The `ParallelFlow` class executes the tasks generated by multiple triggers **concurrently** using `Promise.all()`. This is useful for performance when branches are independent (e.g., batch processing items).
 
 ```typescript
+// Executes triggered branches in parallel
 const parallelFlow = new ParallelFlow(startNode)
-
-// Useful for batch processing or independent tasks
-await parallelFlow.run(initialMemory)
 ```
 
-### Custom Runners
+### Custom Execution Logic (Overriding `runTasks`)
 
-You can also create custom flow runners that process each triggered/node in the way you want. You are free to implement queueing, threading, or any other parallel execution pattern by overriding the `runTasks(tasks)` method.
+For more advanced control over how triggered branches are executed, you can extend `Flow` (or `ParallelFlow`) and override the `runTasks` method. This method receives an array of functions, where each function represents the execution of one triggered branch.
 
 ```typescript
 class CustomExecutionFlow<GlobalStore, AllowedActions> extends Flow<GlobalStore, AllowedActions> {
   async runTasks<T>(tasks: (() => T)[]): Promise<Awaited<T>[]> {
+    await seep(5000)
     return await Promise.all(tasks.map((task) => task()))
   }
 }
@@ -400,19 +338,18 @@ class CustomExecutionFlow<GlobalStore, AllowedActions> extends Flow<GlobalStore,
 
 ## Best Practices
 
-- **Start Simple**: Begin with a linear flow and add branching/looping as needed
-- **Visualize First**: Sketch your flow diagram before coding
-- **Flow Modularity**: Design flows as reusable components
-- **Memory Planning**: Plan your global and local memory structure upfront
-- **Document Transitions**: Add comments explaining the conditions for each transition
-- **Action Naming**: Use descriptive action names for branching
-- **Cycle Prevention**: Be cautious with circular references between nodes
-- **Error Strategy**: Decide whether errors should terminate the flow or be handled gracefully
-- **Test Incrementally**: Build and test one section of your flow at a time
-- **Diverse Testing**: Test flows with different input scenarios
-- **Error Handling**: Always include paths for handling errors
-- **Avoid Deep Nesting**: Keep nesting to a resoanable level, for maintainability
-- **Memory Isolation**: Use local memory to isolate parallel processing branches
+- **Start Simple**: Begin with a linear flow and add branching/looping complexity gradually.
+- **Visualize First**: Sketch your flow diagram (using Mermaid or similar tools) before coding to clarify logic.
+- **Flow Modularity**: Design flows as reusable components. Break down complex processes into smaller, nested sub-flows.
+- **Memory Planning**: Define clear interfaces for your `GlobalStore` and `LocalStore` upfront. Decide what state needs to be global versus what can be passed locally via `forkingData`.
+- **Action Naming**: Use descriptive, meaningful action names (e.g., 'user_clarification_needed', 'data_validated') instead of generic names like 'next' or 'step2'.
+- **Explicit Transitions**: Clearly define transitions for all expected actions a node might trigger. Consider adding default `.next()` transitions for unexpected or completion actions.
+- **Cycle Management**: Be mindful of loops. Use the `maxVisits` option in the `Flow` constructor to prevent accidental infinite loops.
+- **Error Strategy**: Decide how errors should propagate. Should a node's `execFallback` handle errors and allow the flow to continue, or should errors terminate the flow? Define specific error actions (`node.on('error', errorHandlerNode)`) if needed.
+- **Parallelism Choice**: Use `ParallelFlow` when branches are independent and can benefit from concurrent execution. Stick with `Flow` (sequential) if branches have dependencies or shared resource contention.
+- **Memory Isolation**: Leverage `forkingData` in `trigger` calls to pass data down specific branches via the `local` store, keeping the `global` store cleaner. This is crucial for parallel execution.
+- **Test Incrementally**: Test individual nodes using `node.run()` and test sub-flows before integrating them into larger pipelines.
+- **Avoid Deep Nesting**: While nesting flows is powerful, keep the hierarchy reasonably flat (e.g., 2-3 levels deep) for maintainability.
 
 Flows provide the orchestration layer that determines how your nodes interact, ensuring that data moves predictably through your application and that execution follows your intended paths.
 

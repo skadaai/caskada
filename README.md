@@ -7,7 +7,8 @@
 <p>
 
 <p align="center">
-  A <a href="https://github.com/zvictor/BrainyFlow/blob/main/python/brainyflow.py">65-line</a> minimalist AI framework 🤯
+  A minimalist AI framework (<a href="https://github.com/zvictor/BrainyFlow/blob/main/python/brainyflow.py">65 lines in Python</a>! 🤯)
+
   <br />
   <sub>Let Agents build Agents with zero bloat, zero dependencies, zero vendor lock-in 😮</sub>
 </p>
@@ -43,7 +44,7 @@ It enables both humans and AI assistants to collaborate effectively on designing
 - **Freedom 🔓**: Zero bloat, zero dependencies, zero vendor lock-in.
 - **Composable 🧩**: Build complex systems from simple, reusable components
 - **Powerful 🦾**: Supports everything you love—([Multi-](https://brainy.gitbook.io/flow/design_pattern/multi_agent))[Agents](https://brainy.gitbook.io/flow/design_pattern/agent), [Workflow](https://brainy.gitbook.io/flow/design_pattern/workflow), [RAG](https://brainy.gitbook.io/flow/design_pattern/rag), and more.
-- **Agentic-Coding 🤖**: Let AI Agents (e.g., Cursor AI) build Agents for 10x productivity
+- **Agentic-Coding 🤖**: Let AI Agents (e.g., Cursor AI, Codex) build Agents for 10x productivity
 - **Universal 🌈**: Works with any LLM provider or API
 - **Polyglot 🌍**: <!-- gitbook-ignore-start --><a href="https://pypi.org/project/brainyflow"><img src="https://iconduck.com/vectors/vctrahatphfa/media/svg/download" width="16" height="16" alt="Python Logo" style="vertical-align: middle; margin: 0 2px;"></a><!-- gitbook-ignore-end --> Python and <!-- gitbook-ignore-start --><a href="https://npmjs.com/packages/brainyflow"><img src="https://iconduck.com/vectors/vctrk180y7wy/media/svg/download" width="16" height="16" alt="Typescript Logo" style="vertical-align: middle; margin: 0 2px;"></a><!-- gitbook-ignore-end --> Typescript are both supported.
 
@@ -71,14 +72,15 @@ Current LLM frameworks are bloated... You actually only need 65 lines for a robu
 <div align="center">
   <img src="https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/meme.jpg" width="500"/>
 
-|                | **Abstraction** |                     **App-Specific Wrappers**                      |                       **Vendor-Specific Wrappers**                       |                **Lines**                 |                  **Size**                   |
-| -------------- | :-------------: | :----------------------------------------------------------------: | :----------------------------------------------------------------------: | :--------------------------------------: | :-----------------------------------------: |
-| LangChain      |  Agent, Chain   |      Many <br><sup><sub>(e.g., QA, Summarization)</sub></sup>      |      Many <br><sup><sub>(e.g., OpenAI, Pinecone, etc.)</sub></sup>       |                   405K                   |                   +166MB                    |
-| CrewAI         |  Agent, Chain   | Many <br><sup><sub>(e.g., FileReadTool, SerperDevTool)</sub></sup> | Many <br><sup><sub>(e.g., OpenAI, Anthropic, Pinecone, etc.)</sub></sup> |                   18K                    |                   +173MB                    |
-| SmolAgent      |      Agent      |   Some <br><sup><sub>(e.g., CodeAgent, VisitWebTool)</sub></sup>   |  Some <br><sup><sub>(e.g., DuckDuckGo, Hugging Face, etc.)</sub></sup>   |                    8K                    |                   +198MB                    |
-| LangGraph      |  Agent, Graph   |       Some <br><sup><sub>(e.g., Semantic Search)</sub></sup>       | Some <br><sup><sub>(e.g., PostgresStore, SqliteSaver, etc.) </sub></sup> |                   37K                    |                    +51MB                    |
-| AutoGen        |      Agent      |   Some <br><sup><sub>(e.g., Tool Agent, Chat Agent)</sub></sup>    | Many <sup><sub>[Optional]<br> (e.g., OpenAI, Pinecone, etc.)</sub></sup> | 7K <br><sup><sub>(core-only)</sub></sup> | +26MB <br><sup><sub>(core-only)</sub></sup> |
-| **BrainyFlow** |    **Graph**    |                              **None**                              |                                 **None**                                 |                  **65**                  |                 **few KB**                  |
+|                                                                                                                                                                                              | **Abstraction** |                     **App-Specific Wrappers**                      |                       **Vendor-Specific Wrappers**                       |                **Lines**                 |                  **Size**                   |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------: | :----------------------------------------------------------------: | :----------------------------------------------------------------------: | :--------------------------------------: | :-----------------------------------------: |
+| LangChain                                                                                                                                                                                    |  Agent, Chain   |      Many <br><sup><sub>(e.g., QA, Summarization)</sub></sup>      |      Many <br><sup><sub>(e.g., OpenAI, Pinecone, etc.)</sub></sup>       |                   405K                   |                   +166MB                    |
+| CrewAI                                                                                                                                                                                       |  Agent, Chain   | Many <br><sup><sub>(e.g., FileReadTool, SerperDevTool)</sub></sup> | Many <br><sup><sub>(e.g., OpenAI, Anthropic, Pinecone, etc.)</sub></sup> |                   18K                    |                   +173MB                    |
+| SmolAgent                                                                                                                                                                                    |      Agent      |   Some <br><sup><sub>(e.g., CodeAgent, VisitWebTool)</sub></sup>   |  Some <br><sup><sub>(e.g., DuckDuckGo, Hugging Face, etc.)</sub></sup>   |                    8K                    |                   +198MB                    |
+| LangGraph                                                                                                                                                                                    |  Agent, Graph   |       Some <br><sup><sub>(e.g., Semantic Search)</sub></sup>       | Some <br><sup><sub>(e.g., PostgresStore, SqliteSaver, etc.) </sub></sup> |                   37K                    |                    +51MB                    |
+| AutoGen                                                                                                                                                                                      |      Agent      |   Some <br><sup><sub>(e.g., Tool Agent, Chat Agent)</sub></sup>    | Many <sup><sub>[Optional]<br> (e.g., OpenAI, Pinecone, etc.)</sub></sup> | 7K <br><sup><sub>(core-only)</sub></sup> | +26MB <br><sup><sub>(core-only)</sub></sup> |
+| **BrainyFlow** <!-- gitbook-ignore-start --><img src="https://iconduck.com/vectors/vctrk180y7wy/media/svg/download" width="16" height="16" alt="Typescript Logo"><!-- gitbook-ignore-end --> |    **Graph**    |                              **None**                              |                                 **None**                                 |                 **300**                  |                 **few KB**                  |
+| **BrainyFlow** <!-- gitbook-ignore-start --><img src="https://iconduck.com/vectors/vctrahatphfa/media/svg/download" width="16" height="16" alt="Python Logo"><!-- gitbook-ignore-end -->     |    **Graph**    |                              **None**                              |                                 **None**                                 |                  **65**                  |                 **few KB**                  |
 
 </div>
 
@@ -94,10 +96,9 @@ The single file in <a href="https://github.com/zvictor/BrainyFlow/blob/main/pyth
 </div>
 <br>
 
-- [Node](https://brainy.gitbook.io/flow/core_abstraction/node) handles simple (LLM) tasks with a clear lifecycle.
-- [Flow](https://brainy.gitbook.io/flow/core_abstraction/flow) connects nodes through **Actions** (labeled edges).
-- [Memory](https://brainy.gitbook.io/flow/core_abstraction/memory) enables communication between nodes within flows.
-- [Batch](https://brainy.gitbook.io/flow/core_abstraction/batch) nodes/flows allow for data-intensive tasks.
+- [Node](https://brainy.gitbook.io/flow/core_abstraction/node) handles simple (LLM) tasks with a clear lifecycle (`prep` → `exec` → `post`).
+- [Flow](https://brainy.gitbook.io/flow/core_abstraction/flow) connects nodes through **Actions** (labeled edges), orchestrating execution.
+- [Memory](https://brainy.gitbook.io/flow/core_abstraction/memory) manages shared (`global`) and isolated (`local`) state, enabling communication between nodes.
 
 From there, it's easy to implement all popular design patterns:
 <br>
@@ -148,7 +149,7 @@ And many more available for all levels! [Check them all out!](https://github.com
 
 - Want to learn **Agentic Coding**?
   - To setup, read this [post](https://zacharyhuang.substack.com/p/agentic-coding-the-most-fun-way-to)!
-  - Check out [my YouTube](https://www.youtube.com/@ZacharyLLM?sub_confirmation=1)! Read this [Guide](https://brainy.gitbook.io/flow/agentic_coding)!
+  - Check out [my YouTube](https://www.youtube.com/@ZacharyLLM?sub_confirmation=1)! Read this [Guide](https://brainy.gitbook.io/flow/guides/agentic_coding)!
 - Want to build your own LLM App? Start with our [Python template](https://github.com/zvictor/Brainyflow-Template-Python) or [Typescript template](https://github.com/zvictor/Brainyflow-Template-Typescript)!
 
 ![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png) -->
