@@ -107,6 +107,50 @@ class TestBaseNodeAndNode:
             assert memory.prep_done is True
             assert memory.post_done is True
 
+    class TestSyntaxSugar:
+        """Tests for Python-specific syntax sugar."""
+        
+        async def test_default_transition_operator(self):
+            """Should support node_a >> node_b syntax."""
+            node_a = SimpleNode()
+            node_b = SimpleNode()
+            
+            node_a >> node_b
+            
+            assert node_a.get_next_nodes() == [node_b]
+            assert node_a.get_next_nodes("other") == []
+
+        async def test_named_action_transition_operator(self):
+            """Should support node_a - "action" >> node_b syntax."""
+            node_a = SimpleNode()
+            node_b = SimpleNode()
+            node_c = SimpleNode()
+            
+            node_a - "success" >> node_b
+            node_a - "error" >> node_c
+            
+            assert node_a.get_next_nodes("success") == [node_b]
+            assert node_a.get_next_nodes("error") == [node_c]
+            assert node_a.get_next_nodes() == []
+
+        async def test_combined_operators(self):
+            """Should support combining default and named transitions."""
+            node_a = SimpleNode()
+            node_b = SimpleNode()
+            node_c = SimpleNode()
+            node_d = SimpleNode()
+            
+            # Mix operators
+            node_a >> node_b
+            node_a - "alt" >> node_c
+            node_b >> node_d
+            
+            assert node_a.get_next_nodes() == [node_b]
+            assert node_a.get_next_nodes("alt") == [node_c]
+            assert node_b.get_next_nodes() == [node_d]
+            assert node_c.get_next_nodes() == []
+            assert node_d.get_next_nodes() == []
+
     class TestGraphConnections:
         """Tests for node connection methods (on, next, get_next_nodes)."""
         

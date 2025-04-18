@@ -136,7 +136,26 @@ class BaseNode(ABC):
     def next(self, node, action=DEFAULT_ACTION):
         """Convenience method equivalent to on()."""
         return self.on(action, node)
-    
+
+    # Python-specific syntax sugar
+    def __rshift__(self, other):
+        """Implement node_a >> node_b syntax for default action"""
+        return self.next(other)
+
+    def __sub__(self, action):
+        """Implement node_a - "action" syntax for action selection"""
+        return self.ActionLinker(self, action)
+
+    class ActionLinker:
+        """Helper class for action-specific transitions"""
+        def __init__(self, node, action):
+            self.node = node
+            self.action = action
+
+        def __rshift__(self, other):
+            """Implement - "action" >> node_b syntax"""
+            return self.node.on(self.action, other)
+
     def get_next_nodes(self, action=DEFAULT_ACTION):
         """Get successor nodes for a specific action."""
         next_nodes = self.successors.get(action, [])
