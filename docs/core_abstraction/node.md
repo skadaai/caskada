@@ -243,7 +243,6 @@ node_a.next(node_b, 'success') # Same as node_a.on('success', node_b)
 
 Note that `node_a.next(node_b)` is equivalent to both `node_a.next(node_b, 'default')` and `node_a.on('default', node_b)`. Both methods return the _successor_ node (`node_b` in this case), allowing for chaining.
 
-
 ```typescript
 // Basic default transition
 node_a.next(node_b) // If node_a triggers "default", go to node_b
@@ -310,7 +309,7 @@ const flow = new Flow(router)
 // --- Execution ---
 // const store = { content: "Hello world" } // Will trigger englishProcessor
 // const store = { content: "Hola mundo" } // Will trigger spanishProcessor
-await flow.run(store);
+await flow.run(store)
 console.log(store)
 ```
 
@@ -330,10 +329,14 @@ class ItemProcessorNode extends Node<any, { currentItem: string }> {
     console.log(`Processing item: ${item}`)
     // ... perform processing ...
   }
-  async post(memory: Memory<any, { currentItem: string }>, prepRes: string, execRes): Promise<void> {
+  async post(
+    memory: Memory<any, { currentItem: string }>,
+    prepRes: string,
+    execRes,
+  ): Promise<void> {
     // Optionally write results back to global store
-    memory.results = [...(memory.results || []), `Processed ${memory.currentItem}`];
-    memory[memory.currentItem] = execRes;
+    memory.results = [...(memory.results || []), `Processed ${memory.currentItem}`]
+    memory[memory.currentItem] = execRes
   }
 }
 
@@ -402,7 +405,6 @@ async node.run(memory: Memory | GlobalStore): Promise<ExecResult | void>
 // Run with propagate: true - returns triggers for Flow execution
 async node.run(memory: Memory | GlobalStore, propagate: true): Promise<[Action, Memory][]>
 ```
-
 
 ## Best Practices
 
