@@ -41,7 +41,7 @@ The agent flow comprises three nodes:
 
 The flow starts with the DecideNode, which decides whether to search (triggering ApprovalNode) or answer (triggering AnswerNode) based on the current context. This decision is made in the `post` method, which returns either "search" or "answer".
 
-Before the application will perform any tool calling task, ApprovalNode will prompt user and ask for permission to perform a tool call (SearchNode, in this case) and return a "search" action in order user approve a tool call or "done" and exit the app if user disapprove, also if user give answer other than "yes" or "no" it will decide what to do again with DecideNode 
+Before the application performs any tool calling task, the ApprovalNode will prompt the user and ask for permission. If the user approves (by answering "yes"), it returns a "search" action to proceed with the tool call. If the user disapproves (by answering "no"), it returns "done" and exits the app. For any other response, it returns to the DecideNode to determine the next step.
 
 After completing a search, the SearchNode's `post` method returns results to the DecideNode via the "decide" action. This allows the DecideNode to determine whether to search again or provide a final answer when the context is sufficient.
 
