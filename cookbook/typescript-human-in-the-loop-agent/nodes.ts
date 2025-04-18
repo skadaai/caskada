@@ -203,8 +203,7 @@ export class AnswerNode extends Node {
 
     async post(
         shared: SearchAgentSharedContext,
--       prepRes?: string,
-+       prepRes?: { question: string; context: string },
+        prepRes?: { question: string; context: string },
         execRes?: string
     ) {
         if (!prepRes) {
