@@ -41,3 +41,4 @@
 - [Visualization & Logging](guides/visualization_logging.md)
 - [Testing](guides/testing.md)
 - [Migrating from PocketFlow](guides/migrating_from_pocketflow.md)
+- [Migrating from Older Versions](guides/migration.md)

@@ -55,7 +55,7 @@ sequenceDiagram
     Note right of N: Return exec_res
 
     N->>S: 3. post(shared, prep_res, exec_res): Write to shared store
-    Note right of N: Return action string
+    Note right of N: Trigger next actions
 ```
 
 ## Creating Custom Nodes
@@ -98,7 +98,7 @@ During retries, you can access the current retry count (0-based) via `self.cur_r
 
 To handle failures gracefully after all retry attempts for `exec()` are exhausted, override the `execFallback` method.
 
-By default, `execFallback` just re-raises the exception. You can override it to return a fallback result instead, which becomes the `exec_res` passed to `post()`, allowing the flow to potentially continue..
+By default, `execFallback` just re-raises the exception. You can override it to return a fallback result instead, which becomes the `exec_res` passed to `post()`, allowing the flow to potentially continue.
 
 {% tabs %}
 {% tab title="Python" %}
@@ -115,7 +115,7 @@ class CustomErrorHandlingNode(Node):
     async def exec_fallback(self, prep_res, error) -> str:
         # This is called only if exec fails on the last attempt
         print(f"Exec failed after {error.retry_count + 1} attempts: {error}")
-        # Return a fallback value instead of throwing
+        # Return a fallback value instead of raising error
         return "Fallback response due to repeated errors"
 
     async def post(self, memory, prep_res, exec_res):
@@ -191,7 +191,7 @@ While `trigger` determines _which_ path to take _during_ execution, you define t
 You can define transitions with syntax sugar:
 
 1. **Basic default transition**: `node_a >> node_b`
-   This means if `node_a` triggers `"default"`, go to `node_b`.
+   This means if `node_a` triggers the default action, go to `node_b`.
 
 2. **Named action transition**: `node_a - "action_name" >> node_b`
    This means if `node_a` triggers `"action_name"`, go to `node_b`.
@@ -202,7 +202,7 @@ Note that `node_a >> node_b` is equivalent to `node_a - "default" >> node_b`
 # Basic default transition
 node_a >> node_b  # If node_a triggers "default", go to node_b
 
-# Named action transition
+# Named action transitions
 node_a - "success" >> node_b  # If node_a triggers "success", go to node_b
 node_a - "error" >> node_c    # If node_a triggers "error", go to node_c
 ```

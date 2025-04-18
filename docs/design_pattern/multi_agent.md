@@ -1,13 +1,13 @@
-# Multi-Agents (Advanced)
+# Multi-Agent Systems Pattern
 
-Multiple [Agents](./flow.md) can work together by handling subtasks and communicating the progress.
-Communication between agents is typically implemented using message queues in shared storage.
+The multi-agent pattern enables complex behaviors by coordinating multiple specialized agents. Each agent focuses on a specific capability while communicating through shared memory and queues.
 
 {% hint style="success" %}
 Most of time, you don't need Multi-Agents. Start with a simple solution first.
 {% endhint %}
 
-### Example Agent Communication: Message Queue
+
+## Example: Agent Communication through Message Queue
 
 Here's a simple example showing how to implement agent communication using `asyncio.Queue`.
 The agent listens for messages, processes them, and continues listening:
@@ -167,69 +167,178 @@ Agent received: Network connectivity: stable | timestamp_2
 Agent received: Processing load: optimal | timestamp_3
 ```
 
-### Interactive Multi-Agent Example: Taboo Game
+## Example: Word Guessing Game (Taboo)
 
-Here's a more complex example where two agents play the word-guessing game Taboo.
-One agent provides hints while avoiding forbidden words, and another agent tries to guess the target word:
+Two agents collaborate in a word guessing game:
+
+- **Hinter**: Provides clues without using forbidden words
+- **Guesser**: Attempts to guess the target word based on hints
 
 {% tabs %}
 {% tab title="Python" %}
 
 ```python
-import asyncio
 from brainyflow import Node, Flow
+from utils import call_llm
+import asyncio
 
 class Hinter(Node):
-    async def prep(self, shared):
-        guess = await shared["hinter_queue"].get()
-        if guess == "GAME_OVER":
+    async def prep(self, memory):
+        """Get the next hint or game state"""
+        if hasattr(memory, 'guesser_queue'):
+            try:
+                guess = await memory.guesser_queue.get()
+                if guess == "GAME_OVER":
+                    return None
+                return {"guess": guess}
+            except asyncio.QueueEmpty:
+                pass
+        return {}
+
+    async def exec(self, prep_res):
+        """Generate a hint avoiding forbidden words"""
+        if prep_res is None:  # Game over
             return None
-        return shared["target_word"], shared["forbidden_words"], shared.get("past_guesses", [])
 
-    async def exec(self, inputs):
-        if inputs is None:
-            return None
-        target, forbidden, past_guesses = inputs
-        prompt = f"Generate hint for '{target}'\nForbidden words: {forbidden}"
-        if past_guesses:
-            prompt += f"\nPrevious wrong guesses: {past_guesses}\nMake hint more specific."
-        prompt += "\nUse at most 5 words."
+        prompt = f"""
+Given target word: {memory.target_word}
+Forbidden words: {memory.forbidden_words}
+Last wrong guess: {prep_res.get('guess')}
+Generate a creative hint that helps guess the target word without using forbidden words.
+Reply only with the hint text.
+"""
+        return await call_llm(prompt)
 
-        hint = call_llm(prompt)
-        print(f"\nHinter: Here's your hint - {hint}")
-        return hint
-
-    async def post(self, shared, prep_res, exec_res):
-        if exec_res is None:
+    async def post(self, memory, prep_res, hint):
+        if hint is None:
             return "end"
-        await shared["guesser_queue"].put(exec_res)
-        return "continue"
+        await memory.hinter_queue.put(hint)
+        self.trigger('continue')
 
 class Guesser(Node):
-    async def prep(self, shared):
-        hint = await shared["guesser_queue"].get()
-        return hint, shared.get("past_guesses", [])
+    async def prep(self, memory):
+        hint = await memory.guesser_queue.get()
+        return {"hint": hint, "past_guesses": memory.past_guesses if hasattr(memory, 'past_guesses') else []}
 
-    async def exec(self, inputs):
-        hint, past_guesses = inputs
-        prompt = f"Given hint: {hint}, past wrong guesses: {past_guesses}, make a new guess. Directly reply a single word:"
-        guess = call_llm(prompt)
-        print(f"Guesser: I guess it's - {guess}")
-        return guess
+    async def exec(self, prep_res):
+        """Make a guess based on the hint"""
+        hint = prep_res["hint"]
+        past_guesses = prep_res["past_guesses"]
+        prompt = f"""
+Given hint: {hint}
+Past wrong guesses: {past_guesses}
+Make a new guess for the target word.
+Reply only with the guessed word.
+"""
+        return await call_llm(prompt)
 
-    async def post(self, shared, prep_res, exec_res):
-        if exec_res.lower() == shared["target_word"].lower():
-            print("Game Over - Correct guess!")
-            await shared["hinter_queue"].put("GAME_OVER")
-            return "end"
+    async def post(self, memory, prep_res, guess):
+        if guess.lower() == memory.target_word.lower():
+            print('Game Over - Correct guess!')
+            await memory.hinter_queue.put("GAME_OVER")
+            self.trigger('end')
+            return
 
-        if "past_guesses" not in shared:
-            shared["past_guesses"] = []
-        shared["past_guesses"].append(exec_res)
+        # Update past guesses
+        if not hasattr(memory, 'past_guesses'):
+            memory.past_guesses = []
+        memory.past_guesses.append(guess)
 
-        await shared["hinter_queue"].put(exec_res)
-        return "continue"
+        await memory.hinter_queue.put(guess)
+        self.trigger('continue')
+```
 
+{% endtab %}
+
+{% tab title="TypeScript" %}
+
+```typescript
+import { Memory, Node } from 'brainyflow'
+import { callLLM } from '../utils/callLLM'
+
+class Hinter extends Node {
+  async prep(memory: Memory): Promise<any> {
+    if (memory.guesserQueue) {
+      try {
+        const guess = await memory.guesserQueue.get()
+        if (guess === 'GAME_OVER') {
+          return null
+        }
+        return { guess }
+      } catch (e) {
+        // Queue empty
+      }
+    }
+    return {}
+  }
+
+  async exec(prepRes: any): Promise<string | null> {
+    if (prepRes === null) return null
+
+    const prompt = `
+Given target word: ${memory.targetWord}
+Forbidden words: ${memory.forbiddenWords}
+Last wrong guess: ${prepRes.guess || ''}
+Generate a creative hint that helps guess the target word without using forbidden words.
+Reply only with the hint text.
+`
+    return await callLLM(prompt)
+  }
+
+  async post(memory: Memory, data: any, hint: string | null): Promise<void> {
+    if (hint === null) {
+      this.trigger('end')
+      return
+    }
+    await memory.hinterQueue.put(hint)
+    this.trigger('continue')
+  }
+}
+
+class Guesser extends Node {
+  async prep(memory: Memory): Promise<any> {
+    const hint = await memory.guesserQueue.get()
+    return {
+      hint,
+      pastGuesses: memory.pastGuesses || [],
+    }
+  }
+
+  async exec(prepRes: any): Promise<string> {
+    const prompt = `
+Given hint: ${prepRes.hint}
+Past wrong guesses: ${prepRes.pastGuesses}
+Make a new guess for the target word.
+Reply only with the guessed word.
+`
+    return await callLLM(prompt)
+  }
+
+  async post(memory: Memory, prepRes: any, guess: string): Promise<void> {
+    if (guess.toLowerCase() === memory.targetWord.toLowerCase()) {
+      console.log('Game Over - Correct guess!')
+      await memory.hinterQueue.put('GAME_OVER')
+      this.trigger('end')
+      return
+    }
+
+    // Update past guesses
+    memory.pastGuesses = [...(memory.pastGuesses || []), guess]
+    await memory.hinterQueue.put(guess)
+    this.trigger('continue')
+  }
+}
+```
+
+{% endtab %}
+{% endtabs %}
+
+## Running the Game
+
+{% tabs %}
+{% tab title="Python" %}
+
+```python
 async def main():
     # Set up game
     shared = {
@@ -272,77 +381,6 @@ asyncio.run(main())
 {% tab title="TypeScript" %}
 
 ```typescript
-import { Flow, Memory, Node } from 'brainyflow'
-
-declare function callLLM(prompt: string): Promise<string> // Assuming callLLM is defined elsewhere
-
-class Hinter extends Node {
-  async prep(memory: Memory): Promise<any> {
-    const guess = await memory.hinterQueue.get() // Read from queue in memory
-    if (guess === 'GAME_OVER') {
-      return null // Signal to stop
-    }
-    // Return data needed for exec
-    return {
-      target: memory.targetWord,
-      forbidden: memory.forbiddenWords,
-      pastGuesses: memory.pastGuesses ?? [],
-    }
-  }
-
-  async exec(prepRes: any): Promise<string | null> {
-    if (!prepRes) return null // Stop if prep returned null
-    const { target, forbidden, pastGuesses } = prepRes
-    let prompt = `Generate hint for '${target}'\nForbidden words: ${forbidden}`
-    if (pastGuesses.length > 0) {
-      prompt += `\nPrevious wrong guesses: ${pastGuesses}\nMake hint more specific.`
-    }
-    prompt += '\nUse at most 5 words.'
-
-    const hint = await callLLM(prompt)
-    console.log(`\nHinter: Here's your hint - ${hint}`)
-    return hint
-  }
-
-  async post(memory: Memory, prepRes: any, hint: string | null): Promise<void> {
-    if (hint === null) {
-      return this.trigger('end') // Use trigger to end
-    }
-    await memory.guesserQueue.put(hint) // Send hint to guesser queue
-    this.trigger('continue') // Trigger self to continue
-  }
-}
-
-class Guesser extends Node {
-  async prep(memory: Memory): Promise<any> {
-    const hint = await memory.guesserQueue.get() // Read hint from queue
-    return { hint, pastGuesses: memory.pastGuesses ?? [] }
-  }
-
-  async exec(prepRes: any): Promise<string> {
-    const { hint, pastGuesses } = prepRes
-    const prompt = `Given hint: ${hint}, past wrong guesses: ${pastGuesses}, make a new guess. Directly reply a single word:`
-    const guess = await callLLM(prompt)
-    console.log(`Guesser: I guess it's - ${guess}`)
-    return guess
-  }
-
-  async post(memory: Memory, prepRes: any, guess: string): Promise<void> {
-    if (guess.toLowerCase() === memory.targetWord.toLowerCase()) {
-      console.log('Game Over - Correct guess!')
-      await memory.hinterQueue.put('GAME_OVER') // Signal hinter to stop
-      this.trigger('end') // End this flow
-      return
-    }
-
-    // Update past guesses in global memory
-    const pastGuesses = memory.pastGuesses ?? []
-    memory.pastGuesses = [...pastGuesses, guess]
-
-    await memory.hinterQueue.put(guess) // Send wrong guess back to hinter
-    this.trigger('continue') // Trigger self to continue
-  }
-}
 
 // --- Main Execution ---
 async function main() {
@@ -391,23 +429,35 @@ main().catch(console.error)
 {% endtab %}
 {% endtabs %}
 
-The Output:
+When you run this code, the multi-agent system works as follows:
+
+1. The Hinter agent creates clues (avoiding forbidden words)
+2. The Guesser agent makes guesses based on the hints
+3. Both agents operate independently but communicate via queues
+4. The game continues until the correct word is guessed
+
+The output will look something like:
 
 ```
 Game starting!
 Target word: nostalgia
 Forbidden words: ['memory', 'past', 'remember', 'feeling', 'longing']
 
-Hinter: Here's your hint - Thinking of childhood summer days
-Guesser: I guess it's - popsicle
+Hinter: Here's your hint - Thinking about childhood summers
+Guesser: I guess it's - happiness
 
-Hinter: Here's your hint - When childhood cartoons make you emotional
-Guesser: I guess it's - nostalgic
-
-Hinter: Here's your hint - When old songs move you
-Guesser: I guess it's - memories
-
-Hinter: Here's your hint - That warm emotion about childhood
+Hinter: Here's your hint - The warm sensation when seeing old photos
 Guesser: I guess it's - nostalgia
+
 Game Over - Correct guess!
 ```
+
+## Benefits of Multi-Agent Systems
+
+This pattern demonstrates several key advantages:
+
+1. **Specialization**: Each agent can focus on a specific task
+2. **Independence**: Agents can operate on different schedules or priorities
+3. **Coordination**: Agents can collaborate through shared memory and queues
+4. **Flexibility**: Easy to add new agents or modify existing ones
+5. **Scalability**: The system can grow to include many specialized agents

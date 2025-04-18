@@ -22,23 +22,31 @@ The `Memory` class manages state with global and local stores, providing a dual-
 
 ```python
 class Memory:
+    """
+    Memory class for managing global and local state.
+
+    Memory provides a dual-scope approach to state management:
+    - Global store: Shared across the entire flow
+    - Local store: Specific to a particular execution path
+    """
+
     def __init__(self, _global, _local=None):
-        self._global = _global
-        self._local = _local or {}
+        """Initialize a Memory instance with global and optional local stores."""
+        # Directly set attributes in __dict__ to avoid __setattr__
+        object.__setattr__(self, '_global', _global)
+        object.__setattr__(self, '_local', _local or {})
 
     def __getattr__(self, name):
-        # Check local store first, then fall back to global
+        """Access properties, checking local store first, then global."""
         if name in self._local:
             return self._local[name]
         return self._global.get(name)
 
     def __setattr__(self, name, value):
-        # Reserved properties handling
-        if name in ['_global', '_local', 'global', 'local']:
-            if name in ['global', 'local']:
-                raise ValueError(f"Reserved property '{name}' cannot be set")
-            super().__setattr__(name, value)
-            return
+        """Write properties, handling reserved names and local/global interaction."""
+        # Reserved property handling
+        if name in ['global', 'local', '_global', '_local']:
+            raise ValueError(f"Reserved property '{name}' cannot be set")
 
         # Remove from local if exists, then set in global
         if hasattr(self, '_local') and name in self._local:
@@ -46,6 +54,25 @@ class Memory:
 
         # Set in global store
         self._global[name] = value
+
+    def __getitem__(self, key):
+        """Support dictionary-style access (memory['key'])."""
+        if key in self._local:
+            return self._local[key]
+        return self._global.get(key)
+
+    def __setitem__(self, key, value):
+        """Support dictionary-style assignment (memory['key'] = value)."""
+        # Remove from local if exists, then set in global
+        if key in self._local:
+            del self._local[key]
+
+        # Set in global store
+        self._global[key] = value
+
+    def __contains__(self, key):
+        """Support 'in' operator (key in memory)."""
+        return key in self._local or key in self._global
 
     @property
     def local(self):
@@ -73,9 +100,9 @@ class BaseNode:
 
     def __init__(self):
         self.successors = {}  # dict of action -> list of nodes
-        self._triggers = []   # list of dicts with 'action' and 'forking_data'
-        self._locked = True
-        self.__node_order = BaseNode._next_id
+        self._triggers = []   # list of dicts with action and forking_data
+        self._locked = True   # Prevent trigger calls outside post()
+        self._node_order = BaseNode._next_id  # Changed from __node_order to _node_order
         BaseNode._next_id += 1
 
     def clone(self, seen=None):
@@ -112,6 +139,25 @@ class BaseNode:
     def next(self, node, action=DEFAULT_ACTION):
         # Convenience method equivalent to on()
         return self.on(action, node)
+
+    # Python-specific syntax sugar
+    def __rshift__(self, other):
+        """Implement node_a >> node_b syntax for default action"""
+        return self.next(other)
+
+    def __sub__(self, action):
+        """Implement node_a - "action" syntax for action selection"""
+        return self.ActionLinker(self, action)
+
+    class ActionLinker:
+        """Helper class for action-specific transitions"""
+        def __init__(self, node, action):
+            self.node = node
+            self.action = action
+
+        def __rshift__(self, other):
+            """Implement - "action" >> node_b syntax"""
+            return self.node.on(self.action, other)
 
     def get_next_nodes(self, action=DEFAULT_ACTION):
         # Get nodes for the given action or empty list
@@ -240,7 +286,8 @@ class Flow(BaseNode):
 
     async def run_node(self, node, memory):
         # Run a node with cycle detection
-        node_id = str(node.__node_order)
+        # Changed from __node_order to _node_order
+        node_id = str(node._node_order)
 
         # Check for cycles
         current_visit_count = self.visit_counts.get(node_id, 0) + 1
@@ -304,11 +351,13 @@ class ParallelFlow(Flow):
 | undefined                  | None                                                     |
 | class field initialization | Initialize in `__init__`                                 |
 | Error.retryCount           | Add retry_count attribute to Exception object            |
+|                            | Pythonic syntax sugar (`>>`, `- "action" >>`)            |
+|                            | Type Hinting (`typing` module)                           |
 
 ### 3.2. Memory Access
 
 - TypeScript uses JavaScript's Proxy API
-- Python uses dunder methods (`__getattr__`, `__setattr__`)
+- Python uses dunder methods (`__getattr__`, `__setattr__`, `__getitem__`, `__setitem__`, `__contains__`)
 - Both implementations check local store first, then global
 
 ### 3.3. Asynchronous Execution
@@ -320,7 +369,7 @@ class ParallelFlow(Flow):
 ### 3.4. Error Handling
 
 - Both implementations support the retry pattern
-- Python adds attributes to Exception objects for retry tracking
+- Python adds attributes to Exception objects for retry tracking and defines a `NodeError` class (though not currently used in the core logic).
 - Both provide fallback mechanisms for failed operations
 
 ## 4. Implementation Plan

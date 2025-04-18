@@ -24,14 +24,14 @@ class TestSummarizeNode(unittest.TestCase):
         summarize_node = SummarizeNode()
 
         # Create a mock shared store
-        shared = {"text": "This is a long text that needs to be summarized."}
+        memory = {"text": "This is a long text that needs to be summarized."}
 
         # Mock the LLM call
         with patch('utils.call_llm', new_callable=AsyncMock) as mock_llm:
             mock_llm.return_value = "Short summary."
 
             # Run the node
-            await summarize_node.run(shared)
+            await summarize_node.run(memory)
 
             # Verify the node called the LLM with the right prompt
             mock_llm.assert_called_once()
@@ -39,9 +39,9 @@ class TestSummarizeNode(unittest.TestCase):
             self.assertIn("summarize", call_args.lower())
 
             # Verify the result was stored correctly
-            self.assertEqual(shared["summary"], "Short summary.")
+            self.assertEqual(memory.summary, "Short summary.")
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
 ```
 
@@ -102,7 +102,7 @@ class TestQuestionAnsweringFlow(unittest.TestCase):
         qa_flow = create_qa_flow()
 
         # Create a mock shared store
-        shared = {"question": "What is the capital of France?"}
+        memory = {"question": "What is the capital of France?"}
 
         # Mock all LLM calls
         with patch('utils.call_llm', new_callable=AsyncMock) as mock_llm:
@@ -117,10 +117,10 @@ class TestQuestionAnsweringFlow(unittest.TestCase):
             mock_llm.side_effect = mock_llm_side_effect
 
             # Run the flow
-            await qa_flow.run(shared)
+            await qa_flow.run(memory)
 
             # Verify the final answer
-            self.assertEqual(shared["answer"], "The capital of France is Paris.")
+            self.assertEqual(memory.answer, "The capital of France is Paris.")
 
             # Verify the LLM was called the expected number of times
             self.assertEqual(mock_llm.call_count, 2)
@@ -134,48 +134,262 @@ if __name__ == '__main__':
 {% tab title="TypeScript" %}
 
 ```typescript
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createQaFlow } from './qaFlow' // Your function that creates the Flow
 import { callLLM } from './utils/callLLM' // Your LLM utility
 
 // Mock the LLM utility
-vi.mock('./utils/callLLM')
+vi.mock('./utils/callLLM', () => ({
+  callLLM: vi.fn(),
+}))
 
 describe('Question Answering Flow', () => {
-  it('should process questions correctly', async () => {
-    // Configure the mock LLM to return different responses based on the prompt
-    vi.mocked(callLLM).mockImplementation(async (prompt: string): Promise<string> => {
+  beforeEach(() => {
+    // Clear any previous mock calls before each test
+    vi.clearAllMocks()
+  })
+
+  it('should generate an answer using the flow', async () => {
+    // Configure mock to return different values based on the prompt
+    vi.mocked(callLLM).mockImplementation((prompt: string) => {
       // Simulate different stages of a potential QA flow (e.g., search vs. answer)
       if (prompt.toLowerCase().includes('search')) {
-        // Example condition
-        return 'Paris is the capital of France.'
+        return Promise.resolve('Paris is the capital of France.')
       } else if (prompt.toLowerCase().includes('answer')) {
-        // Example condition
-        return 'The capital of France is Paris.'
+        return Promise.resolve('The capital of France is Paris.')
       }
-      return 'Unexpected prompt' // Fallback for other prompts
+      return Promise.resolve('Unexpected prompt')
     })
 
-    // Create the flow instance
+    // Create the flow
     const qaFlow = createQaFlow()
 
-    // Define the initial global memory state for the flow run
-    const shared = { question: 'What is the capital of France?' }
+    // Create initial memory state
+    const memory = { question: 'What is the capital of France?' }
 
-    // Run the entire flow
-    await qaFlow.run(shared)
+    // Run the flow
+    await qaFlow.run(memory)
 
-    // Verify the final answer stored in the global memory object
-    expect(shared.answer).toBe('The capital of France is Paris.')
+    // Verify the final answer
+    expect(memory.answer).toBe('The capital of France is Paris.')
 
-    // Verify the LLM was called the expected number of times during the flow
-    expect(callLLM).toHaveBeenCalledTimes(2) // Adjust based on expected calls in your flow
+    // Verify the LLM was called the expected number of times
+    expect(callLLM).toHaveBeenCalledTimes(2)
+
+    // Verify the calls were made with appropriate prompts
+    const calls = vi.mocked(callLLM).mock.calls
+    const retrieveCall = calls.some(
+      (call) => typeof call === 'string' && call.toLowerCase().includes('retrieve'),
+    )
+    const generateCall = calls.some(
+      (call) => typeof call === 'string' && call.toLowerCase().includes('generate'),
+    )
+
+    expect(retrieveCall).toBe(true)
+    expect(generateCall).toBe(true)
   })
 })
-```
+
+// Example testing a batch node
+describe('BatchProcessingNode', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('should process multiple items', async () => {
+    // Create test data
+    const testItems = ['item1', 'item2', 'item3']
+
+    // Mock processing function
+    const processItemMock = vi.fn().mockImplementation((item) =>
+      Promise.resolve(`Processed ${item}`)
+    )
+
+    // Create a subclass with mocked processing
+    class TestBatchNode extends BatchProcessingNode {
+      async processItem(item) {
+        return processItemMock(item)
+      }
+    }
+
+    const batchNode = new TestBatchNode()
+    const memory = { items: testItems }
+
+    // Run the node
+    await batchNode.run(memory)
+
+    // Verify processItem was called for each item
+    expect(processItemMock).toHaveBeenCalledTimes(3)
+    expect(processItemMock).toHaveBeenCalledWith('item1')
+    expect(processItemMock).toHaveBeenCalledWith('item2')
+    expect(processItemMock).toHaveBeenCalledWith('item3')
+
+    // Verify results were stored in memory
+    expect(memory.results).toEqual([
+      'Processed item1',
+      'Processed item2',
+      'Processed item3'
+    ])
+  })
+})
 
 {% endtab %}
 {% endtabs %}
+
+## Testing Approaches
+
+### Unit Testing Individual Nodes
+
+1. **Isolate Dependencies**: Mock external services and LLM calls
+2. **Test Each Lifecycle Method**: Verify `prep`, `exec`, and `post` individually
+3. **Test Error Handling**: Ensure `exec_fallback` works as expected
+4. **Verify Memory Updates**: Check if memory is modified correctly
+5. **Test Triggers**: Ensure the right actions are triggered
+
+### Integration Testing Flows
+
+1. **Mock External Services**: Keep tests deterministic by mocking APIs
+2. **Verify End-to-End Behavior**: Test the entire flow from start to finish
+3. **Test Branching Logic**: Ensure different paths work correctly
+4. **Check Final Memory State**: Verify that the memory contains expected results
+5. **Test Error Handling**: Make sure flows handle errors gracefully
+
+### Testing Strategies
+
+#### Testing LLM-Based Nodes
+
+For nodes that call LLMs, you can use these approaches:
+
+1. **Canned Responses**: Prepare fixed responses for specific prompts
+2. **Prompt Verification**: Check if prompts contain expected information
+3. **Response Validation**: Test if the node correctly handles various LLM responses
+
+```
+
+# Mock LLM with canned responses
+
+def mock_llm(prompt):
+if "summarize" in prompt.lower():
+return "This is a summary."
+elif "extract" in prompt.lower():
+return "{'key': 'value'}"
+else:
+return "Default response"
+
+# Use mock in test
+
+with patch('utils.call_llm', side_effect=mock_llm): # Run node or flow
+pass
+
+```
+
+#### Testing Retry Logic
+
+To test retry behavior:
+
+1. **Simulate Transient Failures**: Make the mock function fail a few times before succeeding
+2. **Check Retry Count**: Verify that retries happened the expected number of times
+3. **Test Backoff**: Ensure that wait times between retries are correct
+
+```
+
+# Mock that fails twice, then succeeds
+
+call_count = 0
+def failing_mock(\*args):
+global call_count
+call_count += 1
+if call_count <= 2:
+raise Exception("Temporary failure")
+return "Success on third try"
+
+# Use in test
+
+with patch('some_function', side_effect=failing_mock): # Run node with retry logic
+pass
+
+```
+
+## Test Fixtures and Helpers
+
+Creating helper functions can make tests more readable and maintainable:
+
+```
+
+# Helper to create a standard test memory
+
+def create_test_memory():
+return {"input": "test data", "config": {"setting": "value"}}
+
+# Helper to run a node with standard setup
+
+async def run_test_node(node, memory=None):
+if memory is None:
+memory = create_test_memory()
+return await node.run(memory)
+
+# Helper to check memory structure
+
+def assert_memory_has_fields(memory, \*fields):
+for field in fields:
+assert field in memory, f"Memory missing field: {field}"
+
+```
+
+## Common Testing Patterns
+
+### 1. Input Validation Testing
+
+Test that nodes properly handle invalid inputs:
+
+```
+
+@pytest.mark.parametrize("input_value", [None, "", {}, []])
+async def test_node_handles_invalid_input(input_value):
+node = MyNode()
+memory = {"input": input_value}
+
+    # Should not raise exception
+    await node.run(memory)
+
+    # Should have set error flag
+    assert memory.get("error") is not None
+
+```
+
+### 2. Flow Path Testing
+
+Test that flows follow the expected paths:
+
+```
+
+async def test_flow_follows_success_path(): # Create flow with mocks that track which nodes were visited
+visited_nodes = []
+
+    class TrackingNode(Node):
+        def __init__(self, name):
+            super().__init__()
+            self.name = name
+
+        async def post(self, memory, prep_res, exec_res):
+            visited_nodes.append(self.name)
+            self.trigger("default")
+
+    # Create flow with tracking nodes
+    node1 = TrackingNode("node1")
+    node2 = TrackingNode("node2")
+    node3 = TrackingNode("node3")
+
+    node1.next(node2)
+    node2.next(node3)
+
+    flow = Flow(node1)
+    await flow.run({})
+
+    # Verify all nodes were visited in order
+    assert visited_nodes == ["node1", "node2", "node3"]
+
+```
 
 ## Best Practices
 
@@ -204,4 +418,4 @@ describe('Question Answering Flow', () => {
 5. **Log Judiciously**: Log important events without overwhelming storage
 6. **Implement Distributed Tracing**: Use tracing for complex, distributed applications
 
-By following these testing, debugging, and monitoring practices, you can build reliable BrainyFlow applications that perform well in production environments.
+By applying these testing techniques, you can ensure your BrainyFlow applications are reliable and maintainable.

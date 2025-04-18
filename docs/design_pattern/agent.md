@@ -116,12 +116,12 @@ This agent:
 
 ````python
 import asyncio
-import yaml # Assuming call_llm and search_web are defined elsewhere
+import yaml  # Assuming call_llm and search_web are defined elsewhere
 
 class DecideAction(Node):
-    async def prep(self, shared):
-        context = shared.get("context", "No previous search")
-        query = shared["query"]
+    async def prep(self, memory):
+        context = memory.context if hasattr(memory, 'context') else "No previous search"
+        query = memory.query
         return query, context
 
     async def exec(self, inputs):
@@ -149,10 +149,10 @@ search_term: search phrase if action is search
 
         return result
 
-    async def post(self, shared, prep_res, exec_res):
+    async def post(self, memory, prep_res, exec_res):
         if exec_res["action"] == "search":
-            shared["search_term"] = exec_res["search_term"]
-        return exec_res["action"]
+            memory.search_term = exec_res["search_term"]
+        self.trigger(exec_res["action"])
 ````
 
 {% endtab %}
@@ -231,18 +231,18 @@ search_term: <search phrase if action is search>
 
 ```python
 class SearchWeb(Node):
-    async def prep(self, shared):
-        return shared["search_term"]
+    async def prep(self, memory):
+        return memory.search_term
 
     async def exec(self, search_term):
         return await search_web(search_term)
 
-    async def post(self, shared, prep_res, exec_res):
-        prev_searches = shared.get("context", [])
-        shared["context"] = prev_searches + [
-            {"term": shared["search_term"], "result": exec_res}
+    async def post(self, memory, prep_res, exec_res):
+        prev_searches = memory.context if hasattr(memory, 'context') else []
+        memory.context = prev_searches + [
+            {"term": prep_res, "result": exec_res}
         ]
-        return "decide"
+        self.trigger('decide')
 ```
 
 {% endtab %}
@@ -282,16 +282,16 @@ class SearchWeb extends Node {
 
 ```python
 class DirectAnswer(Node):
-    async def prep(self, shared):
-        return shared["query"], shared.get("context", "")
+    async def prep(self, memory):
+        return memory.query, memory.context if hasattr(memory, 'context') else ""
 
     async def exec(self, inputs):
         query, context = inputs
         return call_llm(f"Context: {context}\nAnswer: {query}")
 
-    async def post(self, shared, prep_res, exec_res):
+    async def post(self, memory, prep_res, exec_res):
        print(f"Answer: {exec_res}")
-       shared["answer"] = exec_res
+       memory.answer = exec_res
 ```
 
 {% endtab %}
