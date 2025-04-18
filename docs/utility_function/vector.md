@@ -53,6 +53,22 @@ D, I = index.search(query, k=5)
 
 print("Distances:", D)
 print("Neighbors:", I)
+
+def search_index(index: Any, query_embedding: List[float], top_k: int = 5) -> Tuple[List[int], List[float]]:
+    # Convert query embedding to numpy array
+    query_np = np.array([query_embedding], dtype=np.float32)
+
+    # Search the index (D: distances, I: indices)
+    D, I = index.search(query_np, top_k)
+
+    # Return:
+    # - I: List of indices of the nearest neighbors in the index
+    # - D: List of distances to those neighbors
+    return I, D
+
+# In production, you would also add functions to:
+# - save_index(index, filename) - Save a FAISS index to disk
+# - load_index(filename) - Load a FAISS index from disk
 ```
 
 ### Pinecone

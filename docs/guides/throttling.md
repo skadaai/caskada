@@ -1,6 +1,8 @@
-# Throttling
+# Rate Limiting and Throttling
 
-**Throttling** helps manage concurrency and avoid rate limits when making API calls. This is particularly important when:
+Effective rate limiting is crucial when working with external APIs and services. This guide covers patterns for implementing throttling in BrainyFlow applications.
+
+This is particularly important when:
 
 1. Calling external APIs with rate limits
 2. Managing expensive operations (like LLM calls)
@@ -185,8 +187,9 @@ limiter = SlidingWindowRateLimiter(
 
 async def call_api():
     if not limiter.allow_request():
-        raise RateLimitExceeded()
+        await asyncio.sleep(limiter.time_to_next_request()) #  or raise RateLimitExceeded()
     # Your API call here
+    return "API response"
 ```
 
 {% endtab %}
@@ -194,17 +197,40 @@ async def call_api():
 {% tab title="TypeScript" %}
 
 ```typescript
-import { SlidingWindowRateLimiter } from 'sliding-window-rate-limiter'
+class SlidingWindowRateLimiter {
+  private requests: number[] = []
 
-const limiter = SlidingWindowRateLimiter.createLimiter({
-  interval: 60, // 60 seconds
-  maxInInterval: 100,
-})
+  constructor(
+    private maxRequests: number,
+    private windowSize: number,
+  ) {}
+
+  allowRequest(): boolean {
+    const now = Date.now()
+    // Remove expired requests
+    this.requests = this.requests.filter((time) => now - time < this.windowSize * 1000)
+    // Check if we can allow another request
+    return this.requests.length < this.maxRequests
+  }
+
+  timeToNextRequest(): number {
+    const now = Date.now()
+    this.requests = this.requests.filter((time) => now - time < this.windowSize * 1000)
+    if (this.requests.length < this.maxRequests) return 0
+    const oldest = this.requests[0]
+    return Math.ceil((oldest + this.windowSize * 1000 - now) / 1000)
+  }
+}
+
+// Usage:
+const limiter = new SlidingWindowRateLimiter(100, 60) // 100 requests per 60 seconds
 
 async function callApi() {
-  const isAllowed = await limiter.check('key', 1)
-  if (!isAllowed) throw new Error('Rate limit exceeded')
+  if (!limiter.allowRequest()) {
+    await new Promise((resolve) => setTimeout(resolve, limiter.timeToNextRequest() * 1000))
+  }
   // Your API call here
+  return 'API response'
 }
 ```
 
@@ -218,6 +244,77 @@ async function callApi() {
 3. **Distribute Load**: If possible, spread requests across multiple API keys or endpoints
 4. **Cache Responses**: Cache frequent identical requests to reduce API calls
 5. **Batch Requests**: Combine multiple requests into single API calls when possible
+
+## Integration with BrainyFlow
+
+### Throttled LLM Node
+
+{% tabs %}
+{% tab title="Python" %}
+
+```python
+class ThrottledLLMNode(Node):
+    def __init__(self, max_retries=3, calls_per_minute=30):
+        super().__init__(max_retries=max_retries)
+        self.limiter = Limiter(Rate(calls_per_minute, Duration.MINUTE))
+
+    async def exec(self, prompt):
+        @self.limiter.ratelimit('llm_calls')
+        async def limited_llm_call(text):
+            return await call_llm(text)
+
+        return await limited_llm_call(prompt)
+
+    async def exec_fallback(self, prompt, error):
+        # Handle rate limit errors specially
+        if "rate limit" in str(error).lower():
+            # Wait longer before retrying
+            await asyncio.sleep(60)
+            return await self.exec(prompt)
+        # For other errors, fall back to a simple response
+        return "I'm having trouble processing your request right now."
+```
+
+{% endtab %}
+
+{% tab title="TypeScript" %}
+
+```typescript
+import { Memory, Node, NodeError } from 'brainyflow'
+import { RateLimiter } from 'limiter'
+
+class ThrottledLLMNode extends Node {
+  private limiter: RateLimiter
+
+  constructor(
+    private maxRetries = 3,
+    callsPerMinute = 30,
+  ) {
+    super({ maxRetries })
+    this.limiter = new RateLimiter({ tokensPerInterval: callsPerMinute, interval: 'minute' })
+  }
+
+  async exec(prompt: string): Promise<string> {
+    // Wait for token before proceeding
+    await this.limiter.removeTokens(1)
+    return await callLLM(prompt)
+  }
+
+  async execFallback(prompt: string, error: NodeError): Promise<string> {
+    // Handle rate limit errors specially
+    if (error.message.toLowerCase().includes('rate limit')) {
+      // Wait longer before retrying
+      await new Promise((resolve) => setTimeout(resolve, 60000))
+      return this.exec(prompt)
+    }
+    // For other errors, fall back to a simple response
+    return "I'm having trouble processing your request right now."
+  }
+}
+```
+
+{% endtab %}
+{% endtabs %}
 
 ## Linking to Related Concepts
 

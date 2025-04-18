@@ -64,22 +64,24 @@ class SummarizeNode(Node):
     async def exec(self, prep_res):
         # Suppose `prep_res` is the text to summarize.
         prompt = f"""
-Please summarize the following text as YAML, with exactly 3 bullet points
+Please summarize the following text as YAML, with exactly 3 bullet points:
 
 {prep_res}
 
 Now, output:
 ```yaml
 summary:
-  - bullet 1
-  - bullet 2
-  - bullet 3
+  - first key point
+  - second key point
+  - third key point
 ```"""
         response = call_llm(prompt)
-        yaml_str = response.split("```yaml")[1].split("```")[0].strip()
 
+        # Extract YAML block
+        yaml_str = response.split("```yaml")[1].split("```")[0].strip()
         structured_result = yaml.safe_load(yaml_str)
 
+        # Validate structure
         assert "summary" in structured_result
         assert isinstance(structured_result["summary"], list)
 

@@ -60,22 +60,23 @@ from brainyflow import Node
 from utils import call_llm  # Your LLM implementation
 
 class GetQuestionNode(Node):
-    async def prep(self, shared):
+    async def prep(self, memory):
         """Get text input from user."""
-        shared["question"] = input("Enter your question: ")
+        memory.question = input("Enter your question: ")
 
 class AnswerNode(Node):
-    async def prep(self, shared):
-        """Extract the question from shared store."""
-        return shared["question"]
+    async def prep(self, memory):
+        """Extract the question from memory."""
+        return memory.question
 
     async def exec(self, question):
         """Call LLM to generate an answer."""
         return await call_llm(question)
 
-    async def post(self, shared, prep_res, exec_res):
-        """Store the answer in shared store."""
-        shared["answer"] = exec_res
+    async def post(self, memory, prep_res, exec_res):
+        """Store the answer in memory."""
+        memory.answer = exec_res
+        self.trigger('default')  # Explicitly trigger next node
 ```
 
 {% endtab %}
@@ -133,7 +134,7 @@ def create_qa_flow():
     answer_node = AnswerNode()
 
     # Connect nodes get_question_node → answer_node using the default action
-    get_question_node >> answer_node // // >> is shorthand for .on('default', node)
+    get_question_node >> answer_node  # >> is shorthand for .on('default', node)
 
     # Create the Flow, specifying the starting node
     # The Flow itself can be typed with the GlobalStore structure
@@ -183,17 +184,17 @@ async def main():
     shared = {}  # Initialize empty shared store (can be an empty dict)
     qa_flow = create_qa_flow()
 
-    
+
     # Run the flow, passing the initial global store.
     # The run method returns the final execution tree, but we can
     # access the final state directly from our initial globalStore object.
     await qa_flow.run(shared)
 
     # Access the results stored in the global store
-    print(f"Question: {shared['question']}")
-    print(f"Answer: {shared['answer']}")
+    print(f"Question: {shared.question}")
+    print(f"Answer: {shared.answer}")
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     asyncio.run(main())
 ```
 
