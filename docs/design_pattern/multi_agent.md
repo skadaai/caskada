@@ -66,21 +66,39 @@ asyncio.run(main())
 {% tab title="TypeScript" %}
 
 ```typescript
+import { Flow, Memory, Node } from 'brainyflow'
+
+// Agent node that processes messages from a queue
 class AgentNode extends Node {
-  async prep(_: any): Promise<string> {
-    const messageQueue = this.params.messages as AsyncQueue<string>
-    const message = await messageQueue.get()
+  // We'll store the queue in global memory for simplicity here,
+  // though in real apps, dependency injection might be better.
+  async prep(memory: Memory): Promise<string> {
+    const messageQueue = memory.messageQueue as AsyncQueue<string>
+    if (!messageQueue) throw new Error('Message queue not found in memory')
+
+    const message = await messageQueue.get() // Wait for a message
     console.log(`Agent received: ${message}`)
-    return message
+    return message // Pass message to exec (optional)
+  }
+
+  async exec(message: string): Promise<void> {
+    // Process the message (optional)
+    // console.log(`Agent processing: ${message}`);
+  }
+
+  async post(memory: Memory): Promise<void> {
+    // Trigger self to listen for the next message
+    this.trigger('continue')
   }
 }
 
-// Create node and flow
+// --- Flow Setup ---
 const agent = new AgentNode()
-agent.next(agent) // connect to self
-const flow = new Flow(agent)
+agent.on('continue', agent) // Loop back to self
 
-// Create heartbeat sender
+const agentFlow = new Flow(agent)
+
+// --- Message Sender ---
 async function sendSystemMessages(messageQueue: AsyncQueue<string>) {
   let counter = 0
   const messages = [
@@ -91,20 +109,24 @@ async function sendSystemMessages(messageQueue: AsyncQueue<string>) {
   ]
 
   while (true) {
+    // In a real app, you'd have a termination condition
     const message = `${messages[counter % messages.length]} | timestamp_${counter}`
     await messageQueue.put(message)
     counter++
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    await new Promise((resolve) => setTimeout(resolve, 1000)) // Wait 1s
   }
 }
 
+// --- Main Execution ---
 async function main() {
   const messageQueue = new AsyncQueue<string>()
-  const shared = {}
-  flow.setParams({ messages: messageQueue })
+  // Pass the queue via the shared memory
+  const data = { messageQueue }
 
-  // Run both coroutines
-  await Promise.all([flow.run(shared), sendSystemMessages(messageQueue)])
+  console.log('Starting agent listener and message sender...')
+  // Run the agent flow and the message sender concurrently
+  // Note: This will run indefinitely without a termination mechanism
+  await Promise.all([agentFlow.run(data), sendSystemMessages(messageQueue)])
 }
 
 class AsyncQueue<T> {
@@ -250,18 +272,27 @@ asyncio.run(main())
 {% tab title="TypeScript" %}
 
 ```typescript
+import { Flow, Memory, Node } from 'brainyflow'
+
+declare function callLLM(prompt: string): Promise<string> // Assuming callLLM is defined elsewhere
+
 class Hinter extends Node {
-  async prep(shared: any): Promise<any> {
-    const guess = await shared.hinterQueue.get()
+  async prep(memory: Memory): Promise<any> {
+    const guess = await memory.hinterQueue.get() // Read from queue in memory
     if (guess === 'GAME_OVER') {
-      return null
+      return null // Signal to stop
     }
-    return [shared.targetWord, shared.forbiddenWords, shared.pastGuesses || []]
+    // Return data needed for exec
+    return {
+      target: memory.targetWord,
+      forbidden: memory.forbiddenWords,
+      pastGuesses: memory.pastGuesses ?? [],
+    }
   }
 
-  async exec(inputs: any): Promise<string | null> {
-    if (inputs === null) return null
-    const [target, forbidden, pastGuesses] = inputs
+  async exec(prepRes: any): Promise<string | null> {
+    if (!prepRes) return null // Stop if prep returned null
+    const { target, forbidden, pastGuesses } = prepRes
     let prompt = `Generate hint for '${target}'\nForbidden words: ${forbidden}`
     if (pastGuesses.length > 0) {
       prompt += `\nPrevious wrong guesses: ${pastGuesses}\nMake hint more specific.`
@@ -273,81 +304,86 @@ class Hinter extends Node {
     return hint
   }
 
-  async post(shared: any, prepRes: any, execRes: any): Promise<string> {
-    if (execRes === null) return 'end'
-    await shared.guesserQueue.put(execRes)
-    return 'continue'
+  async post(memory: Memory, prepRes: any, hint: string | null): Promise<void> {
+    if (hint === null) {
+      return this.trigger('end') // Use trigger to end
+    }
+    await memory.guesserQueue.put(hint) // Send hint to guesser queue
+    this.trigger('continue') // Trigger self to continue
   }
 }
 
 class Guesser extends Node {
-  async prep(shared: any): Promise<any> {
-    const hint = await shared.guesserQueue.get()
-    return [hint, shared.pastGuesses || []]
+  async prep(memory: Memory): Promise<any> {
+    const hint = await memory.guesserQueue.get() // Read hint from queue
+    return { hint, pastGuesses: memory.pastGuesses ?? [] }
   }
 
-  async exec(inputs: any): Promise<string> {
-    const [hint, pastGuesses] = inputs
+  async exec(prepRes: any): Promise<string> {
+    const { hint, pastGuesses } = prepRes
     const prompt = `Given hint: ${hint}, past wrong guesses: ${pastGuesses}, make a new guess. Directly reply a single word:`
     const guess = await callLLM(prompt)
     console.log(`Guesser: I guess it's - ${guess}`)
     return guess
   }
 
-  async post(shared: any, prepRes: any, execRes: any): Promise<string> {
-    if (execRes.toLowerCase() === shared.targetWord.toLowerCase()) {
+  async post(memory: Memory, prepRes: any, guess: string): Promise<void> {
+    if (guess.toLowerCase() === memory.targetWord.toLowerCase()) {
       console.log('Game Over - Correct guess!')
-      await shared.hinterQueue.put('GAME_OVER')
-      return 'end'
+      await memory.hinterQueue.put('GAME_OVER') // Signal hinter to stop
+      this.trigger('end') // End this flow
+      return
     }
 
-    if (!shared.pastGuesses) {
-      shared.pastGuesses = []
-    }
-    shared.pastGuesses.push(execRes)
+    // Update past guesses in global memory
+    const pastGuesses = memory.pastGuesses ?? []
+    memory.pastGuesses = [...pastGuesses, guess]
 
-    await shared.hinterQueue.put(execRes)
-    return 'continue'
+    await memory.hinterQueue.put(guess) // Send wrong guess back to hinter
+    this.trigger('continue') // Trigger self to continue
   }
 }
 
+// --- Main Execution ---
 async function main() {
-  // Set up game
-  const shared = {
+  // Set up game state in initial memory
+  const data = {
     targetWord: 'nostalgia',
     forbiddenWords: ['memory', 'past', 'remember', 'feeling', 'longing'],
     hinterQueue: new AsyncQueue<string>(),
     guesserQueue: new AsyncQueue<string>(),
+    pastGuesses: [],
   }
 
   console.log('Game starting!')
-  console.log(`Target word: ${shared.targetWord}`)
-  console.log(`Forbidden words: ${shared.forbiddenWords}`)
+  console.log(`Target word: ${data.targetWord}`)
+  console.log(`Forbidden words: ${data.forbiddenWords}`)
 
-  // Initialize by sending empty guess to hinter
-  await shared.hinterQueue.put('')
+  // Initialize by sending empty guess to hinter queue
+  await data.hinterQueue.put('')
 
-  // Create nodes and flows
-  const hinter = new Hinter()
-  const guesser = new Guesser()
+  // Create nodes
+  const hinterNode = new Hinter()
+  const guesserNode = new Guesser()
 
-  // Set up flows
-  const hinterFlow = new Flow(hinter)
-  const guesserFlow = new Flow(guesser)
+  // Define transitions for looping and ending
+  hinterNode.on('continue', hinterNode)
+  guesserNode.on('continue', guesserNode)
 
-  // Connect nodes to themselves
-  hinter.on('continue', hinter)
-  guesser.on('continue', guesser)
+  // Create separate flows for each agent
+  const hinterFlow = new Flow(hinterNode)
+  const guesserFlow = new Flow(guesserNode)
 
-  // Run both agents concurrently
-  await Promise.all([hinterFlow.run(shared), guesserFlow.run(shared)])
+  // Run both agent flows concurrently using the same memory object
+  console.log('Running agents...')
+  await Promise.all([hinterFlow.run(data), guesserFlow.run(data)])
+  console.log('\nGame finished normally.')
+  console.log('Final memory state:', data)
 }
 
-// Mock LLM call for TypeScript
-async function callLLM(prompt: string): Promise<string> {
-  // In a real implementation, this would call an actual LLM API
-  return 'Mock LLM response'
-}
+// Assuming AsyncQueue and callLLM are defined elsewhere
+// class AsyncQueue<T> { ... }
+// async function callLLM(prompt: string): Promise<string> { return 'mock'; }
 
 main().catch(console.error)
 ```

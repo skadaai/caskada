@@ -51,8 +51,8 @@ if __name__ == '__main__':
 
 ```typescript
 import { describe, expect, it, vi } from 'vitest'
-import { SummarizeNode } from './SummarizeNode'
-import { callLLM } from './utils/callLLM'
+import { SummarizeNode } from './SummarizeNode' // Your Node implementation
+import { callLLM } from './utils/callLLM' // Your LLM utility
 
 // Mock the LLM utility
 vi.mock('./utils/callLLM', () => ({
@@ -61,21 +61,21 @@ vi.mock('./utils/callLLM', () => ({
 
 describe('SummarizeNode', () => {
   it('should summarize text correctly', async () => {
-    // Create the node
+    // Create the node instance
     const summarizeNode = new SummarizeNode()
 
-    // Create a mock shared store
+    // Create initial global memory state
     const shared = { text: 'This is a long text that needs to be summarized.' }
 
-    // Run the node
+    // Run the node's lifecycle (prep -> exec -> post)
     await summarizeNode.run(shared)
 
-    // Verify the node called the LLM with the right prompt
+    // Verify the LLM call
     expect(callLLM).toHaveBeenCalledTimes(1)
-    const callArgs = vi.mocked(callLLM).mock.calls[0][0]
-    expect(callArgs.toLowerCase()).toContain('summarize')
+    const callArgs = vi.mocked(callLLM).mock.calls[0][0] // Get the first argument of the first call
+    expect(callArgs.toLowerCase()).toContain('summarize') // Check if prompt contains 'summarize'
 
-    // Verify the result was stored correctly
+    // Verify the result was stored correctly in the global memory object
     expect(shared.summary).toBe('Short summary.')
   })
 })
@@ -135,38 +135,41 @@ if __name__ == '__main__':
 
 ```typescript
 import { describe, expect, it, vi } from 'vitest'
-import { createQaFlow } from './qaFlow'
-import { callLLM } from './utils/callLLM'
+import { createQaFlow } from './qaFlow' // Your function that creates the Flow
+import { callLLM } from './utils/callLLM' // Your LLM utility
 
 // Mock the LLM utility
 vi.mock('./utils/callLLM')
 
 describe('Question Answering Flow', () => {
   it('should process questions correctly', async () => {
-    // Configure the mock to return different values for different prompts
-    vi.mocked(callLLM).mockImplementation((prompt: string) => {
+    // Configure the mock LLM to return different responses based on the prompt
+    vi.mocked(callLLM).mockImplementation(async (prompt: string): Promise<string> => {
+      // Simulate different stages of a potential QA flow (e.g., search vs. answer)
       if (prompt.toLowerCase().includes('search')) {
-        return Promise.resolve('Paris is the capital of France.')
+        // Example condition
+        return 'Paris is the capital of France.'
       } else if (prompt.toLowerCase().includes('answer')) {
-        return Promise.resolve('The capital of France is Paris.')
+        // Example condition
+        return 'The capital of France is Paris.'
       }
-      return Promise.resolve('Unexpected prompt')
+      return 'Unexpected prompt' // Fallback for other prompts
     })
 
-    // Create the flow
+    // Create the flow instance
     const qaFlow = createQaFlow()
 
-    // Create a mock shared store
+    // Define the initial global memory state for the flow run
     const shared = { question: 'What is the capital of France?' }
 
-    // Run the flow
+    // Run the entire flow
     await qaFlow.run(shared)
 
-    // Verify the final answer
+    // Verify the final answer stored in the global memory object
     expect(shared.answer).toBe('The capital of France is Paris.')
 
-    // Verify the LLM was called the expected number of times
-    expect(callLLM).toHaveBeenCalledTimes(2)
+    // Verify the LLM was called the expected number of times during the flow
+    expect(callLLM).toHaveBeenCalledTimes(2) // Adjust based on expected calls in your flow
   })
 })
 ```

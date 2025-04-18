@@ -160,28 +160,37 @@ search_term: search phrase if action is search
 {% tab title="TypeScript" %}
 
 ````typescript
+import { Memory, Node } from 'brainyflow'
+
+// Assume callLLM and parseYaml are defined elsewhere
+
 class DecideAction extends Node {
-  async prep(shared: any): Promise<[string, string]> {
-    const context = shared.context || 'No previous search'
-    const query = shared.query
-    return [query, context]
+  async prep(memory: Memory): Promise<{ query: string; context: any }> {
+    // Read from memory
+    const context = memory.context ?? 'No previous search'
+    const query = memory.query
+    return { query, context }
   }
 
-  async exec(inputs: [string, string]): Promise<any> {
-    const [query, context] = inputs
+  async exec(prepRes: { query: string; context: any }): Promise<any> {
+    const { query, context } = prepRes
     const prompt = `
 Given input: ${query}
-Previous search results: ${context}
-Should I: 1) Search web for more info 2) Answer with current knowledge
+Previous search results: ${JSON.stringify(context)}
+Should I: 1) Search web for more info ('search') 2) Answer with current knowledge ('answer')
 Output in yaml:
 \`\`\`yaml
-action: search/answer
-reason: why this action  
-search_term: search phrase if action is search
+action: search | answer
+reason: <why this action>
+search_term: <search phrase if action is search>
 \`\`\``
-
     const resp = await callLLM(prompt)
-    const yamlStr = resp.split('```yaml')[1].split('```')[0].trim()
+    // Simplified parsing/validation for docs
+    const yamlStr = resp.split(/```(?:yaml)?/)[1]?.trim()
+    if (!yamlStr) {
+      throw new Error('Missing YAML response')
+    }
+
     const result = parseYaml(yamlStr)
 
     if (typeof result !== 'object' || !result) {
@@ -203,11 +212,13 @@ search_term: search phrase if action is search
     return result
   }
 
-  async post(shared: any, prepRes: any, execRes: any): Promise<string> {
-    if (execRes.action === 'search') {
-      shared.search_term = execRes.search_term
+  async post(memory: Memory, prepRes: any, execRes: any): Promise<void> {
+    // Write search term if needed
+    if (execRes.action === 'search' && execRes.search_term) {
+      memory.search_term = execRes.search_term
     }
-    return execRes.action
+    // Trigger the decided action
+    this.trigger(execRes.action)
   }
 }
 ````
@@ -239,19 +250,26 @@ class SearchWeb(Node):
 {% tab title="TypeScript" %}
 
 ```typescript
+import { Memory, Node } from 'brainyflow'
+
+declare function searchWeb(query: string): Promise<any> // Assume `searchWeb` is defined elsewhere
+
 class SearchWeb extends Node {
-  async prep(shared: any): Promise<string> {
-    return shared.search_term
+  async prep(memory: Memory): Promise<string> {
+    // Read search term from memory
+    return memory.search_term
   }
 
   async exec(searchTerm: string): Promise<any> {
     return await searchWeb(searchTerm)
   }
 
-  async post(shared: any, prepRes: any, execRes: any): Promise<string> {
-    const prevSearches = shared.context || []
-    shared.context = [...prevSearches, { term: shared.search_term, result: execRes }]
-    return 'decide'
+  async post(memory: Memory, prepRes: string, execRes: any): Promise<void> {
+    // Add search result to context (simplified)
+    const prevContext = memory.context ?? []
+    memory.context = [...prevContext, { term: prepRes, result: execRes }]
+    // Trigger loop back to decide
+    this.trigger('decide')
   }
 }
 ```
@@ -281,19 +299,27 @@ class DirectAnswer(Node):
 {% tab title="TypeScript" %}
 
 ```typescript
+import { Memory, Node } from 'brainyflow'
+
+declare function callLLM(prompt: string): Promise<string> // Assuming callLLM is defined elsewhere
+
 class DirectAnswer extends Node {
-  async prep(shared: any): Promise<[string, string]> {
-    return [shared.query, shared.context || '']
+  async prep(memory: Memory): Promise<{ query: string; context: any }> {
+    // Read query and context
+    return { query: memory.query, context: memory.context ?? 'No context' }
   }
 
-  async exec(inputs: [string, string]): Promise<string> {
-    const [query, context] = inputs
-    return await callLLM(`Context: ${context}\nAnswer: ${query}`)
+  async exec(prepRes: { query: string; context: any }): Promise<string> {
+    // Generate answer based on context
+    const prompt = `Context: ${JSON.stringify(prepRes.context)}\nAnswer Query: ${prepRes.query}`
+    return await callLLM(prompt)
   }
 
-  async post(shared: any, prepRes: any, execRes: string): Promise<void> {
+  async post(memory: Memory, prepRes: any, execRes: string): Promise<void> {
+    // Store final answer
+    memory.answer = execRes
     console.log(`Answer: ${execRes}`)
-    shared.answer = execRes
+    // No trigger needed - end of this path
   }
 }
 ```
@@ -331,26 +357,41 @@ if __name__ == "__main__":
 {% tab title="TypeScript" %}
 
 ```typescript
-// Connect nodes
+import { Flow } from 'brainyflow'
+
+// Assuming DecideAction, SearchWeb, DirectAnswer classes are defined
+
+// Instantiate nodes
 const decide = new DecideAction()
 const search = new SearchWeb()
 const answer = new DirectAnswer()
 
-// Using operator overloading equivalents
+// Define transitions
 decide.on('search', search)
 decide.on('answer', answer)
 search.on('decide', decide) // Loop back
 
+// Create the flow
 const flow = new Flow(decide)
 
-async function main() {
-  const sharedData = { query: 'Who won the Nobel Prize in Physics 2024?' }
-  const result = await flow.run(sharedData) // Added await
-  console.log(result) // Or handle result as needed
-  console.log(sharedData) // See final shared state
+// --- Main execution function ---
+async function runAgent() {
+  const data = { query: 'Who won the Nobel Prize in Physics 2024?' }
+  console.log(`Starting agent flow with query: "${initialMemory.query}"`)
+
+  try {
+    await agentFlow.run(data) // Run the flow
+    console.log('\n--- Flow Complete ---')
+    console.log('Final Memory State:', data)
+    console.log('\nFinal Answer:', data.answer ?? 'No answer found')
+  } catch (error) {
+    console.error('\n--- Agent Flow Failed ---', error)
+    console.error('Memory State on Failure:', data)
+  }
 }
 
-main().catch(console.error) // Execute async main function
+// Run the main function
+runAgent()
 ```
 
 {% endtab %}

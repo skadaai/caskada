@@ -2,24 +2,27 @@
 
 ## Node Design
 
-1. **Keep Nodes Focused**: Each node should do one thing well
-2. **Idempotent Execution**: Design `exec()` methods to be safely retryable
-3. **Graceful Degradation**: Implement fallbacks for when things go wrong
-4. **Proper Error Handling**: Use `exec_fallback` to handle failures gracefully
+1.  **Keep Nodes Focused**: Each node should perform a single, well-defined task.
+2.  **Idempotent Execution**: If using retries (`maxRetries > 1`), design the `exec()` method to be idempotent (produce the same result for the same input) as it might be called multiple times.
+3.  **Clear Lifecycle**: Use `prep` to read/prepare data, `exec` for computation (no memory access), and `post` to write results and trigger successors.
+4.  **Graceful Degradation**: Implement `execFallback` in `Node` subclasses to handle errors gracefully after all retries are exhausted, potentially returning a default value instead of throwing an error.
 
-## Shared Store Management
+## Memory (State) Management
 
-1. **Schema Design**: Define a clear schema for your shared store
-2. **Namespacing**: Use namespaces to avoid key collisions
-3. **Immutability**: Treat shared store values as immutable when possible
-4. **Documentation**: Document the expected structure of your shared store
+1.  **Schema Design**: Define clear interfaces (in TypeScript) or conventions (in Python) for your `GlobalStore` and `LocalStore` structures.
+2.  **Global vs. Local**: Use the `GlobalStore` (accessed via `memory.prop = value`) for state shared across the entire flow. Use the `LocalStore` (populated via `forkingData` in `trigger`) for context specific to a particular execution branch.
+3.  **Minimize Global State**: Prefer passing data locally via `forkingData` when possible to keep the global state clean and reduce potential conflicts, especially in parallel flows.
+4.  **Read Transparently**: Always read via the `memory` proxy (e.g., `memory.value`); it handles the local-then-global lookup.
 
 ## Flow Design
 
-1. **Visualization First**: Design your flow visually before coding
-2. **Test Incrementally**: Build and test one section of your flow at a time
-3. **Error Paths**: Always include paths for handling errors
-4. **Monitoring**: Add logging at key points in your flow
+1.  **Visualization First**: Sketch your flow diagram (e.g., using Mermaid) before coding to clarify logic and transitions.
+2.  **Modularity**: Break complex processes into smaller, potentially nested, sub-flows (`Flow` extends `BaseNode`).
+3.  **Explicit Transitions**: Clearly define transitions using descriptive action names (`node.on('action', nextNode)`). Consider default paths (`node.next(defaultNode)`).
+4.  **Error Paths**: Define explicit transitions for error conditions (e.g., `node.on('error', errorHandlerNode)`) or handle errors within `execFallback`.
+5.  **Cycle Management**: Use the `maxVisits` option in the `Flow` constructor to prevent infinite loops.
+6.  **Parallelism**: Choose `ParallelFlow` for independent branches that can run concurrently; use `Flow` (sequential) otherwise or if order matters.
+7.  **Test Incrementally**: Test individual nodes (`node.run()`) and sub-flows before integrating them.
 
 ## Project Structure
 

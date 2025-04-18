@@ -103,20 +103,25 @@ class LLMNode(Node):
 {% tab title="TypeScript" %}
 
 ```typescript
-import { Node } from 'brainyflow'
-import { callLLM } from './utils/callLLM'
+import { Memory, Node } from 'brainyflow'
+import { callLLM } from './utils/callLLM' // Your wrapper
 
 class LLMNode extends Node {
-  async prep(shared: any): Promise {
-    return shared.prompt
+  async prep(memory: Memory): Promise<string> {
+    // Read prompt from memory
+    return memory.prompt ?? '' // Provide default if needed
   }
 
-  async exec(prompt: string): Promise {
+  async exec(prompt: string): Promise<string> {
+    // Call the LLM wrapper
+    if (!prompt) throw new Error('No prompt provided.')
     return await callLLM(prompt)
   }
 
-  async post(shared: any, prepRes: string, execRes: string): Promise {
-    shared.response = execRes
+  async post(memory: Memory, prepRes: string, llmResponse: string): Promise<void> {
+    // Store the response in memory
+    memory.response = llmResponse
+    this.trigger('default') // Or another action based on response
   }
 }
 ```

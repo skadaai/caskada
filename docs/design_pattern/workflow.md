@@ -65,59 +65,78 @@ if __name__ == "__main__":
 {% tab title="TypeScript" %}
 
 ```typescript
+import { Flow, Memory, Node } from 'brainyflow'
+
+// Assuming callLLM is defined elsewhere
+declare function callLLM(prompt: string): Promise<string>
+
 class GenerateOutline extends Node {
-  async prep(shared: any): Promise<any> {
-    return shared['topic']
+  async prep(memory: Memory): Promise<string> {
+    return memory.topic // Read topic from memory
   }
-  async exec(topic: string): Promise<any> {
+  async exec(topic: string): Promise<string> {
+    console.log(`Generating outline for: ${topic}`)
     return await callLLM(`Create a detailed outline for an article about ${topic}`)
   }
-  async post(shared: any, prepRes: any, execRes: any): Promise<void> {
-    shared['outline'] = execRes
+  async post(memory: Memory, prepRes: any, outline: string): Promise<void> {
+    memory.outline = outline // Store outline in memory
+    this.trigger('default')
   }
 }
 
 class WriteSection extends Node {
-  async prep(shared: any): Promise<any> {
-    return shared['outline']
+  async prep(memory: Memory): Promise<string> {
+    return memory.outline // Read outline from memory
   }
-  async exec(outline: string): Promise<any> {
+  async exec(outline: string): Promise<string> {
+    console.log('Writing draft based on outline...')
     return await callLLM(`Write content based on this outline: ${outline}`)
   }
-  async post(shared: any, prepRes: any, execRes: any): Promise<void> {
-    shared['draft'] = execRes
+  async post(memory: Memory, prepRes: any, draft: string): Promise<void> {
+    memory.draft = draft // Store draft in memory
+    this.trigger('default')
   }
 }
 
 class ReviewAndRefine extends Node {
-  async prep(shared: any): Promise<any> {
-    return shared['draft']
+  async prep(memory: Memory): Promise<string> {
+    return memory.draft // Read draft from memory
   }
-  async exec(draft: string): Promise<any> {
+  async exec(draft: string): Promise<string> {
+    console.log('Reviewing and refining draft...')
     return await callLLM(`Review and improve this draft: ${draft}`)
   }
-  async post(shared: any, prepRes: any, execRes: any): Promise<void> {
-    shared['final_article'] = execRes
+  async post(memory: Memory, draft: any, finalArticle: string): Promise<void> {
+    memory.final_article = finalArticle // Store final article
+    console.log('Final article generated.')
+    // No trigger needed - end of workflow
   }
 }
 
-// Connect nodes
+// --- Flow Definition ---
 const outline = new GenerateOutline()
 const write = new WriteSection()
 const review = new ReviewAndRefine()
 
+// Connect nodes sequentially using default trigger
 outline.next(write).next(review)
 
-// Create and run flow
+// Create the flow
 const writingFlow = new Flow(outline)
 
+// --- Execution ---
 async function main() {
-  const shared = { topic: 'AI Safety' }
-  await writingFlow.run(shared)
-  console.log(`Final Article: ${shared['final_article'] || 'Not generated'}`)
+  const data = { topic: 'AI Safety' }
+  console.log(`Starting writing workflow for topic: "${initialMemory.topic}"`)
+
+  await writingFlow.run(data) // Run the flow
+
+  console.log('\n--- Workflow Complete ---')
+  console.log('Final Memory State:', data)
+  console.log(`\nFinal Article:\n${data.final_article ?? 'Not generated'}`)
 }
 
-main().catch(console.error) // Execute async main function
+main().catch(console.error)
 ```
 
 {% endtab %}
