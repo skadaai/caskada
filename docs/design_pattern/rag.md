@@ -60,74 +60,90 @@ class ChunkDocs(SequentialBatchNode):
 {% tab title="TypeScript" %}
 
 ```typescript
-class ChunkDocs extends SequentialBatchNode {
-  async prep(shared: any): Promise<string[]> {
-    // A list of file paths in shared["files"]. We process each file.
-    return shared['files']
-  }
+import * as fs from 'fs'
+import { Flow, Memory, Node, ParallelFlow } from 'brainyflow'
 
-  async exec(filepath: string): Promise<string[]> {
-    // read file content. In real usage, do error handling.
-    const text = fs.readFileSync(filepath, 'utf-8')
-    // chunk by 100 chars each
+// Assume getEmbedding and createIndex/searchIndex are defined elsewhere
+declare function getEmbedding(text: string): Promise<number[]>
+declare function createIndex(embeddings: number[][]): any // Returns index object
+declare function searchIndex(
+  index: any,
+  queryEmbedding: number[],
+  topK: number,
+): [number[][], number[][]] // Returns [[ids]], [[distances]]
+
+// --- Stage 1: Offline Indexing Nodes ---
+
+// 1a. Node to trigger chunking for each file
+class TriggerChunkingNode extends Node {
+  async prep(memory: Memory): Promise<string[]> {
+    return memory.files ?? [] // Expects memory.files = ['doc1.txt', ...]
+  }
+  async exec(files: string[]): Promise<number> {
+    return files.length
+  }
+  async post(memory: Memory, prepRes: string[], fileCount: number): Promise<void> {
+    console.log(`Triggering chunking for ${fileCount} files.`)
+    memory.all_chunks = [] // Initialize chunk store
+    ;(prepRes as string[]).forEach((filepath, index) => {
+      this.trigger('chunk_file', { filepath, index }) // Pass filepath via local memory
+    })
+    this.trigger('embed_chunks') // Trigger embedding after all files are processed
+  }
+}
+
+// 1b. Node to chunk a single file
+class ChunkFileNode extends Node {
+  async prep(memory: Memory): Promise<{ filepath: string; index: number }> {
+    return { filepath: memory.filepath, index: memory.index } // Read from local memory
+  }
+  async exec(prepRes: { filepath: string; index: number }): Promise<string[]> {
+    console.log(`Chunking ${prepRes.filepath}`)
+    const text = fs.readFileSync(prepRes.filepath, 'utf-8')
     const chunks: string[] = []
-    const size = 100
+    const size = 100 // Simple fixed-size chunking
     for (let i = 0; i < text.length; i += size) {
       chunks.push(text.slice(i, i + size))
     }
     return chunks
   }
-
-  async post(shared: any, prepRes: string[], execResList: string[][]): Promise<void> {
-    // execResList is a list of chunk-lists, one per file.
-    // flatten them all into a single list of chunks.
-    const allChunks: string[] = []
-    for (const chunkList of execResList) {
-      allChunks.push(...chunkList)
-    }
-    shared['all_chunks'] = allChunks
+  async post(memory: Memory, prepRes: { index: number }, chunks: string[]): Promise<void> {
+    // Add chunks to the global list (careful with concurrency if using ParallelFlow)
+    // A safer parallel approach might store chunks per file then combine later.
+    memory.all_chunks.push(...chunks)
   }
 }
-```
 
-{% endtab %}
-{% endtabs %}
-
-{% tabs %}
-{% tab title="Python" %}
-
-```python
-class EmbedDocs(SequentialBatchNode):
-    async def prep(self, shared):
-        return shared["all_chunks"]
-
-    async def exec(self, chunk):
-        return get_embedding(chunk)
-
-    async def post(self, shared, prep_res, exec_res_list):
-        # Store the list of embeddings.
-        shared["all_embeds"] = exec_res_list
-        print(f"Total embeddings: {len(exec_res_list)}")
-```
-
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-```typescript
-class EmbedDocs extends SequentialBatchNode {
-  async prep(shared: any): Promise<string[]> {
-    return shared['all_chunks']
+// 1c. Node to trigger embedding for each chunk
+class TriggerEmbeddingNode extends Node {
+  async prep(memory: Memory): Promise<string[]> {
+    return memory.all_chunks ?? []
   }
-
-  async exec(chunk: string): Promise<number[]> {
-    return await getEmbedding(chunk)
+  async exec(chunks: string[]): Promise<number> {
+    return chunks.length
   }
+  async post(memory: Memory, prepRes: string[], chunkCount: number): Promise<void> {
+    console.log(`Triggering embedding for ${chunkCount} chunks.`)
+    memory.all_embeds = [] // Initialize embedding store
+    ;(prepRes as string[]).forEach((chunk, index) => {
+      this.trigger('embed_chunk', { chunk, index })
+    })
+    this.trigger('store_index') // Trigger storing after all chunks processed
+  }
+}
 
-  async post(shared: any, prepRes: string[], execResList: number[][]): Promise<void> {
-    // Store the list of embeddings.
-    shared['all_embeds'] = execResList
-    console.log(`Total embeddings: ${execResList.length}`)
+// 1d. Node to embed a single chunk
+class EmbedChunkNode extends Node {
+  async prep(memory: Memory): Promise<{ chunk: string; index: number }> {
+    return { chunk: memory.chunk, index: memory.index } // Read from local memory
+  }
+  async exec(prepRes: { chunk: string; index: number }): Promise<number[]> {
+    console.log(`Embedding chunk ${prepRes.index}`)
+    return await getEmbedding(prepRes.chunk)
+  }
+  async post(memory: Memory, prepRes: { index: number }, embedding: number[]): Promise<void> {
+    // Store embedding in global list (careful with concurrency)
+    memory.all_embeds[prepRes.index] = embedding
   }
 }
 ```
@@ -158,20 +174,24 @@ class StoreIndex(Node):
 {% tab title="TypeScript" %}
 
 ```typescript
-class StoreIndex extends Node {
-  async prep(shared: any): Promise<number[][]> {
-    // We'll read all embeds from shared.
-    return shared['all_embeds']
+// 1e. Node to store the final index
+class StoreIndexNode extends Node {
+  async prep(memory: Memory): Promise<number[][]> {
+    // Read all embeddings from global memory
+    return memory.all_embeds ?? []
   }
 
   async exec(allEmbeds: number[][]): Promise<any> {
-    // Create a vector index (faiss or other DB in real usage).
+    console.log(`Storing index for ${allEmbeds.length} embeddings.`)
+    // Create a vector index (implementation depends on library)
     const index = createIndex(allEmbeds)
     return index
   }
 
-  async post(shared: any, prepRes: number[][], index: any): Promise<void> {
-    shared['index'] = index
+  async post(memory: Memory, prepRes: any, index: any): Promise<void> {
+    // Store the created index in global memory
+    memory.index = index
+    console.log('Index created and stored.')
   }
 }
 ```
@@ -198,14 +218,22 @@ OfflineFlow = Flow(start=chunk_node)
 {% tab title="TypeScript" %}
 
 ```typescript
-// Wire them in sequence
-const chunkNode = new ChunkDocs()
-const embedNode = new EmbedDocs()
-const storeNode = new StoreIndex()
+// --- Offline Flow Definition ---
+const triggerChunking = new TriggerChunkingNode()
+const chunkFile = new ChunkFileNode()
+const triggerEmbedding = new TriggerEmbeddingNode()
+const embedChunk = new EmbedChunkNode()
+const storeIndex = new StoreIndexNode()
 
-chunkNode.next(embedNode).next(storeNode)
+// Define transitions
+triggerChunking.on('chunk_file', chunkFile)
+triggerChunking.on('embed_chunks', triggerEmbedding)
+triggerEmbedding.on('embed_chunk', embedChunk)
+triggerEmbedding.on('store_index', storeIndex)
 
-const OfflineFlow = new Flow(chunkNode)
+// Use ParallelFlow for chunking and embedding if desired
+const OfflineFlow = new ParallelFlow(triggerChunking)
+// Or sequential: const OfflineFlow = new Flow(triggerChunking);
 ```
 
 {% endtab %}
@@ -228,10 +256,24 @@ await OfflineFlow.run(shared)
 {% tab title="TypeScript" %}
 
 ```typescript
-const shared = {
-  files: ['doc1.txt', 'doc2.txt'], // any text files
+// --- Offline Flow Execution ---
+async function runOffline() {
+  const initialMemory = {
+    files: ['doc1.txt', 'doc2.txt'], // Example file paths
+  }
+  console.log('Starting offline indexing flow...')
+  // Create dummy files for example
+  fs.writeFileSync('doc1.txt', 'Alice was beginning to get very tired.')
+  fs.writeFileSync('doc2.txt', 'The quick brown fox jumps over the lazy dog.')
+
+  await OfflineFlow.run(initialMemory)
+  console.log('Offline indexing complete.')
+  // Clean up dummy files
+  fs.unlinkSync('doc1.txt')
+  fs.unlinkSync('doc2.txt')
+  return initialMemory // Return memory containing index, chunks, embeds
 }
-await OfflineFlow.run(shared)
+// runOffline(); // Example call
 ```
 
 {% endtab %}
@@ -267,17 +309,20 @@ class EmbedQuery(Node):
 {% tab title="TypeScript" %}
 
 ```typescript
-class EmbedQuery extends Node {
-  async prep(shared: any): Promise<string> {
-    return shared['question']
-  }
+// --- Stage 2: Online Query Nodes ---
 
+// 2a. Embed Query Node
+class EmbedQueryNode extends Node {
+  async prep(memory: Memory): Promise<string> {
+    return memory.question // Expects question in global memory
+  }
   async exec(question: string): Promise<number[]> {
+    console.log(`Embedding query: "${question}"`)
     return await getEmbedding(question)
   }
-
-  async post(shared: any, prepRes: string, qEmb: number[]): Promise<void> {
-    shared['q_emb'] = qEmb
+  async post(memory: Memory, prepRes: any, qEmb: number[]): Promise<void> {
+    memory.q_emb = qEmb // Store query embedding
+    this.trigger('retrieve_docs')
   }
 }
 ```
@@ -311,27 +356,30 @@ class RetrieveDocs(Node):
 {% tab title="TypeScript" %}
 
 ```typescript
-class RetrieveDocs extends Node {
-  async prep(shared: any): Promise<[number[], any, string[]]> {
-    // We'll need the query embedding, plus the offline index/chunks
-    return [shared['q_emb'], shared['index'], shared['all_chunks']]
+// 2b. Retrieve Docs Node
+class RetrieveDocsNode extends Node {
+  async prep(memory: Memory): Promise<{ qEmb: number[]; index: any; chunks: string[] }> {
+    // Need query embedding, index, and original chunks
+    return { qEmb: memory.q_emb, index: memory.index, chunks: memory.all_chunks }
   }
-
-  async exec(inputs: [number[], any, string[]]): Promise<string> {
-    const [qEmb, index, chunks] = inputs
-    const [I, D] = searchIndex(index, qEmb, 1)
-    const bestId = I[0][0]
+  async exec(prepRes: { qEmb: number[]; index: any; chunks: string[] }): Promise<string> {
+    const { qEmb, index, chunks } = prepRes
+    if (!qEmb || !index || !chunks) {
+      throw new Error('Missing data for retrieval')
+    }
+    console.log('Retrieving relevant chunk...')
+    const [I, D] = searchIndex(index, qEmb, 1) // Find top 1 chunk
+    const bestId = I?.[0]?.[0]
+    if (bestId === undefined || bestId >= chunks.length) {
+      return 'Could not find relevant chunk.'
+    }
     const relevantChunk = chunks[bestId]
     return relevantChunk
   }
-
-  async post(
-    shared: any,
-    prepRes: [number[], any, string[]],
-    relevantChunk: string,
-  ): Promise<void> {
-    shared['retrieved_chunk'] = relevantChunk
+  async post(memory: Memory, prepRes: any, relevantChunk: string): Promise<void> {
+    memory.retrieved_chunk = relevantChunk
     console.log(`Retrieved chunk: ${relevantChunk.slice(0, 60)}...`)
+    this.trigger('generate_answer')
   }
 }
 ```
@@ -362,20 +410,24 @@ class GenerateAnswer(Node):
 {% tab title="TypeScript" %}
 
 ```typescript
-class GenerateAnswer extends Node {
-  async prep(shared: any): Promise<[string, string]> {
-    return [shared['question'], shared['retrieved_chunk']]
+// 2c. Generate Answer Node
+class GenerateAnswerNode extends Node {
+  async prep(memory: Memory): Promise<{ question: string; chunk: string }> {
+    return { question: memory.question, chunk: memory.retrieved_chunk }
   }
-
-  async exec(inputs: [string, string]): Promise<string> {
-    const [question, chunk] = inputs
-    const prompt = `Question: ${question}\nContext: ${chunk}\nAnswer:`
+  async exec(prepRes: { question: string; chunk: string }): Promise<string> {
+    const { question, chunk } = prepRes
+    const prompt = `Using the following context, answer the question.
+Context: ${chunk}
+Question: ${question}
+Answer:`
+    console.log('Generating final answer...')
     return await callLLM(prompt)
   }
-
-  async post(shared: any, prepRes: [string, string], answer: string): Promise<void> {
-    shared['answer'] = answer
+  async post(memory: Memory, prepRes: any, answer: string): Promise<void> {
+    memory.answer = answer // Store final answer
     console.log(`Answer: ${answer}`)
+    // End of flow
   }
 }
 ```
@@ -400,12 +452,16 @@ OnlineFlow = Flow(start=embed_qnode)
 {% tab title="TypeScript" %}
 
 ```typescript
-const embedQNode = new EmbedQuery()
-const retrieveNode = new RetrieveDocs()
-const generateNode = new GenerateAnswer()
+// --- Online Flow Definition ---
+const embedQueryNode = new EmbedQueryNode()
+const retrieveDocsNode = new RetrieveDocsNode()
+const generateAnswerNode = new GenerateAnswerNode()
 
-embedQNode.next(retrieveNode).next(generateNode)
-const OnlineFlow = new Flow(embedQNode)
+// Define transitions
+embedQueryNode.on('retrieve_docs', retrieveDocsNode)
+retrieveDocsNode.on('generate_answer', generateAnswerNode)
+
+const OnlineFlow = new Flow(embedQueryNode)
 ```
 
 {% endtab %}
@@ -441,24 +497,35 @@ if __name__ == "__main__":
 {% tab title="TypeScript" %}
 
 ```typescript
-async function runOnline(sharedFromOffline: any): Promise<any> {
-  // Suppose we already ran OfflineFlow (runOffline) and have:
-  // sharedFromOffline["all_chunks"], sharedFromOffline["index"], etc.
-  sharedFromOffline['question'] = 'Why do people like cats?'
+// --- Online Flow Execution ---
+async function runOnline(memoryFromOffline: any) {
+  // Add the user's question to the memory from the offline stage
+  memoryFromOffline.question = 'Why do people like cats?'
 
-  await OnlineFlow.run(sharedFromOffline)
-  // final answer in sharedFromOffline["answer"]
-  console.log(`Final Answer: ${sharedFromOffline['answer']}`)
-  return sharedFromOffline
+  console.log(`\nStarting online RAG flow for question: "${memoryFromOffline.question}"`)
+  await OnlineFlow.run(memoryFromOffline)
+  console.log('Online RAG complete.')
+  return memoryFromOffline
 }
 
-// Example usage combining both stages
-async function main() {
-  const offlineShared = await runOffline()
-  await runOnline(offlineShared)
+// --- Combined Example ---
+async function runFullRAG() {
+  // Mock external functions for example
+  globalThis.getEmbedding = async (text: string) => Array(5).fill(Math.random())
+  globalThis.createIndex = (embeds: number[][]) => ({
+    search: (q: number[], k: number) => [[Math.floor(Math.random() * embeds.length)]],
+  }) // Mock index
+  globalThis.searchIndex = (index: any, q: number[], k: number) => index.search(q, k)
+  globalThis.callLLM = async (prompt: string) => `Mock LLM answer for: ${prompt.split('\n')[1]}`
+
+  const memoryAfterOffline = await runOffline()
+  const finalMemory = await runOnline(memoryAfterOffline)
+
+  console.log('\n--- Full RAG Result ---')
+  console.log('Final Answer:', finalMemory.answer)
 }
 
-main().catch(console.error) // Execute async main function
+runFullRAG().catch(console.error)
 ```
 
 {% endtab %}

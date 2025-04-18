@@ -91,15 +91,27 @@ summary:
 {% tab title="TypeScript" %}
 
 ````typescript
+import { Memory, Node } from 'brainyflow'
+
+// Assuming callLLM and a YAML parser are available
+declare function callLLM(prompt: string): Promise<string>
+declare function parseYaml(text: string): any
+
 class SummarizeNode extends Node {
-  async exec(prepRes: string): Promise<any> {
-    // Suppose prepRes is the text to summarize
+  async prep(memory: Memory): Promise<string> {
+    // Assuming the text to summarize is in memory.text
+    return memory.text ?? ''
+  }
+
+  async exec(textToSummarize: string): Promise<any> {
+    if (!textToSummarize) return { summary: ['No text provided'] }
+
     const prompt = `
-Please summarize the following text as YAML, with exactly 3 bullet points
+Please summarize the following text as YAML, with exactly 3 bullet points:
 
-${prepRes}
+${textToSummarize}
 
-Now, output:
+Now, output ONLY the YAML structure:
 \`\`\`yaml
 summary:
   - bullet 1
@@ -108,19 +120,31 @@ summary:
 \`\`\``
 
     const response = await callLLM(prompt)
-    const yamlStr = response.split('```yaml')[1].split('```')[0].trim()
+    let structuredResult: any
+    try {
+      const yamlStr = response.split(/```(?:yaml)?/)[1]?.trim()
+      if (!yamlStr) throw new Error('No YAML block found')
+      structuredResult = parseYaml(yamlStr)
 
-    // In TypeScript we would typically use a YAML parser like 'yaml'
-    const structuredResult = require('yaml').parse(yamlStr)
-
-    if (!('summary' in structuredResult)) {
-      throw new Error("Missing 'summary' in result")
+      // Basic validation
+      if (!structuredResult?.summary || !Array.isArray(structuredResult.summary)) {
+        throw new Error('Invalid YAML structure: missing or non-array summary')
+      }
+    } catch (e: any) {
+      console.error('Failed to parse structured output:', e.message)
+      // Handle error, maybe return a default structure or re-throw
+      // Returning the raw response might be an option too
+      return { summary: [`Error parsing summary: ${e.message}`] }
     }
-    if (!Array.isArray(structuredResult.summary)) {
-      throw new Error('Summary must be an array')
-    }
 
-    return structuredResult
+    return structuredResult // e.g., { summary: ['Point 1', 'Point 2', 'Point 3'] }
+  }
+
+  async post(memory: Memory, prepRes: any, execRes: any): Promise<void> {
+    // Store the structured result in memory
+    memory.structured_summary = execRes
+    console.log('Stored structured summary:', execRes)
+    // No trigger needed if this is the end of the flow/branch
   }
 }
 ````
