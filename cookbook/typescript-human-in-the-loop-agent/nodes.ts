@@ -201,7 +201,12 @@ export class AnswerNode extends Node {
         return response;
     }
 
-    async post(shared: SearchAgentSharedContext, prepRes?: string, execRes?: string) {
+    async post(
+        shared: SearchAgentSharedContext,
+-       prepRes?: string,
++       prepRes?: { question: string; context: string },
+        execRes?: string
+    ) {
         if (!prepRes) {
             console.log("No answer provided.");
             return;
