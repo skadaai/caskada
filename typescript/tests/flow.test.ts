@@ -198,26 +198,64 @@ describe('Flow Class', () => {
   })
 
   describe('Cycle Detection', () => {
-    it('should execute a loop fewer times than maxVisits', async () => {
+    it('should execute a loop exactly maxVisits times before rejecting', async () => {
       let loopCount = 0
       nodeA.prepMock.mock.mockImplementation(async (mem) => {
         loopCount++
-        mem.count = loopCount
+        mem.count = loopCount // Modify the memory passed to the node
       })
       nodeA.next(nodeA) // A -> A loop
 
-      const flow = new Flow(nodeA, { maxVisits: 3 })
-      await flow.run(memory)
+      const maxVisitsAllowed = 3
+      const flow = new Flow(nodeA, { maxVisits: maxVisitsAllowed })
 
-      assert.equal(loopCount, 3) // Visited 3 times (0, 1, 2)
-      assert.equal(memory.count, 3)
+      // Use a fresh memory object for this specific test's state
+      const loopMemory = Memory.create<{ count?: number }>({})
+      // Expect rejection when the (maxVisits + 1)th execution is attempted
+      await assert.rejects(
+        async () => {
+          try {
+            await flow.run(loopMemory) // Run with the dedicated memory
+          } catch (e) {
+            // Assert state *inside* the catch block before re-throwing
+            assert.equal(
+              loopCount,
+              maxVisitsAllowed,
+              `Node should have executed exactly ${maxVisitsAllowed} times before error`,
+            )
+            assert.equal(
+              loopMemory.count,
+              maxVisitsAllowed,
+              `Memory count should be ${maxVisitsAllowed} before error`,
+            )
+            throw e // Re-throw for assert.rejects to catch
+          }
+          // If it doesn't throw (which it should), fail the test explicitly
+          assert.fail('Flow should have rejected due to cycle limit, but did not.')
+        },
+        new RegExp(`Maximum cycle count reached \\(${maxVisitsAllowed}\\)`),
+        'Flow should reject when loop count exceeds maxVisits',
+      )
+
+      // Final check on loopCount after rejection is confirmed
+      assert.equal(
+        loopCount,
+        maxVisitsAllowed,
+        `Node should have executed exactly ${maxVisitsAllowed} times (final check)`,
+      )
     })
 
-    it('should throw error if maxVisits is reached', async () => {
+    it('should throw error immediately if loop exceeds maxVisits (e.g., maxVisits=2)', async () => {
       nodeA.next(nodeA) // A -> A loop
-      const flow = new Flow(nodeA, { maxVisits: 2 })
+      const maxVisitsAllowed = 2
+      const flow = new Flow(nodeA, { maxVisits: maxVisitsAllowed })
+      const loopMemory = Memory.create<{ count?: number }>({}) // Fresh memory
 
-      await assert.rejects(flow.run(memory), /Maximum cycle count reached \(2\)/)
+      await assert.rejects(
+        flow.run(loopMemory),
+        new RegExp(`Maximum cycle count reached \\(${maxVisitsAllowed}\\)`), // Check error message
+        'Flow should reject when loop count exceeds maxVisits (maxVisits=2)',
+      )
     })
   })
 

@@ -283,13 +283,13 @@ export class Flow<
     memory: Memory<GlobalStore, SharedStore>,
   ): Promise<NestedActions<AllowedActions>> {
     const nodeId = node.__nodeOrder.toString()
-    const currentCount = this.visitCounts.get(nodeId) || 0
-    this.visitCounts.set(nodeId, currentCount + 1)
-    if (currentCount >= this.options.maxVisits) {
+    const currentVisitCount = (this.visitCounts.get(nodeId) || 0) + 1
+    if (currentVisitCount > this.options.maxVisits) {
       throw new Error(
         `Maximum cycle count reached (${this.options.maxVisits}) for ${nodeId}.${node.constructor.name}`,
       )
     }
+    this.visitCounts.set(nodeId, currentVisitCount)
 
     const clone = node.clone()
     const triggers = await clone.run(memory.clone(), true)

@@ -135,14 +135,15 @@ describe('Memory Class', () => {
       )
 
       // Modify local via original, check clone
-      memory.local.l1 = 'modified_local_original'
+      memory.local.l1 = 'modified_local_original' // Modify original's internal local store
+      // Read from the clone. Since its local store is independent, it should still find 'l1' locally.
       assert.equal(
         clonedMemory.l1,
-        'local_common',
-        'Clone local should be unaffected by original local changes (reads global)',
-      ) // common is now read from global as local was modified
+        'local1', // Should still be the original cloned local value
+        'Clone local property should be unaffected by original local changes',
+      )
       assert.equal(
-        clonedMemory.local.l1,
+        clonedMemory.local.l1, // Accessing the clone's internal local store directly
         'local1',
         'Clone local store internal value should be unchanged',
       )
