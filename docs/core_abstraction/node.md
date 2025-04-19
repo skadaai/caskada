@@ -181,7 +181,7 @@ class CustomErrorHandlingNode extends Node<any, any, [], PrepResult, ExecResult>
     }
     return 'Success on retry'
   }
-  Z
+
   async execFallback(prepRes: PrepResult, error: NodeError): Promise<ExecResult> {
     // This is called only if exec fails on the last attempt
     console.error(`Exec failed after ${error.retryCount + 1} attempts: ${error.message}`)
@@ -385,7 +385,7 @@ class RouterNode extends Node<RouterGlobalStore, any, RouterActions[]> {
     prepRes: string, // Content
     execRes: string, // Language detected
   ): Promise<void> {
-    console.log(`RouterPost: Detected language '${language}', storing and triggering.")
+    console.log(`RouterPost: Detected language '${execRes}', storing and triggering.`)
     memory.language = execRes
     // Trigger the specific action based on the detected language
     this.trigger(execRes as RouterActions)
@@ -407,19 +407,19 @@ const flow = new Flow(router)
 
 // --- Execution Example ---
 async function runFlow() {
-  const storeEn: RouterGlobalStore = { content: "Hello world" };
-  await flow.run(storeEn);
-  console.log("--- English Flow Done ---", storeEn);
+  const storeEn: RouterGlobalStore = { content: 'Hello world' }
+  await flow.run(storeEn)
+  console.log('--- English Flow Done ---', storeEn)
 
-  const storeEs: RouterGlobalStore = { content: "Hola mundo" };
-  await flow.run(storeEs);
-  console.log("--- Spanish Flow Done ---", storeEs);
+  const storeEs: RouterGlobalStore = { content: 'Hola mundo' }
+  await flow.run(storeEs)
+  console.log('--- Spanish Flow Done ---', storeEs)
 
-  const storeUnk: RouterGlobalStore = { content: "Bonjour le monde" };
-  await flow.run(storeUnk);
-  console.log("--- Unknown Flow Done ---", storeUnk);
+  const storeUnk: RouterGlobalStore = { content: 'Bonjour le monde' }
+  await flow.run(storeUnk)
+  console.log('--- Unknown Flow Done ---', storeUnk)
 }
-runFlow();
+runFlow()
 ```
 
 {% endtab %}

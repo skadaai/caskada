@@ -266,9 +266,14 @@ describe('BaseNode & Node', () => {
       const nodeA = new SimpleNode()
       const nodeB = new SimpleNode()
       nodeA.next(nodeB)
-      // const warnMock = mock.method(console, 'warn', () => {});
+      const warnMock = mock.method(console, 'warn', () => {})
       await nodeA.run(memory)
-      // assert.equal(warnMock.mock.calls.length, 1);
+      assert.equal(
+        warnMock.mock.calls.length,
+        1,
+        'Expected a warning when running a node that has successors',
+      )
+      warnMock.mock.restore()
       // assert.match(warnMock.mock.calls[0].arguments[0], /Node won't run successors. Use Flow!/);
       // warnMock.mock.restore();
       // Skipping direct assertion due to console.warn mocking difficulty

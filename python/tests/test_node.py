@@ -1,7 +1,7 @@
 import pytest
 import asyncio
-from unittest.mock import Mock, AsyncMock
-from brainyflow import Memory, BaseNode, Node, DEFAULT_ACTION, NodeError
+from unittest.mock import AsyncMock
+from brainyflow import Memory, Node, DEFAULT_ACTION
 
 # Helper sleep function for async tests
 async def async_sleep(seconds: float):
@@ -234,7 +234,9 @@ class TestBaseNodeAndNode:
             assert isinstance(triggered_memory, Memory)
             assert triggered_memory.key == "value"  # Check forking_data applied locally
             assert triggered_memory.local["key"] == "value"
-            assert memory.key is None  # Original memory unaffected
+            # Original memory should not have 'key'
+            with pytest.raises(AttributeError, match="'Memory' object has no attribute 'key'"):
+                _ = memory.key
         
         async def test_trigger_throws_error_if_called_outside_post(self, memory):
             """trigger() should throw an error if called outside post()."""

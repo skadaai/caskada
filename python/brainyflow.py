@@ -27,8 +27,10 @@ class Memory:
         """Access properties, checking local store first, then global."""
         if name in self._local:
             return self._local[name]
-        return self._global.get(name)
-    
+        if name in self._global:
+            return self._global[name]
+        raise AttributeError(f"'Memory' object has no attribute {name!r}")    
+        
     def __setattr__(self, name, value):
         """Write properties, handling reserved names and local/global interaction."""
         # Reserved property handling
@@ -241,18 +243,20 @@ class Node(BaseNode):
     
     async def exec_runner(self, memory, prep_res):
         """Run exec with retry logic."""
-        for self.cur_retry in range(self.max_retries):
+        for attempt in range(self.max_retries):
+            self.cur_retry = attempt
             try:
                 return await self.exec(prep_res)
             except Exception as error:
-                if self.cur_retry < self.max_retries - 1:
+                if attempt < self.max_retries - 1:
                     if self.wait > 0:
                         await asyncio.sleep(self.wait)
                     continue
-                    
+
                 # Last attempt failed, add retry info and use fallback
-                error.retry_count = self.cur_retry
-                return await self.exec_fallback(prep_res, error)
+                wrapped = NodeError(str(error))
+                wrapped.retry_count = attempt
+                return await self.exec_fallback(prep_res, wrapped)
 
 
 class Flow(BaseNode):

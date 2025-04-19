@@ -45,8 +45,9 @@ class TestMemory:
             assert memory.g1 == "global1"
 
         def test_return_none_if_property_exists_in_neither_store(self, memory):
-            """Should return None if property exists in neither store."""
-            assert memory.non_existent is None
+            """Should raise AttributeError if property exists in neither store."""
+            with pytest.raises(AttributeError, match="'Memory' object has no attribute 'non_existent'"):
+                _ = memory.non_existent
 
         def test_correctly_access_the_local_property(self, memory):
             """Should correctly access the local property."""
@@ -147,7 +148,9 @@ class TestMemory:
             
             # Modify local via clone, check original
             cloned_memory.local["l2"] = "added_via_clone_local"
-            assert memory_setup.l2 is None, "Original should not see local changes from clone (reads None)"
+            # Accessing l2 on the original should raise AttributeError as it wasn't set globally or locally there
+            with pytest.raises(AttributeError, match="'Memory' object has no attribute 'l2'"):
+                _ = memory_setup.l2
             assert "l2" not in memory_setup.local, "Original local store internal value should be unchanged"
             
             # Test nested objects

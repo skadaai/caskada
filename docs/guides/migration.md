@@ -366,7 +366,17 @@ class BatchTriggerNode extends Node {
   async post(memory: Memory, prepRes: any[], items: any[]): Promise {
     memory.results = [];
 
-    for (let index = 0; index  {
+  for (let index = 0; index < items.length; index++) {
+    this.trigger("process_item", {
+      item: items[index],
+      item_index: index
+    });
+  }
+  this.trigger("all_triggered");
+}
+
+class ProcessItemNode extends Node {
+  async prep(memory: Memory): Promise {
     return memory.item;  // From local memory
   }
 

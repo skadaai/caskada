@@ -76,7 +76,7 @@ class CombineSummariesNode(Node):
             return "No summaries to combine."
         # Format summaries for the final prompt
         combined_text = "\n\n---\n\n".join([f"{s['filename']}:\n{s['summary']}" for s in summaries])
-        return await call_llm(f"Combine these summaries into one final summary:\n{combinedText}")
+        return await call_llm(f"Combine these summaries into one final summary:\n{combined_text}")
 
     async def post(self, memory: Memory, prep_res, final_summary: str):
         # Store the final combined summary

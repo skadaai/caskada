@@ -5,7 +5,7 @@ type Action = string | typeof DEFAULT_ACTION
 type NestedActions<T extends Action[]> = Record<T[number], NestedActions<T>[]>
 
 export type NodeError = Error & {
-  retryCount: number
+  retryCount?: number
 }
 
 export class Memory<G extends SharedStore, L extends SharedStore> {
@@ -115,7 +115,7 @@ export abstract class BaseNode<
   getNextNodes(action: Action = DEFAULT_ACTION): BaseNode[] {
     const next = this.successors.get(action) || []
     if (!next.length && this.successors.size > 0 && action !== DEFAULT_ACTION) {
-      console.warn(`Flow ends: '${action}' not found in ${Object.keys(this.successors)}`)
+      console.warn(`Flow ends: '${action}' not found in`, this.successors.keys())
     }
     return next
   }
