@@ -1,7 +1,3 @@
----
-title: 'Workflow'
----
-
 # Workflow
 
 Many real-world tasks are too complex for one LLM call. The solution is **Task Decomposition**: decompose them into a [chain](../core_abstraction/flow.md) of multiple Nodes.
@@ -24,22 +20,31 @@ You usually need multiple _iterations_ to find the _sweet spot_. If the task has
 
 ```python
 import asyncio
-from brainyflow import Node, Flow
+from brainyflow import Node, Flow, Memory
+
+# Assume call_llm is defined elsewhere
+# async def call_llm(prompt: str) -> str: ...
 
 class GenerateOutline(Node):
-    async def prep(self, shared): return shared["topic"]
-    async def exec(self, topic): return call_llm(f"Create a detailed outline for an article about {topic}")
-    async def post(self, shared, prep_res, exec_res): shared["outline"] = exec_res
+    async def prep(self, memory: Memory): return memory.topic
+    async def exec(self, topic): return await call_llm(f"Create a detailed outline for an article about {topic}")
+    async def post(self, memory: Memory, prep_res, exec_res):
+        memory.outline = exec_res
+        self.trigger('default')
 
 class WriteSection(Node):
-    async def prep(self, shared): return shared["outline"]
-    async def exec(self, outline): return call_llm(f"Write content based on this outline: {outline}")
-    async def post(self, shared, prep_res, exec_res): shared["draft"] = exec_res
+    async def prep(self, memory: Memory): return memory.outline
+    async def exec(self, outline): return await call_llm(f"Write content based on this outline: {outline}")
+    async def post(self, memory: Memory, prep_res, exec_res):
+        memory.draft = exec_res
+        self.trigger('default')
 
 class ReviewAndRefine(Node):
-    async def prep(self, shared): return shared["draft"]
-    async def exec(self, draft): return call_llm(f"Review and improve this draft: {draft}")
-    async def post(self, shared, prep_res, exec_res): shared["final_article"] = exec_res
+    async def prep(self, memory: Memory): return memory.draft
+    async def exec(self, draft): return await call_llm(f"Review and improve this draft: {draft}")
+    async def post(self, memory: Memory, prep_res, exec_res):
+        memory.final_article = exec_res
+        # No trigger needed if this is the end of the flow
 
 # Connect nodes
 outline = GenerateOutline()
@@ -52,9 +57,9 @@ outline >> write >> review
 writing_flow = Flow(start=outline)
 
 async def main():
-    shared = {"topic": "AI Safety"}
-    await writing_flow.run(shared)
-    print("Final Article:", shared.get("final_article", "Not generated"))
+    memory = {"topic": "AI Safety"}
+    await writing_flow.run(memory) # Pass memory object
+    print("Final Article:", memory.get("final_article", "Not generated")) # Access memory object
 
 if __name__ == "__main__":
     asyncio.run(main())

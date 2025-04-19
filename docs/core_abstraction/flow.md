@@ -12,23 +12,25 @@ A Flow begins with a **start node**, a memory state, and follows the [action-bas
 {% tab title="Python" %}
 
 ```python
-from brainyflow import Flow
+from brainyflow import Flow, Node
 
 # Define nodes and transitions
+# node_a = Node() ... etc.
 node_a >> node_b
 node_b - "success" >> node_c
 node_b - "error" >> node_d
 
-# Create a shared/global store
+# Create a shared/global store (an empty dictionary)
 memory = {}
 
 # Create flow starting with node_a
 flow = Flow(start=node_a)
 
-# Run the flow with a shared store
+# Run the flow, passing the memory object
 await flow.run(memory)
-# Print the results
-print(memory)
+
+# The memory object is modified in place
+print("Flow finished. Final memory state:", memory)
 ```
 
 {% endtab %}
@@ -38,7 +40,8 @@ print(memory)
 ```typescript
 import { Flow, Node } from 'brainyflow'
 
-// Define transitions
+// Define nodes and transitions
+// const node_a = new Node(); ... etc.
 node_a.next(node_b) // Default transition
 node_b.on('success', node_c) // Named transition
 node_b.on('error', node_d) // Named transition
@@ -50,17 +53,18 @@ interface MyGlobalStore {
   error?: any
 }
 
-// Create a global store object
-const memory: MyGlobalStore = { input: 'some data' }
+// Create a global store object (can be just an empty object)
+const globalStore: MyGlobalStore = { input: 'some data' }
 
 // Create flow starting with node_a
 const flow = new Flow<MyGlobalStore>(node_a)
 
-// Run the flow with the store object; The flow will modify the memory object in place.
-await flow.run(memory)
+// Run the flow, passing the global store object.
+// The flow modifies the globalStore object in place.
+await flow.run(globalStore)
 
 // Print the final state of the global store
-console.log(memory)
+console.log('Flow finished. Final memory state:', globalStore)
 // Example output (depending on flow logic):
 // { input: 'some data', result: 'processed data from node_c' }
 // or
@@ -72,12 +76,14 @@ console.log(memory)
 
 ## Flow Execution Process
 
-When you call `flow.run(memory)`, the flow executes the following steps:
+When you call `flow.run(memory)`, the flow executes the following steps internally:
 
-1. The flow executes the start node
-2. It examines the action(s) triggered by node's `trigger()` method
-3. It follows the corresponding transition(s) to the next node(s)
-4. This process repeats until it reaches a point where it cannot find a node with a matching transition for its action
+1.  It starts with the designated `start` node.
+2.  For the current node, it executes its lifecycle (`prep` -> `execRunner` -> `post`), passing a `Memory` instance that wraps the global store and manages local state.
+3.  It looks for triggered action (specified by `trigger()` calls), then it finds the corresponding successor node(s) defined by `.on()` or `.next()`.
+4.  It recursively executes the successor node(s) with their respective cloned local memories.
+5.  This process repeats until it reaches nodes that trigger actions with no defined successors, or the flow completes.
+6.  The `run` method modifies the initial global store object in place and returns a nested structure representing the execution tree (often ignored if results are stored in memory).
 
 ```mermaid
 sequenceDiagram
@@ -118,6 +124,8 @@ Here's a simple expense approval flow that demonstrates branching and looping:
 {% tab title="Python" %}
 
 ```python
+from brainyflow import Flow, Node
+
 # Define the nodes first
 # review = ReviewExpenseNode()
 # revise = ReviseReportNode()
@@ -210,6 +218,8 @@ Here's a practical example that breaks down order processing into nested flows:
 {% tab title="Python" %}
 
 ```python
+from brainyflow import Flow, Node
+
 # Payment processing sub-flow
 validate_payment >> process_payment >> payment_confirmation
 payment_flow = Flow(start=validate_payment)
@@ -229,7 +239,8 @@ payment_flow >> inventory_flow >> shipping_flow
 order_pipeline = Flow(start=payment_flow)
 
 # Run the entire pipeline
-await order_pipeline.run(shared_data)
+memory = { orderId: 'XYZ789', customerId: 'CUST123' }
+await order_pipeline.run(memory)
 ```
 
 {% endtab %}
@@ -237,6 +248,8 @@ await order_pipeline.run(shared_data)
 {% tab title="TypeScript" %}
 
 ```typescript
+import { Flow, Node } from 'brainyflow'
+
 // Payment processing sub-flow
 validatePayment.next(processPayment).next(paymentConfirmation)
 const paymentFlow = new Flow(validatePayment)
@@ -256,9 +269,9 @@ inventoryFlow.next(shippingFlow) // Default transition after inventoryFlow compl
 const orderPipeline = new Flow(paymentFlow)
 
 // --- Run the entire pipeline ---
-// const sharedData = { orderId: 'XYZ789', customerId: 'CUST123' };
-// await orderPipeline.run(sharedData);
-// console.log('Order pipeline completed. Final state:', sharedData);
+// const globalStore = { orderId: 'XYZ789', customerId: 'CUST123' };
+// await orderPipeline.run(globalStore);
+// console.log('Order pipeline completed. Final state:', globalStore);
 ```
 
 {% endtab %}
@@ -300,7 +313,7 @@ const flow = new Flow(startNode, { maxVisits: 10 })
 ```
 
 - The default value for `maxVisits` is `5`.
-- Set `maxVisits` to `Infinity` for no limit (use with caution!).
+- Set `maxVisits` to `Infinity` or a very large number for effectively no limit (use with caution!).
 
 ## Flow Parallelism
 
@@ -316,7 +329,7 @@ const sequentialFlow = new Flow(startNode)
 
 ### 2. `ParallelFlow` (Concurrent Execution)
 
-The `ParallelFlow` class executes the tasks generated by multiple triggers **concurrently** using `Promise.all()`. This is useful for performance when branches are independent (e.g., batch processing items).
+The `ParallelFlow` class executes the tasks generated by multiple triggers **concurrently** using `Promise.all()` (TypeScript) or `asyncio.gather()` (Python). This is useful for performance when branches are independent (e.g., batch processing items).
 
 ```typescript
 // Executes triggered branches in parallel
@@ -340,10 +353,21 @@ When using `ParallelFlow`, be mindful of potential race conditions if multiple p
 For more advanced control over how triggered branches are executed, you can extend `Flow` (or `ParallelFlow`) and override the `runTasks` method. This method receives an array of functions, where each function represents the execution of one triggered branch.
 
 ```typescript
-class CustomExecutionFlow<GlobalStore, AllowedActions> extends Flow<GlobalStore, AllowedActions> {
-  async runTasks<T>(tasks: (() => T)[]): Promise<Awaited<T>[]> {
-    await seep(5000)
-    return await Promise.all(tasks.map((task) => task()))
+import { Flow, Memory } from 'brainyflow'
+
+declare function sleep(ms: number): Promise<void> // Assuming sleep is available
+
+class CustomExecutionFlow extends Flow {
+
+  async runTasks<T>(tasks: (() => Promise<T>)[]): Promise<Awaited<T>[]> {
+    // Example: Run tasks sequentially with a delay between each
+    const results: Awaited<T>[] = []
+    for (const task of tasks) {
+      results.push(await task())
+      console.log('Custom runTasks: Task finished, waiting 1s...')
+      await sleep(1000) // Wait 1 second between tasks
+    }
+    return results
   }
 }
 ```

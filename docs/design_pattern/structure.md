@@ -1,7 +1,3 @@
----
-title: 'Structured Output'
----
-
 # Structured Output
 
 In many use cases, you may want the LLM to output a specific structure, such as a list or a dictionary with predefined keys.
@@ -59,33 +55,56 @@ When prompting the LLM to produce **structured** output:
 
 ````python
 import yaml
+from brainyflow import Node, Memory
+
+# Assume call_llm is defined elsewhere
+# async def call_llm(prompt: str) -> str: ...
 
 class SummarizeNode(Node):
-    async def exec(self, prep_res):
-        # Suppose `prep_res` is the text to summarize.
+    async def prep(self, memory: Memory):
+        # Assuming the text to summarize is in memory.text
+        return memory.text or ""
+
+    async def exec(self, text_to_summarize: str):
+        if not text_to_summarize:
+             return {"summary": ["No text provided"]}
+
         prompt = f"""
 Please summarize the following text as YAML, with exactly 3 bullet points:
 
-{prep_res}
+{text_to_summarize}
 
-Now, output:
+Now, output ONLY the YAML structure:
 ```yaml
 summary:
-  - first key point
-  - second key point
-  - third key point
+  - bullet 1
+  - bullet 2
+  - bullet 3
 ```"""
-        response = call_llm(prompt)
+        response = await call_llm(prompt)
+        structured_result: dict
 
-        # Extract YAML block
-        yaml_str = response.split("```yaml")[1].split("```")[0].strip()
-        structured_result = yaml.safe_load(yaml_str)
+        try:
+            # Extract YAML block
+            yaml_str = response.split("```yaml")[1].split("```")[0].strip()
+            structured_result = yaml.safe_load(yaml_str)
 
-        # Validate structure
-        assert "summary" in structured_result
-        assert isinstance(structured_result["summary"], list)
+            # Basic validation
+            if not isinstance(structured_result, dict) or "summary" not in structured_result or not isinstance(structured_result["summary"], list):
+                 raise ValueError("Invalid YAML structure")
 
-        return structured_result
+        except (IndexError, ValueError, yaml.YAMLError) as e:
+            print(f"Failed to parse structured output: {e}")
+            # Handle error, maybe return a default structure or re-throw
+            return {"summary": [f"Error parsing summary: {e}"]}
+
+        return structured_result # e.g., {"summary": ["Point 1", "Point 2", "Point 3"]}
+
+    async def post(self, memory: Memory, prep_res, exec_res: dict):
+        # Store the structured result in memory
+        memory.structured_summary = exec_res
+        print("Stored structured summary:", exec_res)
+        # No trigger needed if this is the end of the flow/branch
 ````
 
 {% endtab %}

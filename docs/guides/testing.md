@@ -39,9 +39,11 @@ class TestSummarizeNode(unittest.TestCase):
             self.assertIn("summarize", call_args.lower())
 
             # Verify the result was stored correctly
-            self.assertEqual(memory.summary, "Short summary.")
+            self.assertEqual(memory.summary, "Short summary.") # Access memory object
 
 if __name__ == "__main__":
+    # Use asyncio.run for async tests if needed, or run within an existing loop
+    # For simplicity, assuming standard unittest runner handles async test cases
     unittest.main()
 ```
 
@@ -65,10 +67,10 @@ describe('SummarizeNode', () => {
     const summarizeNode = new SummarizeNode()
 
     // Create initial global memory state
-    const shared = { text: 'This is a long text that needs to be summarized.' }
+    const memory = { text: 'This is a long text that needs to be summarized.' }
 
     // Run the node's lifecycle (prep -> exec -> post)
-    await summarizeNode.run(shared)
+    await summarizeNode.run(memory) // Pass memory object
 
     // Verify the LLM call
     expect(callLLM).toHaveBeenCalledTimes(1)
@@ -76,7 +78,7 @@ describe('SummarizeNode', () => {
     expect(callArgs.toLowerCase()).toContain('summarize') // Check if prompt contains 'summarize'
 
     // Verify the result was stored correctly in the global memory object
-    expect(shared.summary).toBe('Short summary.')
+    expect(memory.summary).toBe('Short summary.') // Access memory object
   })
 })
 ```
@@ -120,12 +122,13 @@ class TestQuestionAnsweringFlow(unittest.TestCase):
             await qa_flow.run(memory)
 
             # Verify the final answer
-            self.assertEqual(memory.answer, "The capital of France is Paris.")
+            self.assertEqual(memory.answer, "The capital of France is Paris.") # Access memory object
 
             # Verify the LLM was called the expected number of times
             self.assertEqual(mock_llm.call_count, 2)
 
 if __name__ == '__main__':
+    # Use asyncio.run for async tests if needed
     unittest.main()
 ```
 
@@ -168,10 +171,10 @@ describe('Question Answering Flow', () => {
     const memory = { question: 'What is the capital of France?' }
 
     // Run the flow
-    await qaFlow.run(memory)
+    await qaFlow.run(memory) // Pass memory object
 
     // Verify the final answer
-    expect(memory.answer).toBe('The capital of France is Paris.')
+    expect(memory.answer).toBe('The capital of France is Paris.') // Access memory object
 
     // Verify the LLM was called the expected number of times
     expect(callLLM).toHaveBeenCalledTimes(2)
@@ -190,46 +193,56 @@ describe('Question Answering Flow', () => {
   })
 })
 
-// Example testing a batch node
-describe('BatchProcessingNode', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-  })
-
-  it('should process multiple items', async () => {
-    // Create test data
-    const testItems = ['item1', 'item2', 'item3']
-
-    // Mock processing function
-    const processItemMock = vi.fn().mockImplementation((item) =>
-      Promise.resolve(`Processed ${item}`)
-    )
-
-    // Create a subclass with mocked processing
-    class TestBatchNode extends BatchProcessingNode {
-      async processItem(item) {
-        return processItemMock(item)
-      }
+// Example testing a MapReduce flow (Trigger, Processor, Reducer)
+describe('MapReduce Flow Test', () => {
+  // Mock the nodes used in the MapReduce example
+  const TriggerNode = class extends Node {
+    async post(memory: Memory, prepRes: any, execRes: any): Promise<void> {
+      const items = memory.items || []
+      memory.results = [] // Initialize results
+      items.forEach((item: any, index: number) => {
+        this.trigger('process_item', { item, index })
+      })
+      this.trigger('reduce')
     }
+  }
+  const ProcessorNode = class extends Node {
+     async prep(memory: Memory): Promise<any> { return { item: memory.item, index: memory.index }; }
+     async exec(prepRes: { item: any, index: number }): Promise<string> { return `Processed ${prepRes.item}`; }
+     async post(memory: Memory, prepRes: { item: any, index: number }, execRes: string): Promise<void> {
+         if (!memory.results) memory.results = [];
+         // Store result at the correct index if possible, or just push
+         memory.results[prepRes.index] = execRes;
+     }
+  }
+  const ReducerNode = class extends Node {
+     async prep(memory: Memory): Promise<any[]> { return memory.results || []; }
+     async exec(results: any[]): Promise<string> { return `Combined: ${results.join(', ')}`; }
+     async post(memory: Memory, prepRes: any, execRes: string): Promise<void> { memory.final_result = execRes; }
+  }
 
-    const batchNode = new TestBatchNode()
-    const memory = { items: testItems }
+  it('should process items via map and reduce steps', async () => {
+    // Instantiate nodes
+    const trigger = new TriggerNode()
+    const processor = new ProcessorNode()
+    const reducer = new ReducerNode()
 
-    // Run the node
-    await batchNode.run(memory)
+    // Connect nodes
+    trigger.on('process_item', processor)
+    trigger.on('reduce', reducer) // This action is triggered after all 'process_item'
 
-    // Verify processItem was called for each item
-    expect(processItemMock).toHaveBeenCalledTimes(3)
-    expect(processItemMock).toHaveBeenCalledWith('item1')
-    expect(processItemMock).toHaveBeenCalledWith('item2')
-    expect(processItemMock).toHaveBeenCalledWith('item3')
+    // Use ParallelFlow for the map phase
+    const mapReduceFlow = new ParallelFlow(trigger)
 
-    // Verify results were stored in memory
-    expect(memory.results).toEqual([
-      'Processed item1',
-      'Processed item2',
-      'Processed item3'
-    ])
+    // Initial memory
+    const memory = { items: ['A', 'B', 'C'] }
+
+    // Run the flow
+    await mapReduceFlow.run(memory)
+
+    // Verify final result in memory
+    expect(memory.results).toEqual(['Processed A', 'Processed B', 'Processed C'])
+    expect(memory.final_result).toBe('Combined: Processed A, Processed B, Processed C')
   })
 })
 
@@ -330,9 +343,9 @@ return await node.run(memory)
 
 # Helper to check memory structure
 
-def assert_memory_has_fields(memory, \*fields):
+def assert_memory_has_fields(memory, \*fields): # Check if properties exist on the memory object
 for field in fields:
-assert field in memory, f"Memory missing field: {field}"
+assert hasattr(memory, field), f"Memory missing field: {field}"
 
 ```
 
@@ -346,14 +359,14 @@ Test that nodes properly handle invalid inputs:
 
 @pytest.mark.parametrize("input_value", [None, "", {}, []])
 async def test_node_handles_invalid_input(input_value):
-node = MyNode()
-memory = {"input": input_value}
+node = MyNode() # Assuming MyNode handles invalid input appropriately
+memory = Memory.create({"input": input_value}) # Create memory object
 
-    # Should not raise exception
+    # Should not raise exception (or handle it gracefully)
     await node.run(memory)
 
-    # Should have set error flag
-    assert memory.get("error") is not None
+    # Check for an error flag or expected state in memory
+    assert hasattr(memory, "error") or memory.state == "handled_invalid" # Example assertion
 
 ```
 
@@ -383,8 +396,8 @@ visited_nodes = []
     node1.next(node2)
     node2.next(node3)
 
-    flow = Flow(node1)
-    await flow.run({})
+    flow = Flow(start=node1)
+    await flow.run({}) # Pass empty memory object
 
     # Verify all nodes were visited in order
     assert visited_nodes == ["node1", "node2", "node3"]
@@ -419,3 +432,6 @@ visited_nodes = []
 6. **Implement Distributed Tracing**: Use tracing for complex, distributed applications
 
 By applying these testing techniques, you can ensure your BrainyFlow applications are reliable and maintainable.
+
+
+```

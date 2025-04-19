@@ -16,20 +16,36 @@ This is particularly important when:
 import asyncio
 
 class LimitedParallelExec(Node):
-    def __init__(self, concurrency=3):
+    def __init__(self, concurrency=3, **kwargs): # Allow passing other Node args
+        super().__init__(**kwargs) # Call parent constructor
         self.semaphore = asyncio.Semaphore(concurrency)
 
-    async def exec(self, items):
+    # Prep is usually needed to get 'items' from memory
+    async def prep(self, memory: Memory):
+        return memory.items_to_process # Assuming items are in memory.items_to_process
+
+    async def exec(self, items): # exec receives result from prep
+        if not items: return []
+
         async def limited_process(item):
             async with self.semaphore:
-                return await self.process_item(item)
+                # process_item should ideally be defined in the subclass or passed in
+                return await self.process_one_item(item) # Renamed for clarity
 
         tasks = [limited_process(item) for item in items]
         return await asyncio.gather(*tasks)
 
-    async def process_item(self, item):
-        # Process a single item
-        pass
+    async def process_one_item(self, item):
+        # This method should be implemented by subclasses or passed dynamically
+        # Example:
+        # await asyncio.sleep(0.1) # Simulate work
+        # return f"Processed {item}"
+        raise NotImplementedError("process_one_item must be implemented by subclasses")
+
+    # Post is needed to store results and trigger next step
+    async def post(self, memory: Memory, prep_res, exec_res):
+        memory.processed_results = exec_res # Store results
+        self.trigger('default') # Trigger next node
 ```
 
 ### 2. Using p-limit (TypeScript)
@@ -254,25 +270,41 @@ async function callApi() {
 
 ```python
 class ThrottledLLMNode(Node):
-    def __init__(self, max_retries=3, calls_per_minute=30):
-        super().__init__(max_retries=max_retries)
+    def __init__(self, max_retries=3, wait=1, calls_per_minute=30):
+        super().__init__(max_retries=max_retries, wait=wait) # Pass wait to super
         self.limiter = Limiter(Rate(calls_per_minute, Duration.MINUTE))
 
-    async def exec(self, prompt):
+    # Prep is needed to get the prompt from memory
+    async def prep(self, memory: Memory):
+        return memory.prompt # Assuming prompt is in memory.prompt
+
+    async def exec(self, prompt): # exec receives prompt from prep
         @self.limiter.ratelimit('llm_calls')
         async def limited_llm_call(text):
+            # Assuming call_llm is async
             return await call_llm(text)
 
+        # Add basic check for empty prompt
+        if not prompt:
+             return "No prompt provided."
         return await limited_llm_call(prompt)
 
-    async def exec_fallback(self, prompt, error):
+    async def exec_fallback(self, prompt, error): # Make fallback async
         # Handle rate limit errors specially
+        # Note: Retrying within fallback can lead to complex loops.
+        # Consider just logging or returning an error message.
         if "rate limit" in str(error).lower():
-            # Wait longer before retrying
-            await asyncio.sleep(60)
-            return await self.exec(prompt)
+            print(f"Rate limit hit for prompt: {prompt[:50]}...")
+            # Fallback response instead of complex retry logic here
+            return f"Rate limit exceeded. Please try again later. Error: {error}"
         # For other errors, fall back to a simple response
-        return "I'm having trouble processing your request right now."
+        print(f"LLM call failed after retries: {error}")
+        return f"I'm having trouble processing your request right now. Error: {error}"
+
+    # Post is needed to store the result and trigger next step
+    async def post(self, memory: Memory, prep_res, exec_res):
+        memory.llm_response = exec_res # Store the result
+        self.trigger('default') # Trigger next node
 ```
 
 {% endtab %}

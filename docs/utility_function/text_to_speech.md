@@ -1,5 +1,4 @@
 ---
-title: 'Text-to-Speech'
 machine-display: false
 ---
 

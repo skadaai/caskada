@@ -18,7 +18,7 @@ pip install brainyflow
 {% tab title="TypeScript" %}
 
 ```bash
-npm install brainyflow
+npm install brainyflow # or pnpm/yarn
 ```
 
 {% endtab %}
@@ -56,27 +56,30 @@ graph LR
 {% tab title="Python" %}
 
 ```python
-from brainyflow import Node
+import asyncio
+from brainyflow import Node, Flow, Memory
 from utils import call_llm  # Your LLM implementation
 
 class GetQuestionNode(Node):
-    async def prep(self, memory):
+    async def prep(self, memory: Memory):
         """Get text input from user."""
         memory.question = input("Enter your question: ")
 
 class AnswerNode(Node):
-    async def prep(self, memory):
+    async def prep(self, memory: Memory):
         """Extract the question from memory."""
         return memory.question
 
-    async def exec(self, question):
+    async def exec(self, question: str | None):
         """Call LLM to generate an answer."""
-        return await call_llm(question)
 
-    async def post(self, memory, prep_res, exec_res):
+        prompt = f"Answer the following question: {question}"
+        return await call_llm(prompt)
+
+    async def post(self, memory: Memory, prep_res: str | None, exec_res: str):
         """Store the answer in memory."""
         memory.answer = exec_res
-        self.trigger('default')  # Explicitly trigger next node
+        print(f"AnswerNode: Stored answer '{exec_res}'")
 ```
 
 {% endtab %}
@@ -84,27 +87,38 @@ class AnswerNode(Node):
 {% tab title="TypeScript" %}
 
 ```typescript
-import { Node } from 'brainyflow'
+import { Flow, Memory, Node } from 'brainyflow'
 import { input } from '@inquirer/prompts'
-import { callLLM } from './utils/callLLM' // Your LLM implementation
+import { callLLM } from './utils/callLLM'
 
-class GetQuestionNode extends Node {
-  async prep(memory): Promise {
+// Define interfaces for Memory stores (optional but good practice)
+interface QAGlobalStore {
+  question?: string
+  answer?: string
+}
+class GetQuestionNode extends Node<QAGlobalStore> {
+  async prep(memory: Memory<QAGlobalStore, QALocalStore>): Promise<void> {
     memory.question = await input({ message: 'Enter your question: ' })
   }
 }
 
-class AnswerNode extends Node {
-  async prep(memory): Promise {
+class AnswerNode extends Node<QAGlobalStore> {
+  async prep(memory: Memory<QAGlobalStore>): Promise<string | undefined> {)
     return memory.question
   }
 
-  async exec(question: string): Promise {
-    return await callLLM(question)
+  async exec(question: string | undefined): Promise<string> {
+    const prompt = `Answer the following question: ${question}`
+    return await callLLM(prompt)
   }
 
-  async post(memory, prepRes: string, execRes: string): Promise {
+  async post(
+    memory: Memory<QAGlobalStore>,
+    prepRes: string | undefined,
+    execRes: string,
+  ): Promise<void> {
     memory.answer = execRes
+    console.log(`AnswerNode: Stored answer '${execRes}'`)
   }
 }
 ```
@@ -116,8 +130,8 @@ class AnswerNode extends Node {
 
 **Review:** What was achieved here?
 
-- `GetQuestionNode` writes the user's question to the `shared` store.
-- `AnswerNode` reads the question from the `shared` store, calling an LLM utility, and writing the answer back to the `shared` store.
+- `GetQuestionNode` gets the user's question and writes it to the `memory` object (global store), then explicitly `trigger`s the default next node.
+- `AnswerNode` reads the question from the `memory` object, calls an LLM utility, writes the answer back to the `memory` object, and `trigger`s the next step (or ends the flow).
 
 {% endhint %}
 
@@ -127,6 +141,7 @@ class AnswerNode extends Node {
 {% tab title="Python" %}
 
 ```python
+from .nodes import GetQuestionNode, AnswerNode # defined in the previous step
 from brainyflow import Flow
 
 def create_qa_flow():
@@ -134,10 +149,9 @@ def create_qa_flow():
     answer_node = AnswerNode()
 
     # Connect nodes get_question_node → answer_node using the default action
-    get_question_node >> answer_node  # >> is shorthand for .on('default', node)
+    get_question_node >> answer_node  # >> is Pythonic syntax sugar for .next(node)
 
     # Create the Flow, specifying the starting node
-    # The Flow itself can be typed with the GlobalStore structure
     return Flow(start=get_question_node)
 ```
 
@@ -146,6 +160,7 @@ def create_qa_flow():
 {% tab title="TypeScript" %}
 
 ```typescript
+// import { GetQuestionNode, AnswerNode } from './nodes'; // defined in the previous step
 import { Flow } from 'brainyflow'
 
 function createQaFlow(): Flow {
@@ -153,10 +168,9 @@ function createQaFlow(): Flow {
   const answerNode = new AnswerNode()
 
   // Connect nodes getQuestionNode → answerNode using the default action
-  getQuestionNode.next(answerNode) // .next() is shorthand for .on('default', node)
+  getQuestionNode.next(answerNode)
 
   // Create the Flow, specifying the starting node
-  // The Flow itself can be typed with the GlobalStore structure
   return new Flow(getQuestionNode)
 }
 ```
@@ -168,7 +182,8 @@ function createQaFlow(): Flow {
 
 **Review:** What was achieved here?
 
-- We created a flow that connects the nodes, letting the user's question propagate from `GetQuestionNode` to `AnswerNode` to generate an answer.
+- We instantiated the nodes and connected them using the default action (`>>` in Python, `.next()` in TypeScript).
+- We created a `Flow` instance, telling it to start execution with `getQuestionNode`.
 
 {% endhint %}
 
@@ -179,20 +194,22 @@ function createQaFlow(): Flow {
 
 ```python
 import asyncio
+from .flow import create_qa_flow # defined in the previous step
 
 async def main():
-    shared = {}  # Initialize empty shared store (can be an empty dict)
+    memory = {} # Initialize empty memory (which acts as the global store)
     qa_flow = create_qa_flow()
 
-
+    print("Running QA Flow...")
     # Run the flow, passing the initial global store.
-    # The run method returns the final execution tree, but we can
-    # access the final state directly from our initial globalStore object.
-    await qa_flow.run(shared)
+    # The flow modifies the memory object in place.
+    # The run method returns the final execution tree (we ignore it here).
+    await qa_flow.run(memory)
 
     # Access the results stored in the global store
-    print(f"Question: {shared.question}")
-    print(f"Answer: {shared.answer}")
+    print("\n--- Flow Complete ---")
+    print(f"Question: {memory.question}")
+    print(f"Answer: {memory.answer}")
 
 if __name__ == '__main__':
     asyncio.run(main())
@@ -203,19 +220,23 @@ if __name__ == '__main__':
 {% tab title="TypeScript" %}
 
 ```typescript
+import { createQaFlow, QAGlobalStore } from './flow'; // defined in the previous steps
+
 async function main() {
   // Initialize the global store (can be an empty object)
   const globalStore: QAGlobalStore = {}
   const qaFlow = createQaFlow()
 
+  console.log('Running QA Flow...')
   // Run the flow, passing the initial global store.
-  // The run method returns the final execution tree, but we can
-  // access the final state directly from our initial globalStore object.
+  // The flow modifies the globalStore object in place.
+  // The run method returns the final execution tree (we ignore it here).
   await qaFlow.run(globalStore)
 
   // Access the results stored in the global store
-  console.log(`Question: ${globalStore.question}`)
-  console.log(`Answer: ${globalStore.answer}`)
+  console.log('\n--- Flow Complete ---')
+  console.log(`Question: ${globalStore.question ?? 'N/A'}`)
+  console.log(`Answer: ${globalStore.answer ?? 'N/A'}`)
 }
 
 main().catch(console.error)
@@ -228,7 +249,9 @@ main().catch(console.error)
 
 **Review:** What was achieved here?
 
-- `qaFlow.run(globalStore)` executed the flow. The `Memory` instance managed the state, and the final `question` and `answer` are available in the `globalStore` object we passed in.
+- We initialized an empty `memory` object (Python dictionary or TS object) to serve as the global store.
+- `qaFlow.run(memory)` executed the flow. The `Memory` instance managed the state internally, reading from and writing to the `memory` object we passed in.
+- The final `question` and `answer` are directly accessible in the original `memory` object after the flow completes.
 
 {% endhint %}
 
@@ -236,10 +259,10 @@ main().catch(console.error)
 
 BrainyFlow follows these core design principles:
 
-1. **Separation of Concerns**: Data storage (shared store) is separate from computation logic (`Node` classes).
-2. **Explicit Data Flow**: Data dependencies between steps are clear and traceable through `Memory` access and `prep`/`exec`/`post` results.
-3. **Composability**: Complex systems (`Flow`s) are built from simple, reusable components (`Node`s), and Flows can be nested.
-4. **Minimalism**: The framework provides only essential abstractions (`Node`, `Flow`, `Memory`), avoiding vendor-specific implementations.
+1. **Separation of Concerns**: Data storage (the `memory` object managing global/local stores) is separate from computation logic (`Node` classes).
+2. **Explicit Data Flow**: Data dependencies between steps are clear and traceable through `memory` access in `prep`/`post` and the results passed between `prep` → `exec` → `post`.
+3. **Composability**: Complex systems (`Flow`s) are built from simple, reusable components (`Node`s), and Flows themselves can be nested within other Flows.
+4. **Minimalism**: The framework provides only essential abstractions (`Node`, `Flow`, `Memory`), avoiding vendor-specific implementations or excessive boilerplate.
 
 ## 5. Next Steps
 

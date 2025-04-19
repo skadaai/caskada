@@ -130,24 +130,28 @@ Define the structure of your shared store:
 Example:
 
 ```python
-shared = {
+# Conceptual structure of the memory object
+memory = {
     "input": {
-        "document_path": "path/to/file.pdf"  # Input file path
+        "document_path": "path/to/file.pdf"  # Access via memory.input['document_path'] or memory.input.document_path if input is an object
     },
     "processing": {
-        "document_text": "",     # Extracted text content
-        "entities": {            # Extracted entities
+        "document_text": "",     # Access via memory.processing['document_text'] or memory.processing.document_text
+        "entities": {            # Access via memory.processing['entities'] or memory.processing.entities
             "parties": [],
             "dates": [],
             "amounts": []
         },
-        "validation_status": ""  # Status after validation
+        "validation_status": ""
     },
     "output": {
-        "summary": "",           # Generated summary
-        "storage_id": ""         # Database reference ID
+        "summary": "",           # Access via memory.output['summary'] or memory.output.summary
+        "storage_id": ""
     }
 }
+# Note: Actual access in code is simpler, e.g., memory.document_text, memory.summary
+# assuming these keys are set directly on the global store.
+# Nested structure shown here is for organizational clarity in the design phase.
 ```
 
 ## Best Practices for Your Design Document
@@ -199,12 +203,12 @@ Be sure you **always** strictly follow these instructions:
 3. **Focus on What Matters**: Do not fix types or edge cases until you are certain the core implementation is working as intended.
 4. **Be Adaptive**: Continuously refine the design document based on feedback and changes in the implementation, but keep it clear and concise.
 5. **Be Compliant**: You must always write code that is compliant with the design document and the system's architecture. Remember to stick to the flow, node and shared store design:
-   - prep(shared)
-     Read and preprocess data from shared store.
+   - prep(memory)
+     Read and preprocess data from the memory object.
    - exec(prep_res)
-     Execute compute logic. Keep the core logic here and make it as simple as possible.
-   - post(shared, prep_res, exec_res)
-     Postprocess and write data back to shared.
+     Execute compute logic. Receives result from prep. Cannot access memory.
+   - post(memory, prep_res, exec_res)
+     Postprocess results, write data back to the memory object (usually global store), and trigger next actions.
 6. **Be Resilient**: You are not done until the implementation is working as intended.
 7. **Be Accountable**: Before finishing the implementation, ask yourself the following questions:
    - are all stubs and placeholders gone?

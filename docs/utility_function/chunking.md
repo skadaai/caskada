@@ -1,5 +1,4 @@
 ---
-title: 'Text Chunking'
 machine-display: false
 ---
 
