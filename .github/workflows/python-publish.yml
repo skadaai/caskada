@@ -39,26 +39,41 @@ jobs:
         # then extracts that version and updates setup.py
         working-directory: python
         run: |
+          echo "Initializing pnpm project..."
+          touch pnpm-workspace.yaml
+          pnpm init
+
+          # Extract current version from setup.py
+          CURRENT_VERSION=$(grep "version=['\"]" setup.py | cut -d "'" -f 2 | cut -d '"' -f 2)
+          if [ -z "$CURRENT_VERSION" ]; then
+            echo "Error: Could not extract current version from setup.py."
+            exit 1
+          fi
+          echo "Current version from setup.py: $CURRENT_VERSION"
+
+          pnpm pkg set name=brainyflow
+          pnpm pkg set version=$CURRENT_VERSION # Use extracted version
+
           echo "Running changeset version..."
           # Run changesets. This might create/update package.json in the current dir (python/)
           pnpm dlx @changesets/cli version
 
-          # Check if package.json exists and contains a version line after changesets ran
-          if ! grep -q '"version":' package.json; then
-            echo "Warning: No version found in python/package.json after 'changeset version'."
-            echo "This usually means there were no changesets to apply."
-            echo "Exiting step gracefully as no version bump occurred."
-            exit 0 # Exit successfully, no publish needed for this run
-          fi
-
-          echo "Extracting version from python/package.json..."
+          echo "Extracting potential new version from python/package.json..."
           NEW_VERSION=$(grep '"version":' package.json | cut -d '"' -f 4)
           if [ -z "$NEW_VERSION" ]; then
-            echo "Error: Could not extract version from python/package.json even though it was found."
+            echo "Error: Could not extract version from python/package.json even though the file exists."
             exit 1
           fi
 
-          echo "Updating setup.py to version $NEW_VERSION..."
+          echo "Comparing versions: Current ($CURRENT_VERSION) vs Potential New ($NEW_VERSION)"
+          if [ "$CURRENT_VERSION" == "$NEW_VERSION" ]; then
+            echo "No version change detected in python/package.json."
+            echo "Exiting step gracefully as no version bump occurred."
+            exit 0 # Exit successfully, no publish needed
+          fi
+
+          # Version has changed, proceed with update
+          echo "Version changed to $NEW_VERSION. Updating setup.py..."
           # Use a temporary file for sed compatibility on different systems (like macOS)
           sed -i.bak "s/version=['\"].*['\"]/version='$NEW_VERSION'/" setup.py
           rm setup.py.bak # Remove backup file
