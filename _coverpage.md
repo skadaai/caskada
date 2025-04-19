@@ -3,12 +3,13 @@
 <p>
 
 <h1 style="max-width: 700px; margin: auto;">More AI, with less coding! 🚀</h1>
-<h2>Let Agents build Agents with zero bloat, zero dependencies, zero vendor lock-in 😮</h2>
+<h2>Build Powerful AI Agents with Minimal Code, Maximum Freedom.</h2>
+<p>Zero bloat, zero dependencies, zero vendor lock-in.</p>
 
 <!-- <img src="https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/divider.png" alt="divider" width="100%" style="max-width: 920px"> -->
 
 <nav align="center">
-  <a href="https://brainy.gitbook.io/flow/">What is BrainyFlow? 🐣</a>
+  <a href="https://brainy.gitbook.io/flow/introduction/getting_started">Get Started Now ✨ 🐣</a>
   <a href="https://github.com/zvictor/brainyflow/tree/master/cookbook">Examples 🌈 </a>
   <a href="https://pypi.org/project/brainyflow">PyPI <img src="https://iconduck.com/vectors/vctrahatphfa/media/svg/download" width="17" height="17" alt="Python Logo" style="vertical-align: sub; margin: 0 2px;"></a>
   <a href="https://www.npmjs.com/package/brainyflow">NPM <img src="https://iconduck.com/vectors/vctrk180y7wy/media/svg/download" width="17" height="17" alt="Typescript Logo" style="vertical-align: sub; margin: 0 2px;"></a>
@@ -17,7 +18,7 @@
   <!-- Dropdown container -->
   <div id="docs-dropdown-container">
     <!-- Trigger link -->
-    <a href="/docs.txt" class="docs-dropdown-trigger">docs.txt 📜</a>
+    <a href="/docs.txt" class="docs-dropdown-trigger" tabindex="0">docs.txt 📜</a>
     <!-- Dropdown content -->
     <div class="dropdown-content">
       <a href="/docs.python.txt"> <!-- Python Link -->
@@ -51,8 +52,9 @@
       cursor: pointer;
     }
 
-    /* Show dropdown on hover of CONTAINER */
-    #docs-dropdown-container:hover .dropdown-content {
+    /* Show dropdown on hover (desktop) OR when container has focus (click/tap) */
+    #docs-dropdown-container:hover .dropdown-content,
+    #docs-dropdown-container:focus-within .dropdown-content {
       display: block !important;
     }
 
@@ -124,6 +126,47 @@
       border-color: var(--theme-color) transparent transparent transparent; /* Pointing up */
     }
 
+      /* Mobile Vertical Layout */
+    @media screen and (max-width: 768px) {
+      nav {
+        display: flex;
+        flex-direction: column;
+        align-items: center; /* Center items vertically */
+        text-align: center; /* Center inline-block children */
+      }
+      /* Adjust nav links specifically for mobile */
+      nav > a { /* Target only standard links for block display */
+        display: block; /* Make each link take full width */
+        margin: 8px 0; /* Add vertical spacing */
+        width: 80%; /* Control width */
+        max-width: 250px; /* Max width */
+        /* text-align: center; */ /* Centering handled by parent nav */
+      }
+      /* Keep dropdown container inline-block for hover, centered by parent */
+      nav > #docs-dropdown-container {
+        display: inline-block; /* Keep inline-block for hover */
+        margin: 8px 0; /* Add vertical spacing */
+        /* width: 80%; */ /* Let it size naturally */
+        max-width: 250px; /* Max width */
+        text-align: center; /* Center text within links */
+      }
+
+      /* Adjust dropdown positioning for vertical layout */
+      #docs-dropdown-container:hover .dropdown-content {
+          left: 50%; /* Re-center dropdown relative to the now block-level container */
+          transform: translateX(-50%);
+          min-width: 160px; /* Adjust width as needed */
+      }
+       .dropdown-content::after {
+          left: 50%; /* Re-center arrow */
+          margin-left: -5px;
+      }
+       .dropdown-content.above::after {
+          left: 50%; /* Re-center arrow */
+          margin-left: -5px;
+      }
+    }
+
   </style>
 </nav>
 
@@ -147,11 +190,20 @@
 </style> -->
 
 <div class="glass">
-  <p class="horizontal">
-  <p style="font-size: 1.2em; font-weight: bolder; margin: 10px 0">WTF is <em>brainyFlow</em> ?</p>
-    It's a 🤯 65-line only minimalist AI framework.<br />
-    It provides a simple interface for building Agents that reduces complexity and turns LLMs much more powerful!
+  <p style="font-size: 1.2em; font-weight: bolder; margin: 10px 0">What is <em>BrainyFlow</em>?</p>
   <p>
-  <!-- <div class="vertical">
-  </div> -->
+    BrainyFlow is a <strong>radically minimalist AI framework</strong> (just 65 lines in Python!) enabling <em>Agentic Coding</em> through powerful, intuitive graph abstractions.<br />Build complex AI systems with unparalleled simplicity and freedom.
+  </p>
+  <strong>Key Features:</strong>
+  <ul>
+    <li><strong>Brain-Easy 🧠</strong>: Intuitive for humans and AI assistants.</li>
+    <li><strong>Minimalist ✨</strong>: Core logic in just 65 lines.</li>
+    <li><strong>Freedom 🔓</strong>: Zero bloat, dependencies, or vendor lock-in.</li>
+    <li><strong>Composable 🧩</strong>: Build complex systems from simple parts.</li>
+    <li><strong>Powerful 🦾</strong>: Supports Agents, Workflows, RAG, and more.</li>
+    <li><strong>Agentic-Coding 🤖</strong>: Designed for AI-assisted development.</li>
+    <li><strong>Universal 🌈</strong>: Works with any LLM provider.</li>
+    <li><strong>Polyglot 🌍</strong>: Python & TypeScript supported.</li>
+  </ul>
+  <p>See how simple it is? Check out the <a href="https://brainy.gitbook.io/flow/introduction/getting_started">Getting Started</a> guide or dive into <a href="https://brainy.gitbook.io/flow/guides/agentic_coding">Agentic Coding</a>!</p></div>
 </div>

@@ -80,9 +80,11 @@
         padding: 7px 12px;
         border-radius: 10px;
         display: inline-block;
+        transition: background-color 0.2s ease, color 0.2s ease;
       }
 
-      nav a:hover {
+      /* Apply hover only to standard nav links, not CTA or dropdown trigger */
+      nav a:not(.cta-button):not(.docs-dropdown-trigger):hover {
         color: var(--theme-color) !important;
         background-color: rgba(var(--cover-navigation-background-color), 0.75);
       }
@@ -118,14 +120,22 @@
       }
 
       .glass {
-        color: #111;
+        /* color: #111; */ /* Changed to light color below */
+        color: #eee; /* Light text color for dark background */
         margin: 30px 0;
         padding: 30px;
-        background: var(--theme-color);
-        /* background: rgba(0, 0, 0, 0.5); */
+        /* background: var(--theme-color); */ /* Removed theme color background */
+        background: rgba(
+          30,
+          30,
+          35,
+          0.75
+        ); /* Dark semi-transparent background */
         border-radius: 16px;
-        /* backdrop-filter: blur(3.2px);
-        -webkit-backdrop-filter: blur(3.2px); */
+        backdrop-filter: blur(5px); /* Frosted glass effect */
+        -webkit-backdrop-filter: blur(5px); /* Safari support */
+        border: 1px solid rgba(255, 255, 255, 0.1); /* Subtle border */
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); /* Soft shadow */
         text-align: left;
         /* font-size: var(--font-size-l); */
         /* font-weight: bolder; */
@@ -177,6 +187,120 @@
         }
       }
     </style>
+
+    <style>
+      .comparison-section {
+        margin-top: 40px !important; /* Add space above */
+      }
+      .comparison-section table {
+        width: 100%;
+        border-collapse: separate; /* Use separate for rounded corners */
+        border-spacing: 0; /* Remove default spacing */
+        margin: 20px 0;
+        color: #eee; /* Ensure text is light */
+        font-size: 0.9em;
+        background-color: rgba(0, 0, 0, 0.1); /* Slight background tint */
+        border-radius: 8px; /* Rounded corners for the table */
+        overflow: hidden; /* Clip content to rounded corners */
+      }
+      .comparison-section th,
+      .comparison-section td {
+        /* border: 1px solid rgba(255, 255, 255, 0.2); */ /* Removed border */
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* Subtle bottom border */
+        padding: 12px 15px; /* Adjusted padding */
+        text-align: center;
+      }
+      .comparison-section th {
+        background-color: rgba(
+          255,
+          255,
+          255,
+          0.08
+        ); /* Slightly lighter header */
+        font-weight: bold;
+        border-bottom-width: 2px; /* Thicker bottom border for header */
+        border-bottom-color: rgba(255, 255, 255, 0.2);
+      }
+      .comparison-section tr:last-child td {
+        border-bottom: none; /* Remove border from last row */
+      }
+      .comparison-section tr:nth-child(even) {
+        background-color: rgba(255, 255, 255, 0.05);
+      }
+      .comparison-section tr:hover td {
+        background-color: rgba(255, 255, 255, 0.05); /* Hover effect for rows */
+      }
+      .comparison-section strong {
+        color: var(--theme-color); /* Highlight BrainyFlow */
+      }
+      /* Responsive table */
+      @media screen and (max-width: 768px) {
+        .comparison-section table,
+        .comparison-section thead,
+        .comparison-section tbody,
+        .comparison-section th,
+        .comparison-section td,
+        .comparison-section tr {
+          display: block;
+        }
+        .comparison-section thead tr {
+          position: absolute;
+          top: -9999px;
+          left: -9999px;
+        }
+        .comparison-section tr {
+          /* border: 1px solid rgba(255, 255, 255, 0.2); */ /* Removed border */
+          border: none; /* Remove border for mobile rows */
+          margin-bottom: 10px;
+          border-radius: 5px;
+          background-color: rgba(
+            0,
+            0,
+            0,
+            0.2
+          ) !important; /* Darker background for mobile rows */
+          overflow: hidden; /* Clip content */
+        }
+        .comparison-section td {
+          border: none; /* Ensure no border */
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* Keep bottom border */
+          position: relative;
+          padding: 10px; /* Adjust padding */
+          padding-left: 50%; /* Keep label space */
+          text-align: right;
+        }
+        .comparison-section td:before {
+          position: absolute;
+          top: 10px;
+          left: 12px;
+          width: 45%;
+          padding-right: 10px;
+          white-space: nowrap;
+          text-align: left;
+          font-weight: bold;
+          content: attr(data-label); /* Use data-label for headers */
+        }
+        /* Add data-label attributes via JS or manually if needed, or use CSS content */
+        .comparison-section td:nth-of-type(1):before {
+          content: "Framework";
+        }
+        .comparison-section td:nth-of-type(2):before {
+          content: "Abstraction";
+        }
+        .comparison-section td:nth-of-type(3):before {
+          content: "App Wrappers";
+        }
+        .comparison-section td:nth-of-type(4):before {
+          content: "Vendor Wrappers";
+        }
+        .comparison-section td:nth-of-type(5):before {
+          content: "Lines (Core)";
+        }
+        .comparison-section td:nth-of-type(6):before {
+          content: "Size (Core)";
+        }
+      }
+    </style>
   </head>
   <body>
     <div id="app"></div>
@@ -200,11 +324,11 @@
     <script>
       (function () {
         var colors = [
-          "#6ec25a",
-          // "#ffc74c",
-          "#f39340",
-          "#e23e51",
-          "#a359a9",
+          "#6ec25a", // Green
+          // "#ffc74c", // Yellow
+          // "#f39340", // Orange
+          "#e23e51", // Red
+          "#a359a9", // Purple
           "#2295c4",
         ];
 
@@ -236,7 +360,7 @@
         var nextIndex = 1;
         var transitionDuration = 15000; // 5 seconds per transition
         var startTime;
-        var glassAlpha = 0.75; // Transparency level for .glass elements
+        // var glassAlpha = 0.75; // No longer needed as background is fixed
 
         function updateColor(timestamp) {
           if (!startTime) startTime = timestamp;
@@ -271,11 +395,15 @@
               window.$docsify.themeColor
             );
 
+            // The code block below was causing errors and is no longer needed
+            // as the .glass background is now fixed via CSS.
+            /*
             // Update .glass background color with transparency
             var glassBackgroundColor = rgbaString(r, g, b, glassAlpha);
             document.querySelectorAll(".glass").forEach(function (element) {
               element.style.background = `${glassBackgroundColor}`;
             });
+            */
           }
 
           requestAnimationFrame(updateColor);
@@ -286,6 +414,7 @@
           window.$docsify.themeColor = colors[currentIndex];
 
           // Initial setting for .glass elements
+          /*
           var initialColor = hexToRgb(colors[currentIndex]);
           var glassBackgroundColor = rgbaString(
             initialColor.r,
@@ -296,6 +425,7 @@
           document.querySelectorAll(".glass").forEach(function (element) {
             element.style.backgroundColor = glassBackgroundColor;
           });
+          */
 
           requestAnimationFrame(updateColor);
         });
