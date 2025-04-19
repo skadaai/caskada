@@ -38,16 +38,27 @@ jobs:
         run: |
           node --import=tsx --experimental-test-snapshots --test-concurrency=1 --test tests/*.test.ts
 
-      - name: Create Release Pull Request or Publish to npm
-        id: changesets
-        uses: changesets/action@v1
+      - name: Apply Version Updates
+        working-directory: typescript
+        run: pnpm dlx @changesets/cli version
+
+      - name: Build Project
+        working-directory: typescript
+        run: pnpm build
+
+      - name: Publish to npm
+        working-directory: typescript
+        run: pnpm publish -r --no-git-checks
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Commit and push version bump
+        uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          publish: pnpm release
-          commit: 'chore: update versions'
-          title: 'chore: update versions'
-          cwd: ./typescript
-          setupGitUser: true
-          createGithubReleases: false
+          commit_message: 'chore: update TS version and publish'
+          file_pattern: 'typescript/package.json typescript/.changeset/*'
+          # The action defaults to pushing to the branch that triggered the workflow (main)
+          # It also uses the github-actions[bot] user by default
 
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
