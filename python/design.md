@@ -19,8 +19,10 @@ Manages the state accessible to nodes during execution.
 - **Dual Scope:**
   - `_global`: A dictionary representing the shared state across the entire flow execution.
   - `_local`: A dictionary representing state specific to a particular execution path or branch. Useful for passing data between directly connected nodes without polluting the global scope or for managing state in parallel branches.
-- **Attribute Access:** Provides attribute-style access (`memory.my_var`) which prioritizes the local scope, falling back to the global scope. Setting attributes always writes to the global scope, removing the key from local if it exists. Reserved names (`global`, `local`, `_global`, `_local`) cannot be set.
-- **Dictionary Access:** Supports dictionary-style access (`memory['my_key']`) with the same scope prioritization for getting values. Setting values always writes to the global scope, removing the key from local if it exists.
+- **Attribute Access:** Provides attribute-style access (`memory.my_var`) via `__getattr__`, prioritizing the local scope and falling back to the global scope. Setting attributes via `__setattr__` always writes to the global scope, removing the key from local if it exists. Reserved names (`global`, `local`, `_global`, `_local`) cannot be set.
+- **Dictionary Access:** Supports dictionary-style access (`memory['my_key']`) via `__getitem__` with the same scope prioritization for getting values. Setting values via `__setitem__` always writes to the global scope, removing the key from local if it exists.
+- **Membership Testing:** Supports the `in` operator via `__contains__` to check for key existence in either local or global scope.
+- **Local Property:** The `local` property provides direct read access to the `_local` dictionary.
 - **Cloning:** The `clone(forking_data=None)` method creates a new `Memory` instance. The global store is shared by reference, while the local store is deep-copied. Optional `forking_data` can be provided to initialize or update the new local store. This is crucial for branching and parallel execution to ensure state isolation where needed.
 - **Factory Method:** `Memory.create(global_store, local_store=None)` provides a static method for instantiation.
 
