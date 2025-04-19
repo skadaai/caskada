@@ -6,7 +6,6 @@ The multi-agent pattern enables complex behaviors by coordinating multiple speci
 Most of time, you don't need Multi-Agents. Start with a simple solution first.
 {% endhint %}
 
-
 ## Example: Agent Communication through Message Queue
 
 Here's a simple example showing how to implement agent communication using `asyncio.Queue`.
@@ -20,8 +19,7 @@ import asyncio
 from brainyflow import Node, Flow
 
 class AgentNode(Node):
-    async def prep(self, _):
-        message_queue = self.params["messages"]
+    async def prep(self, memory: Memory):
         message = await message_queue.get()
         print(f"Agent received: {message}")
         return message
@@ -41,7 +39,7 @@ async def send_system_messages(message_queue):
         "Processing load: optimal"
     ]
 
-    while True:
+    while True: # In a real app, add a termination condition
         message = f"{messages[counter % len(messages)]} | timestamp_{counter}"
         await message_queue.put(message)
         counter += 1
@@ -49,12 +47,14 @@ async def send_system_messages(message_queue):
 
 async def main():
     message_queue = asyncio.Queue()
-    shared = {}
-    flow.set_params({"messages": message_queue})
+    # Pass queue via initial memory object
+    memory = {"message_queue": message_queue}
 
+    print("Starting agent listener and message sender...")
     # Run both coroutines
+    # Note: This will run indefinitely without a termination mechanism
     await asyncio.gather(
-        flow.run(shared),
+        flow.run(memory), # Pass memory object
         send_system_messages(message_queue)
     )
 
@@ -183,42 +183,48 @@ from utils import call_llm
 import asyncio
 
 class Hinter(Node):
-    async def prep(self, memory):
+    async def prep(self, memory: Memory):
         """Get the next hint or game state"""
-        if hasattr(memory, 'guesser_queue'):
-            try:
-                guess = await memory.guesser_queue.get()
-                if guess == "GAME_OVER":
-                    return None
-                return {"guess": guess}
-            except asyncio.QueueEmpty:
-                pass
-        return {}
+        # Read necessary info from memory
+        guess = await memory.guesser_queue.get() # Read from memory queue
+        if guess == "GAME_OVER":
+            return None # Signal to stop
+        return {
+            "guess": guess,
+            "target_word": memory.target_word, # Pass target word
+            "forbidden_words": memory.forbidden_words # Pass forbidden words
+        }
 
     async def exec(self, prep_res):
         """Generate a hint avoiding forbidden words"""
-        if prep_res is None:  # Game over
+        if prep_res is None:  # Game over signal from prep
             return None
 
         prompt = f"""
-Given target word: {memory.target_word}
-Forbidden words: {memory.forbidden_words}
+Given target word: {prep_res["target_word"]}
+Forbidden words: {prep_res["forbidden_words"]}
 Last wrong guess: {prep_res.get('guess')}
 Generate a creative hint that helps guess the target word without using forbidden words.
 Reply only with the hint text.
 """
         return await call_llm(prompt)
 
-    async def post(self, memory, prep_res, hint):
+    async def post(self, memory: Memory, prep_res, hint):
         if hint is None:
-            return "end"
-        await memory.hinter_queue.put(hint)
+            self.trigger("end")
+            return
+        await memory.hinter_queue.put(hint) # Write to memory queue
         self.trigger('continue')
 
 class Guesser(Node):
-    async def prep(self, memory):
-        hint = await memory.guesser_queue.get()
-        return {"hint": hint, "past_guesses": memory.past_guesses if hasattr(memory, 'past_guesses') else []}
+    async def prep(self, memory: Memory):
+        hint = await memory.guesser_queue.get() # Read from memory queue
+        # Pass target word for comparison in post
+        return {
+            "hint": hint,
+            "past_guesses": memory.past_guesses if hasattr(memory, 'past_guesses') else [],
+            "target_word": memory.target_word
+        }
 
     async def exec(self, prep_res):
         """Make a guess based on the hint"""
@@ -232,19 +238,20 @@ Reply only with the guessed word.
 """
         return await call_llm(prompt)
 
-    async def post(self, memory, prep_res, guess):
-        if guess.lower() == memory.target_word.lower():
+    async def post(self, memory: Memory, prep_res, guess):
+        target_word = prep_res["target_word"] # Get target word from prep_res
+        if guess.lower() == target_word.lower():
             print('Game Over - Correct guess!')
-            await memory.hinter_queue.put("GAME_OVER")
+            await memory.hinter_queue.put("GAME_OVER") # Write to memory queue
             self.trigger('end')
             return
 
-        # Update past guesses
+        # Update past guesses in memory
         if not hasattr(memory, 'past_guesses'):
             memory.past_guesses = []
-        memory.past_guesses.append(guess)
+        memory.past_guesses.append(guess) # Write to memory
 
-        await memory.hinter_queue.put(guess)
+        await memory.hinter_queue.put(guess) # Write to memory queue
         self.trigger('continue')
 ```
 
@@ -340,22 +347,23 @@ Reply only with the guessed word.
 
 ```python
 async def main():
-    # Set up game
-    shared = {
+    # Set up game state in initial memory object
+    memory = {
         "target_word": "nostalgia",
         "forbidden_words": ["memory", "past", "remember", "feeling", "longing"],
         "hinter_queue": asyncio.Queue(),
-        "guesser_queue": asyncio.Queue()
+        "guesser_queue": asyncio.Queue(),
+        "past_guesses": [] # Initialize past_guesses
     }
 
     print("Game starting!")
-    print(f"Target word: {shared['target_word']}")
-    print(f"Forbidden words: {shared['forbidden_words']}")
+    print(f"Target word: {memory['target_word']}") # Access memory object
+    print(f"Forbidden words: {memory['forbidden_words']}") # Access memory object
 
-    # Initialize by sending empty guess to hinter
-    await shared["hinter_queue"].put("")
+    # Initialize by sending empty guess to hinter queue in memory
+    await memory["hinter_queue"].put("")
 
-    # Create nodes and flows
+    # Create nodes
     hinter = Hinter()
     guesser = Guesser()
 
@@ -363,15 +371,18 @@ async def main():
     hinter_flow = Flow(start=hinter)
     guesser_flow = Flow(start=guesser)
 
-    # Connect nodes to themselves
+    # Connect nodes to themselves using actions
     hinter - "continue" >> hinter
     guesser - "continue" >> guesser
 
-    # Run both agents concurrently
+    # Run both agents concurrently, passing the same memory object
+    print('Running agents...')
     await asyncio.gather(
-        hinter_flow.run(shared),
-        guesser_flow.run(shared)
+        hinter_flow.run(memory), # Pass memory object
+        guesser_flow.run(memory)  # Pass memory object
     )
+    print('\nGame finished.')
+    print('Final memory state:', memory)
 
 asyncio.run(main())
 ```
@@ -381,7 +392,6 @@ asyncio.run(main())
 {% tab title="TypeScript" %}
 
 ```typescript
-
 // --- Main Execution ---
 async function main() {
   // Set up game state in initial memory

@@ -383,15 +383,17 @@ logger = logging.getLogger('brainyflow')
 
 def trace_node(cls):
     """Class decorator to trace node execution"""
-    original_prep = cls.prep
-    original_exec = cls.exec
-    original_post = cls.post
+    # Ensure the methods exist before wrapping
+    original_prep = getattr(cls, 'prep', None)
+    original_exec = getattr(cls, 'exec', None)
+    original_post = getattr(cls, 'post', None)
 
     @wraps(original_prep)
-    async def traced_prep(self, shared):
+    async def traced_prep(self, memory: Memory):
         logger.info(f"ENTER prep: {type(self).__name__}")
         start_time = time.time()
-        result = await original_prep(self, shared)
+        # Call original only if it exists
+        result = await original_prep(self, memory) if original_prep else None
         elapsed = time.time() - start_time
         logger.info(f"EXIT prep: {type(self).__name__} ({elapsed:.3f}s)")
         return result
@@ -400,37 +402,45 @@ def trace_node(cls):
     async def traced_exec(self, prep_res):
         logger.info(f"ENTER exec: {type(self).__name__}")
         start_time = time.time()
-        result = await original_exec(self, prep_res)
+        # Call original only if it exists
+        result = await original_exec(self, prep_res) if original_exec else None
         elapsed = time.time() - start_time
         logger.info(f"EXIT exec: {type(self).__name__} ({elapsed:.3f}s)")
         return result
 
     @wraps(original_post)
-    async def traced_post(self, shared, prep_res, exec_res):
+    async def traced_post(self, memory: Memory, prep_res, exec_res):
         logger.info(f"ENTER post: {type(self).__name__}")
         start_time = time.time()
-        result = await original_post(self, shared, prep_res, exec_res)
+        # Call original only if it exists
+        # Note: Original post doesn't return the action anymore
+        if original_post:
+             await original_post(self, memory, prep_res, exec_res)
         elapsed = time.time() - start_time
-        logger.info(f"EXIT post: {type(self).__name__} ({elapsed:.3f}s) -> {result}")
-        return result
+        # Log triggers separately if needed, as post doesn't return them
+        logger.info(f"EXIT post: {type(self).__name__} ({elapsed:.3f}s)")
+        # The decorator doesn't need to return anything from post
 
-    cls.prep = traced_prep
-    cls.exec = traced_exec
-    cls.post = traced_post
+    # Assign wrapped methods back to the class
+    if original_prep: cls.prep = traced_prep
+    if original_exec: cls.exec = traced_exec
+    if original_post: cls.post = traced_post
     return cls
 
 # Usage:
 @trace_node
 class MyNode(Node):
-    async def prep(self, shared):
+    async def prep(self, memory: Memory):
+        # logger.info(f"Reading from memory: {memory.some_input}") # Example read
         return "data"
 
     async def exec(self, prep_res):
+        await asyncio.sleep(0.05) # Simulate work
         return prep_res.upper()
 
-    async def post(self, shared, prep_res, exec_res):
-        shared["result"] = exec_res
-        return "default"
+    async def post(self, memory: Memory, prep_res, exec_res):
+        memory.result = exec_res # Write to memory object
+        self.trigger("default")
 ```
 
 {% endtab %}
@@ -444,7 +454,7 @@ import { createLogger, format, transports } from 'winston' // Example logger
 const logger = createLogger({
   level: 'info',
   format: format.combine(
-    format.timestamp({ format: 'HH:mm:ss.SSS' }), // Added milliseconds
+    format.timestamp({ format: 'HH:mm:ss.SSS' }),
     format.printf(
       ({ timestamp, level, message }) => `${timestamp} - ${level.toUpperCase()} - ${message}`,
     ),
@@ -523,7 +533,6 @@ class MyOriginalNode extends Node {
   async post(memory: Memory, prepRes: string, execRes: string): Promise<void> {
     await new Promise((res) => setTimeout(res, 30)) // Simulate work
     memory.result = execRes
-    this.trigger('default')
   }
 }
 

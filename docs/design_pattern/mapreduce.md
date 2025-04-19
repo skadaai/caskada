@@ -1,7 +1,3 @@
----
-title: 'Map Reduce'
----
-
 # Map Reduce
 
 MapReduce is a design pattern suitable when you need to process multiple pieces of data (e.g., files, records) independently and then combine the results.
@@ -22,54 +18,98 @@ In BrainyFlow, this pattern is typically implemented using:
 
 ```python
 import asyncio
-from brainyflow import Node, SequentialBatchNode
+from brainyflow import Node, Flow, Memory, ParallelFlow
 
-class SummarizeAllFiles(SequentialBatchNode):
-    async def prep(self, shared):
-        files_dict = shared["files"]  # e.g. 10 files
-        return list(files_dict.items())  # [("file1.txt", "aaa..."), ("file2.txt", "bbb..."), ...]
+# Assume call_llm is defined elsewhere
+# async def call_llm(prompt: str) -> str: ...
 
-    async def exec(self, one_file):
-        filename, file_content = one_file
-        summary_text = call_llm(f"Summarize the following file:\n{file_content}")
-        return (filename, summary_text)
+# 1. Mapper Node: Triggers processing for each file
+class TriggerSummariesNode(Node):
+    async def prep(self, memory: Memory):
+        # Get file data from global memory
+        files_dict = memory.files or {}
+        return list(files_dict.items()) # [("file1.txt", "content1"), ...]
 
-    async def post(self, shared, prep_res, exec_res_list):
-        shared["file_summaries"] = dict(exec_res_list)
+    async def exec(self, files: list):
+        # No main computation needed here, just return the count for info
+        return len(files)
 
-class CombineSummaries(Node):
-    async def prep(self, shared):
-        return shared["file_summaries"]
+    async def post(self, memory: Memory, files_to_process: list, file_count: int):
+        print(f"Mapper: Triggering summary for {file_count} files.")
+        # Initialize results list in global memory (pre-allocate for parallel writes)
+        memory.file_summaries = [None] * file_count
+        # Trigger a 'summarize_file' action for each file
+        for index, (filename, content) in enumerate(files_to_process):
+            self.trigger('summarize_file', { "filename": filename, "content": content, "index": index })
+        # After triggering all files, trigger the 'combine' step
+        self.trigger('combine_summaries')
 
-    async def exec(self, file_summaries):
-        # format as: "File1: summary\nFile2: summary...\n"
-        text_list = []
-        for fname, summ in file_summaries.items():
-            text_list.append(f"{fname} summary:\n{summ}\n")
-        big_text = "\n---\n".join(text_list)
+# 2. Processor Node: Summarizes a single file
+class SummarizeFileNode(Node):
+    async def prep(self, memory: Memory):
+        # Read specific file data from local memory (passed via forkingData)
+        return memory.filename, memory.content, memory.index
 
-        return call_llm(f"Combine these file summaries into one final summary:\n{big_text}")
+    async def exec(self, prep_res):
+        filename, content, index = prep_res
+        # Summarize the content
+        print(f"Processor: Summarizing {filename} (Index {index})")
+        return await call_llm(f"Summarize this:\n{content}")
 
-    async def post(self, shared, prep_res, final_summary):
-        shared["all_files_summary"] = final_summary
+    async def post(self, memory: Memory, prep_res, summary: str):
+        filename, content, index = prep_res
+        # Store individual summary in global memory at the correct index
+        memory.file_summaries[index] = { "filename": filename, "summary": summary }
+        print(f"Processor: Finished {filename} (Index {index})")
+        # This node doesn't trigger anything further in this branch
 
-batch_node = SummarizeAllFiles()
-combine_node = CombineSummaries()
-batch_node >> combine_node
+# 3. Reducer Node: Combines individual summaries
+class CombineSummariesNode(Node):
+    async def prep(self, memory: Memory):
+        # Read the array of individual summaries (filter out None if any failed)
+        summaries = [s for s in (memory.file_summaries or []) if s is not None]
+        return summaries
 
-flow = Flow(start=batch_node)
+    async def exec(self, summaries: list):
+        print(f"Reducer: Combining {len(summaries)} summaries.")
+        if not summaries:
+            return "No summaries to combine."
+        # Format summaries for the final prompt
+        combined_text = "\n\n---\n\n".join([f"{s['filename']}:\n{s['summary']}" for s in summaries])
+        return await call_llm(f"Combine these summaries into one final summary:\n{combinedText}")
 
+    async def post(self, memory: Memory, prep_res, final_summary: str):
+        # Store the final combined summary
+        memory.final_summary = final_summary
+        print("Reducer: Final summary generated.")
+        # No trigger needed if this is the end
+
+# --- Flow Definition ---
+trigger_node = TriggerSummariesNode()
+processor_node = SummarizeFileNode()
+reducer_node = CombineSummariesNode()
+
+# Define transitions
+trigger_node - 'summarize_file' >> processor_node # Map step
+trigger_node - 'combine_summaries' >> reducer_node # Reduce step
+
+# Use ParallelFlow for potentially faster summarization
+map_reduce_flow = ParallelFlow(start=trigger_node)
+# If order of summaries matters strictly, use: map_reduce_flow = Flow(trigger_node);
+
+# --- Execution ---
 async def main():
-    shared = {
+    memory = {
         "files": {
             "file1.txt": "Alice was beginning to get very tired of sitting by her sister...",
-            "file2.txt": "Some other interesting text ...",
-            # ...
+            "file2.txt": "The quick brown fox jumps over the lazy dog.",
+            "file3.txt": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
         }
     }
-    await flow.run(shared)
-    print("Individual Summaries:", shared["file_summaries"])
-    print("\nFinal Summary:\n", shared["all_files_summary"])
+    await map_reduce_flow.run(memory) # Pass memory object
+    print('\n--- MapReduce Complete ---')
+    print("Individual Summaries:", memory.get("file_summaries"))
+    print("\nFinal Summary:\n", memory.get("final_summary"))
 
 if __name__ == "__main__":
     asyncio.run(main())

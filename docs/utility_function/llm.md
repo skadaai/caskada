@@ -88,14 +88,15 @@ from brainyflow import Node
 from utils import call_llm
 
 class LLMNode(Node):
-    async def prep(self, shared):
-        return shared["prompt"]
+    async def prep(self, memory: Memory):
+        return memory.prompt
 
     async def exec(self, prompt):
-        return call_llm(prompt)
+        return await call_llm(prompt)
 
-    async def post(self, shared, prep_res, exec_res):
-        shared["response"] = exec_res
+    async def post(self, memory: Memory, prep_res, exec_res):
+        memory.response = exec_res
+        self.trigger('default')
 ```
 
 {% endtab %}

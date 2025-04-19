@@ -1,5 +1,4 @@
 ---
-title: 'Vector Databases'
 machine-display: false
 ---
 

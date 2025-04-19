@@ -1,7 +1,3 @@
----
-title: 'Agent'
----
-
 # Agent
 
 Agent is a powerful design pattern in which nodes can take dynamic actions based on the context.
@@ -116,10 +112,15 @@ This agent:
 
 ````python
 import asyncio
-import yaml  # Assuming call_llm and search_web are defined elsewhere
+import yaml
+from brainyflow import Node, Flow, Memory
+# Assuming call_llm and search_web are defined elsewhere
+# async def call_llm(prompt: str) -> str: ...
+# async def search_web(query: str) -> str: ...
+
 
 class DecideAction(Node):
-    async def prep(self, memory):
+    async def prep(self, memory: Memory):
         context = memory.context if hasattr(memory, 'context') else "No previous search"
         query = memory.query
         return query, context
@@ -149,7 +150,7 @@ search_term: search phrase if action is search
 
         return result
 
-    async def post(self, memory, prep_res, exec_res):
+    async def post(self, memory: Memory, prep_res, exec_res: dict):
         if exec_res["action"] == "search":
             memory.search_term = exec_res["search_term"]
         self.trigger(exec_res["action"])
@@ -160,9 +161,11 @@ search_term: search phrase if action is search
 {% tab title="TypeScript" %}
 
 ````typescript
-import { Memory, Node } from 'brainyflow'
+import { Flow, Memory, Node } from 'brainyflow'
 
 // Assume callLLM and parseYaml are defined elsewhere
+declare function callLLM(prompt: string): Promise<string>
+declare function parseYaml(text: string): any
 
 class DecideAction extends Node {
   async prep(memory: Memory): Promise<{ query: string; context: any }> {
@@ -231,13 +234,13 @@ search_term: <search phrase if action is search>
 
 ```python
 class SearchWeb(Node):
-    async def prep(self, memory):
+    async def prep(self, memory: Memory):
         return memory.search_term
 
     async def exec(self, search_term):
         return await search_web(search_term)
 
-    async def post(self, memory, prep_res, exec_res):
+    async def post(self, memory: Memory, prep_res, exec_res):
         prev_searches = memory.context if hasattr(memory, 'context') else []
         memory.context = prev_searches + [
             {"term": prep_res, "result": exec_res}
@@ -282,16 +285,17 @@ class SearchWeb extends Node {
 
 ```python
 class DirectAnswer(Node):
-    async def prep(self, memory):
+    async def prep(self, memory: Memory):
         return memory.query, memory.context if hasattr(memory, 'context') else ""
 
     async def exec(self, inputs):
         query, context = inputs
         return call_llm(f"Context: {context}\nAnswer: {query}")
 
-    async def post(self, memory, prep_res, exec_res):
+    async def post(self, memory: Memory, prep_res, exec_res):
        print(f"Answer: {exec_res}")
        memory.answer = exec_res
+       # No trigger needed if this is the end of the path
 ```
 
 {% endtab %}
@@ -343,10 +347,10 @@ search - "decide" >> decide # Loop back
 flow = Flow(start=decide)
 
 async def main():
-    shared_data = {"query": "Who won the Nobel Prize in Physics 2024?"}
-    result = await flow.run(shared_data)
+    memory_data = {"query": "Who won the Nobel Prize in Physics 2024?"}
+    result = await flow.run(memory_data) # Pass memory object
     print(result) # Or handle result as needed
-    print(shared_data) # See final shared state
+    print(memory_data) # See final memory state
 
 if __name__ == "__main__":
     asyncio.run(main())
@@ -372,21 +376,21 @@ decide.on('answer', answer)
 search.on('decide', decide) // Loop back
 
 // Create the flow
-const flow = new Flow(decide)
+const agentFlow = new Flow(decide)
 
 // --- Main execution function ---
 async function runAgent() {
-  const data = { query: 'Who won the Nobel Prize in Physics 2024?' }
+  const initialMemory = { query: 'Who won the Nobel Prize in Physics 2024?' }
   console.log(`Starting agent flow with query: "${initialMemory.query}"`)
 
   try {
-    await agentFlow.run(data) // Run the flow
+    await agentFlow.run(initialMemory) // Run the flow with memory object
     console.log('\n--- Flow Complete ---')
-    console.log('Final Memory State:', data)
-    console.log('\nFinal Answer:', data.answer ?? 'No answer found')
+    console.log('Final Memory State:', initialMemory) // Log final memory state
+    console.log('\nFinal Answer:', initialMemory.answer ?? 'No answer found')
   } catch (error) {
     console.error('\n--- Agent Flow Failed ---', error)
-    console.error('Memory State on Failure:', data)
+    console.error('Memory State on Failure:', initialMemory) // Log memory state on failure
   }
 }
 

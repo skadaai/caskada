@@ -92,7 +92,6 @@ class MyNode(Node):
         result = await some_async_task(prep_res)
         return result
 
-    # Use 'memory' parameter name
     async def post(self, memory, prep_res, exec_res):
         # Post-processing logic
         # If you call other async functions here, use await
@@ -134,8 +133,10 @@ import asyncio
 
 async def main():
     # ... setup your BrainyFlow nodes/flows ...
-    result = await my_flow.run(shared_data) # Use await
+    memory = {}
+    result = await my_flow.run(memory) # Use await and pass memory object
     print(result)
+    print(memory)
 
 if __name__ == "__main__":
     asyncio.run(main())

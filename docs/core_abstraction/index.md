@@ -46,7 +46,7 @@ BrainyFlow's architecture is based on these fundamental building blocks:
 
    - `prep`: Read from shared store and prepare data
    - `exec`: Execute computation (often LLM calls)
-   - `post`: Process results and write to shared store
+   - `post`: Process results, write to shared store, and trigger next actions
 
 2. **Flows** orchestrate nodes by:
 

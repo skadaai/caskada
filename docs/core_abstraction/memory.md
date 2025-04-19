@@ -19,7 +19,6 @@ Think of the memory system like **a river delta**:
 - **Global Store**: The main river water that flows everywhere
 - **Local Store**: Specific channels that might carry unique properties that only affect downstream areas fed by that channel
 
-
 Alternatively, think of it like **nested scopes in programming**:
 
 - **Global Store**: Like variables declared in the outermost scope of a program, accessible everywhere.
@@ -70,50 +69,108 @@ async post(memory: Memory<MyGlobal, MyLocal>, /*...*/) {
 }
 ```
 
-## Writing to Memory (Global Store)
+## Writing to Memory
 
-- Writing properties directly onto the `memory` object (e.g., `memory.someValue = 'new data'`) modifies the **global store** by default. The proxy ensures that if a property with the same name existed in the local store, it is removed before setting the global value.
-- Writing properties directly onto the `memory.local` object (e.g., `memory.local.someValue = 'new data'`) modifies the **local store** by default.
-- The primary way to populate the **local store (`memory.local`)** for a specific execution branch is by providing the `forkingData` argument when calling `this.trigger()` in the parent node's `post` method.
+- **Writing to Global Store**: Assigning a value directly to a property on the `memory` object (e.g., `memory.someValue = 'new data'`) writes to the **global store**. The proxy automatically removes the property from the local store first if it exists there.
+- **Writing to Local Store**: While possible via `memory.local.someValue = 'new data'`, the primary and recommended way to populate the local store for downstream nodes is using the `forkingData` argument in `this.trigger()`.
+
+{% tabs %}
+{% tab title="Python" %}
+
+```python
+from brainyflow import Node, Memory
+
+# Assume exec returns a dict like {"files": [...], "count": ...}
+class DataWriterNode(Node):
+    async def post(self, memory: Memory, prep_res, exec_res: dict):
+        # --- Writing to Global Store ---
+        # Accessible to all nodes in the flow and outside
+        memory.fileList = exec_res["files"]
+        print(f"Memory updated globally: fileList={memory.fileList}")
+        
+        # --- Writing to Local Store ---
+        # Accessible to this node and all descendants
+        memory.local.processedCount = exec_res["count"]
+        print(f"Memory updated locally: processedCount={memory.processedCount}")
+
+        # --- Triggering with Local Data (Forking Data) ---
+        # 'file' will be added to the local store of the memory clone
+        # passed to the node(s) triggered by the 'process_file' action.
+        for file_item in exec_res["files"]:
+            self.trigger('process_file', { "file": file_item })
+
+# Example Processor Node (triggered by 'process_file')
+class FileProcessorNode(Node):
+     async def prep(self, memory: Memory):
+         # Reads 'file' from the local store first, then global
+         file_to_process = memory.file
+         print(f"Processing file (fetched from local memory): {file_to_process}")
+         return file_to_process
+     # ... exec, post ...
+```
+
+{% endtab %}
+
+{% tab title="TypeScript" %}
 
 ```typescript
 import { Memory, Node } from 'brainyflow'
 
 interface MyGlobal {
   fileList?: string[]
-  processedCount?: number
+  results?: Record<string, any>
 }
-interface MyLocal {}
+interface MyLocal {
+  processedCount?: number // Data passed via memory.local assignment
+  file?: string // Data passed via forkingData
+}
 
-class DataWriterNode extends Node<MyGlobal, MyLocal> {
+class DataWriterNode extends Node<MyGlobal, MyLocal, ['process_file']> {
   async post(
     memory: Memory<MyGlobal, MyLocal>,
     prepRes: any,
-    execRes: { files: string[]; count: number }, // Assume exec returns in this format
+    execRes: { files: string[]; count: number }, // Assume exec returns this format
   ): Promise<void> {
     // --- Writing to Global Store ---
     // Accessible to all nodes in the flow
     memory.fileList = execRes.files
+    console.log(`Memory updated globally: fileList=${memory.fileList}`)
 
     // --- Writing to Local Store ---
     // Accessible to this node and all descendants
-    memory.processedCount = execRes.count
+    memory.local.processedCount = execRes.count
+    console.log(`Memory updated locally: processedCount={memory.processedCount}`)
 
-    console.log('Memory updated:', memory)
-
-    for(const file of fileList)
-      // Trigger next node with exclusive local value for `memory.file` (set at `memory.local.file`)
-      this.trigger('default', { file })
+    // --- Triggering with Local Data (Forking Data) ---
+    // 'file' will be added to the local store of the memory clone
+    // passed to the node(s) triggered by the 'process_file' action.
+    for (const file of execRes.files) {
+      this.trigger('process_file', { file: file })
+    }
   }
 }
+
+// Example Processor Node (triggered by 'process_file')
+class FileProcessorNode extends Node<MyGlobal, MyLocal> {
+  async prep(memory: Memory<MyGlobal, MyLocal>): Promise<string | undefined> {
+    // Reads 'file' from the local store first, then global
+    const fileToProcess = memory.file
+    console.log(`Processing file (from local memory): ${fileToProcess}`)
+    return fileToProcess
+  }
+  // ... exec, post ...
+}
 ```
+
+{% endtab %}
+{% endtabs %}
 
 ## Best Practices
 
 - **Read in `prep()`**: Gather necessary input data from `memory` at the beginning of a node's execution.
-- **Write Global State in `post()`**: Update the shared global store by writing to `memory` (e.g., `memory.results = ...`) in the `post()` phase after processing is complete.
-- **Set Local State via `forkingData`**: Pass branch-specific context to successors by providing the `forkingData` argument in `this.trigger()` within the parent's `post()` method.
-- **Read Transparently**: Always read data via the `memory` proxy (e.g., `memory.someValue`). It handles the local-then-global lookup automatically. Avoid reading directly from `memory.__global` or `memory.__local` unless you have a specific reason.
+- **Write Global State in `post()`**: Update the shared global store by assigning to `memory` properties (e.g., `memory.results = ...`) in the `post()` phase after processing is complete.
+- **Set Local State via `forkingData`**: Pass branch-specific context to successors by providing the `forkingData` argument in `this.trigger()` within the parent's `post()` method. This populates the `local` store for the next node(s).
+- **Read Transparently**: Always read data via the `memory` proxy (e.g., `memory.someValue`). It handles the local-then-global lookup automatically. Avoid reading directly from `memory.local` or other internal properties unless strictly needed.
 
 ## When to Use The Memory
 
@@ -134,5 +191,5 @@ The memory system in BrainyFlow implements several established computer science 
 
 1.  **Reading**: Always read via the `memory` proxy (e.g., `memory.value`). It checks local then global.
 2.  **Writing**: Direct assignment `memory.property = value` writes to the **global** store.
-3.  **Local State Creation**: Use `trigger(action, forkingData)` in `post()` to populate the local store for the _next_ node(s) in a specific branch.
-4.  **Lifecycle**: Read in `prep`, compute in `exec` (no memory access), write global state and trigger successors (potentially with `forkingData` for local state) in `post`.
+3.  **Local State Creation**: Use `trigger(action, forkingData)` in `post()` to populate the `local` store for the _next_ node(s) in a specific branch.
+4.  **Lifecycle**: Read from `memory` in `prep`, compute in `exec` (no memory access), write global state to `memory` and trigger successors (potentially with `forkingData` for local state) in `post`.
