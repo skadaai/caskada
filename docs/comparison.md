@@ -6,7 +6,7 @@ BrainyFlow exists in an ecosystem of frameworks designed to build AI application
 
 Before diving into comparisons, let's reiterate BrainyFlow's core tenets:
 
-- **Minimalist Core:** A tiny codebase (~65 lines in Python) providing essential abstractions (`Node`, `Flow`, `Memory`).
+- **Minimalist Core:** A tiny codebase (~200 lines in Python) providing essential abstractions (`Node`, `Flow`, `Memory`).
 - **Graph-Based Abstraction:** Uses nested directed graphs to model application logic, separating data flow (`Memory`) from computation (`Node`).
 - **Zero Dependencies:** The core framework has no external dependencies, offering maximum flexibility.
 - **No Vendor Lock-in:** Encourages using external utilities directly, avoiding framework-specific wrappers for APIs or databases.
@@ -69,15 +69,15 @@ On top of that, BrainyFlow has been designed to be more agentic-friendly, with a
 
 ## Feature Comparison Matrix
 
-| Feature                   | BrainyFlow       | LangChain         | LangGraph            | CrewAI                    | AutoGen               | PocketFlow       |
-| ------------------------- | ---------------- | ----------------- | -------------------- | ------------------------- | --------------------- | ---------------- |
-| **Core Abstraction**      | Nodes & Flows    | Chains & Agents   | State Graphs         | Agents & Crews            | Conversational Agents | Nodes & Flows    |
-| **Dependencies**          | None             | Many              | Many (via LangChain) | Several                   | Several               | None             |
-| **Codebase Size**         | Tiny (~65 lines) | Large             | Medium               | Medium                    | Medium                | Tiny (165 lines) |
-| **Flexibility**           | High             | Medium            | Medium               | Low                       | Medium                | High             |
-| **Built-in Integrations** | None             | Extensive         | Via LangChain        | Several                   | Several               | None             |
-| **Learning Curve**        | Moderate         | Steep             | Very Steep           | Moderate                  | Moderate              | Moderate         |
-| **Primary Focus**         | Graph Execution  | Component Library | State Machines       | Multi-Agent Collaboration | Conversational Agents | Graph Execution  |
+| Feature                   | BrainyFlow        | LangChain         | LangGraph            | CrewAI                    | AutoGen               | PocketFlow       |
+| ------------------------- | ----------------- | ----------------- | -------------------- | ------------------------- | --------------------- | ---------------- |
+| **Core Abstraction**      | Nodes & Flows     | Chains & Agents   | State Graphs         | Agents & Crews            | Conversational Agents | Nodes & Flows    |
+| **Dependencies**          | None              | Many              | Many (via LangChain) | Several                   | Several               | None             |
+| **Codebase Size**         | Tiny (~200 lines) | Large             | Medium               | Medium                    | Medium                | Tiny (100 lines) |
+| **Flexibility**           | High              | Medium            | Medium               | Low                       | Medium                | High             |
+| **Built-in Integrations** | None              | Extensive         | Via LangChain        | Several                   | Several               | None             |
+| **Learning Curve**        | Moderate          | Steep             | Very Steep           | Moderate                  | Moderate              | Moderate         |
+| **Primary Focus**         | Graph Execution   | Component Library | State Machines       | Multi-Agent Collaboration | Conversational Agents | Graph Execution  |
 
 ## Conclusion: When to Choose BrainyFlow?
 
