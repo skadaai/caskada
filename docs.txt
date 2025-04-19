@@ -387,7 +387,7 @@ We'll compare BrainyFlow against competitors based on:
 
 BrainyFlow originated as a fork of PocketFlow, inheriting its core philosophy of minimalism and a graph-based abstraction. However, BrainyFlow has evolved with some key differences:
 
-- **Core Abstraction:** PocketFlow is bloated with unecessary specialized classes (e.g. `AsyncNode`, `BatchNode`, `AsyncBatchNode`, `AsyncParallelBatchNode`, `AsyncFlow`, `BatchFlow`, `AsyncBatchFlow`, `AsyncParallelBatchFlow`). BrainyFlow simplifies this by removing all of them from the core. Instead, it relies only in standard `Node` lifecycle methods (which can be `async`) combined with `Flow` (or `ParallelFlow`) and the use of multiple `trigger` calls within a single node's `post` method to achieve batch-like fan-out operations.
+- **Core Abstraction:** PocketFlow is bloated with unnecessary specialized classes (e.g. `AsyncNode`, `BatchNode`, `AsyncBatchNode`, `AsyncParallelBatchNode`, `AsyncFlow`, `BatchFlow`, `AsyncBatchFlow`, `AsyncParallelBatchFlow`). BrainyFlow simplifies this by removing all of them from the core. Instead, it relies only on standard `Node` lifecycle methods (which can be `async`) combined with `Flow` (or `ParallelFlow`) and the use of multiple `trigger` calls within a single node's `post` method to achieve batch-like fan-out operations.
 - **State Management:** While both use a shared store, BrainyFlow places greater emphasis on the `Memory` object's `global` vs. `local` stores and using `forkingData` during `trigger` calls to manage branch-specific context, eliminating the need for PocketFlow's `Params` concept and all the complex `Batch` classes that come with it.
 - **Focus:** BrainyFlow sharpens the focus on the fundamental `Node`, `Flow`, and `Memory` abstractions as the absolute core, reinforcing the idea that patterns like batching or parallelism are handled by how flows orchestrate standard nodes rather than requiring specialized node types.
 
@@ -963,203 +963,13 @@ runFlow()
 {% endtab %}
 {% endtabs %}
 
-### Example: Multiple Triggers (Fan-Out)
+### Example: Multiple Triggers (Fan-Out / Batch Processing)
 
-Nodes can call `trigger` multiple times within `post` to initiate multiple downstream paths. Each triggered path gets its own cloned `memory`, potentially with unique `local` data provided via `forkingData`. This is the core pattern for replacing dedicated Batch nodes as found in other frameworks.
+A single node can call `this.trigger()` multiple times within its `post` method to initiate multiple downstream paths simultaneously. Each triggered path receives its own cloned `memory` instance, potentially populated with unique `local` data via the `forkingData` argument.
 
-{% tabs %}
-{% tab title="Python" %}
+This "fan-out" capability is the core pattern used for **batch processing** (processing multiple items, often in parallel).
 
-```python
-from brainyflow import Node, Flow, Memory, ParallelFlow
-
-# Assuming process_item is defined elsewhere
-
-class ItemProcessorNode(Node):
-    async def prep(self, memory: Memory):
-        # Access data from local store passed via forkingData
-        return memory.currentItem, memory.currentIndex # Pass both to exec
-
-    async def exec(self, prep_res):
-        item, index = prep_res
-        # ... perform processing ...
-        result = await process_item(item) # Example async call
-        return result, index # Pass result and index to post
-
-    async def post(self, memory: Memory, prep_res, exec_res):
-        item, original_index = prep_res
-        result, _ = exec_res
-        # Write results back to global store using a pre-allocated list or dict
-        # Using index ensures correct order even with ParallelFlow
-        if not hasattr(memory, 'results_list') or not isinstance(memory.results_list, list):
-             # This should ideally be initialized by the trigger node
-             print("Warning: results_list not initialized correctly in global memory.")
-             memory.results_list = [] # Fallback initialization
-        # Ensure list is long enough (can happen with parallel execution)
-        while len(memory.results_list) <= original_index:
-            memory.results_list.append(None)
-        memory.results_list[original_index] = {"item": item, "result": result}
-        print(f" ItemProcessor Post (Index {original_index}): Stored result for '{item}'.")
-        # No trigger needed here, end of this branch
-
-class BatchTriggerNode(Node):
-    async def prep(self, memory: Memory):
-        # Read items from global memory
-        print("BatchTrigger Prep: Reading items.")
-        return memory.items or []
-
-    # No exec needed, just passing items through prep_res
-
-    async def post(self, memory: Memory, items: list, exec_res):
-        print(f"BatchTrigger Post: Triggering processing for {len(items)} items.")
-        # Initialize results list in global memory (pre-allocate for parallel writes)
-        memory.results_list = [None] * len(items)
-
-        # Trigger 'process_one' action for each item, passing the item AND its index in local memory
-        for index, item in enumerate(items):
-            # Each trigger gets a *clone* of the current memory,
-            # with 'currentItem' and 'currentIndex' added to the *local* store of that clone.
-            print(f" BatchTrigger Post: Triggering process_one for item '{item}' (Index {index})")
-            self.trigger('process_one', { "currentItem": item, "currentIndex": index })
-
-        # After triggering all items, trigger the aggregation step
-        print("BatchTrigger Post: Triggering aggregation.")
-        self.trigger('aggregation')
-
-# --- Flow Definition ---
-batch_trigger = BatchTriggerNode()
-item_processor = ItemProcessorNode()
-# aggregator = AggregationNode() # Assume an AggregationNode exists
-
-batch_trigger - "process_one" >> item_processor # Connect the 'process_one' action
-# batch_trigger - "aggregation" >> aggregator # Connect the aggregation action
-
-# Use ParallelFlow to run item processing concurrently
-flow = ParallelFlow(start=batch_trigger)
-# Or for sequential: flow = Flow(start=batch_trigger)
-
-# --- Execution Example ---
-# async def run_flow():
-#     memory_data = { "items": ['apple', 'banana', 'cherry'] }
-#     await flow.run(memory_data)
-#     print("\n--- Fan-Out Flow Complete ---")
-#     print("Final Results List:", memory_data.get("results_list"))
-#     # If using an aggregator node:
-#     # print("Aggregated Result:", memory_data.get("aggregated_result"))
-#
-# asyncio.run(run_flow())
-```
-
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-```typescript
-import { Flow, Memory, Node, ParallelFlow } from 'brainyflow'
-
-declare function processItem(item: string): Promise<any> // Assuming processItem is declared elsewhere
-
-// Define Memory and Action types
-interface GlobalStore {
-  items?: string[]
-  results_list?: ({ item: string; result: any } | null)[] // Use list for ordered results
-  aggregated_result?: any
-}
-interface LocalStore {
-  currentItem: string
-  currentIndex: number
-}
-type FanOutActions = 'process_one' | 'aggregation'
-
-class ItemProcessorNode extends Node<GlobalStore, LocalStore> {
-  async prep(memory: Memory<GlobalStore, LocalStore>): Promise<{ item: string; index: number }> {
-    // Access data from local store passed via forkingData
-    return { item: memory.currentItem, index: memory.currentIndex }
-  }
-
-  async exec(prepRes: { item: string; index: number }): Promise<{ result: any; index: number }> {
-    // ... perform processing ...
-    const result = await processItem(prepRes.item) // Use real function!
-    return { result, index: prepRes.index }
-  }
-
-  async post(
-    memory: Memory<GlobalStore, LocalStore>,
-    prepRes: { item: string; index: number },
-    execRes: { result: any; index: number },
-  ): Promise<void> {
-    // Ensure list is long enough (important for ParallelFlow)
-    while (memory.results_list.length <= execRes.index) {
-      memory.results_list.push(null)
-    }
-    memory.results_list[execRes.index] = { item: prepRes.item ?? 'N/A', result: execRes.result }
-    console.log(
-      ` ItemProcessor Post (Index ${execRes.index}): Stored result for '${prepRes.item}'.`,
-    )
-    // No trigger needed here, end of this branch
-  }
-}
-
-class BatchTriggerNode extends Node<GlobalStore, LocalStore, FanOutActions[]> {
-  async prep(memory: Memory<GlobalStore, LocalStore>): Promise<string[] | undefined> {
-    return memory.items
-  }
-
-  // We don't need exec here, just pass items through
-
-  async post(
-    memory: Memory<GlobalStore, LocalStore>,
-    prepRes: string[] | undefined, // items
-    execRes: void,
-  ): Promise<void> {
-    const items = prepRes || []
-
-    console.log(`BatchTrigger Post: Triggering processing for ${items.length} items.`)
-    // Initialize results list in global memory (pre-allocate for parallel writes)
-    memory.results_list = new Array(items.length).fill(null)
-
-    // Trigger 'process_one' action for each item, passing item AND index in local memory
-    for (const [index, item] of items.entries()) {
-      // Each trigger gets a *clone* of the current memory,
-      // with 'currentItem' and 'currentIndex' added to the *local* store of that clone.
-      console.log(` BatchTrigger Post: Triggering process_one for item '${item}' (Index ${index})`)
-      this.trigger('process_one', { currentItem: item, currentIndex: index })
-    }
-
-    // After triggering all items, trigger the aggregation step
-    console.log('BatchTrigger Post: Triggering aggregation.')
-    this.trigger('aggregation')
-  }
-}
-
-// --- Flow Definition ---
-const batchTrigger = new BatchTriggerNode()
-const itemProcessor = new ItemProcessorNode()
-// const aggregator = new AggregationNode(); // Assume an AggregationNode exists
-
-batchTrigger.on('process_one', itemProcessor) // Connect the 'process_one' action
-// batchTrigger.on('aggregation', aggregator); // Connect aggregation step if used
-
-// Use ParallelFlow to run item processing concurrently
-const flow = new ParallelFlow(batchTrigger)
-// Or for sequential: const flow = new Flow(batchTrigger);
-
-// --- Execution Example ---
-// async function runFlow() {
-//    const globalStore: GlobalStore = { items: ['apple', 'banana', 'cherry'] };
-//    await flow.run(globalStore);
-//    console.log("\n--- Fan-Out Flow Complete ---");
-//    console.log("Final Results List:", globalStore.results_list);
-//    // If using an aggregator node:
-//    // console.log("Aggregated Result:", globalStore.aggregated_result);
-// }
-// runFlow();
-```
-
-{% endtab %}
-{% endtabs %}
-
-In this example, `BatchTriggerNode` fans out the work. If run with `ParallelFlow`, each `ItemProcessorNode` instance would execute concurrently. If run with a standard `Flow`, they would execute sequentially.
+For a detailed explanation and examples of implementing batch processing using this fan-out pattern with `Flow` or `ParallelFlow`, please see the [Flow documentation](./flow.md#implementing-batch-processing-fan-out-pattern).
 
 ## Running Individual Nodes
 
@@ -1557,7 +1367,6 @@ import { Flow, Memory } from 'brainyflow'
 declare function sleep(ms: number): Promise<void> // Assuming sleep is available
 
 class CustomExecutionFlow extends Flow {
-
   async runTasks<T>(tasks: (() => Promise<T>)[]): Promise<Awaited<T>[]> {
     // Example: Run tasks sequentially with a delay between each
     const results: Awaited<T>[] = []
@@ -1570,6 +1379,146 @@ class CustomExecutionFlow extends Flow {
   }
 }
 ```
+
+## Batch Processing (Fan-Out Pattern)
+
+The standard way to process multiple items (sequentially or in parallel) is using the "fan-out" pattern with multiple triggers:
+
+1.  **Trigger Node**: A standard `Node` whose `post` method iterates through your items (e.g., from `memory.items`). For each item, it calls `this.trigger("process_item", { item: current_item, index: i })`. The `forkingData` (`{ item: ..., index: ... }`) is crucial for passing item-specific data to the local memory of the next node.
+2.  **Processor Node**: Another standard `Node` connected via the `"process_item"` action (`triggerNode.on("process_item", processorNode)`). Its `prep` reads the specific `item` and `index` from its local memory. Its `exec` performs the actual processing for that single item. Its `post` typically stores the result back into global memory (e.g., `memory.results[index] = result`).
+3.  **Flow Choice**:
+    - Use `Flow(triggerNode)` for **sequential** batch processing (one item completes before the next starts).
+    - Use `ParallelFlow(triggerNode)` for **concurrent** batch processing (all items are processed in parallel).
+
+This pattern leverages the core `Flow` and `Node` abstractions to handle batching effectively.
+
+#### Example: Simple Batch Processing
+
+{% tabs %}
+{% tab title="Python" %}
+
+```python
+# Assume process_single_item exists
+# async def process_single_item(item_data): ...
+
+class TriggerBatchNode(Node):
+    async def prep(self, memory: Memory):
+        return memory.get("items_to_process", [])
+
+    async def post(self, memory: Memory, prep_res: list, exec_res):
+        items = prep_res
+        memory.results = [None] * len(items) # Pre-allocate for parallel
+        for index, item in enumerate(items):
+            self.trigger("process_one", {"item_data": item, "result_index": index})
+        # Optional: self.trigger("aggregate") if needed
+
+class ProcessOneItemNode(Node):
+    async def prep(self, memory: Memory):
+        return {"item": memory.item_data, "index": memory.result_index}
+
+    async def exec(self, prep_res):
+        # result = await process_single_item(prep_res["item"])
+        result = f"Processed {prep_res['item']}" # Placeholder
+        return {"result": result, "index": prep_res["index"]}
+
+    async def post(self, memory: Memory, prep_res, exec_res):
+        memory.results[exec_res["index"]] = exec_res["result"]
+
+# Setup
+trigger = TriggerBatchNode()
+processor = ProcessOneItemNode()
+trigger.on("process_one", processor)
+
+# Choose Flow type
+# sequential_batch_flow = Flow(trigger)
+parallel_batch_flow = ParallelFlow(trigger)
+
+# Run
+# memory = {"items_to_process": ["A", "B", "C"]}
+# await parallel_batch_flow.run(memory)
+# print(memory["results"]) # Output: ['Processed A', 'Processed B', 'Processed C']
+```
+
+{% endtab %}
+
+{% tab title="TypeScript" %}
+
+```typescript
+// Assume processSingleItem exists
+// declare function processSingleItem(itemData: any): Promise<any>;
+
+interface BatchGlobalStore {
+  items_to_process?: any[]
+  results?: any[]
+}
+interface BatchLocalStore {
+  item_data?: any
+  result_index?: number
+}
+
+class TriggerBatchNode extends Node<
+  BatchGlobalStore,
+  BatchLocalStore,
+  ['process_one', 'aggregate']
+> {
+  async prep(memory: Memory<BatchGlobalStore>): Promise<any[]> {
+    return memory.items_to_process ?? []
+  }
+  async post(memory: Memory<BatchGlobalStore>, items: any[], execRes: void): Promise<void> {
+    memory.results = new Array(items.length).fill(null) // Pre-allocate
+    items.forEach((item, index) => {
+      this.trigger('process_one', { item_data: item, result_index: index })
+    })
+    // Optional: this.trigger("aggregate");
+  }
+}
+
+class ProcessOneItemNode extends Node<BatchGlobalStore, BatchLocalStore> {
+  async prep(
+    memory: Memory<BatchGlobalStore, BatchLocalStore>,
+  ): Promise<{ item: any; index: number }> {
+    return { item: memory.item_data, index: memory.result_index ?? -1 }
+  }
+  async exec(prepRes: { item: any; index: number }): Promise<{ result: any; index: number }> {
+    // const result = await processSingleItem(prepRes.item);
+    const result = `Processed ${prepRes.item}` // Placeholder
+    return { result, index: prepRes.index }
+  }
+  async post(
+    memory: Memory<BatchGlobalStore>,
+    prepRes: any,
+    execRes: { result: any; index: number },
+  ): Promise<void> {
+    if (!memory.results) memory.results = []
+    while (memory.results.length <= execRes.index) {
+      memory.results.push(null)
+    }
+    memory.results[execRes.index] = execRes.result
+  }
+}
+
+// Setup
+const trigger = new TriggerBatchNode()
+const processor = new ProcessOneItemNode()
+trigger.on('process_one', processor)
+
+// Choose Flow type
+// const sequentialBatchFlow = new Flow<BatchGlobalStore>(trigger);
+const parallelBatchFlow = new ParallelFlow<BatchGlobalStore>(trigger)
+
+// Run
+// async function run() {
+//   const memory: BatchGlobalStore = { items_to_process: ["A", "B", "C"] };
+//   await parallelBatchFlow.run(memory);
+//   console.log(memory.results); // Output: ['Processed A', 'Processed B', 'Processed C']
+// }
+// run();
+```
+
+{% endtab %}
+{% endtabs %}
+
+In this example, `TriggerBatchNode` fans out the work. If run with `ParallelFlow`, each `ItemProcessorNode` instance would execute concurrently. If run with a standard `Flow`, they would execute sequentially.
 
 ## Best Practices
 
