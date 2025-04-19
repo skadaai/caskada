@@ -13,7 +13,9 @@ export function generateChangesetComment(context, packageType) {
   const packageName = packageType.toLocaleLowerCase()
   const directory = packageName
   const isTypescript = packageName === 'typescript'
-  const emoji = isTypescript ? '📝' : '🐍'
+  const icon = isTypescript
+    ? '<img src="https://iconduck.com/vectors/vctrk180y7wy/media/svg/download" width="28" height="28" alt="Typescript Logo" />'
+    : '<img src="https://iconduck.com/vectors/vctrahatphfa/media/svg/download" width="28" height="28" alt="Python Logo" />'
 
   const changesetUrl = `${context.payload.pull_request.head.repo.html_url}/new/${
     context.payload.pull_request.head.ref
@@ -22,7 +24,7 @@ export function generateChangesetComment(context, packageType) {
     capitalize: false,
   })}.md&value=${getNewChangesetTemplate(packageName, context.payload.pull_request.title)}`
 
-  return `## Missing ${packageType} Changeset ${emoji}
+  return `## Missing ${packageType} Changeset ${icon}
   
   Changes to the ${packageType} package were detected, but no changeset was found.
   Merging this PR will not cause a version bump for the ${packageType} package.
