@@ -87,9 +87,9 @@ The single file in <a href="https://github.com/zvictor/BrainyFlow/blob/main/pyth
 </div>
 <br>
 
-- [Node](./core_abstraction/node.md) handles simple (LLM) tasks with a clear lifecycle (`prep` → `exec` → `post`).
-- [Flow](./core_abstraction/flow.md) connects nodes through **Actions** (labeled edges), orchestrating execution.
-- [Memory](./core_abstraction/memory.md) manages shared (`global`) and isolated (`local`) state, enabling communication between nodes.
+- [Node](./core_abstraction/node) handles simple (LLM) tasks with a clear lifecycle (`prep` → `exec` → `post`).
+- [Flow](./core_abstraction/flow) connects nodes through **Actions** (labeled edges), orchestrating execution.
+- [Memory](./core_abstraction/memory) manages shared (`global`) and isolated (`local`) state, enabling communication between nodes.
 
 From there, it's easy to implement all popular design patterns:
 <br>
@@ -99,12 +99,12 @@ From there, it's easy to implement all popular design patterns:
 </div>
 <br>
 
-- [Agent](./design_pattern/agent.md) autonomously makes decisions based on context.
-- [Workflow](./design_pattern/workflow.md) chains multiple tasks into sequential pipelines.
-- [RAG](./design_pattern/rag.md) integrates data retrieval with generation.
-- [Map Reduce](./design_pattern/mapreduce.md) splits data tasks into Map and Reduce steps.
-- [Structured Output](./design_pattern/structure.md) formats outputs consistently.
-- [Multi-Agents](./design_pattern/multi_agent.md) coordinate multiple agents.
+- [Agent](./design_pattern/agent) autonomously makes decisions based on context.
+- [Workflow](./design_pattern/workflow) chains multiple tasks into sequential pipelines.
+- [RAG](./design_pattern/rag) integrates data retrieval with generation.
+- [Map Reduce](./design_pattern/mapreduce) splits data tasks into Map and Reduce steps.
+- [Structured Output](./design_pattern/structure) formats outputs consistently.
+- [Multi-Agents](./design_pattern/multi_agent) coordinate multiple agents.
 
 ![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
 
@@ -147,11 +147,11 @@ And many more available for all levels! [Check them all out!](https://github.com
 
 ## Quick Start
 
-New to BrainyFlow? Check out our [Getting Started](./introduction/getting_started.md) guide to build your first flow in no time.
+New to BrainyFlow? Check out our [Getting Started](./introduction/getting_started) guide to build your first flow in no time.
 
 ## Ready to Build Self-Coding Apps?
 
-Check out [Agentic Coding Guidance](./guides/agentic_coding.md), the fastest way to develop self-coding LLM projects with BrainyFlow!
+Check out [Agentic Coding Guidance](./guides/agentic_coding), the fastest way to develop self-coding LLM projects with BrainyFlow!
 
 ![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
 
