@@ -47,12 +47,12 @@ It enables both humans and AI assistants to collaborate effectively on designing
 
 - **Brain-Easy 🧠**: Intuitive for both humans and AI assistants
 - **Minimalist Design ✨**: Core abstractions in just (_you heard it right!_) 200 lines of code
-- **Freedom 🔓**: Zero bloat, dependencies, or vendor lock-in.
+- **Freedom 🔓**: Zero bloat, dependencies, or vendor lock-in
 - **Composable 🧩**: Build complex systems from simple, reusable components
-- **Powerful 🦾**: Supports everything you love—([Multi-](./design_pattern/multi_agent.md))[Agents](./design_pattern/agent.md), [Workflow](./design_pattern/workflow.md), [RAG](./design_pattern/rag.md), and more.
+- **Powerful 🦾**: Supports everything you love—([Multi-](./design_pattern/multi_agent.md))[Agents](./design_pattern/agent.md), [Workflow](./design_pattern/workflow.md), [RAG](./design_pattern/rag.md), and more
 - **Agentic-Coding 🤖**: Designed for AI-assisted development
 - **Universal 🌈**: Works with any LLM provider or API
-- **Polyglot 🌍**:  Python and  Typescript are both supported.
+- **Polyglot 🌍**:  Python and  Typescript are both supported
 
 ![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
 
