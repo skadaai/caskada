@@ -556,7 +556,7 @@ class ItemProcessorNode extends Node<GlobalStore, LocalStore> {
     }
     memory.results_list[execRes.index] = { item: prepRes.item ?? 'N/A', result: execRes.result }
     console.log(
-      ` ItemProcessor Post (Index ${originalIndex}): Stored result for '${prepRes.item}'.`,
+      ` ItemProcessor Post (Index ${execRes.index}): Stored result for '${prepRes.item}'.`,
     )
     // No trigger needed here, end of this branch
   }
