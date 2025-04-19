@@ -11,6 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write # Required to push tags and commit version updates
+      pull-requests: write # Required to create the release pull request
     environment: npm
 
     steps:

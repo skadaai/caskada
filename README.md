@@ -43,12 +43,12 @@ It enables both humans and AI assistants to collaborate effectively on designing
 
 - **Brain-Easy 🧠**: Intuitive for both humans and AI assistants
 - **Minimalist Design ✨**: Core abstractions in just (_you heard it right!_) 200 lines of code
-- **Freedom 🔓**: Zero bloat, dependencies, or vendor lock-in.
+- **Freedom 🔓**: Zero bloat, dependencies, or vendor lock-in
 - **Composable 🧩**: Build complex systems from simple, reusable components
-- **Powerful 🦾**: Supports everything you love—([Multi-](https://brainy.gitbook.io/flow/design_pattern/multi_agent))[Agents](https://brainy.gitbook.io/flow/design_pattern/agent), [Workflow](https://brainy.gitbook.io/flow/design_pattern/workflow), [RAG](https://brainy.gitbook.io/flow/design_pattern/rag), and more.
+- **Powerful 🦾**: Supports everything you love—([Multi-](https://brainy.gitbook.io/flow/design_pattern/multi_agent))[Agents](https://brainy.gitbook.io/flow/design_pattern/agent), [Workflow](https://brainy.gitbook.io/flow/design_pattern/workflow), [RAG](https://brainy.gitbook.io/flow/design_pattern/rag), and more
 - **Agentic-Coding 🤖**: Designed for AI-assisted development
 - **Universal 🌈**: Works with any LLM provider or API
-- **Polyglot 🌍**: <!-- gitbook-ignore-start --><a href="https://pypi.org/project/brainyflow"><img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/python.svg" width="16" height="16" alt="Python Logo" style="vertical-align: middle; margin: 0 2px;"></a><!-- gitbook-ignore-end --> Python and <!-- gitbook-ignore-start --><a href="https://npmjs.com/packages/brainyflow"><img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/typescript.svg" width="16" height="16" alt="Typescript Logo" style="vertical-align: middle; margin: 0 2px;"></a><!-- gitbook-ignore-end --> Typescript are both supported.
+- **Polyglot 🌍**: <!-- gitbook-ignore-start --><a href="https://pypi.org/project/brainyflow"><img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/python.svg" width="16" height="16" alt="Python Logo" style="vertical-align: middle; margin: 0 2px;"></a><!-- gitbook-ignore-end --> Python and <!-- gitbook-ignore-start --><a href="https://npmjs.com/packages/brainyflow"><img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/typescript.svg" width="16" height="16" alt="Typescript Logo" style="vertical-align: middle; margin: 0 2px;"></a><!-- gitbook-ignore-end --> Typescript are both supported
 
 ![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
 
