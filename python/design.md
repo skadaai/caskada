@@ -1,393 +1,95 @@
-# BrainyFlow Python Implementation Design
+# BrainyFlow Python Library Design
 
-This document outlines the design for the Python port of the BrainyFlow library, ensuring functional parity with the TypeScript version while embracing Pythonic idioms.
+This document outlines the design of the BrainyFlow Python library, a framework for building and executing computational graphs, particularly suited for asynchronous workflows like AI agent interactions or complex data processing pipelines.
 
-## 1. Overview
-
-The BrainyFlow Python library implements the same core abstractions as the TypeScript version:
+## Core Concepts
 
-- **Memory:** State management with global and local stores
-- **BaseNode:** Abstract foundation with lifecycle methods and graph connections
-- **Node:** Concrete implementation with retry capabilities
-- **Flow:** Sequential orchestration of nodes
-- **ParallelFlow:** Parallel execution of branches
-
-While maintaining functional parity, the implementation adapts to Python's language features and conventions.
-
-## 2. Core Components
-
-### 2.1. Memory Class
-
-The `Memory` class manages state with global and local stores, providing a dual-scope system:
-
-```python
-class Memory:
-    """
-    Memory class for managing global and local state.
-
-    Memory provides a dual-scope approach to state management:
-    - Global store: Shared across the entire flow
-    - Local store: Specific to a particular execution path
-    """
-
-    def __init__(self, _global, _local=None):
-        """Initialize a Memory instance with global and optional local stores."""
-        # Directly set attributes in __dict__ to avoid __setattr__
-        object.__setattr__(self, '_global', _global)
-        object.__setattr__(self, '_local', _local or {})
-
-    def __getattr__(self, name):
-        """Access properties, checking local store first, then global."""
-        if name in self._local:
-            return self._local[name]
-        return self._global.get(name)
-
-    def __setattr__(self, name, value):
-        """Write properties, handling reserved names and local/global interaction."""
-        # Reserved property handling
-        if name in ['global', 'local', '_global', '_local']:
-            raise ValueError(f"Reserved property '{name}' cannot be set")
-
-        # Remove from local if exists, then set in global
-        if hasattr(self, '_local') and name in self._local:
-            del self._local[name]
-
-        # Set in global store
-        self._global[name] = value
-
-    def __getitem__(self, key):
-        """Support dictionary-style access (memory['key'])."""
-        if key in self._local:
-            return self._local[key]
-        return self._global.get(key)
-
-    def __setitem__(self, key, value):
-        """Support dictionary-style assignment (memory['key'] = value)."""
-        # Remove from local if exists, then set in global
-        if key in self._local:
-            del self._local[key]
-
-        # Set in global store
-        self._global[key] = value
-
-    def __contains__(self, key):
-        """Support 'in' operator (key in memory)."""
-        return key in self._local or key in self._global
-
-    @property
-    def local(self):
-        return self._local
-
-    def clone(self, forking_data=None):
-        # Create new Memory with same global reference but deep-copied local
-        forking_data = forking_data or {}
-        new_local = copy.deepcopy(self._local)
-        new_local.update(copy.deepcopy(forking_data))
-        return Memory.create(self._global, new_local)
-
-    @staticmethod
-    def create(global_store, local_store=None):
-        return Memory(global_store, local_store)
-```
-
-### 2.2. BaseNode Abstract Class
-
-The `BaseNode` class provides the foundation for all nodes with lifecycle methods and connections:
-
-```python
-class BaseNode:
-    _next_id = 0
-
-    def __init__(self):
-        self.successors = {}  # dict of action -> list of nodes
-        self._triggers = []   # list of dicts with action and forking_data
-        self._locked = True   # Prevent trigger calls outside post()
-        self._node_order = BaseNode._next_id  # Changed from __node_order to _node_order
-        BaseNode._next_id += 1
-
-    def clone(self, seen=None):
-        # Create a deep copy with cycle detection
-        seen = seen or {}
-        if self in seen:
-            return seen[self]
-
-        # Create new instance maintaining class hierarchy
-        cloned = type(self).__new__(type(self))
-        seen[self] = cloned
-
-        # Copy attributes except successors
-        for key, value in self.__dict__.items():
-            if key != 'successors':
-                setattr(cloned, key, value)
-
-        # Clone successors with cycle detection
-        cloned.successors = {}
-        for action, nodes in self.successors.items():
-            cloned.successors[action] = [
-                node.clone(seen) if node else node for node in nodes
-            ]
-
-        return cloned
-
-    def on(self, action, node):
-        # Add node as successor for the given action
-        if action not in self.successors:
-            self.successors[action] = []
-        self.successors[action].append(node)
-        return node
-
-    def next(self, node, action=DEFAULT_ACTION):
-        # Convenience method equivalent to on()
-        return self.on(action, node)
-
-    # Python-specific syntax sugar
-    def __rshift__(self, other):
-        """Implement node_a >> node_b syntax for default action"""
-        return self.next(other)
-
-    def __sub__(self, action):
-        """Implement node_a - "action" syntax for action selection"""
-        return self.ActionLinker(self, action)
-
-    class ActionLinker:
-        """Helper class for action-specific transitions"""
-        def __init__(self, node, action):
-            self.node = node
-            self.action = action
-
-        def __rshift__(self, other):
-            """Implement - "action" >> node_b syntax"""
-            return self.node.on(self.action, other)
-
-    def get_next_nodes(self, action=DEFAULT_ACTION):
-        # Get nodes for the given action or empty list
-        next_nodes = self.successors.get(action, [])
-        if not next_nodes and action != DEFAULT_ACTION and self.successors:
-            warnings.warn(f"Flow ends: '{action}' not found in {list(self.successors.keys())}")
-        return next_nodes
-
-    async def prep(self, memory):
-        # Prepare phase - override in subclasses
-        pass
-
-    async def exec(self, prep_res):
-        # Execute phase - override in subclasses
-        pass
-
-    async def post(self, memory, prep_res, exec_res):
-        # Post-processing phase - override in subclasses
-        pass
-
-    def trigger(self, action, forking_data=None):
-        # Trigger a successor action
-        if self._locked:
-            raise RuntimeError("An action can only be triggered inside post()")
-
-        self._triggers.append({
-            "action": action,
-            "forking_data": forking_data or {}
-        })
-
-    def list_triggers(self, memory):
-        # Process triggers or return default
-        if not self._triggers:
-            return [(DEFAULT_ACTION, memory.clone())]
-
-        return [(t["action"], memory.clone(t["forking_data"])) for t in self._triggers]
-
-    async def exec_runner(self, memory, prep_res):
-        # Abstract method to be implemented by subclasses
-        raise NotImplementedError("exec_runner must be implemented by subclasses")
-
-    async def run(self, memory, propagate=False):
-        # Run the node lifecycle
-        if self.successors:
-            warnings.warn("Node won't run successors. Use Flow!")
-
-        if not isinstance(memory, Memory):
-            memory = Memory.create(memory)
-
-        self._triggers = []
-        prep_res = await self.prep(memory)
-        exec_res = await self.exec_runner(memory, prep_res)
-
-        self._locked = False
-        await self.post(memory, prep_res, exec_res)
-        self._locked = True
-
-        if propagate:
-            return self.list_triggers(memory)
-        return exec_res
-```
-
-### 2.3. Node Class (with Retry Logic)
-
-The `Node` class extends `BaseNode` with retry capabilities:
-
-```python
-class Node(BaseNode):
-    def __init__(self, max_retries=1, wait=0):
-        super().__init__()
-        self.max_retries = max_retries
-        self.wait = wait
-        self.cur_retry = 0
-
-    async def exec_fallback(self, prep_res, error):
-        # Default implementation raises the error
-        raise error
-
-    async def exec_runner(self, memory, prep_res):
-        # Run exec with retry logic
-        for self.cur_retry in range(self.max_retries):
-            try:
-                return await self.exec(prep_res)
-            except Exception as error:
-                if self.cur_retry  0:
-                        await asyncio.sleep(self.wait)
-                    continue
-
-                # Last attempt failed, add retry info and use fallback
-                error.retry_count = self.cur_retry
-                return await self.exec_fallback(prep_res, error)
-```
-
-### 2.4. Flow Class
-
-The `Flow` class orchestrates node execution:
-
-```python
-class Flow(BaseNode):
-    def __init__(self, start, options=None):
-        super().__init__()
-        self.start = start
-        self.options = options or {"max_visits": 5}
-        self.visit_counts = {}
-
-    async def exec(self, prep_res):
-        # This method should never be called in a Flow
-        raise RuntimeError("This method should never be called in a Flow")
-
-    async def exec_runner(self, memory, prep_res):
-        # Run the flow starting from the start node
-        self.visit_counts = {}  # Reset visit counts
-        return await self.run_node(self.start, memory)
-
-    async def run_tasks(self, tasks):
-        # Run tasks sequentially
-        results = []
-        for task in tasks:
-            results.append(await task())
-        return results
-
-    async def run_nodes(self, nodes, memory):
-        # Run a list of nodes with the given memory
-        tasks = [lambda n=node, m=memory: self.run_node(n, m) for node in nodes]
-        return await self.run_tasks(tasks)
-
-    async def run_node(self, node, memory):
-        # Run a node with cycle detection
-        # Changed from __node_order to _node_order
-        node_id = str(node._node_order)
-
-        # Check for cycles
-        current_visit_count = self.visit_counts.get(node_id, 0) + 1
-        if current_visit_count > self.options["max_visits"]:
-            raise RuntimeError(
-                f"Maximum cycle count reached ({self.options['max_visits']}) for "
-                f"{node_id}.{node.__class__.__name__}"
-            )
-
-        self.visit_counts[node_id] = current_visit_count
-
-        # Clone node and run with propagate=True
-        cloned_node = node.clone()
-        triggers = await cloned_node.run(memory.clone(), True)
-
-        # Process each trigger and collect results
-        tasks = []
-        for action, node_memory in triggers:
-            next_nodes = cloned_node.get_next_nodes(action)
-            tasks.append(
-                lambda a=action, nn=next_nodes, nm=node_memory:
-                self._process_trigger(a, nn, nm)
-            )
-
-        # Run all trigger tasks and build result tree
-        tree = await self.run_tasks(tasks)
-        return {action: results for action, results in tree}
-
-    async def _process_trigger(self, action, next_nodes, node_memory):
-        # Process a single trigger
-        if not next_nodes:
-            return [action, []]
-
-        results = await self.run_nodes(next_nodes, node_memory)
-        return [action, results]
-```
-
-### 2.5. ParallelFlow Class
-
-The `ParallelFlow` class extends `Flow` to run tasks concurrently:
-
-```python
-class ParallelFlow(Flow):
-    async def run_tasks(self, tasks):
-        # Run tasks concurrently using asyncio.gather
-        if not tasks:
-            return []
-        return await asyncio.gather(*(task() for task in tasks))
-```
-
-## 3. Language-Specific Adaptations
-
-### 3.1. Key Differences
-
-| TypeScript Feature         | Python Equivalent                                        |
-| -------------------------- | -------------------------------------------------------- |
-| JavaScript Proxy           | `__getattr__`, `__setattr__`, `__getattribute__`         |
-| structuredClone            | copy.deepcopy                                            |
-| Promise.all                | asyncio.gather                                           |
-| camelCase methods          | snake_case methods (e.g., getNextNodes → get_next_nodes) |
-| undefined                  | None                                                     |
-| class field initialization | Initialize in `__init__`                                 |
-| Error.retryCount           | Add retry_count attribute to Exception object            |
-|                            | Pythonic syntax sugar (`>>`, `- "action" >>`)            |
-|                            | Type Hinting (`typing` module)                           |
-
-### 3.2. Memory Access
-
-- TypeScript uses JavaScript's Proxy API
-- Python uses dunder methods (`__getattr__`, `__setattr__`, `__getitem__`, `__setitem__`, `__contains__`)
-- Both implementations check local store first, then global
-
-### 3.3. Asynchronous Execution
-
-- TypeScript uses Promise-based asynchrony
-- Python uses asyncio with async/await syntax
-- Both models support sequential and parallel execution patterns
-
-### 3.4. Error Handling
-
-- Both implementations support the retry pattern
-- Python adds attributes to Exception objects for retry tracking and defines a `NodeError` class (though not currently used in the core logic).
-- Both provide fallback mechanisms for failed operations
-
-## 4. Implementation Plan
-
-1. Implement `Memory` class first as foundation for state management
-2. Implement `BaseNode` abstract class with core lifecycle methods
-3. Add `Node` implementation with retry logic
-4. Implement `Flow` with sequential execution capabilities
-5. Implement `ParallelFlow` for concurrent execution
-6. Run test suite to verify parity with TypeScript
-
-## 5. Success Criteria
-
-The Python implementation will be considered successful when:
-
-1. All tests pass with the same behavior as the TypeScript version
-2. The API is consistent with the TypeScript version but follows Python conventions
-3. The implementation maintains the same performance characteristics
-4. All edge cases and error handling match the TypeScript implementation
-
-This design provides a solid foundation for implementing BrainyFlow in Python while ensuring compatibility with the TypeScript version.
+BrainyFlow is built around the concepts of Nodes, Flows, and Memory management.
+
+- **Nodes:** Represent individual units of computation or logic within the graph.
+- **Flows:** Orchestrate the execution sequence of connected nodes.
+- **Memory:** Manages the state shared across nodes during execution, with support for both global and local scopes.
+
+## Components
+
+### 1. Memory (`brainyflow.Memory`)
+
+Manages the state accessible to nodes during execution.
+
+- **Dual Scope:**
+  - `_global`: A dictionary representing the shared state across the entire flow execution.
+  - `_local`: A dictionary representing state specific to a particular execution path or branch. Useful for passing data between directly connected nodes without polluting the global scope or for managing state in parallel branches.
+- **Attribute Access:** Provides attribute-style access (`memory.my_var`) which prioritizes the local scope, falling back to the global scope. Setting attributes always writes to the global scope, removing the key from local if it exists. Reserved names (`global`, `local`, `_global`, `_local`) cannot be set.
+- **Dictionary Access:** Supports dictionary-style access (`memory['my_key']`) with the same scope prioritization for getting values. Setting values always writes to the global scope, removing the key from local if it exists.
+- **Cloning:** The `clone(forking_data=None)` method creates a new `Memory` instance. The global store is shared by reference, while the local store is deep-copied. Optional `forking_data` can be provided to initialize or update the new local store. This is crucial for branching and parallel execution to ensure state isolation where needed.
+- **Factory Method:** `Memory.create(global_store, local_store=None)` provides a static method for instantiation.
+
+### 2. BaseNode (`brainyflow.BaseNode`)
+
+The abstract base class for all nodes in the graph.
+
+- **Lifecycle Methods:** Defines the standard execution lifecycle for a node:
+  - `prep(memory)`: Asynchronous preparation phase. Can be used to fetch data, initialize resources, etc. Receives the current `Memory`. Returns a result (`prep_res`).
+  - `exec(prep_res)`: Asynchronous execution phase (intended to be overridden by subclasses like `Node`). Performs the core logic. Receives the result from `prep`. Returns a result (`exec_res`).
+  - `post(memory, prep_res, exec_res)`: Asynchronous post-processing phase. Can be used for cleanup, logging, or triggering subsequent nodes. Receives `Memory` and results from `prep` and `exec`.
+- **Graph Connectivity:**
+  - `successors`: A dictionary mapping action strings (e.g., 'success', 'failure', 'default') to lists of successor nodes.
+  - `on(action, node)` / `next(node, action='default')`: Methods to define connections between nodes based on actions. Returns the added node for chaining.
+  - `__rshift__` (`>>`): Syntactic sugar for connecting to the `DEFAULT_ACTION`.
+  - `__sub__` (`-`) and `ActionLinker`: Syntactic sugar for connecting via specific actions (`node - "action" >> next_node`).
+  - `get_next_nodes(action=DEFAULT_ACTION)`: Retrieves the list of successor nodes for a given action.
+- **Triggering:**
+  - `trigger(action, forking_data=None)`: Called _only_ within the `post` method to specify which action(s) should be taken next and optionally pass data (`forking_data`) into the local memory of the subsequent branch(es). Attempting to call outside `post` raises a `RuntimeError`.
+  - `list_triggers(memory)`: Returns a list of `(action, memory_clone)` tuples based on calls to `trigger`. If no triggers are called, it defaults to the `DEFAULT_ACTION` with a clone of the current memory.
+- **Execution Runner:**
+  - `exec_runner(memory, prep_res)`: Abstract method that must be implemented by subclasses to define the core execution logic, potentially including features like retries.
+  - `run(memory, propagate=False)`: Executes the full node lifecycle (`prep`, `exec_runner`, `post`). If `propagate` is `True` (used internally by `Flow`), returns the list of triggers; otherwise, returns the result of `exec_runner`. Warns if called on a node with successors outside a `Flow`. Accepts a dictionary or `Memory` object for initial memory.
+- **Cloning:** `clone(seen=None)` method for deep copying the node and its successor graph, handling cycles using the `seen` dictionary.
+- **Identification:** Each node instance gets a unique, sequential `_node_order` ID upon creation.
+
+### 3. Node (`brainyflow.Node`)
+
+A concrete implementation of `BaseNode` that adds retry logic.
+
+- **Retry Mechanism:**
+  - `max_retries`: Maximum number of times `exec` will be attempted (default 1, meaning one attempt).
+  - `wait`: Delay (in seconds) between retry attempts (default 0).
+  - `cur_retry`: Tracks the current retry attempt number (0-indexed).
+- **Error Handling:**
+  - `exec_fallback(prep_res, error)`: An asynchronous method called if all retry attempts fail. The default implementation re-raises the final error (wrapped in `NodeError` which includes the `retry_count`). Subclasses can override this for custom fallback behavior.
+- **Execution:** Implements `exec_runner` to incorporate the retry logic around calling the node's `exec` method.
+
+### 4. Flow (`brainyflow.Flow`)
+
+Orchestrates the execution of a graph of connected nodes sequentially. Inherits from `BaseNode` but overrides execution logic.
+
+- **Entry Point:** Initialized with a `start` node.
+- **Execution Logic:**
+  - `run_node(node, memory)`: Executes a single node within the flow context. It clones the node, runs its lifecycle (`run(memory, propagate=True)`), checks for cycles, and processes the resulting triggers by recursively calling `run_nodes` for successors.
+  - `run_nodes(nodes, memory)`: Executes a list of nodes sequentially for a given branch using the provided memory.
+  - `run_tasks(tasks)`: Executes a list of asynchronous task functions (lambdas wrapping `run_node` or `_process_trigger`) sequentially.
+  - `exec_runner(memory, prep_res)`: Overrides the base implementation to start the flow execution from the `start` node by calling `run_node`. Resets `visit_counts`.
+  - `_process_trigger(action, next_nodes, node_memory)`: Helper method to handle the results of a single trigger, running subsequent nodes if they exist.
+- **Cycle Detection:** Uses `visit_counts` and `options['max_visits']` (default 5) to prevent infinite loops by limiting the number of times any single node (identified by `_node_order`) can be visited during a flow execution. Raises `RuntimeError` if the limit is exceeded.
+- **Result:** Returns a nested dictionary structure where keys are actions and values are lists of results from the branches corresponding to those actions. Example: `{'default': [{'action1': [...]}, {'action2': [...]}]}`.
+
+### 5. ParallelFlow (`brainyflow.ParallelFlow`)
+
+A subclass of `Flow` that enables parallel execution of branches.
+
+- **Concurrency:** Overrides `run_tasks(tasks)` to use `asyncio.gather`, allowing multiple branches triggered from a single node (or multiple nodes run via `run_nodes`) to execute concurrently rather than sequentially.
+
+## Usage Pattern
+
+1.  **Define Nodes:** Create classes inheriting from `Node` (or `BaseNode`) and implement `prep`, `exec`, and `post` methods.
+2.  **Connect Nodes:** Instantiate nodes and connect them using `>>` (default action) or `- "action" >>` (specific action).
+3.  **Create Flow:** Instantiate `Flow` or `ParallelFlow` with the starting node.
+4.  **Execute:** Call the `run(initial_memory)` method on the flow instance with an initial global memory dictionary. Use `await` as `run` is asynchronous.
+
+## Error Handling
+
+- Nodes can implement retry logic using the `Node` class.
+- `exec_fallback` provides a hook for custom behavior after retries are exhausted.
+- `NodeError` is raised by `Node`'s default fallback, containing `retry_count` information.
+- Flows detect and raise `RuntimeError` for excessive cycles.
+- Standard Python exceptions raised during `prep`, `exec`, or `post` will propagate unless caught by retry logic or custom error handling.
