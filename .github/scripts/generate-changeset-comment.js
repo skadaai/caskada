@@ -14,8 +14,8 @@ export function generateChangesetComment(context, packageType) {
   const directory = packageName
   const isTypescript = packageName === 'typescript'
   const icon = isTypescript
-    ? '<img src="https://iconduck.com/vectors/vctrk180y7wy/media/svg/download" width="28" height="28" alt="Typescript Logo" />'
-    : '<img src="https://iconduck.com/vectors/vctrahatphfa/media/svg/download" width="28" height="28" alt="Python Logo" />'
+    ? '<img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/typescript.svg" width="28" height="28" alt="Typescript Logo" />'
+    : '<img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/python.svg" width="28" height="28" alt="Python Logo" />'
 
   const changesetUrl = `${context.payload.pull_request.head.repo.html_url}/new/${
     context.payload.pull_request.head.ref
