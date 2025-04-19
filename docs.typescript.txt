@@ -25,10 +25,18 @@ You can import the JavaScript file directly in the browser using a `<script>` ta
 
 ```html
 <script type="module">
-  import brainyflow from 'https://unpkg.com/brainyflow@latest/dist/brainyflow.js'
+  import * as brainyflow from 'https://unpkg.com/brainyflow@latest/dist/brainyflow.js'
 
-  // optional: expose globally
-  globalThis.brainyflow = brainyflow
+  new brainyflow.Node(...)
+</script>
+```
+
+or
+
+```html
+<script type="module" src="https://unpkg.com/brainyflow@latest/dist/brainyflow.js"></script>
+<script>
+  new globalThis.brainyflow.Node(...)
 </script>
 ```
 
@@ -60,7 +68,7 @@ Welcome to BrainyFlow! This framework helps you build powerful, modular AI appli
 First, ensure you have BrainyFlow installed:
 
 ```bash
-npm install brainyflow
+npm install brainyflow # or pnpm/yarn
 ```
 
 For more installation options, see the [Installation Guide](./installation.md).
@@ -69,10 +77,9 @@ For more installation options, see the [Installation Guide](./installation.md).
 
 BrainyFlow is built around a minimalist yet powerful abstraction that separates data flow from computation:
 
-- **[Node](./core_abstraction/node.md)**: The fundamental building block that performs a single task with a clear lifecycle (`prep → exec → post`).
+- **[Node](./core_abstraction/node.md)**: The fundamental building block that performs a single task with a clear lifecycle (`prep` → `exec` → `post`).
 - **[Flow](./core_abstraction/flow.md)**: Orchestrates nodes in a directed graph, supporting branching, looping, and nesting.
-- **[Shared Store](./core_abstraction/communication.md)**: A global data structure that enables communication between nodes.
-- **[Batch](./core_abstraction/batch.md)**: Processes multiple items either sequentially or in parallel.
+- **[Memory](./core_abstraction/memory.md)**: Manages state, separating it into a shared `global` store and a forkable `local` store for isolated data flow between nodes.
 
 ## 3. Your First Flow
 
@@ -93,27 +100,38 @@ graph LR
 ### Step 2: Implement the Nodes
 
 ```typescript
-import { Node } from 'brainyflow'
+import { Flow, Memory, Node } from 'brainyflow'
 import { input } from '@inquirer/prompts'
-import { callLLM } from './utils/callLLM' // Your LLM implementation
+import { callLLM } from './utils/callLLM'
 
-class GetQuestionNode extends Node {
-  async prep(shared: Record): Promise {
-    shared.question = await input({ message: 'Enter your question: ' })
+// Define interfaces for Memory stores (optional but good practice)
+interface QAGlobalStore {
+  question?: string
+  answer?: string
+}
+class GetQuestionNode extends Node<QAGlobalStore> {
+  async prep(memory: Memory<QAGlobalStore>): Promise<void> {
+    memory.question = await input({ message: 'Enter your question: ' })
   }
 }
 
-class AnswerNode extends Node {
-  async prep(shared: Record): Promise {
-    return shared.question
+class AnswerNode extends Node<QAGlobalStore> {
+  async prep(memory: Memory<QAGlobalStore>): Promise<string | undefined> {
+    return memory.question
   }
 
-  async exec(question: string): Promise {
-    return await callLLM(question)
+  async exec(question: string | undefined): Promise<string> {
+    const prompt = `Answer the following question: ${question}`
+    return await callLLM(prompt)
   }
 
-  async post(shared: Record, prepRes: string, execRes: string): Promise {
-    shared.answer = execRes
+  async post(
+    memory: Memory<QAGlobalStore>,
+    prepRes: string | undefined,
+    execRes: string,
+  ): Promise<void> {
+    memory.answer = execRes
+    console.log(`AnswerNode: Stored answer '${execRes}'`)
   }
 }
 ```
@@ -122,23 +140,25 @@ class AnswerNode extends Node {
 
 **Review:** What was achieved here?
 
-- `GetQuestionNode` writes the user's question to the `shared` store.
-- `AnswerNode` reads the question from the `shared` store, calling an LLM utility, and writing the answer back to the `shared` store.
+- `GetQuestionNode` gets the user's question and writes it to the `memory` object (global store), then explicitly `trigger`s the default next node.
+- `AnswerNode` reads the question from the `memory` object, calls an LLM utility, writes the answer back to the `memory` object, and `trigger`s the next step (or ends the flow).
 
 {% endhint %}
 
 ### Step 3: Connect the Nodes into a Flow
 
 ```typescript
+// import { GetQuestionNode, AnswerNode } from './nodes'; // defined in the previous step
 import { Flow } from 'brainyflow'
 
 function createQaFlow(): Flow {
   const getQuestionNode = new GetQuestionNode()
   const answerNode = new AnswerNode()
 
-  // Connect nodes: getQuestionNode → answerNode
+  // Connect nodes getQuestionNode → answerNode using the default action
   getQuestionNode.next(answerNode)
 
+  // Create the Flow, specifying the starting node
   return new Flow(getQuestionNode)
 }
 ```
@@ -147,20 +167,31 @@ function createQaFlow(): Flow {
 
 **Review:** What was achieved here?
 
-- We created a flow that connects the nodes, letting the user's question propagate from `GetQuestionNode` to `AnswerNode` to generate an answer.
+- We instantiated the nodes and connected them using the default action (`>>` in Python, `.next()` in TypeScript).
+- We created a `Flow` instance, telling it to start execution with `getQuestionNode`.
 
 {% endhint %}
 
 ### Step 4: Run the Flow
 
 ```typescript
-async function main() {
-  const shared: Record = {} // Initialize empty shared store
-  const qaFlow = createQaFlow()
-  await qaFlow.run(shared)
+import { createQaFlow, QAGlobalStore } from './flow' // defined in the previous steps
 
-  console.log(`Question: ${shared.question}`)
-  console.log(`Answer: ${shared.answer}`)
+async function main() {
+  // Initialize the global store (can be an empty object)
+  const globalStore: QAGlobalStore = {}
+  const qaFlow = createQaFlow()
+
+  console.log('Running QA Flow...')
+  // Run the flow, passing the initial global store.
+  // The flow modifies the globalStore object in place.
+  // The run method returns the final execution tree (we ignore it here).
+  await qaFlow.run(globalStore)
+
+  // Access the results stored in the global store
+  console.log('\n--- Flow Complete ---')
+  console.log(`Question: ${globalStore.question ?? 'N/A'}`)
+  console.log(`Answer: ${globalStore.answer ?? 'N/A'}`)
 }
 
 main().catch(console.error)
@@ -170,7 +201,9 @@ main().catch(console.error)
 
 **Review:** What was achieved here?
 
-- `qaFlow` has executed the flow, writing the user's question and answer to the `shared` store.
+- We initialized an empty `memory` object (Python dictionary or TS object) to serve as the global store.
+- `qaFlow.run(memory)` executed the flow. The `Memory` instance managed the state internally, reading from and writing to the `memory` object we passed in.
+- The final `question` and `answer` are directly accessible in the original `memory` object after the flow completes.
 
 {% endhint %}
 
@@ -178,10 +211,10 @@ main().catch(console.error)
 
 BrainyFlow follows these core design principles:
 
-1. **Separation of Concerns**: Data storage (shared store) is separate from computation logic (nodes)
-2. **Explicit Data Flow**: Data dependencies between steps are clear and traceable
-3. **Composability**: Complex systems are built from simple, reusable components
-4. **Minimalism**: The framework provides only essential abstractions, avoiding vendor-specific implementations
+1. **Separation of Concerns**: Data storage (the `memory` object managing global/local stores) is separate from computation logic (`Node` classes).
+2. **Explicit Data Flow**: Data dependencies between steps are clear and traceable through `memory` access in `prep`/`post` and the results passed between `prep` → `exec` → `post`.
+3. **Composability**: Complex systems (`Flow`s) are built from simple, reusable components (`Node`s), and Flows themselves can be nested within other Flows.
+4. **Minimalism**: The framework provides only essential abstractions (`Node`, `Flow`, `Memory`), avoiding vendor-specific implementations or excessive boilerplate.
 
 ## 5. Next Steps
 
@@ -191,6 +224,105 @@ Now that you understand the basics, explore these resources to build sophisticat
 - [Design Patterns](./design_pattern/index.md): Learn more complex patterns like Agents, RAG, and MapReduce
 - [Agentic Coding Guide](./guides/agentic_coding.md): Best practices for human-AI collaborative development
 - [Best Practices](./guides/best_practices.md): Tips for building robust, maintainable applications
+
+
+
+
+================================================
+File: docs/comparison.md
+================================================
+# Framework Comparison: BrainyFlow vs Alternatives
+
+BrainyFlow exists in an ecosystem of frameworks designed to build AI applications, particularly those centered around Large Language Models (LLMs). This chapter provides a comparative analysis of BrainyFlow against other popular frameworks in the AI orchestration space, highlighting the unique design principles and trade-offs that differentiate BrainyFlow from its alternatives.
+
+## BrainyFlow's Philosophy Recap
+
+Before diving into comparisons, let's reiterate BrainyFlow's core tenets:
+
+- **Minimalist Core:** A tiny codebase (~200 lines in Python) providing essential abstractions (`Node`, `Flow`, `Memory`).
+- **Graph-Based Abstraction:** Uses nested directed graphs to model application logic, separating data flow (`Memory`) from computation (`Node`).
+- **Zero Dependencies:** The core framework has no external dependencies, offering maximum flexibility.
+- **No Vendor Lock-in:** Encourages using external utilities directly, avoiding framework-specific wrappers for APIs or databases.
+- **Agentic Coding Friendly:** Designed to be intuitive for both human developers and AI assistants collaborating on code.
+- **Composability:** Flows can be nested within other flows, enabling modular design.
+
+## Comparison Points
+
+We'll compare BrainyFlow against competitors based on:
+
+- **Core Abstraction:** The fundamental building blocks and mental model.
+- **Dependencies & Size:** The footprint and external requirements.
+- **Flexibility vs. Opinionation:** How much structure the framework imposes versus how much freedom the developer has.
+- **Vendor Integrations:** Built-in support for specific LLMs, databases, etc.
+- **Learning Curve:** Perceived difficulty in getting started and mastering the framework.
+
+## BrainyFlow vs. PocketFlow (Origin)
+
+BrainyFlow originated as a fork of PocketFlow, inheriting its core philosophy of minimalism and a graph-based abstraction. However, BrainyFlow has evolved with some key differences:
+
+- **Core Abstraction:** PocketFlow is bloated with unecessary specialized classes (e.g. `AsyncNode`, `BatchNode`, `AsyncBatchNode`, `AsyncParallelBatchNode`, `AsyncFlow`, `BatchFlow`, `AsyncBatchFlow`, `AsyncParallelBatchFlow`). BrainyFlow simplifies this by removing all of them from the core. Instead, it relies only in standard `Node` lifecycle methods (which can be `async`) combined with `Flow` (or `ParallelFlow`) and the use of multiple `trigger` calls within a single node's `post` method to achieve batch-like fan-out operations.
+- **State Management:** While both use a shared store, BrainyFlow places greater emphasis on the `Memory` object's `global` vs. `local` stores and using `forkingData` during `trigger` calls to manage branch-specific context, eliminating the need for PocketFlow's `Params` concept and all the complex `Batch` classes that come with it.
+- **Focus:** BrainyFlow sharpens the focus on the fundamental `Node`, `Flow`, and `Memory` abstractions as the absolute core, reinforcing the idea that patterns like batching or parallelism are handled by how flows orchestrate standard nodes rather than requiring specialized node types.
+
+Essentially, BrainyFlow refines PocketFlow's minimalist approach, aiming for an even leaner core by handling execution patterns like batching and parallelism primarily at the `Flow` orchestration level.
+
+On top of that, BrainyFlow has been designed to be more agentic-friendly, with a focus on building flows that can be used by both humans and AI assistants. Its code is more readable and maintainable, prioritizing developer experience over an arbitrarily defined amount of lines of code.
+
+## BrainyFlow vs. LangChain
+
+- **Core Abstraction:** LangChain offers a vast array of components (Chains, LCEL, Agents, Tools, Retrievers, etc.). BrainyFlow focuses solely on the Node/Flow/Memory graph.
+- **Dependencies & Size:** LangChain has numerous dependencies depending on the components used, leading to a larger footprint. BrainyFlow core is dependency-free.
+- **Flexibility vs. Opinionation:** LangChain provides many pre-built components, which can be faster but potentially more opinionated. BrainyFlow offers higher flexibility, requiring developers to build or integrate utilities themselves.
+- **Vendor Integrations:** LangChain has extensive built-in integrations. BrainyFlow intentionally avoids these in its core.
+- **Learning Curve:** LangChain's breadth can be overwhelming. BrainyFlow's core is small, but mastering its flexible application requires understanding the graph pattern well.
+
+## BrainyFlow vs. LangGraph
+
+- **Core Abstraction:** LangGraph is built on LangChain and specifically focuses on cyclical graphs using a state-based approach. BrainyFlow uses action-based transitions between nodes within its graph structure.
+- **Dependencies & Size:** LangGraph inherits LangChain's dependencies. BrainyFlow remains dependency-free.
+- **Flexibility vs. Opinionation:** LangGraph is tied to the LangChain ecosystem and state management patterns. BrainyFlow offers more fundamental graph control.
+- **Vendor Integrations:** Inherited from LangChain. BrainyFlow has none.
+- **Learning Curve:** Requires understanding LangChain concepts plus LangGraph's state model. BrainyFlow focuses only on its core abstractions.
+
+## BrainyFlow vs. CrewAI
+
+- **Core Abstraction:** CrewAI provides higher-level abstractions like Agent, Task, and Crew, focusing on collaborative agent workflows. BrainyFlow provides the lower-level graph building blocks upon which such agent systems _can be built_.
+- **Dependencies & Size:** CrewAI has dependencies related to its agent and tooling features. BrainyFlow is minimal.
+- **Flexibility vs. Opinionation:** CrewAI is more opinionated towards specific multi-agent structures. BrainyFlow is more general-purpose.
+- **Vendor Integrations:** CrewAI integrates with tools and LLMs, often via LangChain. BrainyFlow does not.
+- **Learning Curve:** CrewAI's high-level concepts might be quicker for specific agent tasks. BrainyFlow requires building the agent logic from its core components.
+
+## BrainyFlow vs. AutoGen
+
+- **Core Abstraction:** AutoGen focuses on conversational agents (`ConversableAgent`) and multi-agent frameworks, often emphasizing automated chat orchestration. BrainyFlow focuses on the underlying execution graph.
+- **Dependencies & Size:** AutoGen has a core set of dependencies, with optional ones for specific tools/models. BrainyFlow core has none.
+- **Flexibility vs. Opinionation:** AutoGen is geared towards conversational agent patterns. BrainyFlow is a more general graph execution engine.
+- **Vendor Integrations:** AutoGen offers integrations, particularly for LLMs. BrainyFlow avoids them.
+- **Learning Curve:** AutoGen's conversational focus might be specific. BrainyFlow's graph is general but requires explicit construction.
+
+## Feature Comparison Matrix
+
+| Feature                   | BrainyFlow        | LangChain         | LangGraph            | CrewAI                    | AutoGen               | PocketFlow       |
+| ------------------------- | ----------------- | ----------------- | -------------------- | ------------------------- | --------------------- | ---------------- |
+| **Core Abstraction**      | Nodes & Flows     | Chains & Agents   | State Graphs         | Agents & Crews            | Conversational Agents | Nodes & Flows    |
+| **Dependencies**          | None              | Many              | Many (via LangChain) | Several                   | Several               | None             |
+| **Codebase Size**         | Tiny (~200 lines) | Large             | Medium               | Medium                    | Medium                | Tiny (100 lines) |
+| **Flexibility**           | High              | Medium            | Medium               | Low                       | Medium                | High             |
+| **Built-in Integrations** | None              | Extensive         | Via LangChain        | Several                   | Several               | None             |
+| **Learning Curve**        | Moderate          | Steep             | Very Steep           | Moderate                  | Moderate              | Moderate         |
+| **Primary Focus**         | Graph Execution   | Component Library | State Machines       | Multi-Agent Collaboration | Conversational Agents | Graph Execution  |
+
+## Conclusion: When to Choose BrainyFlow?
+
+BrainyFlow excels when you prioritize:
+
+- **Minimalism and Control:** You want a lightweight core without unnecessary bloat or dependencies.
+- **Flexibility:** You prefer to integrate your own utilities and avoid framework-specific wrappers.
+- **Understanding the Core:** You value a simple, fundamental abstraction (the graph) that you can build upon.
+- **Avoiding Vendor Lock-in:** You want the freedom to choose and switch external services easily.
+- **Agentic Coding:** You plan to collaborate with AI assistants, leveraging a framework they can easily understand and manipulate.
+
+If you need extensive pre-built integrations, higher-level abstractions for specific patterns (like multi-agent collaboration out-of-the-box), or prefer a more opinionated framework, other options might be a better fit initially. However, BrainyFlow provides the fundamental building blocks to implement _any_ of these patterns with maximum transparency and control.
 
 
 
@@ -220,8 +352,8 @@ BrainyFlow follows these fundamental principles:
 
 The fundamental pattern in BrainyFlow combines two key elements:
 
-- **Computation Graph**: A directed graph where nodes represent discrete units of work and edges represent the flow of control
-- **Shared Store**: A global data structure that enables communication between nodes
+- **Computation Graph**: A directed graph where nodes represent discrete units of work and edges represent the flow of control.
+- **Shared Store**: A state management system that enables communication between nodes, separating global and local state.
 
 This pattern offers several advantages:
 
@@ -234,12 +366,11 @@ This pattern offers several advantages:
 
 BrainyFlow's architecture is based on these fundamental building blocks:
 
-| Component                           | Description             | Key Features                                                                |
-| ----------------------------------- | ----------------------- | --------------------------------------------------------------------------- |
-| [Node](./node.md)                   | The basic unit of work  | Clear lifecycle (`prep → exec → post`), fault tolerance, graceful fallbacks |
-| [Flow](./flow.md)                   | Connects nodes together | Action-based transitions, branching, looping, nesting                       |
-| [Communication](./communication.md) | Enables data sharing    | Shared Store (global), Params (node-specific)                               |
-| [Batch](./batch.md)                 | Handles multiple items  | Sequential or parallel processing, nested batching                          |
+| Component             | Description                                    | Key Features                                                                                                |
+| --------------------- | ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| [Node](./node.md)     | The basic unit of work                         | Clear lifecycle (`prep` → `exec` → `post`), fault tolerance (retries), graceful fallbacks                   |
+| [Flow](./flow.md)     | Connects nodes together                        | Action-based transitions, branching, looping (with cycle detection), nesting, sequential/parallel execution |
+| [Memory](./memory.md) | Manages state accessible during flow execution | Shared `global` store, forkable `local` store, cloning for isolation                                        |
 
 ## How They Work Together
 
@@ -247,23 +378,20 @@ BrainyFlow's architecture is based on these fundamental building blocks:
 
    - `prep`: Read from shared store and prepare data
    - `exec`: Execute computation (often LLM calls)
-   - `post`: Process results and write to shared store
+   - `post`: Process results, write to shared store, and trigger next actions
 
 2. **Flows** orchestrate nodes by:
 
-   - Starting with a designated node
-   - Following action-based transitions between nodes
-   - Supporting branching, looping, and nested flows
+   - Starting with a designated `start` node.
+   - Following action-based transitions (`trigger` calls in `post`) between nodes.
+   - Supporting branching, looping, and nested flows.
+   - Executing triggered branches sequentially (`Flow`) or concurrently (`ParallelFlow`).
+   - Supporting nested batch operations.
 
-3. **Communication** happens through:
+3. **Communication** happens through the `memory` instance provided to each node's lifecycle methods (in `prep` and `post` methods):
 
-   - **Shared Store**: A global dictionary accessible to all nodes
-   - **Params**: Node-specific configuration passed down from parent flows
-
-4. **Batch Processing** enables:
-   - Processing multiple items sequentially or in parallel
-   - Handling large datasets efficiently
-   - Supporting nested batch operations
+   - **Global Store**: A shared object accessible throughout the flow. Nodes typically write results here.
+   - **Local Store**: An isolated object specific to a node and its downstream path.
 
 ## Getting Started
 
@@ -271,8 +399,7 @@ If you're new to BrainyFlow, we recommend exploring these core abstractions in t
 
 1. [Node](./node.md) - Understand the basic building block
 2. [Flow](./flow.md) - Learn how to connect nodes together
-3. [Communication](./communication.md) - See how nodes share data
-4. [Batch](./batch.md) - Explore handling multiple items
+3. [Memory](./memory.md) - See how nodes share data
 
 Once you understand these core abstractions, you'll be ready to implement various [Design Patterns](../design_pattern/index.md) to solve real-world problems.
 
@@ -282,9 +409,9 @@ Once you understand these core abstractions, you'll be ready to implement variou
 ================================================
 File: docs/core_abstraction/node.md
 ================================================
-# Node: The Fundamental Building Block
+# Nodes
 
-A **Node** is the smallest reusable unit in BrainyFlow. Each Node follows a 3-step lifecycle that enforces the principle of separation of concerns.
+Nodes are the fundamental building blocks in BrainyFlow. Each node performs a specific task within your workflow, processing data and optionally triggering downstream nodes.
 
 ## Node Lifecycle
 
@@ -292,195 +419,382 @@ A **Node** is the smallest reusable unit in BrainyFlow. Each Node follows a 3-st
   <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/node.jpg" width="400"/>
 </div>
 
-### 1. `async prep(shared)`
+Every node follows a three-phase lifecycle:
 
-**Purpose**: Read and preprocess data from the shared store.
-
-- Extracts necessary data from the `shared` store
-- Performs any required preprocessing or validation
-- Returns `prep_res`, which becomes input for `exec()` and `post()`
-
-### 2. `async exec(prep_res)`
-
-**Purpose**: Execute the core computation logic.
-
-- Performs the main computation (often an LLM call or API request)
-- ⚠️ Must **NOT** access the `shared` store directly
-- ⚠️ Should be designed for idempotence when retries are enabled
-- Returns `exec_res`, which is passed to `post()`
-
-### 3. `async post(shared, prep_res, exec_res)`
-
-**Purpose**: Process results and update the shared store.
-
-- Writes computation results back to the `shared` store
-- Has access to both the original input (`prep_res`) and result (`exec_res`)
-- Returns an action string that determines the next node in the flow
-  - If no value is returned, defaults to `"default"`
+1.  **`prep`**: Gather and prepare input data from the `memory` object.
+2.  **`exec`**: Perform the main processing task (potentially retried). Receives data from `prep`. **Cannot** access the `memory` object directly.
+3.  **`post`**: Process results, update the `memory` object (global or local store), and trigger downstream actions. Receives data from `prep` and `exec`, plus the `memory` instance.
 
 {% hint style="info" %}
-**Why 3 steps?** This design enforces separation of concerns:
-
-- `prep`: Data access and preparation
-- `exec`: Pure computation (no side effects)
-- `post`: Result processing and state updates
+**Why 3 steps?** This design enforces separation of concerns.
 
 All steps are **optional**. For example, you can implement only `prep` and `post` if you just need to process data without external computation.
 {% endhint %}
 
+### 1. `async prep(memory)`
+
+- Receives the current `memory` instance (a proxy managing global and local stores).
+- Extracts necessary data by external sources or by accessing properties on the `memory` object (e.g., `memory.someData`). The proxy reads from the local store first, then the global store.
+- Performs any required preprocessing or validation.
+- Can optionally return a `PrepResult`, which is passed as input to `exec()` and `post()`.
+
+### 2. `async exec(prepRes)`
+
+- Receives the result from `prep()` (`prepRes`).
+- Performs the main computation (e.g., LLM call, API request, calculation).
+- ⚠️ **Cannot** access the `Memory` instance directly. This enforces separation and aids retry logic.
+- ⚠️ Should ideally be idempotent (produce the same result given the same input) and have no side effects if retries (`maxRetries > 1`) are enabled, as it might be called multiple times.
+- Returns an `ExecResult`, which is passed to `post()`.
+- _Note:_ The actual execution logic, including retries, is handled by the internal `execRunner` method, which calls this `exec` method.
+
+### 3. `async post(memory, prepRes, execRes)`
+
+- Receives the `memory` instance, the result from `prep()` (`prepRes`), and the result from `exec()` (`execRes`).
+- Processes results and writes data back to the `memory` object (usually the global store, e.g., `memory.result = execRes`).
+- **This is the only place to call `this.trigger()`** to specify which downstream nodes should run next and optionally pass `forkingData` to their local memory.
+  - If no `trigger` is called, the flow proceeds via the `DEFAULT_ACTION` ('default') with no specific `forkingData`.
+
 ```mermaid
 sequenceDiagram
-    participant S as Shared Store
+    participant M as Memory (Proxy)
     participant N as Node
 
-    N->>S: 1. prep(): Read from shared store
+    N->>M: 1. prep(memory): Read from memory
     Note right of N: Return prep_res
 
     N->>N: 2. exec(prep_res): Compute result
     Note right of N: Return exec_res
 
-    N->>S: 3. post(shared, prep_res, exec_res): Write to shared store
-    Note right of N: Return action string
+    N->>M: 3. post(memory, prep_res, exec_res): Write to memory
+    Note right of N: Trigger next actions
 ```
 
-## Fault Tolerance & Retries
+## Creating Custom Nodes
 
-Nodes support automatic retries for handling transient failures in `exec()` calls:
+To create a custom node, extend the `Node` class and implement the lifecycle methods:
 
 ```typescript
-const myNode = new MyNode({ maxRetries: 3, wait: 10 }) // Retry up to 3 times with 10s delay
+import { Memory, Node } from 'brainyflow'
+
+class TextProcessorNode extends Node {
+  async prep(memory: Memory): Promise<string> {
+    // Read input data
+    return memory.text
+  }
+
+  async exec(text: string): Promise<string> {
+    // Process the text
+    return text.toUpperCase()
+  }
+
+  async post(memory: Memory, input: string, result: string): Promise<void> {
+    // Store the result in the global store
+    memory.processed_text = result
+
+    // Trigger the default next node (optional)
+    this.trigger('default')
+  }
+}
 ```
 
-Key retry parameters:
+## Error Handling
 
-- `max_retries` (int): Maximum number of execution attempts (default: 1, meaning no retry)
-- `wait` (int): Seconds to wait between retries (default: 0)
+Nodes include built-in retry capabilities for handling transient failures in `exec()` calls.
 
-`wait` is specially helpful when you encounter rate-limits or quota errors from your LLM provider and need to back off.
+You can configure retries via the constructor:
+
+- `maxRetries` (number): Maximum number of attempts for `exec()` (default: 1, meaning no retry).
+- `wait` (number): Seconds to wait between retry attempts (default: 0).
+
+The `wait` parameter is specially helpful when you encounter rate-limits or quota errors from your LLM provider and need to back off.
 During retries, you can access the current retry count (0-based) via `self.cur_retry` (Python) or `this.curRetry` (TypeScript).
 
-```typescript
-class RetryNode extends Node {
-  async exec(prepRes: any): Promise {
-    console.log(`Retried ${this.curRetry} times`)
-    throw new Error('Failed')
-  }
-}
-```
+To handle failures gracefully after all retry attempts for `exec()` are exhausted, override the `execFallback` method.
 
-## Graceful Fallbacks
-
-To handle failures gracefully after all retries are exhausted, override the `exec_fallback` method:
+By default, `execFallback` just re-raises the exception. You can override it to return a fallback result instead, which becomes the `exec_res` passed to `post()`, allowing the flow to potentially continue.
 
 ```typescript
-async execFallback(prepRes: any, exc: Error): Promise {
-  throw exc;  // Default behavior is to re-raise
-}
-```
+import { Memory, Node, NodeError } from 'brainyflow'
 
-By default, this method just re-raises the exception. You can override it to return a fallback result instead, which becomes the `exec_res` passed to `post()`.
+type PrepResult = void
+type ExecResult = string
 
-## Example: Summarize File
+const myNode = new CustomErrorHandlingNode({ maxRetries: 3, wait: 10 })
 
-```typescript
-class SummarizeFile extends Node {
-  async prep(shared: any): Promise<any> {
-    return shared['data']
-  }
-
-  async exec(prepRes: any): Promise<string> {
-    if (!prepRes) {
-      return 'Empty file content'
+class CustomErrorHandlingNode extends Node<any, any, [], PrepResult, ExecResult> {
+  async exec(prepRes: PrepResult): Promise<ExecResult> {
+    console.log(`Exec attempt: ${this.curRetry + 1}`)
+    if (this.curRetry < 2) {
+      throw new Error('Temporary failure!')
     }
-    const prompt = `Summarize this text in 10 words: ${prepRes}`
-    const summary = await callLLM(prompt) // might fail
-    return summary
+    return 'Success on retry'
   }
 
-  async execFallback(prepRes: any, exc: Error): Promise<string> {
-    // Provide a simple fallback instead of crashing
-    return 'There was an error processing your request.'
+  async execFallback(prepRes: PrepResult, error: NodeError): Promise<ExecResult> {
+    // This is called only if exec fails on the last attempt
+    console.error(`Exec failed after ${error.retryCount + 1} attempts: ${error.message}`)
+    // Return a fallback value instead of re-throwing
+    return `Fallback response due to repeated errors: ${error.message}`
   }
 
-  async post(shared: any, prepRes: any, execRes: any): Promise<string> {
-    shared['summary'] = execRes
-    // Return "default" by not returning
+  async post(memory: Memory<any, any>, prepRes: PrepResult, execRes: ExecResult): Promise<void> {
+    // execRes will be "Success on retry" or "Fallback response..."
+    console.log(`Post: Received result '${execRes}'`)
+    memory.final_result = execRes
+    this.trigger('default')
+  }
+}
+```
+
+## Triggering Successors (`trigger`)
+
+Nodes signal which path(s) the flow should take next by calling `this.trigger()` within their `post` method.
+
+```typescript
+this.trigger(actionName: string | typeof DEFAULT_ACTION, forkingData?: SharedStore): void
+```
+
+- `actionName`: A string identifying the transition (e.g., 'success', 'failure', 'categoryA'). If omitted or if `trigger` is not called, `DEFAULT_ACTION` ('default') is assumed.
+- `forkingData` (optional): An object containing data to be added _only_ to the `local` store of the `memory` instance passed to the triggered successor(s). This allows passing specific data down a particular branch without polluting the global store.
+
+The running [Flow](./flow.md) uses the `actionName` to look up the successor nodes defined using `.on()` or `.next()`.
+
+{% hint style="warning" %}
+`trigger()` can **only** be called inside the `post()` method. Calling it elsewhere will throw an error.
+{% endhint %}
+
+## Defining Connections (`on`, `next`)
+
+While `trigger` determines _which_ path to take _during_ execution, you define the possible paths _before_ execution, by using either `.next()` or `.on()`, as shown below:
+
+1.  **Basic default transition**: `node_a.next(node_b)`
+    This means if `node_a` triggers `"default"`, `node_b` will execute next.
+
+2.  **Named action transition**: `node_a.on('action_name', node_b)` or `node_a.next(node_b, 'action_name')`
+    This means if `node_a` triggers `"action_name"`, `node_b` will execute next.
+
+Note that `node_a.next(node_b)` is equivalent to both `node_a.next(node_b, 'default')` and `node_a.on('default', node_b)`. Both methods return the _successor_ node (`node_b` in this case), allowing for chaining.
+
+```typescript
+// Basic default transition
+node_a.next(node_b) // If node_a triggers "default", go to node_b
+
+// Named action transition
+node_a.on('success', node_b) // If node_a triggers "success", go to node_b
+node_a.on('error', node_c) // If node_a triggers "error", go to node_c
+
+// Alternative syntax
+node_a.next(node_b, 'success') // Same as node_a.on('success', node_b)
+```
+
+To summarize it:
+
+- `node.on(actionName, successorNode)`: Connects `successorNode` to be executed when `node` triggers `actionName`.
+- `node.next(successorNode, actionName = DEFAULT_ACTION)`: A convenience method, equivalent to `node.on(actionName, successorNode)`.
+
+These methods are typically called when constructing your `Flow`. See the [Flow documentation](./flow.md) for detailed examples of graph construction.
+
+### Example: Conditional Branching
+
+```typescript
+import { Flow, Memory, Node } from 'brainyflow'
+
+// Assuming detectLanguage, EnglishProcessorNode, SpanishProcessorNode, UnknownProcessorNode are defined elsewhere
+
+interface RouterGlobalStore {
+  content: string
+  language?: string
+}
+type RouterActions = 'english' | 'spanish' | 'unknown' // Add unknown action
+
+class RouterNode extends Node<RouterGlobalStore, any, RouterActions[]> {
+  async prep(memory: Memory<RouterGlobalStore, any>): Promise<string> {
+    return memory.content
+  }
+
+  async exec(content: string | undefined): Promise<string> {
+    return await detectLanguage(content)
+  }
+
+  async post(
+    memory: Memory<RouterGlobalStore, any>,
+    prepRes: string, // Content
+    execRes: string, // Language detected
+  ): Promise<void> {
+    console.log(`RouterPost: Detected language '${execRes}', storing and triggering.`)
+    memory.language = execRes
+    // Trigger the specific action based on the detected language
+    this.trigger(execRes as RouterActions)
   }
 }
 
-const summarizeNode = new SummarizeFile({ maxRetries: 3 })
+// --- Flow Definition ---
+const router = new RouterNode()
+const englishProcessor = new EnglishProcessorNode()
+const spanishProcessor = new SpanishProcessorNode()
+const unknownProcessor = new UnknownProcessorNode()
 
-// node.run() calls prep->exec->post
-// If exec() fails, it retries up to 3 times before calling execFallback()
-const actionResult = await summarizeNode.run(shared)
+// Define connections for specific actions
+router.on('english', englishProcessor)
+router.on('spanish', spanishProcessor)
+router.on('unknown', unknownProcessor)
 
-console.log('Action returned:', actionResult) // "default"
-console.log('Summary stored:', shared['summary'])
+const flow = new Flow(router)
+
+// --- Execution Example ---
+async function runFlow() {
+  const storeEn: RouterGlobalStore = { content: 'Hello world' }
+  await flow.run(storeEn)
+  console.log('--- English Flow Done ---', storeEn)
+
+  const storeEs: RouterGlobalStore = { content: 'Hola mundo' }
+  await flow.run(storeEs)
+  console.log('--- Spanish Flow Done ---', storeEs)
+
+  const storeUnk: RouterGlobalStore = { content: 'Bonjour le monde' }
+  await flow.run(storeUnk)
+  console.log('--- Unknown Flow Done ---', storeUnk)
+}
+runFlow()
 ```
 
-## Example: Document Retrieval
+### Example: Multiple Triggers (Fan-Out)
+
+Nodes can call `trigger` multiple times within `post` to initiate multiple downstream paths. Each triggered path gets its own cloned `memory`, potentially with unique `local` data provided via `forkingData`. This is the core pattern for replacing dedicated Batch nodes as found in other frameworks.
 
 ```typescript
-// Node that retrieves relevant documents based on a query
-class RetrieveRelevantDocuments extends Node {
-  async prep(shared: any): Promise<any> {
-    // Extract query and vector database from shared store
-    const query = shared['input']['query']
-    const vectorDb = shared['resources']['vector_db']
-    return [query, vectorDb]
+import { Flow, Memory, Node, ParallelFlow } from 'brainyflow'
+
+declare function processItem(item: string): Promise<any> // Assuming processItem is declared elsewhere
+
+// Define Memory and Action types
+interface GlobalStore {
+  items?: string[]
+  results_list?: ({ item: string; result: any } | null)[] // Use list for ordered results
+  aggregated_result?: any
+}
+interface LocalStore {
+  currentItem: string
+  currentIndex: number
+}
+type FanOutActions = 'process_one' | 'aggregation'
+
+class ItemProcessorNode extends Node<GlobalStore, LocalStore> {
+  async prep(memory: Memory<GlobalStore, LocalStore>): Promise<{ item: string; index: number }> {
+    // Access data from local store passed via forkingData
+    return { item: memory.currentItem, index: memory.currentIndex }
   }
 
-  async exec(inputs: any): Promise<any> {
-    // Retrieve relevant documents using vector similarity
-    const [query, vectorDb] = inputs
+  async exec(prepRes: { item: string; index: number }): Promise<{ result: any; index: number }> {
+    // ... perform processing ...
+    const result = await processItem(prepRes.item) // Use real function!
+    return { result, index: prepRes.index }
+  }
 
-    // Get query embedding
-    const queryEmbedding = await getEmbedding(query)
-
-    // Search vector database
-    const results = await vectorDb.search(
-      queryEmbedding,
-      limit: 5,
-      minScore: 0.7
+  async post(
+    memory: Memory<GlobalStore, LocalStore>,
+    prepRes: { item: string; index: number },
+    execRes: { result: any; index: number },
+  ): Promise<void> {
+    // Ensure list is long enough (important for ParallelFlow)
+    while (memory.results_list.length <= execRes.index) {
+      memory.results_list.push(null)
+    }
+    memory.results_list[execRes.index] = { item: prepRes.item ?? 'N/A', result: execRes.result }
+    console.log(
+      ` ItemProcessor Post (Index ${execRes.index}): Stored result for '${prepRes.item}'.`,
     )
-
-    return results
-  }
-
-  async post(shared: any, prepRes: any, execRes: any): Promise<string> {
-    // Store retrieved documents in shared store
-    shared['processing']['relevant_documents'] = execRes
-    shared['metadata']['processing_steps'].push({
-      'step': 'document_retrieval',
-      'timestamp': new Date().toISOString(),
-      'document_count': execRes.length
-    })
-
-    // Determine next action based on results
-    if (!execRes) {
-      return 'fallback_search'
-    }
-    return 'generate_response'
+    // No trigger needed here, end of this branch
   }
 }
+
+class BatchTriggerNode extends Node<GlobalStore, LocalStore, FanOutActions[]> {
+  async prep(memory: Memory<GlobalStore, LocalStore>): Promise<string[] | undefined> {
+    return memory.items
+  }
+
+  // We don't need exec here, just pass items through
+
+  async post(
+    memory: Memory<GlobalStore, LocalStore>,
+    prepRes: string[] | undefined, // items
+    execRes: void,
+  ): Promise<void> {
+    const items = prepRes || []
+
+    console.log(`BatchTrigger Post: Triggering processing for ${items.length} items.`)
+    // Initialize results list in global memory (pre-allocate for parallel writes)
+    memory.results_list = new Array(items.length).fill(null)
+
+    // Trigger 'process_one' action for each item, passing item AND index in local memory
+    for (const [index, item] of items.entries()) {
+      // Each trigger gets a *clone* of the current memory,
+      // with 'currentItem' and 'currentIndex' added to the *local* store of that clone.
+      console.log(` BatchTrigger Post: Triggering process_one for item '${item}' (Index ${index})`)
+      this.trigger('process_one', { currentItem: item, currentIndex: index })
+    }
+
+    // After triggering all items, trigger the aggregation step
+    console.log('BatchTrigger Post: Triggering aggregation.')
+    this.trigger('aggregation')
+  }
+}
+
+// --- Flow Definition ---
+const batchTrigger = new BatchTriggerNode()
+const itemProcessor = new ItemProcessorNode()
+// const aggregator = new AggregationNode(); // Assume an AggregationNode exists
+
+batchTrigger.on('process_one', itemProcessor) // Connect the 'process_one' action
+// batchTrigger.on('aggregation', aggregator); // Connect aggregation step if used
+
+// Use ParallelFlow to run item processing concurrently
+const flow = new ParallelFlow(batchTrigger)
+// Or for sequential: const flow = new Flow(batchTrigger);
+
+// --- Execution Example ---
+// async function runFlow() {
+//    const globalStore: GlobalStore = { items: ['apple', 'banana', 'cherry'] };
+//    await flow.run(globalStore);
+//    console.log("\n--- Fan-Out Flow Complete ---");
+//    console.log("Final Results List:", globalStore.results_list);
+//    // If using an aggregator node:
+//    // console.log("Aggregated Result:", globalStore.aggregated_result);
+// }
+// runFlow();
 ```
+
+In this example, `BatchTriggerNode` fans out the work. If run with `ParallelFlow`, each `ItemProcessorNode` instance would execute concurrently. If run with a standard `Flow`, they would execute sequentially.
 
 ## Running Individual Nodes
 
-Nodes have an extra method `run(shared)`, which calls `prep->exec->post` and returns the action.
+Nodes have an extra method `run(memory)`, which calls `prep → exec → post`. Use it only for **testing or debugging individual nodes in isolation**.
 
-{% hint style="warning" %}
-`Node.run` **does not** proceed to a successor!
+{% hint style="danger" %}
+**Do NOT use `node.run()` to execute a workflow.**
 
-This method is useful for debugging or testing a single node, but not for running a [flow](./flow.md)!
+`node.run()` executes only the single node it's called on. It **does not** look up or execute any successor nodes defined via `.on()` or `.next()`.
 
-Always use `Flow.run` instead to ensure the full pipeline runs correctly.
+Always use `Flow.run()` or `ParallelFlow.run()` to execute a complete graph workflow. Using `node.run()` directly will lead to incomplete execution.
 {% endhint %}
 
-Compare it with `Flow.run`:
+```typescript
+// Run with propagate: false (default) - returns ExecResult
+async node.run(memory: Memory | GlobalStore): Promise<ExecResult | void> // Accepts Memory object or initial global store
 
-- `node.run(shared)`: Just runs that node alone (calls `prep->exec->post()`), returns an Action.
-- `flow.run(shared)`: Executes from the start node, follows Actions to the next node, and so on until the flow can't continue.
+// Run with propagate: true - returns triggers for Flow execution
+async node.run(memory: Memory | GlobalStore, propagate: true): Promise<[Action, Memory][]> // Accepts Memory object or initial global store
+```
+
+## Best Practices
+
+- **Single Responsibility**: Keep nodes focused on a single, well-defined task.
+- **Read in `prep`**: Gather all necessary data from the `memory` object in the `prep` phase. Return only what `exec` needs.
+- **Compute in `exec`**: Perform the core computation in `exec`. Keep it free of side effects and direct `memory` object access.
+- **Write & Trigger in `post`**: Update the `memory` object (usually the global store) and call `trigger` in the `post` phase.
+- **Use `forkingData`**: Pass branch-specific data via `trigger`'s `forkingData` argument to populate the `local` store for successors, keeping the global store clean.
+- **Type Safety**: Use TypeScript generics (`Node<G, L, A, P, E>`) to define the expected structure of `memory` stores, actions, and results.
+- **Error Handling**: Leverage the built-in retry logic (`maxRetries`, `wait`) and `execFallback` for resilience.
 
 
 
@@ -492,59 +806,56 @@ File: docs/core_abstraction/flow.md
 
 A **Flow** orchestrates a graph of Nodes, connecting them through action-based transitions. Flows enable you to create complex application logic including sequences, branches, loops, and nested workflows.
 
-## Action-based Transitions
-
-Each Node's `post()` method returns an **Action** string that determines which node to execute next. If `post()` doesn't return anything, the default action `"default"` is used.
-
-### Defining Transitions
-
-1. **Basic default transition**: `node_a.next(node_b)`
-   This means if `node_a.post()` returns `"default"`, go to `node_b`.
-
-2. **Named action transition**: `node_a.on('action_name', node_b)` or `node_a.next(node_b, 'action_name')`
-   This means if `node_a.post()` returns `"action_name"`, go to `node_b`.
-
-Note that `node_a.next(node_b)` is equivalent to both `node_a.next(node_b, 'default')` and `node_a.on('default', node_b)`
-
-```typescript
-// Basic default transition
-node_a.next(node_b) // If node_a returns "default", go to node_b
-
-// Named action transition
-node_a.on('success', node_b) // If node_a returns "success", go to node_b
-node_a.on('error', node_c) // If node_a returns "error", go to node_c
-
-// Alternative syntax
-node_a.next(node_b, 'success') // Same as node_a.on('success', node_b)
-```
+They manage the execution order, handle data flow between nodes, and provide error handling and cycle detection.
 
 ## Creating a Flow
 
-A Flow begins with a **start node** and follows the action-based transitions until it reaches a node with no matching transition for its returned action.
+A Flow begins with a **start node**, a memory state, and follows the [action-based transitions defined by the nodes](./nodes.md) until it reaches a node with no matching transition for its returned action.
 
 ```typescript
-import { Flow } from 'brainyflow'
+import { Flow, Node } from 'brainyflow'
 
 // Define nodes and transitions
-node_a.next(node_b)
-node_b.on('success', node_c)
-node_b.on('error', node_d)
+// const node_a = new Node(); ... etc.
+node_a.next(node_b) // Default transition
+node_b.on('success', node_c) // Named transition
+node_b.on('error', node_d) // Named transition
+
+// Define the expected Global Store structure (optional but recommended)
+interface MyGlobalStore {
+  input?: any
+  result?: any
+  error?: any
+}
+
+// Create a global store object (can be just an empty object)
+const globalStore: MyGlobalStore = { input: 'some data' }
 
 // Create flow starting with node_a
-const flow = new Flow(node_a)
+const flow = new Flow<MyGlobalStore>(node_a)
 
-// Run the flow with a shared store
-await flow.run(shared)
+// Run the flow, passing the global store object.
+// The flow modifies the globalStore object in place.
+await flow.run(globalStore)
+
+// Print the final state of the global store
+console.log('Flow finished. Final memory state:', globalStore)
+// Example output (depending on flow logic):
+// { input: 'some data', result: 'processed data from node_c' }
+// or
+// { input: 'some data', error: 'error details from node_d' }
 ```
 
 ## Flow Execution Process
 
-When you call `flow.run(shared)`:
+When you call `flow.run(memory)`, the flow executes the following steps internally:
 
-1. The flow executes the start node
-2. It examines the action returned by the node's `post()` method
-3. It follows the corresponding transition to the next node
-4. This process repeats until it reaches a node with no matching transition for its action
+1.  It starts with the designated `start` node.
+2.  For the current node, it executes its lifecycle (`prep` -> `execRunner` -> `post`), passing a `Memory` instance that wraps the global store and manages local state.
+3.  It looks for triggered action (specified by `trigger()` calls), then it finds the corresponding successor node(s) defined by `.on()` or `.next()`.
+4.  It recursively executes the successor node(s) with their respective cloned local memories.
+5.  This process repeats until it reaches nodes that trigger actions with no defined successors, or the flow completes.
+6.  The `run` method modifies the initial global store object in place and returns a nested structure representing the execution tree (often ignored if results are stored in memory).
 
 ```mermaid
 sequenceDiagram
@@ -562,6 +873,7 @@ sequenceDiagram
     F->>F: Find next node for action "default"
     F->>N2: Execute Node B
     N2->>S: Read from shared store
+    N2->>N1: Read from local store
     N2->>N2: Perform computation
     N2->>S: Write to shared store
     N2-->>F: Return action "success"
@@ -570,39 +882,42 @@ sequenceDiagram
     F-->>F: Flow execution complete
 ```
 
-## Branching and Looping
+## Controlling Flow Execution
+
+### Branching and Looping
 
 Flows support complex patterns like branching (conditionally following different paths) and looping (returning to previous nodes).
 
-### Example: Expense Approval Flow
+#### Example: Expense Approval Flow
 
 Here's a simple expense approval flow that demonstrates branching and looping:
 
 ```typescript
+import { Flow, Node } from 'brainyflow'
+
 // Define the nodes first
 // const review = new ReviewExpenseNode()
 // const revise = new ReviseReportNode()
 // const payment = new ProcessPaymentNode()
 // const finish = new FinishProcessNode()
-// ..
 
 // Define the flow connections
 review.on('approved', payment) // If approved, process payment
 review.on('needs_revision', revise) // If needs changes, go to revision
 review.on('rejected', finish) // If rejected, finish the process
 
-revise.next(review) // After revision, go back for another review
-payment.next(finish) // After payment, finish the process
+revise.next(review) // After revision (default trigger), go back for another review
+payment.next(finish) // After payment (default trigger), finish the process
 
-// Create the flow
+// Create the flow, starting with the review node
 const expenseFlow = new Flow(review)
 ```
 
 This flow creates the following execution paths:
 
-1. If `review.post()` returns `"approved"`, the expense moves to the `payment` node
-2. If `review.post()` returns `"needs_revision"`, it goes to the `revise` node, which then loops back to `review`
-3. If `review.post()` returns `"rejected"`, it moves to the `finish` node and stops
+1. If `review` triggers `"approved"`, the expense moves to the `payment` node
+2. If `review` triggers `"needs_revision"`, it goes to the `revise` node, which then loops back to `review`
+3. If `review` triggers `"rejected"`, it moves to the `finish` node and stops
 
 ```mermaid
 flowchart TD
@@ -614,29 +929,34 @@ flowchart TD
     payment --> finish
 ```
 
-## Nested Flows
+### Flow as a Node
 
-A Flow can be used as a Node within another Flow, enabling powerful composition patterns. This allows you to:
+Every `Flow` is in fact a specialized type of `Node`. This means a `Flow` itself can be used as a node within another, larger `Flow`, enabling powerful composition and nesting patterns.
+
+{% hint style="info" %}
+The difference from Node is that `Flow` has a specialized `execRunner()` method - _the internal caller of `exec()`_ - that orchestrates its internal nodes and which cannot be overridden.
+As such:
+
+- A `Flow`'s primary role is orchestration, not direct computation like a standard `Node`.
+- You cannot override `exec` or `execRunner` in a `Flow`.
+- It still has the `prep` and `post` lifecycle methods, which you _can_ override if you need to perform setup before the sub-flow runs or cleanup/processing after it completes.
+- When a `Flow` used as a node finishes its internal execution, it triggers its _own_ successors in the parent flow based on its `post` method's `trigger` calls (or the default action).
+
+{% endhint %}
+
+This allows you to:
 
 1. Break down complex applications into manageable sub-flows
 2. Reuse flows across different applications
 3. Create hierarchical workflows with clear separation of concerns
 
-### Flow as a Node
-
-When a Flow is used as a Node:
-
-- It inherits the Node lifecycle (`prep → exec → post`)
-- Its `prep()` and `post()` methods can be overridden
-- `post()` always receives `None` for `exec_res` and should instead get the flow execution results from the shared store.
-- It won't allow for a custom `exec()` method since its main logic is to orchestrate its internal nodes
-- When run, it executes its internal nodes according to their transitions
-
-### Example: Order Processing Pipeline
+#### Example: Order Processing Pipeline
 
 Here's a practical example that breaks down order processing into nested flows:
 
 ```typescript
+import { Flow, Node } from 'brainyflow'
+
 // Payment processing sub-flow
 validatePayment.next(processPayment).next(paymentConfirmation)
 const paymentFlow = new Flow(validatePayment)
@@ -649,14 +969,16 @@ const inventoryFlow = new Flow(checkStock)
 createLabel.next(assignCarrier).next(schedulePickup)
 const shippingFlow = new Flow(createLabel)
 
-// Connect the flows into a main order pipeline
-paymentFlow.next(inventoryFlow).next(shippingFlow)
+paymentFlow.next(inventoryFlow) // Default transition after paymentFlow completes
+inventoryFlow.next(shippingFlow) // Default transition after inventoryFlow completes
 
-// Create the master flow
+// Create the master flow, starting with the paymentFlow
 const orderPipeline = new Flow(paymentFlow)
 
-// Run the entire pipeline
-await orderPipeline.run(sharedData)
+// --- Run the entire pipeline ---
+// const globalStore = { orderId: 'XYZ789', customerId: 'CUST123' };
+// await orderPipeline.run(globalStore);
+// console.log('Order pipeline completed. Final state:', globalStore);
 ```
 
 This creates a clean separation of concerns while maintaining a clear execution path:
@@ -681,33 +1003,95 @@ flowchart LR
     end
 ```
 
-## Flow Parameters
+### Cycle Detection
 
-When a Flow is used as a Node, you can pass parameters to it using `set_params()`. These parameters are then accessible within the Flow's nodes:
+Loops are created by connecting a node back to a previously executed node. To prevent infinite loops, `Flow` includes cycle detection controlled by the `maxVisits` option in its constructor (default is 5). If a node is visited more times than `maxVisits` during a single run, an error is thrown.
+
+{% hint style="success" %}
+This ensures that the flow does not get stuck in an infinite loop.
+{% endhint %}
 
 ```typescript
-// Create a flow
-const processFlow = new Flow(someNode)
+// Limit the number of times a node can be visited within this flow
+const flow = new Flow(startNode, { maxVisits: 10 })
+```
 
-// Set parameters
-processFlow.setParams({ mode: 'fast', maxItems: 10 })
+- The default value for `maxVisits` is `5`.
+- Set `maxVisits` to `Infinity` or a very large number for effectively no limit (use with caution!).
 
-// Use the flow in another flow
-const mainFlow = new Flow(processFlow)
+## Flow Parallelism
 
-// Run the main flow
-await mainFlow.run(shared)
+BrainyFlow offers two built-in types - and the possibility to create custom ones\_ - of flows that provide different levels of parallelism when nodes trigger multiple successors:
+
+### 1. `Flow` (Sequential Execution)
+
+The default `Flow` class executes the tasks generated by multiple triggers **sequentially**. It waits for the entire branch initiated by the first trigger to complete before starting the branch for the second trigger, and so on.
+
+```typescript
+const sequentialFlow = new Flow(startNode)
+```
+
+### 2. `ParallelFlow` (Concurrent Execution)
+
+The `ParallelFlow` class executes the tasks generated by multiple triggers **concurrently** using `Promise.all()` (TypeScript) or `asyncio.gather()` (Python). This is useful for performance when branches are independent (e.g., batch processing items).
+
+```typescript
+// Executes triggered branches in parallel
+const parallelFlow = new ParallelFlow(startNode)
+```
+
+Use `ParallelFlow` when:
+
+1.  A node needs to "fan-out" work into multiple independent branches (e.g., processing items in a batch).
+2.  These branches do not have dependencies on each other's immediate results (though they might all write back to the shared global memory).
+3.  You want to potentially speed up execution by running these independent branches concurrently.
+
+{% hint style="danger" %}
+
+When using `ParallelFlow`, be mindful of potential race conditions if multiple parallel branches try to modify the same property in the global `Memory` simultaneously without proper synchronization. Often, it's safer for parallel branches to accumulate results locally or use unique keys in the global store, followed by a final sequential aggregation step.
+
+{% endhint %}
+
+### Custom Execution Logic (Overriding `runTasks`)
+
+For more advanced control over how triggered branches are executed, you can extend `Flow` (or `ParallelFlow`) and override the `runTasks` method. This method receives an array of functions, where each function represents the execution of one triggered branch.
+
+```typescript
+import { Flow, Memory } from 'brainyflow'
+
+declare function sleep(ms: number): Promise<void> // Assuming sleep is available
+
+class CustomExecutionFlow extends Flow {
+
+  async runTasks<T>(tasks: (() => Promise<T>)[]): Promise<Awaited<T>[]> {
+    // Example: Run tasks sequentially with a delay between each
+    const results: Awaited<T>[] = []
+    for (const task of tasks) {
+      results.push(await task())
+      console.log('Custom runTasks: Task finished, waiting 1s...')
+      await sleep(1000) // Wait 1 second between tasks
+    }
+    return results
+  }
+}
 ```
 
 ## Best Practices
 
-1. **Start Simple**: Begin with a linear flow and add branching/looping as needed
-2. **Visualize First**: Sketch your flow diagram before coding
-3. **Name Actions Clearly**: Use descriptive action names that indicate the decision made
-4. **Test Incrementally**: Build and test one section of your flow at a time
-5. **Document Transitions**: Add comments explaining the conditions for each transition
-6. **Error Handling**: Always include paths for handling errors
-7. **Avoid Deep Nesting**: Keep nesting to 2-3 levels for maintainability
+- **Start Simple**: Begin with a linear flow and add branching/looping complexity gradually.
+- **Visualize First**: Sketch your flow diagram (using Mermaid or similar tools) before coding to clarify logic.
+- **Flow Modularity**: Design flows as reusable components. Break down complex processes into smaller, nested sub-flows.
+- **Memory Planning**: Define clear interfaces for your `GlobalStore` and `LocalStore` upfront. Decide what state needs to be global versus what can be passed locally via `forkingData`.
+- **Action Naming**: Use descriptive, meaningful action names (e.g., 'user_clarification_needed', 'data_validated') instead of generic names like 'next' or 'step2'.
+- **Explicit Transitions**: Clearly define transitions for all expected actions a node might trigger. Consider adding default `.next()` transitions for unexpected or completion actions.
+- **Cycle Management**: Be mindful of loops. Use the `maxVisits` option in the `Flow` constructor to prevent accidental infinite loops.
+- **Error Strategy**: Decide how errors should propagate. Should a node's `execFallback` handle errors and allow the flow to continue, or should errors terminate the flow? Define specific error actions (`node.on('error', errorHandlerNode)`) if needed.
+- **Parallelism Choice**: Use `ParallelFlow` when branches are independent and can benefit from concurrent execution. Stick with `Flow` (sequential) if branches have dependencies or shared resource contention.
+- **Memory Isolation**: Leverage `forkingData` in `trigger` calls to pass data down specific branches via the `local` store, keeping the `global` store cleaner. This is crucial for parallel execution.
+- **Test Incrementally**: Test individual nodes using `node.run()` and test sub-flows before integrating them into larger pipelines.
+- **Avoid Deep Nesting**: While nesting flows is powerful, keep the hierarchy reasonably flat (e.g., 2-3 levels deep) for maintainability.
+
+Flows provide the orchestration layer that determines how your nodes interact, ensuring that data moves predictably through your application and that execution follows your intended paths.
 
 By following these principles, you can create complex, maintainable AI applications that are easy to reason about and extend.
 
@@ -715,362 +1099,161 @@ By following these principles, you can create complex, maintainable AI applicati
 
 
 ================================================
-File: docs/core_abstraction/communication.md
+File: docs/core_abstraction/memory.md
 ================================================
-# Communication
+# Memory: Managing State Between Nodes
 
-Nodes and Flows in BrainyFlow communicate through two primary mechanisms:
+BrainyFlow provides a streamlined approach for components to communicate with each other. This chapter explains how data is stored, accessed, and isolated.
 
-1. **Shared Store (recommended for most cases)**
+## Memory Scopes: Global vs. Local
 
-   - A global data structure (typically an in-memory dictionary) that all nodes can read from (`prep()`) and write to (`post()`)
-   - Ideal for sharing data results, large content, or information needed by multiple nodes
-   - Follows the principle of separation of concerns by keeping data separate from computation logic
+Each `Memory` instance encapsulates two distinct scopes:
 
-2. **Params (primarily for [Batch](./batch.md) operations)**
-   - Node-specific configuration passed down from parent flows
-   - Best for identifiers like filenames or IDs, especially in Batch processing
-   - Parameter keys and values should be **immutable** during execution
+1.  **Global Store (`memory`)**: A single object shared across _all_ nodes within a single `flow.run()` execution. Changes made here persist throughout the flow. Think of it as the main shared state.
+2.  **Local Store (`memory.local`)**: An object specific to a particular execution path within the flow. It's created when a node `trigger`s a successor. Changes here are isolated to that specific branch and its descendants.
 
-If you know memory management, think of the **Shared Store** like a **heap** (shared by all function calls), and **Params** like a **stack** (assigned by the caller).
-
-## Shared Store
-
-The Shared Store is the primary communication mechanism in BrainyFlow, embodying the principle of separation between data storage and computation logic.
-
-### Overview
-
-A shared store is typically an in-memory dictionary that serves as a global data repository:
-
-```typescript
-const shared = {
-  data: {...},
-  results: {...},
-  config: {...},
-  // Any other data you need to share
-}
-```
-
-The shared store can also contain file handlers, database connections, or other resources that need to be accessible across nodes.
-
-### Best Practices
-
-1. **Define a Clear Schema**: Plan your shared store structure before implementation
-2. **Use Namespaces**: Group related data under descriptive keys
-3. **Document Structure**: Comment on expected data types and formats
-4. **Avoid Deep Nesting**: Keep the structure reasonably flat for readability
-
-### Example Usage
-
-```typescript
-class LoadData extends Node {
-  async post(shared: Record): Promise {
-    // Write data to shared store
-    shared.data = 'Some text content'
-  }
-}
-
-class Summarize extends Node {
-  async prep(shared: Record): Promise {
-    // Read data from shared store
-    return shared.data
-  }
-
-  async exec(prepRes: string): Promise {
-    // Call LLM to summarize
-    const prompt = `Summarize: ${prepRes}`
-    const summary = await callLLM(prompt)
-    return summary
-  }
-
-  async post(shared: Record, prepRes: string, execRes: string): Promise {
-    // Write summary to shared store
-    shared.summary = execRes
-  }
-}
-
-const loadData = new LoadData()
-const summarize = new Summarize()
-loadData.next(summarize)
-const flow = new Flow(loadData)
-
-const shared = {}
-await flow.run(shared)
-```
-
-## Params
-
-While the Shared Store is the primary communication mechanism, Params provide a way to configure individual nodes with specific settings.
-
-### Key Characteristics
-
-- **Immutable**: Params don't change during a node's execution cycle
-- **Hierarchical**: Params are passed down from parent flows to child nodes
-- **Local**: Each node or flow has its own params that don't affect other nodes
-
-### When to Use Params
-
-- **Batch Processing**: To identify which item is being processed
-- **Configuration**: For node-specific settings that don't need to be shared
-- **Identification**: For tracking the source or purpose of a computation
-
-### Example Usage
-
-```typescript
-// 1) Create a Node that uses params
-class SummarizeFile extends Node {
-  async prep(shared: Record): Promise {
-    // Access the node's param
-    const filename = this.params.filename
-    return shared.data[filename] || ''
-  }
-
-  async exec(prepRes: string): Promise {
-    const prompt = `Summarize: ${prepRes}`
-    return await callLLM(prompt)
-  }
-
-  async post(shared: Record, prepRes: string, execRes: string): Promise {
-    const filename = this.params.filename
-    shared.summary[filename] = execRes
-  }
-}
-
-// 2) Set params directly on a node (for testing)
-const node = new SummarizeFile()
-node.setParams({ filename: 'doc1.txt' })
-await node.run(shared)
-
-// 3) Set params on a flow (overrides node params)
-const flow = new Flow(node)
-flow.setParams({ filename: 'doc2.txt' })
-await flow.run(shared) // The node summarizes doc2.txt, not doc1.txt
-```
-
-## Choosing Between Shared Store and Params
-
-| Use Shared Store when...                    | Use Params when...                           |
-| ------------------------------------------- | -------------------------------------------- |
-| Data needs to be accessed by multiple nodes | Configuration is specific to a single node   |
-| Information persists across the entire flow | Working with Batch processing                |
-| Storing large amounts of data               | Passing identifiers or simple values         |
-| Maintaining state throughout execution      | Configuring behavior without affecting state |
+This dual-scope system allows for both shared application state (global) and controlled, path-specific data propagation (local).
 
 {% hint style="success" %}
-**Best Practice**: Use Shared Store for almost all cases to maintain separation of concerns. Params are primarily useful for Batch processing and node-specific configuration.
+**Real-World Analogies**:
+
+Think of the memory system like **a river delta**:
+
+- **Global Store**: The main river water that flows everywhere
+- **Local Store**: Specific channels that might carry unique properties that only affect downstream areas fed by that channel
+
+Alternatively, think of it like **nested scopes in programming**:
+
+- **Global Store**: Like variables declared in the outermost scope of a program, accessible everywhere.
+- **Local Store**: Like variables declared inside a function or block. They are only accessible within that block and any nested blocks (downstream nodes in the flow). If a local variable has the same name as a global one, the local variable "shadows" the global one within its scope.
+
+This model gives you the flexibility to share data across your entire flow (global) or isolate context to specific execution paths (local).
 {% endhint %}
 
+## Accessing Memory (Reading)
 
+Nodes access data stored in either scope through the `memory` proxy instance passed to their `prep` and `post` methods. When you read a property (e.g., `memory.someValue`), the proxy automatically performs a lookup:
 
-
-================================================
-File: docs/core_abstraction/batch.md
-================================================
-# Batch Processing
-
-Batch processing in BrainyFlow enables efficient handling of multiple items, whether sequentially or in parallel. This is particularly useful for:
-
-- Processing large datasets or lists (e.g., multiple files, database records)
-- Applying the same operation to multiple inputs
-- Dividing large tasks into manageable chunks
-
-## Node-Level Batch Processing
-
-BrainyFlow provides two specialized node types for batch processing:
-
-### SequentialBatchNode
-
-A `SequentialBatchNode` processes items one after another, which is useful when:
-
-- Order of processing matters
-- Operations have dependencies between items
-- You need to conserve resources or manage rate limits
-
-It extends `Node`, with changes to:
-
-- **`async prep(shared)`**: returns an **iterable** (e.g., list, generator).
-- **`async exec(item)`**: called **once** per item in that iterable.
-- **`async post(shared, prep_res, exec_res_list)`**: after all items are processed, receives a **list** of results (`exec_res_list`) and returns an **Action**.
-
-#### Example: Sequential Summarize File
+1.  It checks the **local store (`memory.local`)** first.
+2.  If the property is not found locally, it checks the **global store (`memory`)**.
 
 ```typescript
-class SequentialSummaries extends SequentialBatchNode {
-  async prep(shared: Record): Promise {
-    const content = shared.data
-    const chunkSize = 10000
-    const chunks: string[] = []
+import { Memory, Node } from 'brainyflow'
 
-    // Suppose we have a big file; chunk it!
-    for (let i = 0; i < content.length; i += chunkSize) {
-      chunks.push(content.slice(i, i + chunkSize))
+interface MyGlobal {
+  config?: object
+  commonData?: string
+  pathSpecificData?: string
+}
+interface MyLocal {
+  pathSpecificData?: string
+} // Can shadow global
+
+class MyNode extends Node<MyGlobal, MyLocal> {
+  async prep(memory: Memory<MyGlobal, MyLocal>): Promise<void> {
+    // Reads from global store (assuming not set locally)
+    const config = memory.config
+    const common = memory.commonData
+
+    // Reads from local store if set via forkingData, otherwise reads from global
+    const specific = memory.pathSpecificData
+  }
+  // ... exec, post ...
+}
+```
+
+When accessing memory, you should always use `memory.someValue` and let the `Memory` manager figure out where to fetch the value for you.
+You could also directly access the entire local store object using `memory.local` - or a value at `memory.local.someValue` - but that's an anti-pattern that should be avoided.
+
+```typescript
+async post(memory: Memory<MyGlobal, MyLocal>, /*...*/) {
+    const allLocalData = memory.local; // Access the internal __local object directly
+    console.log('Current local store:', allLocalData);
+}
+```
+
+## Writing to Memory
+
+- **Writing to Global Store**: Assigning a value directly to a property on the `memory` object (e.g., `memory.someValue = 'new data'`) writes to the **global store**. The proxy automatically removes the property from the local store first if it exists there.
+- **Writing to Local Store**: While possible via `memory.local.someValue = 'new data'`, the primary and recommended way to populate the local store for downstream nodes is using the `forkingData` argument in `this.trigger()`.
+
+```typescript
+import { Memory, Node } from 'brainyflow'
+
+interface MyGlobal {
+  fileList?: string[]
+  results?: Record<string, any>
+}
+interface MyLocal {
+  processedCount?: number // Data passed via memory.local assignment
+  file?: string // Data passed via forkingData
+}
+
+class DataWriterNode extends Node<MyGlobal, MyLocal, ['process_file']> {
+  async post(
+    memory: Memory<MyGlobal, MyLocal>,
+    prepRes: any,
+    execRes: { files: string[]; count: number }, // Assume exec returns this format
+  ): Promise<void> {
+    // --- Writing to Global Store ---
+    // Accessible to all nodes in the flow
+    memory.fileList = execRes.files
+    console.log(`Memory updated globally: fileList=${memory.fileList}`)
+
+    // --- Writing to Local Store ---
+    // Accessible to this node and all descendants
+    memory.local.processedCount = execRes.count
+    console.log(`Memory updated locally: processedCount=${memory.processedCount}`)
+
+    // --- Triggering with Local Data (Forking Data) ---
+    // 'file' will be added to the local store of the memory clone
+    // passed to the node(s) triggered by the 'process_file' action.
+    for (const file of execRes.files) {
+      this.trigger('process_file', { file: file })
     }
-    return chunks
   }
+}
 
-  async exec(chunk: string): Promise<string> {
-    const prompt = `Summarize this chunk in 10 words: ${chunk}`
-    return await callLLM(prompt)
+// Example Processor Node (triggered by 'process_file')
+class FileProcessorNode extends Node<MyGlobal, MyLocal> {
+  async prep(memory: Memory<MyGlobal, MyLocal>): Promise<string | undefined> {
+    // Reads 'file' from the local store first, then global
+    const fileToProcess = memory.file
+    console.log(`Processing file (from local memory): ${fileToProcess}`)
+    return fileToProcess
   }
-
-  async post(shared: Record, prepRes: string[], execResList: string[]): Promise {
-    shared.summary = execResList.join('\n')
-  }
+  // ... exec, post ...
 }
 ```
-
-### ParallelBatchNode
-
-A `ParallelBatchNode` processes items concurrently, which is useful when:
-
-- Operations are independent of each other
-- You want to maximize throughput
-- Tasks are primarily I/O-bound (like API calls)
-
-{% hint style="warning" %}
-**Concurrency Considerations**:
-
-- Ensure operations are truly independent before using parallel processing
-- Be mindful of rate limits when making API calls
-- Consider using [Throttling](../guides/throttling.md) to control concurrency
-
-{% endhint %}
-
-It extends `Node`, with changes to:
-
-- **`async prep(shared)`**: returns an **iterable** (e.g., list, generator).
-- **`async exec(item)`**: called **concurrently** for each item.
-- **`async post(shared, prep_res, exec_res_list)`**: after all items are processed, receives a **list** of results (`exec_res_list`) and returns an **Action**.
-
-#### Example: Parallel Summarize of a Large File
-
-```typescript
-class ParallelSummaries extends ParallelBatchNode {
-  async prep(shared: Record): Promise {
-    const content = shared.data
-    const chunkSize = 10000
-    const chunks: string[] = []
-
-    // Suppose we have a big file; chunk it!
-    for (let i = 0; i < content.length; i += chunkSize) {
-      chunks.push(content.slice(i, i + chunkSize))
-    }
-    return chunks
-  }
-
-  async exec(chunk: string): Promise<string> {
-    const prompt = `Summarize this chunk in 10 words: ${chunk}`
-    return await callLLM(prompt)
-  }
-
-  async post(shared: Record, prepRes: string[], execResList: string[]): Promise {
-    shared.summary = execResList.join('\n')
-  }
-}
-```
-
-## Flow-Level Batch Processing
-
-BrainyFlow also supports batch processing at the flow level, allowing you to run an entire flow multiple times with different parameters:
-
-### SequentialBatchFlow
-
-A `SequentialBatchFlow` runs a flow multiple times in sequence, with different `params` each time. Think of it as a loop that replays the Flow for each parameter set.
-
-{% hint style="info" %}
-**When to use**: Choose sequential processing when order matters or when working with APIs that have strict rate limits. See [Throttling](../guides/throttling.md) for managing rate limits.
-{% endhint %}
-
-#### Example: Summarize Many Files
-
-```typescript
-class SummarizeAllFiles extends SequentialBatchFlow {
-  async prep(shared: Record): Promise<Array<Record<string, string>>> {
-    const filenames = Object.keys(shared.data) // e.g., ["file1.txt", "file2.txt", ...]
-    return filenames.map((fn) => ({ filename: fn }))
-  }
-}
-
-const summarizeFile = new Flow(loadFile)
-
-// Create a batch flow that processes all files sequentially
-const summarizeAllFiles = new SummarizeAllFiles(summarizeFile)
-await summarizeAllFiles.run(shared)
-```
-
-#### Under the Hood
-
-1. `prep(shared)` returns a list of param dicts—e.g., `[{filename: "file1.txt"}, {filename: "file2.txt"}, ...]`.
-2. The **BatchFlow** loops through each dict. For each one:
-   - It merges the dict with the BatchFlow’s own `params`.
-   - It calls `flow.run(shared)` using the merged result.
-3. This means the sub-Flow is run **repeatedly**, once for every param dict.
-
-### ParallelBatchFlow
-
-A `ParallelBatchFlow` runs a flow multiple times concurrently, with different `params` each time:
-
-```typescript
-class SummarizeAllFiles extends ParallelBatchFlow {
-  async prep(shared: Record): Promise>> {
-    const filenames = Object.keys(shared.data)
-    return filenames.map(fn => ({ filename: fn }))
-  }
-}
-
-// Create a flow for processing a single file
-const summarizeFile = new Flow(loadFile)
-
-// Create a batch flow that processes all files in parallel
-const summarizeAllFiles = new ParallelBatchFlow(summarizeFile)
-await summarizeAllFiles.run(shared)
-```
-
-## Nested Batch Processing
-
-You can nest a **SequentialBatchFlow** or **ParallelBatchFlow** in another batch flow. For instance:
-
-- **Outer** batch: returns a list of diretory param dicts (e.g., `{"directory": "/pathA"}`, `{"directory": "/pathB"}`, ...).
-- **Inner** batch: returning a list of per-file param dicts.
-
-At each level, **BatchFlow** merges its own param dict with the parent’s. By the time you reach the **innermost** node, the final `params` is the merged result of **all** parents in the chain. This way, a nested structure can keep track of the entire context (e.g., directory + file name) at once.
-
-```typescript
-class FileBatchFlow extends SequentialBatchFlow {
-  async prep(shared: Record): Promise<Array<Record<string, string>>> {
-    const directory = this.params.directory
-    // In a real implementation, use fs.readdirSync or similar
-    const files = ['file1.txt', 'file2.txt']
-    return files.map((f) => ({ filename: f }))
-  }
-}
-
-class DirectoryBatchFlow extends SequentialBatchFlow {
-  async prep(shared: Record): Promise<Array<Record<string, string>>> {
-    const directories = ['/path/to/dirA', '/path/to/dirB']
-    return directories.map((d) => ({ directory: d }))
-  }
-}
-
-// MapSummaries have params like {"directory": "/path/to/dirA", "filename": "file1.txt"}
-const innerFlow = new FileBatchFlow(new MapSummaries())
-const outerFlow = new DirectoryBatchFlow(innerFlow)
-await outerFlow.run(shared)
-```
-
-In this nested batch example:
-
-1. The outer flow iterates through directories
-2. For each directory, the inner flow processes all files
-3. Parameters are merged, so the innermost node receives both directory and filename
 
 ## Best Practices
 
-1. **Choose the Right Type**: Use sequential processing when order matters or when managing rate limits; use parallel processing for independent operations
-2. **Manage Chunk Size**: Balance between too many small chunks (overhead) and too few large chunks (memory issues)
-3. **Error Handling**: Implement proper error handling to prevent one failure from stopping the entire batch
-4. **Progress Tracking**: Add logging or progress indicators for long-running batch operations
-5. **Resource Management**: Be mindful of memory usage, especially with large datasets
+- **Read in `prep()`**: Gather necessary input data from `memory` at the beginning of a node's execution.
+- **Write Global State in `post()`**: Update the shared global store by assigning to `memory` properties (e.g., `memory.results = ...`) in the `post()` phase after processing is complete.
+- **Set Local State via `forkingData`**: Pass branch-specific context to successors by providing the `forkingData` argument in `this.trigger()` within the parent's `post()` method. This populates the `local` store for the next node(s).
+- **Read Transparently**: Always read data via the `memory` proxy (e.g., `memory.someValue`). It handles the local-then-global lookup automatically. Avoid reading directly from `memory.local` or other internal properties unless strictly needed.
+
+## When to Use The Memory
+
+- **Ideal for**: Sharing data results, large content, or information needed by multiple components
+- **Benefits**: Separates data from computation logic (separation of concerns)
+- **Global Memory**: Use for application-wide state, configuration, and final results
+- **Local Memory**: Use for passing contextual data down a specific execution path
+
+## Technical Concepts
+
+The memory system in BrainyFlow implements several established computer science patterns:
+
+- **Lexical Scoping**: Local memory "shadows" global memory, similar to how local variables in functions can shadow global variables
+- **Context Propagation**: Local memory propagates down the execution tree, similar to how context flows in React or middleware systems
+- **Transparent Resolution**: The system automatically resolves properties from the appropriate memory scope
+
+## Remember
+
+1.  **Reading**: Always read via the `memory` proxy (e.g., `memory.value`). It checks local then global.
+2.  **Writing**: Direct assignment `memory.property = value` writes to the **global** store.
+3.  **Local State Creation**: Use `trigger(action, forkingData)` in `post()` to populate the `local` store for the _next_ node(s) in a specific branch.
+4.  **Lifecycle**: Read from `memory` in `prep`, compute in `exec` (no memory access), write global state to `memory` and trigger successors (potentially with `forkingData` for local state) in `post`.
 
 
 
@@ -1171,17 +1354,19 @@ Other examples include:
 
 Each pattern can be implemented using BrainyFlow's core abstractions. Here's a simple example of the agent pattern:
 
-```python
-# Define the agent's components
-perceive = PerceiveNode()
-think = ThinkNode()
-act = ActNode()
+```typescript
+import { Flow, Node } from 'brainyflow'
 
-# Connect them in a cycle
-perceive >> think >> act >> perceive
+// Define the agent's components (assuming these classes exist)
+const perceive = new PerceiveNode()
+const think = new ThinkNode()
+const act = new ActNode()
 
-# Create the agent flow
-agent_flow = Flow(start=perceive)
+// Connect them in a cycle
+perceive.next(think).next(act).next(perceive)
+
+// Create the agent flow
+const agentFlow = new Flow(perceive)
 ```
 
 For more detailed implementations of each pattern, see the individual pattern documentation pages.
@@ -1202,10 +1387,6 @@ By understanding and applying these design patterns, you can build sophisticated
 ================================================
 File: docs/design_pattern/agent.md
 ================================================
----
-title: 'Agent'
----
-
 # Agent
 
 Agent is a powerful design pattern in which nodes can take dynamic actions based on the context.
@@ -1275,28 +1456,39 @@ This agent:
 3. Answers when enough context gathered
 
 ````typescript
+import { Flow, Memory, Node } from 'brainyflow'
+
+// Assume callLLM and parseYaml are defined elsewhere
+declare function callLLM(prompt: string): Promise<string>
+declare function parseYaml(text: string): any
+
 class DecideAction extends Node {
-  async prep(shared: any): Promise<[string, string]> {
-    const context = shared.context || 'No previous search'
-    const query = shared.query
-    return [query, context]
+  async prep(memory: Memory): Promise<{ query: string; context: any }> {
+    // Read from memory
+    const context = memory.context ?? 'No previous search'
+    const query = memory.query
+    return { query, context }
   }
 
-  async exec(inputs: [string, string]): Promise<any> {
-    const [query, context] = inputs
+  async exec(prepRes: { query: string; context: any }): Promise<any> {
+    const { query, context } = prepRes
     const prompt = `
 Given input: ${query}
-Previous search results: ${context}
-Should I: 1) Search web for more info 2) Answer with current knowledge
+Previous search results: ${JSON.stringify(context)}
+Should I: 1) Search web for more info ('search') 2) Answer with current knowledge ('answer')
 Output in yaml:
 \`\`\`yaml
-action: search/answer
-reason: why this action  
-search_term: search phrase if action is search
+action: search | answer
+reason: <why this action>
+search_term: <search phrase if action is search>
 \`\`\``
-
     const resp = await callLLM(prompt)
-    const yamlStr = resp.split('```yaml')[1].split('```')[0].trim()
+    // Simplified parsing/validation for docs
+    const yamlStr = resp.split(/```(?:yaml)?/)[1]?.trim()
+    if (!yamlStr) {
+      throw new Error('Missing YAML response')
+    }
+
     const result = parseYaml(yamlStr)
 
     if (typeof result !== 'object' || !result) {
@@ -1318,72 +1510,104 @@ search_term: search phrase if action is search
     return result
   }
 
-  async post(shared: any, prepRes: any, execRes: any): Promise<string> {
-    if (execRes.action === 'search') {
-      shared.search_term = execRes.search_term
+  async post(memory: Memory, prepRes: any, execRes: any): Promise<void> {
+    // Write search term if needed
+    if (execRes.action === 'search' && execRes.search_term) {
+      memory.search_term = execRes.search_term
     }
-    return execRes.action
+    // Trigger the decided action
+    this.trigger(execRes.action)
   }
 }
 ````
 
 ```typescript
+import { Memory, Node } from 'brainyflow'
+
+declare function searchWeb(query: string): Promise<any> // Assume `searchWeb` is defined elsewhere
+
 class SearchWeb extends Node {
-  async prep(shared: any): Promise<string> {
-    return shared.search_term
+  async prep(memory: Memory): Promise<string> {
+    // Read search term from memory
+    return memory.search_term
   }
 
   async exec(searchTerm: string): Promise<any> {
     return await searchWeb(searchTerm)
   }
 
-  async post(shared: any, prepRes: any, execRes: any): Promise<string> {
-    const prevSearches = shared.context || []
-    shared.context = [...prevSearches, { term: shared.search_term, result: execRes }]
-    return 'decide'
+  async post(memory: Memory, prepRes: string, execRes: any): Promise<void> {
+    // Add search result to context (simplified)
+    const prevContext = memory.context ?? []
+    memory.context = [...prevContext, { term: prepRes, result: execRes }]
+    // Trigger loop back to decide
+    this.trigger('decide')
   }
 }
 ```
 
 ```typescript
+import { Memory, Node } from 'brainyflow'
+
+declare function callLLM(prompt: string): Promise<string> // Assuming callLLM is defined elsewhere
+
 class DirectAnswer extends Node {
-  async prep(shared: any): Promise<[string, string]> {
-    return [shared.query, shared.context || '']
+  async prep(memory: Memory): Promise<{ query: string; context: any }> {
+    // Read query and context
+    return { query: memory.query, context: memory.context ?? 'No context' }
   }
 
-  async exec(inputs: [string, string]): Promise<string> {
-    const [query, context] = inputs
-    return await callLLM(`Context: ${context}\nAnswer: ${query}`)
+  async exec(prepRes: { query: string; context: any }): Promise<string> {
+    // Generate answer based on context
+    const prompt = `Context: ${JSON.stringify(prepRes.context)}\nAnswer Query: ${prepRes.query}`
+    return await callLLM(prompt)
   }
 
-  async post(shared: any, prepRes: any, execRes: string): Promise<void> {
+  async post(memory: Memory, prepRes: any, execRes: string): Promise<void> {
+    // Store final answer
+    memory.answer = execRes
     console.log(`Answer: ${execRes}`)
-    shared.answer = execRes
+    // No trigger needed - end of this path
   }
 }
 ```
 
 ```typescript
-// Connect nodes
+import { Flow } from 'brainyflow'
+
+// Assuming DecideAction, SearchWeb, DirectAnswer classes are defined
+
+// Instantiate nodes
 const decide = new DecideAction()
 const search = new SearchWeb()
 const answer = new DirectAnswer()
 
-// Using operator overloading equivalents
+// Define transitions
 decide.on('search', search)
 decide.on('answer', answer)
 search.on('decide', decide) // Loop back
 
-const flow = new Flow(decide)
+// Create the flow
+const agentFlow = new Flow(decide)
 
-async function main() {
-  const sharedData = { query: 'Who won the Nobel Prize in Physics 2024?' }
-  const result = await flow.run(sharedData) // Added await
-  console.log(result) // Or handle result as needed
-  console.log(sharedData) // See final shared state
+// --- Main execution function ---
+async function runAgent() {
+  const initialMemory = { query: 'Who won the Nobel Prize in Physics 2024?' }
+  console.log(`Starting agent flow with query: "${initialMemory.query}"`)
+
+  try {
+    await agentFlow.run(initialMemory) // Run the flow with memory object
+    console.log('\n--- Flow Complete ---')
+    console.log('Final Memory State:', initialMemory) // Log final memory state
+    console.log('\nFinal Answer:', initialMemory.answer ?? 'No answer found')
+  } catch (error) {
+    console.error('\n--- Agent Flow Failed ---', error)
+    console.error('Memory State on Failure:', initialMemory) // Log memory state on failure
+  }
 }
 
-main().catch(console.error) // Execute async main function
+// Run the main function
+runAgent()
 ```
 
 
@@ -1392,10 +1616,6 @@ main().catch(console.error) // Execute async main function
 ================================================
 File: docs/design_pattern/workflow.md
 ================================================
----
-title: 'Workflow'
----
-
 # Workflow
 
 Many real-world tasks are too complex for one LLM call. The solution is **Task Decomposition**: decompose them into a [chain](../core_abstraction/flow.md) of multiple Nodes.
@@ -1414,59 +1634,78 @@ You usually need multiple _iterations_ to find the _sweet spot_. If the task has
 ### Example: Article Writing
 
 ```typescript
+import { Flow, Memory, Node } from 'brainyflow'
+
+// Assuming callLLM is defined elsewhere
+declare function callLLM(prompt: string): Promise<string>
+
 class GenerateOutline extends Node {
-  async prep(shared: any): Promise<any> {
-    return shared['topic']
+  async prep(memory: Memory): Promise<string> {
+    return memory.topic // Read topic from memory
   }
-  async exec(topic: string): Promise<any> {
+  async exec(topic: string): Promise<string> {
+    console.log(`Generating outline for: ${topic}`)
     return await callLLM(`Create a detailed outline for an article about ${topic}`)
   }
-  async post(shared: any, prepRes: any, execRes: any): Promise<void> {
-    shared['outline'] = execRes
+  async post(memory: Memory, prepRes: any, outline: string): Promise<void> {
+    memory.outline = outline // Store outline in memory
+    this.trigger('default')
   }
 }
 
 class WriteSection extends Node {
-  async prep(shared: any): Promise<any> {
-    return shared['outline']
+  async prep(memory: Memory): Promise<string> {
+    return memory.outline // Read outline from memory
   }
-  async exec(outline: string): Promise<any> {
+  async exec(outline: string): Promise<string> {
+    console.log('Writing draft based on outline...')
     return await callLLM(`Write content based on this outline: ${outline}`)
   }
-  async post(shared: any, prepRes: any, execRes: any): Promise<void> {
-    shared['draft'] = execRes
+  async post(memory: Memory, prepRes: any, draft: string): Promise<void> {
+    memory.draft = draft // Store draft in memory
+    this.trigger('default')
   }
 }
 
 class ReviewAndRefine extends Node {
-  async prep(shared: any): Promise<any> {
-    return shared['draft']
+  async prep(memory: Memory): Promise<string> {
+    return memory.draft // Read draft from memory
   }
-  async exec(draft: string): Promise<any> {
+  async exec(draft: string): Promise<string> {
+    console.log('Reviewing and refining draft...')
     return await callLLM(`Review and improve this draft: ${draft}`)
   }
-  async post(shared: any, prepRes: any, execRes: any): Promise<void> {
-    shared['final_article'] = execRes
+  async post(memory: Memory, draft: any, finalArticle: string): Promise<void> {
+    memory.final_article = finalArticle // Store final article
+    console.log('Final article generated.')
+    // No trigger needed - end of workflow
   }
 }
 
-// Connect nodes
+// --- Flow Definition ---
 const outline = new GenerateOutline()
 const write = new WriteSection()
 const review = new ReviewAndRefine()
 
+// Connect nodes sequentially using default trigger
 outline.next(write).next(review)
 
-// Create and run flow
+// Create the flow
 const writingFlow = new Flow(outline)
 
+// --- Execution ---
 async function main() {
-  const shared = { topic: 'AI Safety' }
-  await writingFlow.run(shared)
-  console.log(`Final Article: ${shared['final_article'] || 'Not generated'}`)
+  const data = { topic: 'AI Safety' }
+  console.log(`Starting writing workflow for topic: "${data.topic}"`)
+
+  await writingFlow.run(data) // Run the flow
+
+  console.log('\n--- Workflow Complete ---')
+  console.log('Final Memory State:', data)
+  console.log(`\nFinal Article:\n${data.final_article ?? 'Not generated'}`)
 }
 
-main().catch(console.error) // Execute async main function
+main().catch(console.error)
 ```
 
 For _dynamic cases_, consider using [Agents](./agent.md).
@@ -1477,10 +1716,6 @@ For _dynamic cases_, consider using [Agents](./agent.md).
 ================================================
 File: docs/design_pattern/rag.md
 ================================================
----
-title: 'RAG'
----
-
 # RAG (Retrieval Augmented Generation)
 
 For certain LLM tasks like answering questions, providing relevant context is essential. One common architecture is a **two-stage** RAG pipeline:
@@ -1503,91 +1738,157 @@ We create three Nodes:
 3. `StoreIndex` – stores embeddings into a [vector database](../utility_function/vector.md).
 
 ```typescript
-class ChunkDocs extends SequentialBatchNode {
-  async prep(shared: any): Promise<string[]> {
-    // A list of file paths in shared["files"]. We process each file.
-    return shared['files']
-  }
+import * as fs from 'fs'
+import { Flow, Memory, Node, ParallelFlow } from 'brainyflow'
 
-  async exec(filepath: string): Promise<string[]> {
-    // read file content. In real usage, do error handling.
-    const text = fs.readFileSync(filepath, 'utf-8')
-    // chunk by 100 chars each
+// Assume getEmbedding and createIndex/searchIndex are defined elsewhere
+declare function getEmbedding(text: string): Promise<number[]>
+declare function createIndex(embeddings: number[][]): any // Returns index object
+declare function searchIndex(
+  index: any,
+  queryEmbedding: number[],
+  topK: number,
+): [number[][], number[][]] // Returns [[ids]], [[distances]]
+
+// --- Stage 1: Offline Indexing Nodes ---
+
+// 1a. Node to trigger chunking for each file
+class TriggerChunkingNode extends Node {
+  async prep(memory: Memory): Promise<string[]> {
+    return memory.files ?? [] // Expects memory.files = ['doc1.txt', ...]
+  }
+  async exec(files: string[]): Promise<number> {
+    return files.length
+  }
+  async post(memory: Memory, prepRes: string[], fileCount: number): Promise<void> {
+    console.log(`Triggering chunking for ${fileCount} files.`)
+    memory.all_chunks = [] // Initialize chunk store
+    ;(prepRes as string[]).forEach((filepath, index) => {
+      this.trigger('chunk_file', { filepath, index }) // Pass filepath via local memory
+    })
+    this.trigger('embed_chunks') // Trigger embedding after all files are processed
+  }
+}
+
+// 1b. Node to chunk a single file
+class ChunkFileNode extends Node {
+  async prep(memory: Memory): Promise<{ filepath: string; index: number }> {
+    return { filepath: memory.filepath, index: memory.index } // Read from local memory
+  }
+  async exec(prepRes: { filepath: string; index: number }): Promise<string[]> {
+    console.log(`Chunking ${prepRes.filepath}`)
+    const text = fs.readFileSync(prepRes.filepath, 'utf-8')
     const chunks: string[] = []
-    const size = 100
+    const size = 100 // Simple fixed-size chunking
     for (let i = 0; i < text.length; i += size) {
       chunks.push(text.slice(i, i + size))
     }
     return chunks
   }
+  async post(memory: Memory, prepRes: { index: number }, chunks: string[]): Promise<void> {
+    // Add chunks to the global list (careful with concurrency if using ParallelFlow)
+    // A safer parallel approach might store chunks per file then combine later.
+    memory.all_chunks.push(...chunks)
+  }
+}
 
-  async post(shared: any, prepRes: string[], execResList: string[][]): Promise<void> {
-    // execResList is a list of chunk-lists, one per file.
-    // flatten them all into a single list of chunks.
-    const allChunks: string[] = []
-    for (const chunkList of execResList) {
-      allChunks.push(...chunkList)
-    }
-    shared['all_chunks'] = allChunks
+// 1c. Node to trigger embedding for each chunk
+class TriggerEmbeddingNode extends Node {
+  async prep(memory: Memory): Promise<string[]> {
+    return memory.all_chunks ?? []
+  }
+  async exec(chunks: string[]): Promise<number> {
+    return chunks.length
+  }
+  async post(memory: Memory, prepRes: string[], chunkCount: number): Promise<void> {
+    console.log(`Triggering embedding for ${chunkCount} chunks.`)
+    memory.all_embeds = [] // Initialize embedding store
+    ;(prepRes as string[]).forEach((chunk, index) => {
+      this.trigger('embed_chunk', { chunk, index })
+    })
+    this.trigger('store_index') // Trigger storing after all chunks processed
+  }
+}
+
+// 1d. Node to embed a single chunk
+class EmbedChunkNode extends Node {
+  async prep(memory: Memory): Promise<{ chunk: string; index: number }> {
+    return { chunk: memory.chunk, index: memory.index } // Read from local memory
+  }
+  async exec(prepRes: { chunk: string; index: number }): Promise<number[]> {
+    console.log(`Embedding chunk ${prepRes.index}`)
+    return await getEmbedding(prepRes.chunk)
+  }
+  async post(memory: Memory, prepRes: { index: number }, embedding: number[]): Promise<void> {
+    // Store embedding in global list (careful with concurrency)
+    memory.all_embeds[prepRes.index] = embedding
   }
 }
 ```
 
 ```typescript
-class EmbedDocs extends SequentialBatchNode {
-  async prep(shared: any): Promise<string[]> {
-    return shared['all_chunks']
-  }
-
-  async exec(chunk: string): Promise<number[]> {
-    return await getEmbedding(chunk)
-  }
-
-  async post(shared: any, prepRes: string[], execResList: number[][]): Promise<void> {
-    // Store the list of embeddings.
-    shared['all_embeds'] = execResList
-    console.log(`Total embeddings: ${execResList.length}`)
-  }
-}
-```
-
-```typescript
-class StoreIndex extends Node {
-  async prep(shared: any): Promise<number[][]> {
-    // We'll read all embeds from shared.
-    return shared['all_embeds']
+// 1e. Node to store the final index
+class StoreIndexNode extends Node {
+  async prep(memory: Memory): Promise<number[][]> {
+    // Read all embeddings from global memory
+    return memory.all_embeds ?? []
   }
 
   async exec(allEmbeds: number[][]): Promise<any> {
-    // Create a vector index (faiss or other DB in real usage).
+    console.log(`Storing index for ${allEmbeds.length} embeddings.`)
+    // Create a vector index (implementation depends on library)
     const index = createIndex(allEmbeds)
     return index
   }
 
-  async post(shared: any, prepRes: number[][], index: any): Promise<void> {
-    shared['index'] = index
+  async post(memory: Memory, prepRes: any, index: any): Promise<void> {
+    // Store the created index in global memory
+    memory.index = index
+    console.log('Index created and stored.')
   }
 }
 ```
 
 ```typescript
-// Wire them in sequence
-const chunkNode = new ChunkDocs()
-const embedNode = new EmbedDocs()
-const storeNode = new StoreIndex()
+// --- Offline Flow Definition ---
+const triggerChunking = new TriggerChunkingNode()
+const chunkFile = new ChunkFileNode()
+const triggerEmbedding = new TriggerEmbeddingNode()
+const embedChunk = new EmbedChunkNode()
+const storeIndex = new StoreIndexNode()
 
-chunkNode.next(embedNode).next(storeNode)
+// Define transitions
+triggerChunking.on('chunk_file', chunkFile)
+triggerChunking.on('embed_chunks', triggerEmbedding)
+triggerEmbedding.on('embed_chunk', embedChunk)
+triggerEmbedding.on('store_index', storeIndex)
 
-const OfflineFlow = new Flow(chunkNode)
+// Use ParallelFlow for chunking and embedding if desired
+const OfflineFlow = new ParallelFlow(triggerChunking)
+// Or sequential: const OfflineFlow = new Flow(triggerChunking);
 ```
 
 Usage example:
 
 ```typescript
-const shared = {
-  files: ['doc1.txt', 'doc2.txt'], // any text files
+// --- Offline Flow Execution ---
+async function runOffline() {
+  const initialMemory = {
+    files: ['doc1.txt', 'doc2.txt'], // Example file paths
+  }
+  console.log('Starting offline indexing flow...')
+  // Create dummy files for example
+  fs.writeFileSync('doc1.txt', 'Alice was beginning to get very tired.')
+  fs.writeFileSync('doc2.txt', 'The quick brown fox jumps over the lazy dog.')
+
+  await OfflineFlow.run(initialMemory)
+  console.log('Offline indexing complete.')
+  // Clean up dummy files
+  fs.unlinkSync('doc1.txt')
+  fs.unlinkSync('doc2.txt')
+  return initialMemory // Return memory containing index, chunks, embeds
 }
-await OfflineFlow.run(shared)
+// runOffline(); // Example call
 ```
 
 ---
@@ -1601,96 +1902,121 @@ We have 3 nodes:
 3. `GenerateAnswer` – calls the LLM with the question + chunk to produce the final answer.
 
 ```typescript
-class EmbedQuery extends Node {
-  async prep(shared: any): Promise<string> {
-    return shared['question']
-  }
+// --- Stage 2: Online Query Nodes ---
 
+// 2a. Embed Query Node
+class EmbedQueryNode extends Node {
+  async prep(memory: Memory): Promise<string> {
+    return memory.question // Expects question in global memory
+  }
   async exec(question: string): Promise<number[]> {
+    console.log(`Embedding query: "${question}"`)
     return await getEmbedding(question)
   }
-
-  async post(shared: any, prepRes: string, qEmb: number[]): Promise<void> {
-    shared['q_emb'] = qEmb
+  async post(memory: Memory, prepRes: any, qEmb: number[]): Promise<void> {
+    memory.q_emb = qEmb // Store query embedding
+    this.trigger('retrieve_docs')
   }
 }
 ```
 
 ```typescript
-class RetrieveDocs extends Node {
-  async prep(shared: any): Promise<[number[], any, string[]]> {
-    // We'll need the query embedding, plus the offline index/chunks
-    return [shared['q_emb'], shared['index'], shared['all_chunks']]
+// 2b. Retrieve Docs Node
+class RetrieveDocsNode extends Node {
+  async prep(memory: Memory): Promise<{ qEmb: number[]; index: any; chunks: string[] }> {
+    // Need query embedding, index, and original chunks
+    return { qEmb: memory.q_emb, index: memory.index, chunks: memory.all_chunks }
   }
-
-  async exec(inputs: [number[], any, string[]]): Promise<string> {
-    const [qEmb, index, chunks] = inputs
-    const [I, D] = searchIndex(index, qEmb, 1)
-    const bestId = I[0][0]
+  async exec(prepRes: { qEmb: number[]; index: any; chunks: string[] }): Promise<string> {
+    const { qEmb, index, chunks } = prepRes
+    if (!qEmb || !index || !chunks) {
+      throw new Error('Missing data for retrieval')
+    }
+    console.log('Retrieving relevant chunk...')
+    const [I, D] = searchIndex(index, qEmb, 1) // Find top 1 chunk
+    const bestId = I?.[0]?.[0]
+    if (bestId === undefined || bestId >= chunks.length) {
+      return 'Could not find relevant chunk.'
+    }
     const relevantChunk = chunks[bestId]
     return relevantChunk
   }
-
-  async post(
-    shared: any,
-    prepRes: [number[], any, string[]],
-    relevantChunk: string,
-  ): Promise<void> {
-    shared['retrieved_chunk'] = relevantChunk
+  async post(memory: Memory, prepRes: any, relevantChunk: string): Promise<void> {
+    memory.retrieved_chunk = relevantChunk
     console.log(`Retrieved chunk: ${relevantChunk.slice(0, 60)}...`)
+    this.trigger('generate_answer')
   }
 }
 ```
 
 ```typescript
-class GenerateAnswer extends Node {
-  async prep(shared: any): Promise<[string, string]> {
-    return [shared['question'], shared['retrieved_chunk']]
+// 2c. Generate Answer Node
+class GenerateAnswerNode extends Node {
+  async prep(memory: Memory): Promise<{ question: string; chunk: string }> {
+    return { question: memory.question, chunk: memory.retrieved_chunk }
   }
-
-  async exec(inputs: [string, string]): Promise<string> {
-    const [question, chunk] = inputs
-    const prompt = `Question: ${question}\nContext: ${chunk}\nAnswer:`
+  async exec(prepRes: { question: string; chunk: string }): Promise<string> {
+    const { question, chunk } = prepRes
+    const prompt = `Using the following context, answer the question.
+Context: ${chunk}
+Question: ${question}
+Answer:`
+    console.log('Generating final answer...')
     return await callLLM(prompt)
   }
-
-  async post(shared: any, prepRes: [string, string], answer: string): Promise<void> {
-    shared['answer'] = answer
+  async post(memory: Memory, prepRes: any, answer: string): Promise<void> {
+    memory.answer = answer // Store final answer
     console.log(`Answer: ${answer}`)
+    // End of flow
   }
 }
 ```
 
 ```typescript
-const embedQNode = new EmbedQuery()
-const retrieveNode = new RetrieveDocs()
-const generateNode = new GenerateAnswer()
+// --- Online Flow Definition ---
+const embedQueryNode = new EmbedQueryNode()
+const retrieveDocsNode = new RetrieveDocsNode()
+const generateAnswerNode = new GenerateAnswerNode()
 
-embedQNode.next(retrieveNode).next(generateNode)
-const OnlineFlow = new Flow(embedQNode)
+// Define transitions
+embedQueryNode.on('retrieve_docs', retrieveDocsNode)
+retrieveDocsNode.on('generate_answer', generateAnswerNode)
+
+const OnlineFlow = new Flow(embedQueryNode)
 ```
 
 Usage example:
 
 ```typescript
-async function runOnline(sharedFromOffline: any): Promise<any> {
-  // Suppose we already ran OfflineFlow (runOffline) and have:
-  // sharedFromOffline["all_chunks"], sharedFromOffline["index"], etc.
-  sharedFromOffline['question'] = 'Why do people like cats?'
+// --- Online Flow Execution ---
+async function runOnline(memoryFromOffline: any) {
+  // Add the user's question to the memory from the offline stage
+  memoryFromOffline.question = 'Why do people like cats?'
 
-  await OnlineFlow.run(sharedFromOffline)
-  // final answer in sharedFromOffline["answer"]
-  console.log(`Final Answer: ${sharedFromOffline['answer']}`)
-  return sharedFromOffline
+  console.log(`\nStarting online RAG flow for question: "${memoryFromOffline.question}"`)
+  await OnlineFlow.run(memoryFromOffline)
+  console.log('Online RAG complete.')
+  return memoryFromOffline
 }
 
-// Example usage combining both stages
-async function main() {
-  const offlineShared = await runOffline()
-  await runOnline(offlineShared)
+// --- Combined Example ---
+async function runFullRAG() {
+  // Mock external functions for example
+  globalThis.getEmbedding = async (text: string) => Array(5).fill(Math.random())
+  globalThis.createIndex = (embeds: number[][]) => ({
+    search: (q: number[], k: number) => [[Math.floor(Math.random() * embeds.length)]],
+  }) // Mock index
+  globalThis.searchIndex = (index: any, q: number[], k: number) => index.search(q, k)
+  globalThis.callLLM = async (prompt: string) => `Mock LLM answer for: ${prompt.split('\n')[1]}`
+
+  const memoryAfterOffline = await runOffline()
+  const finalMemory = await runOnline(memoryAfterOffline)
+
+  console.log('\n--- Full RAG Result ---')
+  console.log('Final Answer:', finalMemory.answer)
 }
 
-main().catch(console.error) // Execute async main function
+runFullRAG().catch(console.error)
 ```
 
 
@@ -1699,83 +2025,141 @@ main().catch(console.error) // Execute async main function
 ================================================
 File: docs/design_pattern/mapreduce.md
 ================================================
----
-title: 'Map Reduce'
----
-
 # Map Reduce
 
-MapReduce is a design pattern suitable when you have either:
-
-- Large input data (e.g., multiple files to process), or
-- Large output data (e.g., multiple forms to fill)
-
-and there is a logical way to break the task into smaller, ideally independent parts.
+MapReduce is a design pattern suitable when you need to process multiple pieces of data (e.g., files, records) independently and then combine the results.
 
 <div align="center">
   <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/mapreduce.png?raw=true" width="400"/>
 </div>
 
-You first break down the task using [BatchNode](../core_abstraction/batch.md) in the map phase, followed by aggregation in the reduce phase.
+In BrainyFlow, this pattern is typically implemented using:
+
+1.  **Map Phase:** A "Mapper" node triggers multiple instances of a "Processor" node, one for each piece of data. It uses `trigger` with `forkingData` to pass the specific data item to each processor via its local memory. Using `ParallelFlow` here allows processors to run concurrently.
+2.  **Reduce Phase:** A "Reducer" node runs after the map phase. It reads the individual results (accumulated in the global memory by the processor nodes) and aggregates them into a final output.
 
 ### Example: Document Summarization
 
 ```typescript
-class SummarizeAllFiles extends SequentialBatchNode {
-  async prep(shared: any): Promise<[string, string][]> {
-    const filesDict = shared.files // e.g. 10 files
-    return Object.entries(filesDict) // [["file1.txt", "aaa..."], ["file2.txt", "bbb..."], ...]
+import { Flow, Memory, Node, ParallelFlow } from 'brainyflow'
+
+// Assume callLLM is defined elsewhere
+declare function callLLM(prompt: string): Promise<string>
+
+// 1. Mapper Node: Triggers processing for each file
+class TriggerSummariesNode extends Node {
+  async prep(memory: Memory): Promise<[string, string][]> {
+    // Get file data from global memory
+    const filesDict = memory.files ?? {}
+    return Object.entries(filesDict) // [["file1.txt", "content1"], ...]
   }
 
-  async exec(oneFile: [string, string]): Promise<[string, string]> {
-    const [filename, fileContent] = oneFile
-    const summaryText = await callLLM(`Summarize the following file:\n${fileContent}`)
-    return [filename, summaryText]
+  async exec(files: [string, string][]): Promise<number> {
+    // No main computation needed here, just return the count for info
+    return files.length
   }
 
-  async post(shared: any, prepRes: any, execResList: [string, string][]): Promise<void> {
-    shared.file_summaries = Object.fromEntries(execResList)
+  async post(memory: Memory, filesToProcess: [string, string][], fileCount: number): Promise<void> {
+    console.log(`Mapper: Triggering summary for ${fileCount} files.`)
+    // Initialize results array and counter in global memory
+    // Note: Using an array might still have race conditions if indices aren't guaranteed
+    // in ParallelFlow. An object map { index: summary } might be safer.
+    memory.file_summaries = new Array(fileCount).fill(null)
+    memory.remaining_summaries = fileCount // Add counter
+    // Trigger a 'summarize_file' action for each file
+    filesToProcess.forEach(([filename, content], index) => {
+      this.trigger('summarize_file', { filename, content, index })
+    })
+    // NOTE: 'combine_summaries' is now triggered by SummarizeFileNode when the counter reaches zero.
   }
 }
 
-class CombineSummaries extends Node {
-  async prep(shared: any): Promise<Record<string, string>> {
-    return shared.file_summaries
+// 2. Processor Node: Summarizes a single file
+class SummarizeFileNode extends Node {
+  async prep(memory: Memory): Promise<{ filename: string; content: string; index: number }> {
+    // Read specific file data from local memory (passed via forkingData)
+    return { filename: memory.filename, content: memory.content, index: memory.index }
   }
 
-  async exec(fileSummaries: Record<string, string>): Promise<string> {
-    // format as: "File1: summary\nFile2: summary...\n"
-    const textList: string[] = []
-    for (const [fname, summ] of Object.entries(fileSummaries)) {
-      textList.push(`${fname} summary:\n${summ}\n`)
+  async exec(fileData: { filename: string; content: string; index: number }): Promise<string> {
+    // Summarize the content
+    console.log(`Processor: Summarizing ${fileData.filename} (Index ${fileData.index})`)
+    return await callLLM(`Summarize this:\n${fileData.content}`)
+  }
+
+  async post(
+    memory: Memory,
+    prepRes: { index: number; filename: string },
+    summary: string,
+  ): Promise<void> {
+    // Store individual summary in global memory at the correct index
+    // Note: Direct array index assignment might cause issues with ParallelFlow if order matters
+    // A safer approach might be to push {filename, summary} and sort later, or use an object.
+    memory.file_summaries[prepRes.index] = { filename: prepRes.filename, summary }
+    console.log(`Processor: Finished ${prepRes.filename} (Index ${prepRes.index})`)
+    // Decrement counter and trigger combine if this is the last summary
+    memory.remaining_summaries--
+    if (memory.remaining_summaries === 0) {
+      console.log('Processor: All summaries collected, triggering combine.')
+      this.trigger('combine_summaries')
     }
-    const bigText = textList.join('\n---\n')
-
-    return await callLLM(`Combine these file summaries into one final summary:\n${bigText}`)
-  }
-
-  async post(shared: any, prepRes: any, finalSummary: string): Promise<void> {
-    shared.all_files_summary = finalSummary
   }
 }
 
-const batchNode = new SummarizeAllFiles()
-const combineNode = new CombineSummaries()
-batchNode.next(combineNode)
+// 3. Reducer Node: Combines individual summaries
+class CombineSummariesNode extends Node {
+  async prep(memory: Memory): Promise<any[]> {
+    // Read the array of individual summaries
+    return memory.file_summaries ?? []
+  }
 
-const flow = new Flow(batchNode)
+  async exec(summaries: { filename: string; summary: string }[]): Promise<string> {
+    console.log(`Reducer: Combining ${summaries.length} summaries.`)
+    if (!summaries || summaries.length === 0) {
+      return 'No summaries to combine.'
+    }
+    // Format summaries for the final prompt
+    const combinedText = summaries.map((s) => `${s.filename}:\n${s.summary}`).join('\n\n---\n\n')
+    return await callLLM(`Combine these summaries into one final summary:\n${combinedText}`)
+  }
 
+  async post(memory: Memory, prepRes: any, finalSummary: string): Promise<void> {
+    // Store the final combined summary
+    memory.final_summary = finalSummary
+    console.log('Reducer: Final summary generated.')
+  }
+}
+
+// --- Flow Definition ---
+const triggerNode = new TriggerSummariesNode()
+const processorNode = new SummarizeFileNode()
+const reducerNode = new CombineSummariesNode()
+
+// Define transitions
+triggerNode.on('summarize_file', processorNode) // Map step
+triggerNode.on('combine_summaries', reducerNode) // Reduce step (runs after all triggers are processed by the flow runner)
+
+// Use ParallelFlow for potentially faster summarization
+const mapReduceFlow = new ParallelFlow(triggerNode)
+// Alternatively, if strict sequential processing is acceptable or required (e.g., to avoid
+// the complexity of the counter mechanism), you can use a standard Flow:
+// const mapReduceFlow = new Flow(triggerNode);
+// This ensures the 'combine_summaries' step (triggered by the last processor)
+// only runs after all 'summarize_file' steps are complete.
+
+// --- Execution ---
 async function main() {
-  const shared = {
+  const memory = {
     files: {
       'file1.txt': 'Alice was beginning to get very tired of sitting by her sister...',
-      'file2.txt': 'Some other interesting text ...',
-      // ...
+      'file2.txt': 'The quick brown fox jumps over the lazy dog.',
+      'file3.txt': 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
     },
   }
-  await flow.run(shared)
-  console.log('Individual Summaries:', shared.file_summaries)
-  console.log('\nFinal Summary:\n', shared.all_files_summary)
+  await mapReduceFlow.run(memory)
+  console.log('\n--- MapReduce Complete ---')
+  console.log('Individual Summaries:', memory.file_summaries)
+  console.log('\nFinal Summary:\n', memory.final_summary)
 }
 
 main().catch(console.error)
@@ -1787,10 +2171,6 @@ main().catch(console.error)
 ================================================
 File: docs/design_pattern/structure.md
 ================================================
----
-title: 'Structured Output'
----
-
 # Structured Output
 
 In many use cases, you may want the LLM to output a specific structure, such as a list or a dictionary with predefined keys.
@@ -1844,15 +2224,27 @@ When prompting the LLM to produce **structured** output:
 ### Example Text Summarization
 
 ````typescript
+import { Memory, Node } from 'brainyflow'
+
+// Assuming callLLM and a YAML parser are available
+declare function callLLM(prompt: string): Promise<string>
+declare function parseYaml(text: string): any
+
 class SummarizeNode extends Node {
-  async exec(prepRes: string): Promise<any> {
-    // Suppose prepRes is the text to summarize
+  async prep(memory: Memory): Promise<string> {
+    // Assuming the text to summarize is in memory.text
+    return memory.text ?? ''
+  }
+
+  async exec(textToSummarize: string): Promise<any> {
+    if (!textToSummarize) return { summary: ['No text provided'] }
+
     const prompt = `
-Please summarize the following text as YAML, with exactly 3 bullet points
+Please summarize the following text as YAML, with exactly 3 bullet points:
 
-${prepRes}
+${textToSummarize}
 
-Now, output:
+Now, output ONLY the YAML structure:
 \`\`\`yaml
 summary:
   - bullet 1
@@ -1861,19 +2253,31 @@ summary:
 \`\`\``
 
     const response = await callLLM(prompt)
-    const yamlStr = response.split('```yaml')[1].split('```')[0].trim()
+    let structuredResult: any
+    try {
+      const yamlStr = response.split(/```(?:yaml)?/)[1]?.trim()
+      if (!yamlStr) throw new Error('No YAML block found')
+      structuredResult = parseYaml(yamlStr)
 
-    // In TypeScript we would typically use a YAML parser like 'yaml'
-    const structuredResult = require('yaml').parse(yamlStr)
-
-    if (!('summary' in structuredResult)) {
-      throw new Error("Missing 'summary' in result")
+      // Basic validation
+      if (!structuredResult?.summary || !Array.isArray(structuredResult.summary)) {
+        throw new Error('Invalid YAML structure: missing or non-array summary')
+      }
+    } catch (e: any) {
+      console.error('Failed to parse structured output:', e.message)
+      // Handle error, maybe return a default structure or re-throw
+      // Returning the raw response might be an option too
+      return { summary: [`Error parsing summary: ${e.message}`] }
     }
-    if (!Array.isArray(structuredResult.summary)) {
-      throw new Error('Summary must be an array')
-    }
 
-    return structuredResult
+    return structuredResult // e.g., { summary: ['Point 1', 'Point 2', 'Point 3'] }
+  }
+
+  async post(memory: Memory, prepRes: any, execRes: any): Promise<void> {
+    // Store the structured result in memory
+    memory.structured_summary = execRes
+    console.log('Stored structured summary:', execRes)
+    // No trigger needed if this is the end of the flow/branch
   }
 }
 ````
@@ -1915,36 +2319,53 @@ dialogue: |
 ================================================
 File: docs/design_pattern/multi_agent.md
 ================================================
-# Multi-Agents (Advanced)
+# Multi-Agent Systems Pattern
 
-Multiple [Agents](./flow.md) can work together by handling subtasks and communicating the progress.
-Communication between agents is typically implemented using message queues in shared storage.
+The multi-agent pattern enables complex behaviors by coordinating multiple specialized agents. Each agent focuses on a specific capability while communicating through shared memory and queues.
 
 {% hint style="success" %}
 Most of time, you don't need Multi-Agents. Start with a simple solution first.
 {% endhint %}
 
-### Example Agent Communication: Message Queue
+## Example: Agent Communication through Message Queue
 
 Here's a simple example showing how to implement agent communication using `asyncio.Queue`.
 The agent listens for messages, processes them, and continues listening:
 
 ```typescript
+import { Flow, Memory, Node } from 'brainyflow'
+
+// Agent node that processes messages from a queue
 class AgentNode extends Node {
-  async prep(_: any): Promise<string> {
-    const messageQueue = this.params.messages as AsyncQueue<string>
-    const message = await messageQueue.get()
+  // We'll store the queue in global memory for simplicity here,
+  // though in real apps, dependency injection might be better.
+  async prep(memory: Memory): Promise<string> {
+    const messageQueue = memory.messageQueue as AsyncQueue<string>
+    if (!messageQueue) throw new Error('Message queue not found in memory')
+
+    const message = await messageQueue.get() // Wait for a message
     console.log(`Agent received: ${message}`)
-    return message
+    return message // Pass message to exec (optional)
+  }
+
+  async exec(message: string): Promise<void> {
+    // Process the message (optional)
+    // console.log(`Agent processing: ${message}`);
+  }
+
+  async post(memory: Memory): Promise<void> {
+    // Trigger self to listen for the next message
+    this.trigger('continue')
   }
 }
 
-// Create node and flow
+// --- Flow Setup ---
 const agent = new AgentNode()
-agent.next(agent) // connect to self
-const flow = new Flow(agent)
+agent.on('continue', agent) // Loop back to self
 
-// Create heartbeat sender
+const agentFlow = new Flow(agent)
+
+// --- Message Sender ---
 async function sendSystemMessages(messageQueue: AsyncQueue<string>) {
   let counter = 0
   const messages = [
@@ -1955,20 +2376,24 @@ async function sendSystemMessages(messageQueue: AsyncQueue<string>) {
   ]
 
   while (true) {
+    // In a real app, you'd have a termination condition
     const message = `${messages[counter % messages.length]} | timestamp_${counter}`
     await messageQueue.put(message)
     counter++
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    await new Promise((resolve) => setTimeout(resolve, 1000)) // Wait 1s
   }
 }
 
+// --- Main Execution ---
 async function main() {
   const messageQueue = new AsyncQueue<string>()
-  const shared = {}
-  flow.setParams({ messages: messageQueue })
+  // Pass the queue via the shared memory
+  const data = { messageQueue }
 
-  // Run both coroutines
-  await Promise.all([flow.run(shared), sendSystemMessages(messageQueue)])
+  console.log('Starting agent listener and message sender...')
+  // Run the agent flow and the message sender concurrently
+  // Note: This will run indefinitely without a termination mechanism
+  await Promise.all([agentFlow.run(data), sendSystemMessages(messageQueue)])
 }
 
 class AsyncQueue<T> {
@@ -2006,134 +2431,170 @@ Agent received: Network connectivity: stable | timestamp_2
 Agent received: Processing load: optimal | timestamp_3
 ```
 
-### Interactive Multi-Agent Example: Taboo Game
+## Example: Word Guessing Game (Taboo)
 
-Here's a more complex example where two agents play the word-guessing game Taboo.
-One agent provides hints while avoiding forbidden words, and another agent tries to guess the target word:
+Two agents collaborate in a word guessing game:
+
+- **Hinter**: Provides clues without using forbidden words
+- **Guesser**: Attempts to guess the target word based on hints
 
 ```typescript
+import { Memory, Node } from 'brainyflow'
+import { callLLM } from '../utils/callLLM'
+
 class Hinter extends Node {
-  async prep(shared: any): Promise<any> {
-    const guess = await shared.hinterQueue.get()
-    if (guess === 'GAME_OVER') {
-      return null
+  async prep(memory: Memory): Promise<any> {
+    if (memory.guesserQueue) {
+      try {
+        const guess = await memory.guesserQueue.get()
+        if (guess === 'GAME_OVER') {
+          return null
+        }
+        return { guess }
+      } catch (e) {
+        // Queue empty
+      }
     }
-    return [shared.targetWord, shared.forbiddenWords, shared.pastGuesses || []]
+    return {}
   }
 
-  async exec(inputs: any): Promise<string | null> {
-    if (inputs === null) return null
-    const [target, forbidden, pastGuesses] = inputs
-    let prompt = `Generate hint for '${target}'\nForbidden words: ${forbidden}`
-    if (pastGuesses.length > 0) {
-      prompt += `\nPrevious wrong guesses: ${pastGuesses}\nMake hint more specific.`
-    }
-    prompt += '\nUse at most 5 words.'
+  async exec(prepRes: any): Promise<string | null> {
+    if (prepRes === null) return null
 
-    const hint = await callLLM(prompt)
-    console.log(`\nHinter: Here's your hint - ${hint}`)
-    return hint
+    const prompt = `
+Given target word: ${memory.targetWord}
+Forbidden words: ${memory.forbiddenWords}
+Last wrong guess: ${prepRes.guess || ''}
+Generate a creative hint that helps guess the target word without using forbidden words.
+Reply only with the hint text.
+`
+    return await callLLM(prompt)
   }
 
-  async post(shared: any, prepRes: any, execRes: any): Promise<string> {
-    if (execRes === null) return 'end'
-    await shared.guesserQueue.put(execRes)
-    return 'continue'
+  async post(memory: Memory, data: any, hint: string | null): Promise<void> {
+    if (hint === null) {
+      this.trigger('end')
+      return
+    }
+    await memory.hinterQueue.put(hint)
+    this.trigger('continue')
   }
 }
 
 class Guesser extends Node {
-  async prep(shared: any): Promise<any> {
-    const hint = await shared.guesserQueue.get()
-    return [hint, shared.pastGuesses || []]
+  async prep(memory: Memory): Promise<any> {
+    const hint = await memory.guesserQueue.get()
+    return {
+      hint,
+      pastGuesses: memory.pastGuesses || [],
+    }
   }
 
-  async exec(inputs: any): Promise<string> {
-    const [hint, pastGuesses] = inputs
-    const prompt = `Given hint: ${hint}, past wrong guesses: ${pastGuesses}, make a new guess. Directly reply a single word:`
-    const guess = await callLLM(prompt)
-    console.log(`Guesser: I guess it's - ${guess}`)
-    return guess
+  async exec(prepRes: any): Promise<string> {
+    const prompt = `
+Given hint: ${prepRes.hint}
+Past wrong guesses: ${prepRes.pastGuesses}
+Make a new guess for the target word.
+Reply only with the guessed word.
+`
+    return await callLLM(prompt)
   }
 
-  async post(shared: any, prepRes: any, execRes: any): Promise<string> {
-    if (execRes.toLowerCase() === shared.targetWord.toLowerCase()) {
+  async post(memory: Memory, prepRes: any, guess: string): Promise<void> {
+    if (guess.toLowerCase() === memory.targetWord.toLowerCase()) {
       console.log('Game Over - Correct guess!')
-      await shared.hinterQueue.put('GAME_OVER')
-      return 'end'
+      await memory.hinterQueue.put('GAME_OVER')
+      this.trigger('end')
+      return
     }
 
-    if (!shared.pastGuesses) {
-      shared.pastGuesses = []
-    }
-    shared.pastGuesses.push(execRes)
-
-    await shared.hinterQueue.put(execRes)
-    return 'continue'
+    // Update past guesses
+    memory.pastGuesses = [...(memory.pastGuesses || []), guess]
+    await memory.hinterQueue.put(guess)
+    this.trigger('continue')
   }
 }
+```
 
+## Running the Game
+
+```typescript
+// --- Main Execution ---
 async function main() {
-  // Set up game
-  const shared = {
+  // Set up game state in initial memory
+  const data = {
     targetWord: 'nostalgia',
     forbiddenWords: ['memory', 'past', 'remember', 'feeling', 'longing'],
     hinterQueue: new AsyncQueue<string>(),
     guesserQueue: new AsyncQueue<string>(),
+    pastGuesses: [],
   }
 
   console.log('Game starting!')
-  console.log(`Target word: ${shared.targetWord}`)
-  console.log(`Forbidden words: ${shared.forbiddenWords}`)
+  console.log(`Target word: ${data.targetWord}`)
+  console.log(`Forbidden words: ${data.forbiddenWords}`)
 
-  // Initialize by sending empty guess to hinter
-  await shared.hinterQueue.put('')
+  // Initialize by sending empty guess to hinter queue
+  await data.hinterQueue.put('')
 
-  // Create nodes and flows
-  const hinter = new Hinter()
-  const guesser = new Guesser()
+  // Create nodes
+  const hinterNode = new Hinter()
+  const guesserNode = new Guesser()
 
-  // Set up flows
-  const hinterFlow = new Flow(hinter)
-  const guesserFlow = new Flow(guesser)
+  // Define transitions for looping and ending
+  hinterNode.on('continue', hinterNode)
+  guesserNode.on('continue', guesserNode)
 
-  // Connect nodes to themselves
-  hinter.on('continue', hinter)
-  guesser.on('continue', guesser)
+  // Create separate flows for each agent
+  const hinterFlow = new Flow(hinterNode)
+  const guesserFlow = new Flow(guesserNode)
 
-  // Run both agents concurrently
-  await Promise.all([hinterFlow.run(shared), guesserFlow.run(shared)])
+  // Run both agent flows concurrently using the same memory object
+  console.log('Running agents...')
+  await Promise.all([hinterFlow.run(data), guesserFlow.run(data)])
+  console.log('\nGame finished normally.')
+  console.log('Final memory state:', data)
 }
 
-// Mock LLM call for TypeScript
-async function callLLM(prompt: string): Promise<string> {
-  // In a real implementation, this would call an actual LLM API
-  return 'Mock LLM response'
-}
+// Assuming AsyncQueue and callLLM are defined elsewhere
+// class AsyncQueue<T> { ... }
+// async function callLLM(prompt: string): Promise<string> { return 'mock'; }
 
 main().catch(console.error)
 ```
 
-The Output:
+When you run this code, the multi-agent system works as follows:
+
+1. The Hinter agent creates clues (avoiding forbidden words)
+2. The Guesser agent makes guesses based on the hints
+3. Both agents operate independently but communicate via queues
+4. The game continues until the correct word is guessed
+
+The output will look something like:
 
 ```
 Game starting!
 Target word: nostalgia
 Forbidden words: ['memory', 'past', 'remember', 'feeling', 'longing']
 
-Hinter: Here's your hint - Thinking of childhood summer days
-Guesser: I guess it's - popsicle
+Hinter: Here's your hint - Thinking about childhood summers
+Guesser: I guess it's - happiness
 
-Hinter: Here's your hint - When childhood cartoons make you emotional
-Guesser: I guess it's - nostalgic
-
-Hinter: Here's your hint - When old songs move you
-Guesser: I guess it's - memories
-
-Hinter: Here's your hint - That warm emotion about childhood
+Hinter: Here's your hint - The warm sensation when seeing old photos
 Guesser: I guess it's - nostalgia
+
 Game Over - Correct guess!
 ```
+
+## Benefits of Multi-Agent Systems
+
+This pattern demonstrates several key advantages:
+
+1. **Specialization**: Each agent can focus on a specific task
+2. **Independence**: Agents can operate on different schedules or priorities
+3. **Coordination**: Agents can collaborate through shared memory and queues
+4. **Flexibility**: Easy to add new agents or modify existing ones
+5. **Scalability**: The system can grow to include many specialized agents
 
 
 
@@ -2197,24 +2658,27 @@ File: docs/guides/best_practices.md
 
 ## Node Design
 
-1. **Keep Nodes Focused**: Each node should do one thing well
-2. **Idempotent Execution**: Design `exec()` methods to be safely retryable
-3. **Graceful Degradation**: Implement fallbacks for when things go wrong
-4. **Proper Error Handling**: Use `exec_fallback` to handle failures gracefully
+1.  **Keep Nodes Focused**: Each node should perform a single, well-defined task.
+2.  **Idempotent Execution**: If using retries (`maxRetries > 1`), design the `exec()` method to be idempotent (produce the same result for the same input) as it might be called multiple times.
+3.  **Clear Lifecycle**: Use `prep` to read/prepare data, `exec` for computation (no memory access), and `post` to write results and trigger successors.
+4.  **Graceful Degradation**: Implement `execFallback` in `Node` subclasses to handle errors gracefully after all retries are exhausted, potentially returning a default value instead of throwing an error.
 
-## Shared Store Management
+## Memory (State) Management
 
-1. **Schema Design**: Define a clear schema for your shared store
-2. **Namespacing**: Use namespaces to avoid key collisions
-3. **Immutability**: Treat shared store values as immutable when possible
-4. **Documentation**: Document the expected structure of your shared store
+1.  **Schema Design**: Define clear interfaces (in TypeScript) or conventions (in Python) for your `GlobalStore` and `LocalStore` structures.
+2.  **Global vs. Local**: Use the `GlobalStore` (accessed via `memory.prop = value`) for state shared across the entire flow. Use the `LocalStore` (populated via `forkingData` in `trigger`) for context specific to a particular execution branch.
+3.  **Minimize Global State**: Prefer passing data locally via `forkingData` when possible to keep the global state clean and reduce potential conflicts, especially in parallel flows.
+4.  **Read Transparently**: Always read via the `memory` proxy (e.g., `memory.value`); it handles the local-then-global lookup.
 
 ## Flow Design
 
-1. **Visualization First**: Design your flow visually before coding
-2. **Test Incrementally**: Build and test one section of your flow at a time
-3. **Error Paths**: Always include paths for handling errors
-4. **Monitoring**: Add logging at key points in your flow
+1.  **Visualization First**: Sketch your flow diagram (e.g., using Mermaid) before coding to clarify logic and transitions.
+2.  **Modularity**: Break complex processes into smaller, potentially nested, sub-flows (`Flow` extends `BaseNode`).
+3.  **Explicit Transitions**: Clearly define transitions using descriptive action names (`node.on('action', nextNode)`). Consider default paths (`node.next(defaultNode)`).
+4.  **Error Paths**: Define explicit transitions for error conditions (e.g., `node.on('error', errorHandlerNode)`) or handle errors within `execFallback`.
+5.  **Cycle Management**: Use the `maxVisits` option in the `Flow` constructor to prevent infinite loops.
+6.  **Parallelism**: Choose `ParallelFlow` for independent branches that can run concurrently; use `Flow` (sequential) otherwise or if order matters.
+7.  **Test Incrementally**: Test individual nodes (`node.run()`) and sub-flows before integrating them.
 
 ## Project Structure
 
@@ -2296,7 +2760,7 @@ File: docs/guides/agentic_coding.md
 
 <summary>Notes For AI Assistants</summary>
 
-{% hint style="success" %}
+{% hint style="warning" %}
 **AI only**: If you are a human, skip this section.
 {% endhint %}
 
@@ -2413,33 +2877,69 @@ EntityExtractorNode:
 
 ### 5. Shared Store Schema
 
-Define the structure of your shared store:
+Define the structure of your shared store. Using interfaces (TypeScript) or type hints (Python) is highly recommended.
 
-- **Key Namespaces**: Major sections of your shared store
-- **Data Types**: Expected types for each key
-- **Data Flow**: How data evolves through processing
+- **Key Namespaces**: Major sections of your shared store (often represented as nested objects or distinct keys).
+- **Data Types**: Expected types for each key.
+- **Data Flow**: How data evolves through processing (which nodes read/write which keys).
 
 Example:
 
-```python
-shared = {
-    "input": {
-        "document_path": "path/to/file.pdf"  # Input file path
-    },
-    "processing": {
-        "document_text": "",     # Extracted text content
-        "entities": {            # Extracted entities
-            "parties": [],
-            "dates": [],
-            "amounts": []
-        },
-        "validation_status": ""  # Status after validation
-    },
-    "output": {
-        "summary": "",           # Generated summary
-        "storage_id": ""         # Database reference ID
-    }
+```typescript
+// Define interfaces for the shared store structure
+interface InputStore {
+  document_path: string
 }
+
+interface ProcessingStore {
+  document_text: string
+  entities: {
+    parties: any[]
+    dates: any[]
+    amounts: any[]
+  }
+  validation_status: string
+}
+
+interface OutputStore {
+  summary: string
+  storage_id: string
+}
+
+// Combine interfaces for the complete global store (if using nested structure conceptually)
+interface GlobalStore extends InputStore, ProcessingStore, OutputStore {}
+
+// Or define a flat global store interface (more common in BrainyFlow usage)
+interface FlatGlobalStore {
+  document_path?: string
+  document_text?: string
+  entities?: {
+    parties: any[]
+    dates: any[]
+    amounts: any[]
+  }
+  validation_status?: string
+  summary?: string
+  storage_id?: string
+}
+
+// Conceptual structure (using the flat interface)
+const memoryConceptual: FlatGlobalStore = {
+  document_path: 'path/to/file.pdf',
+  document_text: '',
+  entities: {
+    parties: [],
+    dates: [],
+    amounts: [],
+  },
+  validation_status: '',
+  summary: '',
+  storage_id: '',
+}
+
+// Note: In BrainyFlow, you'd typically pass an object conforming to
+// FlatGlobalStore (or a relevant subset) to flow.run() and access
+// properties directly, e.g., memory.document_text = "...", const entities = memory.entities;
 ```
 
 ## Best Practices for Your Design Document
@@ -2480,7 +2980,7 @@ Go back to working and finish it! Do not stop until you are done.
 
 <summary>Notes For AI Assistants</summary>
 
-{% hint style="success" %}
+{% hint style="warning" %}
 **AI only**: If you are a human, skip this section.
 {% endhint %}
 
@@ -2490,8 +2990,15 @@ Be sure you **always** strictly follow these instructions:
 2. **Be Brainy**: Import `brainyflow` and use its archictecture to implement the design document! Adhere to the proposed flow, node and shared store design.
 3. **Focus on What Matters**: Do not fix types or edge cases until you are certain the core implementation is working as intended.
 4. **Be Adaptive**: Continuously refine the design document based on feedback and changes in the implementation, but keep it clear and concise.
-5. **Be Resilient**: You are not done until the implementation is working as intended.
-6. **Be Accountable**: Before finishing the implementation, ask yourself the following questions:
+5. **Be Compliant**: You must always write code that is compliant with the design document and the system's architecture. Remember to stick to the flow, node and shared store design:
+   - prep(memory)
+     Read and preprocess data from the memory object.
+   - exec(prep_res)
+     Execute compute logic. Receives result from prep. Cannot access memory.
+   - post(memory, prep_res, exec_res)
+     Postprocess results, write data back to the memory object (usually global store), and trigger next actions.
+6. **Be Resilient**: You are not done until the implementation is working as intended.
+7. **Be Accountable**: Before finishing the implementation, ask yourself the following questions:
    - are all stubs and placeholders gone?
    - have all requirements and features been implemented?
    - have I successfully run the application and all tests?
@@ -2523,9 +3030,11 @@ Remember: The quality of your design document directly impacts the quality of th
 ================================================
 File: docs/guides/throttling.md
 ================================================
-# Throttling
+# Rate Limiting and Throttling
 
-**Throttling** helps manage concurrency and avoid rate limits when making API calls. This is particularly important when:
+Effective rate limiting is crucial when working with external APIs and services. This guide covers patterns for implementing throttling in BrainyFlow applications.
+
+This is particularly important when:
 
 1. Calling external APIs with rate limits
 2. Managing expensive operations (like LLM calls)
@@ -2533,45 +3042,69 @@ File: docs/guides/throttling.md
 
 ## Concurrency Control Patterns
 
-### 1. Using Semaphores (Python)
-
-```python
-import asyncio
-
-class LimitedParallelNode(Node):
-    def __init__(self, concurrency=3):
-        self.semaphore = asyncio.Semaphore(concurrency)
-
-    async def exec(self, items):
-        async def limited_process(item):
-            async with self.semaphore:
-                return await self.process_item(item)
-
-        tasks = [limited_process(item) for item in items]
-        return await asyncio.gather(*tasks)
-
-    async def process_item(self, item):
-        # Process a single item
-        pass
-```
-
-### 2. Using p-limit (TypeScript)
+These patterns limit the number of concurrent operations within a node.
 
 ```typescript
+// Requires: npm install p-limit
+import { Memory, Node } from 'brainyflow' // Assuming imports
 import pLimit from 'p-limit'
 
-class LimitedParallelNode extends Node {
-  constructor(private concurrency = 3) {
+class LimitedParallelNodeTs extends Node {
+  private limit: ReturnType<typeof pLimit>
+
+  constructor(concurrency: number = 3) {
     super()
+    if (concurrency <= 0) {
+      throw new Error('Concurrency limit must be positive')
+    }
+    this.limit = pLimit(concurrency)
+    console.log(`Node initialized with concurrency limit: ${concurrency}`)
   }
 
-  async exec(items) {
-    const limit = pLimit(this.concurrency)
-    return Promise.all(items.map((item) => limit(() => this.processItem(item))))
+  // Prep is usually needed to get 'items' from memory
+  async prep(memory: Memory): Promise<any[]> {
+    // Example: Fetch items from memory
+    const items = memory.items_to_process || []
+    console.log(`Prep: Found ${items.length} items to process.`)
+    return items // Assuming items are in memory.items_to_process
   }
 
-  async processItem(item) {
-    // Process a single item
+  async exec(items: any[]): Promise<any[]> {
+    if (!items || items.length === 0) {
+      console.log('Exec: No items to process.')
+      return []
+    }
+
+    console.log(`Exec: Starting processing of ${items.length} items with limit...`)
+    // Map each item to a limited async task
+    const tasks = items.map((item) =>
+      this.limit(async () => {
+        console.log(` Starting processing item: ${item}`)
+        const result = await this.processOneItem(item)
+        console.log(` Finished processing item: ${item} -> ${result}`)
+        return result
+      }),
+    )
+
+    // Wait for all limited tasks to complete
+    const results = await Promise.all(tasks)
+    console.log('Exec: All items processed.')
+    return results
+  }
+
+  async processOneItem(item: any): Promise<any> {
+    /** Placeholder: Subclasses must implement this method. */
+    // Example implementation:
+    await new Promise((resolve) => setTimeout(resolve, 500)) // Simulate async work
+    return `Processed_${item}`
+    // throw new Error("processOneItem must be implemented by subclasses");
+  }
+
+  // Post is needed to store results and trigger next step
+  async post(memory: Memory, prepRes: any[], execRes: any[]): Promise<void> {
+    console.log(`Post: Storing ${execRes.length} results.`)
+    memory.processed_results = execRes // Store results
+    this.trigger('default') // Trigger next node
   }
 }
 ```
@@ -2632,23 +3165,42 @@ async function callApi() {
 ### 2. Sliding Window Rate Limiter
 
 ```typescript
-import { SlidingWindowRateLimiter } from 'sliding-window-rate-limiter'
+class SlidingWindowRateLimiter {
+  private requests: number[] = []
 
-const limiter = SlidingWindowRateLimiter.createLimiter({
-  interval: 60, // 60 seconds
-  maxInInterval: 100,
-})
+  constructor(
+    private maxRequests: number,
+    private windowSize: number,
+  ) {}
+
+  allowRequest(): boolean {
+    const now = Date.now()
+    // Remove expired requests
+    this.requests = this.requests.filter((time) => now - time < this.windowSize * 1000)
+    // Check if we can allow another request
+    return this.requests.length < this.maxRequests
+  }
+
+  timeToNextRequest(): number {
+    const now = Date.now()
+    this.requests = this.requests.filter((time) => now - time < this.windowSize * 1000)
+    if (this.requests.length < this.maxRequests) return 0
+    const oldest = this.requests[0]
+    return Math.ceil((oldest + this.windowSize * 1000 - now) / 1000)
+  }
+}
+
+// Usage:
+const limiter = new SlidingWindowRateLimiter(100, 60) // 100 requests per 60 seconds
 
 async function callApi() {
-  const isAllowed = await limiter.check('key', 1)
-  if (!isAllowed) throw new Error('Rate limit exceeded')
+  if (!limiter.allowRequest()) {
+    await new Promise((resolve) => setTimeout(resolve, limiter.timeToNextRequest() * 1000))
+  }
   // Your API call here
+  return 'API response'
 }
 ```
-
-{% hint style="info" %}
-**Related Concepts**: Many throttling patterns are used with [Batch Processing](../core_abstraction/batch.md) operations, particularly when dealing with parallel execution of API calls.
-{% endhint %}
 
 ## Best Practices
 
@@ -2658,9 +3210,47 @@ async function callApi() {
 4. **Cache Responses**: Cache frequent identical requests to reduce API calls
 5. **Batch Requests**: Combine multiple requests into single API calls when possible
 
+## Integration with BrainyFlow
+
+### Throttled LLM Node
+
+```typescript
+import { Memory, Node, NodeError } from 'brainyflow'
+import { RateLimiter } from 'limiter'
+
+class ThrottledLLMNode extends Node {
+  private limiter: RateLimiter
+
+  constructor(
+    private maxRetries = 3,
+    callsPerMinute = 30,
+  ) {
+    super({ maxRetries })
+    this.limiter = new RateLimiter({ tokensPerInterval: callsPerMinute, interval: 'minute' })
+  }
+
+  async exec(prompt: string): Promise<string> {
+    // Wait for token before proceeding
+    await this.limiter.removeTokens(1)
+    return await callLLM(prompt)
+  }
+
+  async execFallback(prompt: string, error: NodeError): Promise<string> {
+    // Handle rate limit errors specially
+    if (error.message.toLowerCase().includes('rate limit')) {
+      // Wait longer before retrying
+      await new Promise((resolve) => setTimeout(resolve, 60000))
+      return this.exec(prompt)
+    }
+    // For other errors, fall back to a simple response
+    return "I'm having trouble processing your request right now."
+  }
+}
+```
+
 ## Linking to Related Concepts
 
-For batch processing patterns, see [Batch Processing](../core_abstraction/batch.md).
+For batch processing patterns, see [Flow](../core_abstraction/flow.md).
 
 
 
@@ -2682,8 +3272,8 @@ Individual nodes can be tested in isolation to verify their behavior:
 
 ```typescript
 import { describe, expect, it, vi } from 'vitest'
-import { SummarizeNode } from './SummarizeNode'
-import { callLLM } from './utils/callLLM'
+import { SummarizeNode } from './SummarizeNode' // Your Node implementation
+import { callLLM } from './utils/callLLM' // Your LLM utility
 
 // Mock the LLM utility
 vi.mock('./utils/callLLM', () => ({
@@ -2692,22 +3282,22 @@ vi.mock('./utils/callLLM', () => ({
 
 describe('SummarizeNode', () => {
   it('should summarize text correctly', async () => {
-    // Create the node
+    // Create the node instance
     const summarizeNode = new SummarizeNode()
 
-    // Create a mock shared store
-    const shared = { text: 'This is a long text that needs to be summarized.' }
+    // Create initial global memory state
+    const memory = { text: 'This is a long text that needs to be summarized.' }
 
-    // Run the node
-    await summarizeNode.run(shared)
+    // Run the node's lifecycle (prep -> exec -> post)
+    await summarizeNode.run(memory) // Pass memory object
 
-    // Verify the node called the LLM with the right prompt
+    // Verify the LLM call
     expect(callLLM).toHaveBeenCalledTimes(1)
-    const callArgs = vi.mocked(callLLM).mock.calls[0][0]
-    expect(callArgs.toLowerCase()).toContain('summarize')
+    const callArgs = vi.mocked(callLLM).mock.calls[0][0] // Get the first argument of the first call
+    expect(callArgs.toLowerCase()).toContain('summarize') // Check if prompt contains 'summarize'
 
-    // Verify the result was stored correctly
-    expect(shared.summary).toBe('Short summary.')
+    // Verify the result was stored correctly in the global memory object
+    expect(memory.summary).toBe('Short summary.') // Access memory object
   })
 })
 ```
@@ -2716,18 +3306,26 @@ describe('SummarizeNode', () => {
 
 Test complete flows to verify that nodes work together correctly:
 
-```typescript
-import { describe, expect, it, vi } from 'vitest'
-import { createQaFlow } from './qaFlow'
-import { callLLM } from './utils/callLLM'
+````typescript
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { createQaFlow } from './qaFlow' // Your function that creates the Flow
+import { callLLM } from './utils/callLLM' // Your LLM utility
 
 // Mock the LLM utility
-vi.mock('./utils/callLLM')
+vi.mock('./utils/callLLM', () => ({
+  callLLM: vi.fn(),
+}))
 
 describe('Question Answering Flow', () => {
-  it('should process questions correctly', async () => {
-    // Configure the mock to return different values for different prompts
+  beforeEach(() => {
+    // Clear any previous mock calls before each test
+    vi.clearAllMocks()
+  })
+
+  it('should generate an answer using the flow', async () => {
+    // Configure mock to return different values based on the prompt
     vi.mocked(callLLM).mockImplementation((prompt: string) => {
+      // Simulate different stages of a potential QA flow (e.g., search vs. answer)
       if (prompt.toLowerCase().includes('search')) {
         return Promise.resolve('Paris is the capital of France.')
       } else if (prompt.toLowerCase().includes('answer')) {
@@ -2739,17 +3337,362 @@ describe('Question Answering Flow', () => {
     // Create the flow
     const qaFlow = createQaFlow()
 
-    // Create a mock shared store
-    const shared = { question: 'What is the capital of France?' }
+    // Create initial memory state
+    const memory = { question: 'What is the capital of France?' }
 
     // Run the flow
-    await qaFlow.run(shared)
+    await qaFlow.run(memory) // Pass memory object
 
     // Verify the final answer
-    expect(shared.answer).toBe('The capital of France is Paris.')
+    expect(memory.answer).toBe('The capital of France is Paris.') // Access memory object
 
     // Verify the LLM was called the expected number of times
     expect(callLLM).toHaveBeenCalledTimes(2)
+
+    // Verify the calls were made with appropriate prompts
+    const calls = vi.mocked(callLLM).mock.calls
+    const retrieveCall = calls.some(
+      (call) => typeof call === 'string' && call.toLowerCase().includes('retrieve'),
+    )
+    const generateCall = calls.some(
+      (call) => typeof call === 'string' && call.toLowerCase().includes('generate'),
+    )
+
+    expect(retrieveCall).toBe(true)
+    expect(generateCall).toBe(true)
+  })
+})
+
+// Example testing a MapReduce flow (Trigger, Processor, Reducer)
+describe('MapReduce Flow Test', () => {
+  // Mock the nodes used in the MapReduce example
+class TriggerNode extends Node<Memory, any, ['process_item','reduce']> {
+  async post(memory: Memory, prepRes: any, execRes: any): Promise<void> {
+      const items = memory.items || []
+      memory.results = [] // Initialize results
+      items.forEach((item: any, index: number) => {
+        this.trigger('process_item', { item, index })
+      })
+      this.trigger('reduce')
+    }
+  }
+  const ProcessorNode = class extends Node {
+     async prep(memory: Memory): Promise<any> { return { item: memory.item, index: memory.index }; }
+     async exec(prepRes: { item: any, index: number }): Promise<string> { return `Processed ${prepRes.item}`; }
+     async post(memory: Memory, prepRes: { item: any, index: number }, execRes: string): Promise<void> {
+         if (!memory.results) memory.results = [];
+         // Store result at the correct index if possible, or just push
+         memory.results[prepRes.index] = execRes;
+     }
+  }
+  const ReducerNode = class extends Node {
+     async prep(memory: Memory): Promise<any[]> { return memory.results || []; }
+     async exec(results: any[]): Promise<string> { return `Combined: ${results.join(', ')}`; }
+     async post(memory: Memory, prepRes: any, execRes: string): Promise<void> { memory.final_result = execRes; }
+  }
+
+  it('should process items via map and reduce steps', async () => {
+    // Instantiate nodes
+    const trigger = new TriggerNode()
+    const processor = new ProcessorNode()
+    const reducer = new ReducerNode()
+
+    // Connect nodes
+    trigger.on('process_item', processor)
+    trigger.on('reduce', reducer) // This action is triggered after all 'process_item'
+
+    // Use ParallelFlow for the map phase
+    const mapReduceFlow = new ParallelFlow(trigger)
+
+    // Initial memory
+    const memory = { items: ['A', 'B', 'C'] }
+
+    // Run the flow
+    await mapReduceFlow.run(memory)
+
+    // Verify final result in memory
+    expect(memory.results).toEqual(['Processed A', 'Processed B', 'Processed C'])
+    expect(memory.final_result).toBe('Combined: Processed A, Processed B, Processed C')
+  })
+})
+
+## Testing Approaches
+
+### Unit Testing Individual Nodes
+
+1. **Isolate Dependencies**: Mock external services and LLM calls
+2. **Test Each Lifecycle Method**: Verify `prep`, `exec`, and `post` individually
+3. **Test Error Handling**: Ensure `exec_fallback` works as expected
+4. **Verify Memory Updates**: Check if memory is modified correctly
+5. **Test Triggers**: Ensure the right actions are triggered
+
+### Integration Testing Flows
+
+1. **Mock External Services**: Keep tests deterministic by mocking APIs
+2. **Verify End-to-End Behavior**: Test the entire flow from start to finish
+3. **Test Branching Logic**: Ensure different paths work correctly
+4. **Check Final Memory State**: Verify that the memory contains expected results
+5. **Test Error Handling**: Make sure flows handle errors gracefully
+
+### Testing Strategies
+
+#### Testing LLM-Based Nodes
+
+For nodes that call LLMs, you can use these approaches:
+
+1.  **Canned Responses**: Prepare fixed responses for specific prompts.
+2.  **Prompt Verification**: Check if prompts contain expected information.
+3.  **Response Validation**: Test if the node correctly handles various LLM responses.
+
+```typescript
+import { describe, expect, it, vi } from 'vitest'
+import { callLLM } from './utils/callLLM' // Your LLM utility
+
+// import { MyLlmNode } from './MyLlmNode'; // Your Node implementation
+// import { Memory } from 'brainyflow'; // Assuming Memory is imported if needed
+
+// Mock the LLM utility module
+vi.mock('./utils/callLLM', () => ({
+  callLLM: vi.fn(), // Create a mock function
+}))
+
+describe('Testing LLM Nodes', () => {
+  it('should use canned responses based on prompt', async () => {
+    // Configure the mock implementation
+    vi.mocked(callLLM).mockImplementation(async (prompt: string): Promise<string> => {
+      if (prompt.toLowerCase().includes('summarize')) {
+        return 'This is a summary.'
+      } else if (prompt.toLowerCase().includes('extract')) {
+        return JSON.stringify({ key: 'value' }) // Return JSON string
+      } else {
+        return 'Default response'
+      }
+    })
+
+    // const node = new MyLlmNode();
+    // const memory = { input: 'some text to summarize' }; // Initial memory state
+
+    // await node.run(memory); // Run the node
+
+    // Add assertions here
+    // expect(callLLM).toHaveBeenCalled();
+    // expect(memory.summary).toBe('This is a summary.');
+  })
+})
+```
+
+#### Testing Retry Logic
+
+To test retry behavior:
+
+1.  **Simulate Transient Failures**: Make the mock function fail a few times before succeeding.
+2.  **Check Retry Count**: Verify that retries happened the expected number of times (e.g., by checking `node.cur_retry` inside the mock or tracking calls).
+3.  **Test Backoff**: If using `wait`, mock `asyncio.sleep` (Python) or `setTimeout` (TypeScript) to verify delays without actually waiting.
+
+```typescript
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+// import { Node, Memory } from 'brainyflow'; // Assuming imports
+// import { someExternalCall } from './utils/externalCall'; // The function called by exec
+
+// Mock the external call module
+vi.mock('./utils/externalCall', () => ({
+  someExternalCall: vi.fn(),
+}))
+
+// Mock setTimeout used for 'wait' (if applicable)
+vi.useFakeTimers()
+
+// Example Node (conceptual)
+// class NodeWithRetry extends Node<any, any, [], any, string> {
+//   constructor() {
+//     super({ maxRetries: 3, wait: 100 }); // Retry up to 3 times, wait 100ms
+//   }
+//   async exec(prepRes: any): Promise<string> {
+//     // This method calls the function we will mock
+//     return await someExternalCall(prepRes);
+//   }
+// }
+
+describe('Retry Logic Testing', () => {
+  let callCountRetry = 0
+
+  beforeEach(() => {
+    callCountRetry = 0 // Reset counter
+    vi.clearAllMocks() // Clear mock history
+    vi.clearAllTimers() // Clear pending timers
+  })
+
+  it('should retry exec on failure and succeed eventually', async () => {
+    // Configure the mock to fail twice, then succeed
+    vi.mocked(someExternalCall).mockImplementation(async () => {
+      callCountRetry++
+      console.log(`Mock called (Attempt ${callCountRetry})`) // For debugging test
+      if (callCountRetry <= 2) {
+        throw new Error('Temporary network failure')
+      }
+      return 'Success on third try'
+    })
+
+    // const node = new NodeWithRetry();
+    // const memory = {}; // Initial memory
+
+    // await node.run(memory); // Run the node
+
+    // Advance timers to simulate waiting (if wait > 0)
+    // vi.advanceTimersByTime(100); // Advance by wait time
+    // await Promise.resolve(); // Allow promises to settle after timer advance
+    // vi.advanceTimersByTime(100); // Advance for second wait
+    // await Promise.resolve();
+
+    // Assertions
+    // expect(callCountRetry).toBe(3); // Called 3 times
+    // expect(memory.result).toBe('Success on third try'); // Check final result
+    // expect(vi.getTimerCount()).toBe(0); // Ensure all timers were cleared/run
+  })
+})
+```
+
+## Test Fixtures and Helpers
+
+Creating helper functions can make tests more readable and maintainable.
+
+```typescript
+import { expect } from 'vitest'
+
+// import { Node, Memory } from 'brainyflow'; // Assuming imports
+
+// Define a type for your standard test memory if desired
+interface TestMemory {
+  input?: string
+  config?: { setting: string }
+  output?: any
+  status?: string
+  [key: string]: any // Allow other properties
+}
+
+export function createDefaultTestMemory(): TestMemory {
+  /** Creates a standard object for test memory. */
+  return { input: 'test data', config: { setting: 'value' } }
+}
+
+export async function runNodeWithMemory(
+  node: Node,
+  initialMemory?: TestMemory,
+): Promise<TestMemory> {
+  /** Runs a node with provided or default initial memory. */
+  const memory = initialMemory ?? createDefaultTestMemory()
+  // Assumes node.run modifies the object in place
+  await node.run(memory)
+  return memory
+}
+
+export function assertMemoryContains(memory: TestMemory, expectedData: Partial<TestMemory>): void {
+  /** Asserts that the memory object contains the expected key-value pairs. */
+  for (const key in expectedData) {
+    expect(memory).toHaveProperty(key)
+    expect(memory[key]).toEqual(expectedData[key])
+  }
+}
+
+// Example usage in a test
+/*
+import { MyProcessingNode } from './MyProcessingNode';
+import { runNodeWithMemory, assertMemoryContains } from './testHelpers';
+
+it('should produce correct output in memory', async () => {
+    const node = new MyProcessingNode();
+    const finalMemory = await runNodeWithMemory(node);
+    assertMemoryContains(finalMemory, { output: "processed data", status: "completed" });
+});
+*/
+```
+
+## Common Testing Patterns
+
+### 1. Input Validation Testing
+
+Test that nodes properly handle invalid or unexpected inputs.
+
+```typescript
+import { describe, expect, it } from 'vitest'
+
+// import { MyNodeThatValidates } from './MyNodeThatValidates'; // Your node
+// import { Memory } from 'brainyflow'; // Assuming imports
+
+describe('Input Validation', () => {
+  const invalidInputs = [null, undefined, '', {}, [], { wrongKey: 1 }]
+
+  it.each(invalidInputs)('should handle invalid input: %s', async (invalidInput) => {
+    /** Tests if the node handles various invalid inputs gracefully. */
+    // const node = new MyNodeThatValidates(); // Node that should validate memory.input_data
+    const memory: Record<string, any> = { input_data: invalidInput } // Pass invalid data
+
+    // Expect the node to run without unhandled exceptions
+    // Use try/catch if specific errors are expected, otherwise just run
+    await node.run(memory)
+
+    // Example assertions: Check for an error flag or a specific state
+    expect(memory.error_message || memory.status).toBeDefined() // Check if either is set
+    expect(memory.status === 'validation_failed' || memory.error_message).toBeTruthy()
+    // Or assert that a default value was set
+    // expect(memory.output).toBe('default_value');
+  })
+})
+```
+
+### 2. Flow Path Testing
+
+Test that flows follow the expected paths based on node triggers.
+
+```typescript
+import { describe, expect, it } from 'vitest'
+
+// import { Node, Flow, Memory, BaseNode } from 'brainyflow'; // Assuming imports
+
+describe('Flow Path Testing', () => {
+  it('should follow the correct path based on triggers', async () => {
+    /** Tests if the flow executes nodes in the expected sequence. */
+    const visitedNodesLog: string[] = []
+
+    // Define simple tracking nodes
+    class SimpleTrackingNode extends Node<any, any, ['next_step', 'finish']> {
+      private nodeName: string
+      private triggerAction: 'next_step' | 'finish' | 'default'
+
+      constructor(name: string, triggerAction: 'next_step' | 'finish' | 'default' = 'default') {
+        super()
+        this.nodeName = name
+        this.triggerAction = triggerAction
+      }
+
+      async exec(prepRes: any): Promise<string> {
+        // No real work, just track visit
+        visitedNodesLog.push(this.nodeName)
+        return `Processed by ${this.nodeName}` // Return something for post
+      }
+
+      async post(memory: Memory, prepRes: any, execRes: string): Promise<void> {
+        // Trigger the specified action
+        this.trigger(this.triggerAction)
+      }
+    }
+
+    // Create nodes for a path: A -> B -> C (where B triggers 'finish')
+    const nodeA = new SimpleTrackingNode('A', 'next_step')
+    const nodeB = new SimpleTrackingNode('B', 'finish')
+    const nodeC = new SimpleTrackingNode('C') // This node shouldn't be reached
+
+    // Connect nodes based on actions
+    nodeA.on('next_step', nodeB)
+    nodeB.on('finish', nodeC) // Connect C, but B will trigger 'finish'
+
+    // Create and run the flow
+    const flow = new Flow(nodeA)
+    await flow.run({}) // Pass empty memory
+
+    // Verify the execution path
+    expect(visitedNodesLog).toEqual(['A', 'B'])
   })
 })
 ```
@@ -2781,6 +3724,6 @@ describe('Question Answering Flow', () => {
 5. **Log Judiciously**: Log important events without overwhelming storage
 6. **Implement Distributed Tracing**: Use tracing for complex, distributed applications
 
-By following these testing, debugging, and monitoring practices, you can build reliable BrainyFlow applications that perform well in production environments.
+By applying these testing techniques, you can ensure your BrainyFlow applications are reliable and maintainable.
 
 
