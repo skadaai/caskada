@@ -196,8 +196,8 @@ describe('Question Answering Flow', () => {
 // Example testing a MapReduce flow (Trigger, Processor, Reducer)
 describe('MapReduce Flow Test', () => {
   // Mock the nodes used in the MapReduce example
-  const TriggerNode = class extends Node {
-    async post(memory: Memory, prepRes: any, execRes: any): Promise<void> {
+class TriggerNode extends Node<Memory, any, ['process_item','reduce']> {
+  async post(memory: Memory, prepRes: any, execRes: any): Promise<void> {
       const items = memory.items || []
       memory.results = [] // Initialize results
       items.forEach((item: any, index: number) => {
