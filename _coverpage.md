@@ -4,7 +4,7 @@
 
 <h1 style="max-width: 700px; margin: auto;">More AI, with less coding! 🚀</h1>
 <h2>Build Powerful AI Agents with Minimal Code, Maximum Freedom.</h2>
-<p>Zero bloat, zero dependencies, zero vendor lock-in.</p>
+<p>Zero bloat, dependencies, or vendor lock-in.</p>
 
 <!-- <img src="https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/divider.png" alt="divider" width="100%" style="max-width: 920px"> -->
 

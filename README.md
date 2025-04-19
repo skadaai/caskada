@@ -1,7 +1,7 @@
 <!-- Why BrainyFlow Section -->
 <div class="comparison-section">
   <h3 style="text-align: center; margin-bottom: 20px;">Why BrainyFlow? Less Bloat, More Flow!</h3>
-  <p style="text-align: center;">Current LLM frameworks are complex. BrainyFlow cuts through the noise.</p>
+  <p style="text-align: center;">Current LLM frameworks are complex and bloated.<br />BrainyFlow cuts through the noise!</p>
   <div align="center">
     <img src="https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/meme.jpg" width="400" alt="Framework comparison meme" style="border-radius: 8px; margin-bottom: 20px;"/>
 
@@ -17,12 +17,13 @@
       </tr>
     </thead>
     <tbody>
-      <tr><td>LangChain</td><td>Agent, Chain</td><td>Many</td><td>Many</td><td>~405K</td><td>~166MB</td></tr>
-      <tr><td>CrewAI</td><td>Agent, Chain</td><td>Many</td><td>Many</td><td>~18K</td><td>~173MB</td></tr>
-      <tr><td>SmolAgent</td><td>Agent</td><td>Some</td><td>Some</td><td>~8K</td><td>~198MB</td></tr>
-      <tr><td>LangGraph</td><td>Agent, Graph</td><td>Some</td><td>Some</td><td>~37K</td><td>~51MB</td></tr>
-      <tr><td>AutoGen</td><td>Agent</td><td>Some</td><td>Many [Optional]</td><td>~7K</td><td>~26MB</td></tr>
-      <tr><td><strong>BrainyFlow</strong></td><td><strong>Graph</strong></td><td><strong>None</strong></td><td><strong>None</strong></td><td><strong>~200</strong></td><td><strong>~few KB</strong></td></tr>
+      <tr><td>LangChain</td><td>Agent, Chain</td><td>Many <br><sup><sub>(e.g., QA, Summarization)</sub></sup></td><td>Many <br><sup><sub>(e.g., OpenAI, Pinecone, etc.)</sub></sup></td><td>~405K</td><td>~166MB</td></tr>
+      <tr><td>CrewAI</td><td>Agent, Chain</td><td>Many <br><sup><sub>(e.g., FileReadTool, SerperDevTool)</sub></sup></td><td>Many <br><sup><sub>(e.g., OpenAI, Anthropic, Pinecone, etc.)</sub></sup></td><td>~18K</td><td>~173MB</td></tr>
+      <tr><td>SmolAgent</td><td>Agent</td><td>Some <br><sup><sub>(e.g., CodeAgent, VisitWebTool)</sub></sup></td><td>Some <br><sup><sub>(e.g., DuckDuckGo, Hugging Face, etc.)</sub></sup></td><td>~8K</td><td>~198MB</td></tr>
+      <tr><td>LangGraph</td><td>Agent, Graph</td><td>Some <br><sup><sub>(e.g., Semantic Search)</sub></sup></td><td>Some <br><sup><sub>(e.g., PostgresStore, SqliteSaver, etc.) </sub></sup></td><td>~37K</td><td>~51MB</td></tr>
+      <tr><td>AutoGen</td><td>Agent</td><td>Some <br><sup><sub>(e.g., Tool Agent, Chat Agent)</sub></sup></td><td>Many <sup><sub>[Optional]<br> (e.g., OpenAI, Pinecone, etc.)</sub></sup></td><td>~7K <br><sup><sub>(core-only)</sub></sup></td><td>~26MB <br><sup><sub>(core-only)</sub></sup></td></tr>
+      <tr><td><strong>BrainyFlow</strong> <!-- gitbook-ignore-start --><img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/typescript.svg" width="16" height="16" alt="Typescript Logo"><!-- gitbook-ignore-end -->.ts</td><td><strong>Graph</strong></td><td><strong>None</strong></td><td><strong>None</strong></td><td><strong>~300</strong></td><td><strong>few KB</strong></td></tr>
+      <tr><td><strong>BrainyFlow</strong> <!-- gitbook-ignore-start --><img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/python.svg" width="16" height="16" alt="Python Logo"><!-- gitbook-ignore-end -->.py</td><td><strong>Graph</strong></td><td><strong>None</strong></td><td><strong>None</strong></td><td><strong>200</strong></td><td><strong>few KB</strong></td></tr>
     </tbody>
   </table>
   
