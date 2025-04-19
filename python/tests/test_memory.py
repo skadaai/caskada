@@ -1,6 +1,8 @@
 import pytest
-import copy
 from brainyflow import Memory
+
+# All tests in this module are async
+pytestmark = pytest.mark.asyncio
 
 class TestMemory:
     """Tests for the Memory class."""

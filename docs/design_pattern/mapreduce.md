@@ -36,13 +36,13 @@ class TriggerSummariesNode(Node):
 
     async def post(self, memory: Memory, files_to_process: list, file_count: int):
         print(f"Mapper: Triggering summary for {file_count} files.")
-        # Initialize results list in global memory (pre-allocate for parallel writes)
+        # Initialize results list and counter in global memory
         memory.file_summaries = [None] * file_count
+        memory.remaining_summaries = file_count # Add counter
         # Trigger a 'summarize_file' action for each file
         for index, (filename, content) in enumerate(files_to_process):
             self.trigger('summarize_file', { "filename": filename, "content": content, "index": index })
-        # After triggering all files, trigger the 'combine' step
-        self.trigger('combine_summaries')
+        # NOTE: 'combine_summaries' is now triggered by SummarizeFileNode when the counter reaches zero.
 
 # 2. Processor Node: Summarizes a single file
 class SummarizeFileNode(Node):
@@ -61,7 +61,11 @@ class SummarizeFileNode(Node):
         # Store individual summary in global memory at the correct index
         memory.file_summaries[index] = { "filename": filename, "summary": summary }
         print(f"Processor: Finished {filename} (Index {index})")
-        # This node doesn't trigger anything further in this branch
+        # Decrement counter and trigger combine if this is the last summary
+        memory.remaining_summaries -= 1
+        if memory.remaining_summaries == 0:
+            print("Processor: All summaries collected, triggering combine.")
+            self.trigger('combine_summaries')
 
 # 3. Reducer Node: Combines individual summaries
 class CombineSummariesNode(Node):
@@ -95,7 +99,11 @@ trigger_node - 'combine_summaries' >> reducer_node # Reduce step
 
 # Use ParallelFlow for potentially faster summarization
 map_reduce_flow = ParallelFlow(start=trigger_node)
-# If order of summaries matters strictly, use: map_reduce_flow = Flow(trigger_node);
+# Alternatively, if strict sequential processing is acceptable or required (e.g., to avoid
+# the complexity of the counter mechanism), you can use a standard Flow:
+# map_reduce_flow = Flow(start=trigger_node)
+# This ensures the 'combine_summaries' step (triggered by the last processor)
+# only runs after all 'summarize_file' steps are complete.
 
 # --- Execution ---
 async def main():
@@ -140,14 +148,16 @@ class TriggerSummariesNode extends Node {
 
   async post(memory: Memory, filesToProcess: [string, string][], fileCount: number): Promise<void> {
     console.log(`Mapper: Triggering summary for ${fileCount} files.`)
-    // Initialize results array in global memory
-    memory.file_summaries = []
+    // Initialize results array and counter in global memory
+    // Note: Using an array might still have race conditions if indices aren't guaranteed
+    // in ParallelFlow. An object map { index: summary } might be safer.
+    memory.file_summaries = new Array(fileCount).fill(null)
+    memory.remaining_summaries = fileCount // Add counter
     // Trigger a 'summarize_file' action for each file
     filesToProcess.forEach(([filename, content], index) => {
       this.trigger('summarize_file', { filename, content, index })
     })
-    // After triggering all files, trigger the 'combine' step
-    this.trigger('combine_summaries')
+    // NOTE: 'combine_summaries' is now triggered by SummarizeFileNode when the counter reaches zero.
   }
 }
 
@@ -174,7 +184,12 @@ class SummarizeFileNode extends Node {
     // A safer approach might be to push {filename, summary} and sort later, or use an object.
     memory.file_summaries[prepRes.index] = { filename: prepRes.filename, summary }
     console.log(`Processor: Finished ${prepRes.filename} (Index ${prepRes.index})`)
-    // This node doesn't trigger anything further in this branch
+    // Decrement counter and trigger combine if this is the last summary
+    memory.remaining_summaries--
+    if (memory.remaining_summaries === 0) {
+      console.log('Processor: All summaries collected, triggering combine.')
+      this.trigger('combine_summaries')
+    }
   }
 }
 
@@ -213,7 +228,11 @@ triggerNode.on('combine_summaries', reducerNode) // Reduce step (runs after all 
 
 // Use ParallelFlow for potentially faster summarization
 const mapReduceFlow = new ParallelFlow(triggerNode)
-// If order of summaries matters strictly, use: const mapReduceFlow = new Flow(triggerNode);
+// Alternatively, if strict sequential processing is acceptable or required (e.g., to avoid
+// the complexity of the counter mechanism), you can use a standard Flow:
+// const mapReduceFlow = new Flow(triggerNode);
+// This ensures the 'combine_summaries' step (triggered by the last processor)
+// only runs after all 'summarize_file' steps are complete.
 
 // --- Execution ---
 async function main() {

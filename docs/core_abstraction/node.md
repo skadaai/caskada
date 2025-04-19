@@ -551,10 +551,10 @@ class ItemProcessorNode extends Node<GlobalStore, LocalStore> {
     execRes: { result: any; index: number },
   ): Promise<void> {
     // Ensure list is long enough (important for ParallelFlow)
-    while (memory.results_list.length <= originalIndex) {
+    while (memory.results_list.length <= execRes.index) {
       memory.results_list.push(null)
     }
-    memory.results_list[originalIndex] = { item: prepRes.item ?? 'N/A', result: execRes.result }
+    memory.results_list[execRes.index] = { item: prepRes.item ?? 'N/A', result: execRes.result }
     console.log(
       ` ItemProcessor Post (Index ${originalIndex}): Stored result for '${prepRes.item}'.`,
     )
