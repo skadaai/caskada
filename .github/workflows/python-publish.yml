@@ -20,7 +20,7 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: '3.x'
-      - name: Install dependencies
+      - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
           pip install build twine pytest
@@ -33,7 +33,6 @@ jobs:
         with:
           version: 10 # Match user's pnpm version
           run_install: true
-          run_install: false
 
       - name: Version Python package using Changesets
         # This step runs changesets to update python/package.json,
