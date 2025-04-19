@@ -8,7 +8,7 @@ in pkgs.mkShell {
     openssh
     git
     corepack_22
-    nodejs_22
+    nodejs_23
     uv
   ];
 

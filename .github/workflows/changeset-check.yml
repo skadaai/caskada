@@ -109,7 +109,8 @@ jobs:
 
             const commentBody = tools.generateChangesetComment(context, 'Python');
 
-            const commentId = ${{ steps.find-python-comment.outputs.comment-id }};
+            // Assign commentId as a string to handle cases where find-comment returns empty
+            const commentId = '${{ steps.find-python-comment.outputs.comment-id }}';
 
             if (commentId) {
               await github.rest.issues.updateComment({
@@ -137,7 +138,8 @@ jobs:
 
             const commentBody = tools.generateChangesetComment(context, 'TypeScript');
 
-            const commentId = ${{ steps.find-typescript-comment.outputs.comment-id }};
+            // Assign commentId as a string to handle cases where find-comment returns empty
+            const commentId = '${{ steps.find-typescript-comment.outputs.comment-id }}';
 
             if (commentId) {
               await github.rest.issues.updateComment({

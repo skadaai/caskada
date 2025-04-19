@@ -8,7 +8,7 @@ machine-display: false
 
 **BrainyFlow does NOT provide built-in utilities**
 
-Instead, we offer examples that you can implement yourself. This approach gives you [more flexibility and control](./index#why-not-built-in) over your project's dependencies and functionality.
+Instead, we offer examples that you can implement yourself. This approach gives you [more flexibility and control](../utility_function/index.md#why-not-built-in) over your project's dependencies and functionality.
 
 {% endhint %}
 
@@ -149,6 +149,7 @@ validate_node = ValidateDataNode()
 data_prep_node >> validate_node >> model_flow
 data_science_flow = DataScienceFlow(start=data_prep_node)
 result = build_mermaid(start=data_science_flow)
+print(result) # Output the Mermaid string
 ```
 
 {% endtab %}
@@ -156,11 +157,8 @@ result = build_mermaid(start=data_science_flow)
 {% tab title="TypeScript" %}
 
 ```typescript
-class DataPrepBatchNode extends BatchNode {
-  prep(shared: any): any[] {
-    return []
-  }
-}
+// Define dummy nodes and flows for the example structure
+class DataPrepNode extends Node {}
 class ValidateDataNode extends Node {}
 class FeatureExtractionNode extends Node {}
 class TrainModelNode extends Node {}
@@ -168,16 +166,23 @@ class EvaluateModelNode extends Node {}
 class ModelFlow extends Flow {}
 class DataScienceFlow extends Flow {}
 
+// Instantiate and connect
 const featureNode = new FeatureExtractionNode()
 const trainNode = new TrainModelNode()
 const evaluateNode = new EvaluateModelNode()
 featureNode.next(trainNode).next(evaluateNode)
-const modelFlow = new ModelFlow(featureNode)
-const dataPrepNode = new DataPrepBatchNode()
+
+const modelFlow = new ModelFlow(featureNode) // Flow starting with featureNode
+
+const dataPrepNode = new DataPrepNode()
 const validateNode = new ValidateDataNode()
 dataPrepNode.next(validateNode).next(modelFlow)
-const dataScienceFlow = new DataScienceFlow(dataPrepNode)
+
+const dataScienceFlow = new DataScienceFlow(dataPrepNode) // Top-level flow
+
+// Generate Mermaid string (assuming buildMermaid function is defined as above)
 const result = buildMermaid(dataScienceFlow)
+console.log(result) // Output the Mermaid string
 ```
 
 {% endtab %}
@@ -302,33 +307,54 @@ data_science_flow.run({})
 {% tab title="TypeScript" %}
 
 ```typescript
-class DataPrepBatchNode extends BatchNode {
-  prep(shared: any): any[] {
-    return []
+// Define dummy nodes and flows
+class DataPrepNode extends Node {
+  async prep(memory: Memory): Promise<void> {
+    console.log('Prep: DataPrepNode')
   }
 }
-class ValidateDataNode extends Node {}
-class FeatureExtractionNode extends Node {}
-class TrainModelNode extends Node {}
+class ValidateDataNode extends Node {
+  async prep(memory: Memory): Promise<void> {
+    console.log('Prep: ValidateDataNode')
+  }
+}
+class FeatureExtractionNode extends Node {
+  async prep(memory: Memory): Promise<void> {
+    console.log('Prep: FeatureExtractionNode')
+  }
+}
+class TrainModelNode extends Node {
+  async prep(memory: Memory): Promise<void> {
+    console.log('Prep: TrainModelNode')
+  }
+}
 class EvaluateModelNode extends Node {
-  prep(shared: any): void {
-    const stack = getNodeCallStack()
-    console.log('Call stack:', stack)
+  async prep(memory: Memory): Promise<void> {
+    // Call the stack inspection function here
+    const stack = getNodeCallStack() // Assuming getNodeCallStack is defined
+    console.log('Call stack inside EvaluateModelNode:', stack)
   }
 }
 class ModelFlow extends Flow {}
 class DataScienceFlow extends Flow {}
 
+// Instantiate and connect
 const featureNode = new FeatureExtractionNode()
 const trainNode = new TrainModelNode()
 const evaluateNode = new EvaluateModelNode()
 featureNode.next(trainNode).next(evaluateNode)
+
 const modelFlow = new ModelFlow(featureNode)
-const dataPrepNode = new DataPrepBatchNode()
+
+const dataPrepNode = new DataPrepNode()
 const validateNode = new ValidateDataNode()
 dataPrepNode.next(validateNode).next(modelFlow)
+
 const dataScienceFlow = new DataScienceFlow(dataPrepNode)
-dataScienceFlow.run({})
+
+// Run the flow
+console.log('Running data science flow...')
+dataScienceFlow.run({}) // Pass an empty initial memory
 ```
 
 {% endtab %}
@@ -357,15 +383,17 @@ logger = logging.getLogger('brainyflow')
 
 def trace_node(cls):
     """Class decorator to trace node execution"""
-    original_prep = cls.prep
-    original_exec = cls.exec
-    original_post = cls.post
+    # Ensure the methods exist before wrapping
+    original_prep = getattr(cls, 'prep', None)
+    original_exec = getattr(cls, 'exec', None)
+    original_post = getattr(cls, 'post', None)
 
     @wraps(original_prep)
-    async def traced_prep(self, shared):
+    async def traced_prep(self, memory: Memory):
         logger.info(f"ENTER prep: {type(self).__name__}")
         start_time = time.time()
-        result = await original_prep(self, shared)
+        # Call original only if it exists
+        result = await original_prep(self, memory) if original_prep else None
         elapsed = time.time() - start_time
         logger.info(f"EXIT prep: {type(self).__name__} ({elapsed:.3f}s)")
         return result
@@ -374,37 +402,45 @@ def trace_node(cls):
     async def traced_exec(self, prep_res):
         logger.info(f"ENTER exec: {type(self).__name__}")
         start_time = time.time()
-        result = await original_exec(self, prep_res)
+        # Call original only if it exists
+        result = await original_exec(self, prep_res) if original_exec else None
         elapsed = time.time() - start_time
         logger.info(f"EXIT exec: {type(self).__name__} ({elapsed:.3f}s)")
         return result
 
     @wraps(original_post)
-    async def traced_post(self, shared, prep_res, exec_res):
+    async def traced_post(self, memory: Memory, prep_res, exec_res):
         logger.info(f"ENTER post: {type(self).__name__}")
         start_time = time.time()
-        result = await original_post(self, shared, prep_res, exec_res)
+        # Call original only if it exists
+        # Note: Original post doesn't return the action anymore
+        if original_post:
+             await original_post(self, memory, prep_res, exec_res)
         elapsed = time.time() - start_time
-        logger.info(f"EXIT post: {type(self).__name__} ({elapsed:.3f}s) -> {result}")
-        return result
+        # Log triggers separately if needed, as post doesn't return them
+        logger.info(f"EXIT post: {type(self).__name__} ({elapsed:.3f}s)")
+        # The decorator doesn't need to return anything from post
 
-    cls.prep = traced_prep
-    cls.exec = traced_exec
-    cls.post = traced_post
+    # Assign wrapped methods back to the class
+    if original_prep: cls.prep = traced_prep
+    if original_exec: cls.exec = traced_exec
+    if original_post: cls.post = traced_post
     return cls
 
 # Usage:
 @trace_node
 class MyNode(Node):
-    async def prep(self, shared):
+    async def prep(self, memory: Memory):
+        # logger.info(f"Reading from memory: {memory.some_input}") # Example read
         return "data"
 
     async def exec(self, prep_res):
+        await asyncio.sleep(0.05) # Simulate work
         return prep_res.upper()
 
-    async def post(self, shared, prep_res, exec_res):
-        shared["result"] = exec_res
-        return "default"
+    async def post(self, memory: Memory, prep_res, exec_res):
+        memory.result = exec_res # Write to memory object
+        self.trigger("default")
 ```
 
 {% endtab %}
@@ -412,67 +448,111 @@ class MyNode(Node):
 {% tab title="TypeScript" %}
 
 ```typescript
-import { createLogger, format, transports } from 'winston'
+import { createLogger, format, transports } from 'winston' // Example logger
 
-// Configure logging
+// Configure logging (using Winston as an example)
 const logger = createLogger({
   level: 'info',
   format: format.combine(
-    format.timestamp(),
-    format.printf(({ timestamp, level, message }) => {
-      return `${timestamp} - ${level}: ${message}`
-    }),
+    format.timestamp({ format: 'HH:mm:ss.SSS' }),
+    format.printf(
+      ({ timestamp, level, message }) => `${timestamp} - ${level.toUpperCase()} - ${message}`,
+    ),
   ),
   transports: [new transports.Console()],
 })
 
-// Node tracing decorator function
-function traceNode(BaseClass: T): T {
-  return class extends BaseClass {
-    async prep(shared: any): Promise {
-      logger.info(`ENTER prep: ${this.constructor.name}`)
+// --- Tracing Wrapper Function ---
+// This function takes a Node class and returns a new class with tracing added.
+// Note: This is a simplified example; real decorators might be more complex.
+function withTracing<T extends new (...args: any[]) => Node>(NodeClass: T): T {
+  return class TracedNode extends NodeClass {
+    async prep(memory: Memory): Promise<any> {
+      const nodeName = this.constructor.name
+      logger.info(`ENTER prep: ${nodeName}`)
       const startTime = Date.now()
-      const result = await super.prep(shared)
-      const elapsed = (Date.now() - startTime) / 1000
-      logger.info(`EXIT prep: ${this.constructor.name} (${elapsed.toFixed(3)}s)`)
-      return result
+      try {
+        // Call the original prep method
+        const result = await super.prep(memory)
+        const elapsed = (Date.now() - startTime) / 1000
+        logger.info(`EXIT prep: ${nodeName} (${elapsed.toFixed(3)}s)`)
+        return result
+      } catch (e: any) {
+        logger.error(`ERROR prep: ${nodeName} - ${e.message}`)
+        throw e // Re-throw error after logging
+      }
     }
 
-    async exec(prepRes: any): Promise {
-      logger.info(`ENTER exec: ${this.constructor.name}`)
+    async exec(prepRes: any): Promise<any> {
+      const nodeName = this.constructor.name
+      logger.info(`ENTER exec: ${nodeName}`)
       const startTime = Date.now()
-      const result = await super.exec(prepRes)
-      const elapsed = (Date.now() - startTime) / 1000
-      logger.info(`EXIT exec: ${this.constructor.name} (${elapsed.toFixed(3)}s)`)
-      return result
+      try {
+        // Call the original exec method
+        const result = await super.exec(prepRes)
+        const elapsed = (Date.now() - startTime) / 1000
+        logger.info(`EXIT exec: ${nodeName} (${elapsed.toFixed(3)}s)`)
+        return result
+      } catch (e: any) {
+        logger.error(`ERROR exec: ${nodeName} - ${e.message}`)
+        throw e
+      }
     }
 
-    async post(shared: any, prepRes: any, execRes: any): Promise {
-      logger.info(`ENTER post: ${this.constructor.name}`)
+    async post(memory: Memory, prepRes: any, execRes: any): Promise<void> {
+      const nodeName = this.constructor.name
+      logger.info(`ENTER post: ${nodeName}`)
       const startTime = Date.now()
-      const result = await super.post(shared, prepRes, execRes)
-      const elapsed = (Date.now() - startTime) / 1000
-      logger.info(`EXIT post: ${this.constructor.name} (${elapsed.toFixed(3)}s) -> ${result}`)
-      return result
+      try {
+        // Call the original post method
+        await super.post(memory, prepRes, execRes)
+        const elapsed = (Date.now() - startTime) / 1000
+        logger.info(`EXIT post: ${nodeName} (${elapsed.toFixed(3)}s)`)
+      } catch (e: any) {
+        logger.error(`ERROR post: ${nodeName} - ${e.message}`)
+        throw e
+      }
     }
-  } as T
+  } as T // Cast back to the original type structure
 }
 
-// Usage:
-class MyNode extends traceNode(Node) {
-  async prep(shared: any): Promise {
+// --- Usage Example ---
+
+// Define your original node
+class MyOriginalNode extends Node {
+  async prep(memory: Memory): Promise<string> {
+    await new Promise((res) => setTimeout(res, 50)) // Simulate work
     return 'data'
   }
 
-  async exec(prepRes: string): Promise {
+  async exec(prepRes: string): Promise<string> {
+    await new Promise((res) => setTimeout(res, 100)) // Simulate work
     return prepRes.toUpperCase()
   }
 
-  async post(shared: any, prepRes: string, execRes: string): Promise {
-    shared.result = execRes
-    return 'default'
+  async post(memory: Memory, prepRes: string, execRes: string): Promise<void> {
+    await new Promise((res) => setTimeout(res, 30)) // Simulate work
+    memory.result = execRes
   }
 }
+
+// Wrap the original node class with tracing
+const MyTracedNode = withTracing(MyOriginalNode)
+
+// Use the traced node in a flow
+// const tracedNodeInstance = new MyTracedNode();
+// const flow = new Flow(tracedNodeInstance);
+// flow.run({}).then(() => console.log("Flow finished"));
+
+/* Example Output:
+22:15:01.123 - INFO - ENTER prep: MyOriginalNode
+22:15:01.175 - INFO - EXIT prep: MyOriginalNode (0.052s)
+22:15:01.175 - INFO - ENTER exec: MyOriginalNode
+22:15:01.277 - INFO - EXIT exec: MyOriginalNode (0.102s)
+22:15:01.277 - INFO - ENTER post: MyOriginalNode
+22:15:01.309 - INFO - EXIT post: MyOriginalNode (0.032s)
+Flow finished
+*/
 ```
 
 {% endtab %}

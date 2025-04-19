@@ -20,8 +20,8 @@ BrainyFlow follows these fundamental principles:
 
 The fundamental pattern in BrainyFlow combines two key elements:
 
-- **Computation Graph**: A directed graph where nodes represent discrete units of work and edges represent the flow of control
-- **Shared Store**: A global data structure that enables communication between nodes
+- **Computation Graph**: A directed graph where nodes represent discrete units of work and edges represent the flow of control.
+- **Shared Store**: A state management system that enables communication between nodes, separating global and local state.
 
 This pattern offers several advantages:
 
@@ -34,12 +34,11 @@ This pattern offers several advantages:
 
 BrainyFlow's architecture is based on these fundamental building blocks:
 
-| Component                           | Description             | Key Features                                                                |
-| ----------------------------------- | ----------------------- | --------------------------------------------------------------------------- |
-| [Node](./node.md)                   | The basic unit of work  | Clear lifecycle (`prep → exec → post`), fault tolerance, graceful fallbacks |
-| [Flow](./flow.md)                   | Connects nodes together | Action-based transitions, branching, looping, nesting                       |
-| [Communication](./communication.md) | Enables data sharing    | Shared Store (global), Params (node-specific)                               |
-| [Batch](./batch.md)                 | Handles multiple items  | Sequential or parallel processing, nested batching                          |
+| Component             | Description                                    | Key Features                                                                                                |
+| --------------------- | ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| [Node](./node.md)     | The basic unit of work                         | Clear lifecycle (`prep` → `exec` → `post`), fault tolerance (retries), graceful fallbacks                   |
+| [Flow](./flow.md)     | Connects nodes together                        | Action-based transitions, branching, looping (with cycle detection), nesting, sequential/parallel execution |
+| [Memory](./memory.md) | Manages state accessible during flow execution | Shared `global` store, forkable `local` store, cloning for isolation                                        |
 
 ## How They Work Together
 
@@ -47,23 +46,20 @@ BrainyFlow's architecture is based on these fundamental building blocks:
 
    - `prep`: Read from shared store and prepare data
    - `exec`: Execute computation (often LLM calls)
-   - `post`: Process results and write to shared store
+   - `post`: Process results, write to shared store, and trigger next actions
 
 2. **Flows** orchestrate nodes by:
 
-   - Starting with a designated node
-   - Following action-based transitions between nodes
-   - Supporting branching, looping, and nested flows
+   - Starting with a designated `start` node.
+   - Following action-based transitions (`trigger` calls in `post`) between nodes.
+   - Supporting branching, looping, and nested flows.
+   - Executing triggered branches sequentially (`Flow`) or concurrently (`ParallelFlow`).
+   - Supporting nested batch operations.
 
-3. **Communication** happens through:
+3. **Communication** happens through the `memory` instance provided to each node's lifecycle methods (in `prep` and `post` methods):
 
-   - **Shared Store**: A global dictionary accessible to all nodes
-   - **Params**: Node-specific configuration passed down from parent flows
-
-4. **Batch Processing** enables:
-   - Processing multiple items sequentially or in parallel
-   - Handling large datasets efficiently
-   - Supporting nested batch operations
+   - **Global Store**: A shared object accessible throughout the flow. Nodes typically write results here.
+   - **Local Store**: An isolated object specific to a node and its downstream path.
 
 ## Getting Started
 
@@ -71,7 +67,6 @@ If you're new to BrainyFlow, we recommend exploring these core abstractions in t
 
 1. [Node](./node.md) - Understand the basic building block
 2. [Flow](./flow.md) - Learn how to connect nodes together
-3. [Communication](./communication.md) - See how nodes share data
-4. [Batch](./batch.md) - Explore handling multiple items
+3. [Memory](./memory.md) - See how nodes share data
 
 Once you understand these core abstractions, you'll be ready to implement various [Design Patterns](../design_pattern/index.md) to solve real-world problems.

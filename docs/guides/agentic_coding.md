@@ -4,7 +4,7 @@
 
 <summary>Notes For AI Assistants</summary>
 
-{% hint style="success" %}
+{% hint style="warning" %}
 **AI only**: If you are a human, skip this section.
 {% endhint %}
 
@@ -121,34 +121,117 @@ EntityExtractorNode:
 
 ### 5. Shared Store Schema
 
-Define the structure of your shared store:
+Define the structure of your shared store. Using interfaces (TypeScript) or type hints (Python) is highly recommended.
 
-- **Key Namespaces**: Major sections of your shared store
-- **Data Types**: Expected types for each key
-- **Data Flow**: How data evolves through processing
+- **Key Namespaces**: Major sections of your shared store (often represented as nested objects or distinct keys).
+- **Data Types**: Expected types for each key.
+- **Data Flow**: How data evolves through processing (which nodes read/write which keys).
 
 Example:
 
+{% tabs %}
+{% tab title="Python (Conceptual + Type Hints)" %}
+
 ```python
-shared = {
-    "input": {
-        "document_path": "path/to/file.pdf"  # Input file path
+from typing import TypedDict, List, Dict, Any
+
+# Define TypedDicts for structure (optional but good practice)
+class InputStore(TypedDict):
+    document_path: str
+
+class ProcessingStore(TypedDict):
+    document_text: str
+    entities: Dict[str, List[Any]] # e.g., {"parties": [], "dates": [], "amounts": []}
+    validation_status: str
+
+class OutputStore(TypedDict):
+    summary: str
+    storage_id: str
+
+# Conceptual structure of the memory object using separate keys
+# (Actual implementation might use a single dict or class instance)
+memory_conceptual = {
+    "document_path": "path/to/file.pdf", # str
+    "document_text": "",                 # str
+    "entities": {                        # Dict[str, List[Any]]
+        "parties": [],
+        "dates": [],
+        "amounts": []
     },
-    "processing": {
-        "document_text": "",     # Extracted text content
-        "entities": {            # Extracted entities
-            "parties": [],
-            "dates": [],
-            "amounts": []
-        },
-        "validation_status": ""  # Status after validation
-    },
-    "output": {
-        "summary": "",           # Generated summary
-        "storage_id": ""         # Database reference ID
-    }
+    "validation_status": "",             # str
+    "summary": "",                       # str
+    "storage_id": ""                     # str
 }
+
+# Note: In BrainyFlow, you typically access these directly, e.g.,
+# memory.document_text = "..."
+# entities = memory.entities
+# This conceptual breakdown helps in planning the data flow.
 ```
+
+{% endtab %}
+
+{% tab title="TypeScript (Interface Definition)" %}
+
+```typescript
+// Define interfaces for the shared store structure
+interface InputStore {
+  document_path: string
+}
+
+interface ProcessingStore {
+  document_text: string
+  entities: {
+    parties: any[]
+    dates: any[]
+    amounts: any[]
+  }
+  validation_status: string
+}
+
+interface OutputStore {
+  summary: string
+  storage_id: string
+}
+
+// Combine interfaces for the complete global store (if using nested structure conceptually)
+interface GlobalStore extends InputStore, ProcessingStore, OutputStore {}
+
+// Or define a flat global store interface (more common in BrainyFlow usage)
+interface FlatGlobalStore {
+  document_path?: string
+  document_text?: string
+  entities?: {
+    parties: any[]
+    dates: any[]
+    amounts: any[]
+  }
+  validation_status?: string
+  summary?: string
+  storage_id?: string
+}
+
+// Conceptual structure (using the flat interface)
+const memoryConceptual: FlatGlobalStore = {
+  document_path: 'path/to/file.pdf',
+  document_text: '',
+  entities: {
+    parties: [],
+    dates: [],
+    amounts: [],
+  },
+  validation_status: '',
+  summary: '',
+  storage_id: '',
+}
+
+// Note: In BrainyFlow, you'd typically pass an object conforming to
+// FlatGlobalStore (or a relevant subset) to flow.run() and access
+// properties directly, e.g., memory.document_text = "...", const entities = memory.entities;
+```
+
+{% endtab %}
+{% endtabs %}
 
 ## Best Practices for Your Design Document
 
@@ -188,7 +271,7 @@ Go back to working and finish it! Do not stop until you are done.
 
 <summary>Notes For AI Assistants</summary>
 
-{% hint style="success" %}
+{% hint style="warning" %}
 **AI only**: If you are a human, skip this section.
 {% endhint %}
 
@@ -198,8 +281,15 @@ Be sure you **always** strictly follow these instructions:
 2. **Be Brainy**: Import `brainyflow` and use its archictecture to implement the design document! Adhere to the proposed flow, node and shared store design.
 3. **Focus on What Matters**: Do not fix types or edge cases until you are certain the core implementation is working as intended.
 4. **Be Adaptive**: Continuously refine the design document based on feedback and changes in the implementation, but keep it clear and concise.
-5. **Be Resilient**: You are not done until the implementation is working as intended.
-6. **Be Accountable**: Before finishing the implementation, ask yourself the following questions:
+5. **Be Compliant**: You must always write code that is compliant with the design document and the system's architecture. Remember to stick to the flow, node and shared store design:
+   - prep(memory)
+     Read and preprocess data from the memory object.
+   - exec(prep_res)
+     Execute compute logic. Receives result from prep. Cannot access memory.
+   - post(memory, prep_res, exec_res)
+     Postprocess results, write data back to the memory object (usually global store), and trigger next actions.
+6. **Be Resilient**: You are not done until the implementation is working as intended.
+7. **Be Accountable**: Before finishing the implementation, ask yourself the following questions:
    - are all stubs and placeholders gone?
    - have all requirements and features been implemented?
    - have I successfully run the application and all tests?

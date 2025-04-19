@@ -5,14 +5,14 @@
 - [What is BrainyFlow?](index.md)
 - [Installation](installation.md)
 - [Getting Started](getting_started.md)
+- [Comparison](comparison.md)
 
 ## Core Abstraction
 
 - [Overview](core_abstraction/index.md)
 - [Node](core_abstraction/node.md)
 - [Flow](core_abstraction/flow.md)
-- [Communication](core_abstraction/communication.md)
-- [Batch](core_abstraction/batch.md)
+- [Memory](core_abstraction/memory.md)
 
 ## Design Patterns
 
@@ -42,3 +42,4 @@
 - [Visualization & Logging](guides/visualization_logging.md)
 - [Testing](guides/testing.md)
 - [Migrating from PocketFlow](guides/migrating_from_pocketflow.md)
+- [Migrating from Older Versions](guides/migration.md)

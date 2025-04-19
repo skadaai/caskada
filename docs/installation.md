@@ -30,10 +30,18 @@ You can import the JavaScript file directly in the browser using a `<script>` ta
 
 ```html
 <script type="module">
-  import brainyflow from 'https://unpkg.com/brainyflow@latest/dist/brainyflow.js'
+  import * as brainyflow from 'https://unpkg.com/brainyflow@latest/dist/brainyflow.js'
 
-  // optional: expose globally
-  globalThis.brainyflow = brainyflow
+  new brainyflow.Node(...)
+</script>
+```
+
+or
+
+```html
+<script type="module" src="https://unpkg.com/brainyflow@latest/dist/brainyflow.js"></script>
+<script>
+  new globalThis.brainyflow.Node(...)
 </script>
 ```
 

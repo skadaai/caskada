@@ -91,8 +91,13 @@ Other examples include:
 
 Each pattern can be implemented using BrainyFlow's core abstractions. Here's a simple example of the agent pattern:
 
+{% tabs %}
+{% tab title="Python" %}
+
 ```python
-# Define the agent's components
+from brainyflow import Flow, Node
+
+# Define the agent's components (assuming these classes exist)
 perceive = PerceiveNode()
 think = ThinkNode()
 act = ActNode()
@@ -103,6 +108,28 @@ perceive >> think >> act >> perceive
 # Create the agent flow
 agent_flow = Flow(start=perceive)
 ```
+
+{% endtab %}
+
+{% tab title="TypeScript" %}
+
+```typescript
+import { Flow, Node } from 'brainyflow'
+
+// Define the agent's components (assuming these classes exist)
+const perceive = new PerceiveNode()
+const think = new ThinkNode()
+const act = new ActNode()
+
+// Connect them in a cycle
+perceive.next(think).next(act).next(perceive)
+
+// Create the agent flow
+const agentFlow = new Flow(perceive)
+```
+
+{% endtab %}
+{% endtabs %}
 
 For more detailed implementations of each pattern, see the individual pattern documentation pages.
 

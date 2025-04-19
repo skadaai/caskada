@@ -2,6 +2,7 @@
 title: 'BrainyFlow'
 machine-display: false
 ---
+
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="https://cdn.jsdelivr.net/gh/zvictor/brainyflow@main/.github/media/logo-dark.png">
@@ -11,9 +12,10 @@ machine-display: false
 <p>
 
 <p align="center">
-  A <a href="https://github.com/zvictor/BrainyFlow/blob/main/python/brainyflow.py">65-line</a> minimalist AI framework 🤯
+  A minimalist AI framework (<a href="https://github.com/zvictor/BrainyFlow/blob/main/python/brainyflow.py">200 lines in Python</a>! 🤯)
+
   <br />
-  <sub>Let Agents build Agents with zero bloat, zero dependencies, zero vendor lock-in 😮</sub>
+  <sub>Let Agents build Agents with Zero bloat, dependencies, or vendor lock-in 😮</sub>
 </p>
 
 <p align="center">
@@ -43,21 +45,19 @@ It enables both humans and AI assistants to collaborate effectively on designing
 ## Features
 
 - **Brain-Easy 🧠**: Intuitive for both humans and AI assistants
-- **Minimalist Design ✨**: Core abstractions in just (_you heard it right!_) 65 lines of code
-- **Freedom 🔓**: Zero bloat, zero dependencies, zero vendor lock-in.
+- **Minimalist Design ✨**: Core abstractions in just (_you heard it right!_) 200 lines of code
+- **Freedom 🔓**: Zero bloat, dependencies, or vendor lock-in.
 - **Composable 🧩**: Build complex systems from simple, reusable components
-- **Powerful 💪**: Supports everything you love—([Multi-](./design_pattern/multi_agent))[Agents](./design_pattern/agent), [Workflow](./design_pattern/workflow), [RAG](./design_pattern/rag), and more.
-- **Agentic-Coding 🤖**: Let AI Agents (e.g., Cursor AI) build Agents for 10x productivity
+- **Powerful 🦾**: Supports everything you love—([Multi-](./design_pattern/multi_agent.md))[Agents](./design_pattern/agent.md), [Workflow](./design_pattern/workflow.md), [RAG](./design_pattern/rag.md), and more.
+- **Agentic-Coding 🤖**: Designed for AI-assisted development.
 - **Universal 🌈**: Works with any LLM provider or API
-- **Polyglot 🌍**:  Python and  Typescript are both supported.
+- **Polyglot 🌍**: Python and Typescript are both supported.
 
 ![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
 
-
-
 ## Why Brainy Flow?
 
-Current LLM frameworks are bloated... You actually only need 65 lines for a robust LLM Framework!
+Current LLM frameworks are bloated... You actually only need 200 lines for a robust LLM Framework!
 
 <div align="center">
   <img src="https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/meme.jpg" width="500"/>
@@ -69,7 +69,8 @@ Current LLM frameworks are bloated... You actually only need 65 lines for a robu
 | SmolAgent      |      Agent      |   Some <br><sup><sub>(e.g., CodeAgent, VisitWebTool)</sub></sup>   |  Some <br><sup><sub>(e.g., DuckDuckGo, Hugging Face, etc.)</sub></sup>   |                    8K                    |                   +198MB                    |
 | LangGraph      |  Agent, Graph   |       Some <br><sup><sub>(e.g., Semantic Search)</sub></sup>       | Some <br><sup><sub>(e.g., PostgresStore, SqliteSaver, etc.) </sub></sup> |                   37K                    |                    +51MB                    |
 | AutoGen        |      Agent      |   Some <br><sup><sub>(e.g., Tool Agent, Chat Agent)</sub></sup>    | Many <sup><sub>[Optional]<br> (e.g., OpenAI, Pinecone, etc.)</sub></sup> | 7K <br><sup><sub>(core-only)</sub></sup> | +26MB <br><sup><sub>(core-only)</sub></sup> |
-| **BrainyFlow** |    **Graph**    |                              **None**                              |                                 **None**                                 |                  **65**                  |                 **few KB**                  |
+| **BrainyFlow** |    **Graph**    |                              **None**                              |                                 **None**                                 |                 **300**                  |                 **few KB**                  |
+| **BrainyFlow** |    **Graph**    |                              **None**                              |                                 **None**                                 |                 **200**                  |                 **few KB**                  |
 
 </div>
 
@@ -85,10 +86,9 @@ The single file in <a href="https://github.com/zvictor/BrainyFlow/blob/main/pyth
 </div>
 <br>
 
-- [Node](./core_abstraction/node) handles simple (LLM) tasks with a clear lifecycle.
-- [Flow](./core_abstraction/flow) connects nodes through **Actions** (labeled edges).
-- [Shared Store](./core_abstraction/communication) enables communication between nodes within flows.
-- [Batch](./core_abstraction/batch) nodes/flows allow for data-intensive tasks.
+- [Node](./core_abstraction/node) handles simple (LLM) tasks with a clear lifecycle (`prep` → `exec` → `post`).
+- [Flow](./core_abstraction/flow) connects nodes through **Actions** (labeled edges), orchestrating execution.
+- [Memory](./core_abstraction/memory) manages shared (`global`) and isolated (`local`) state, enabling communication between nodes.
 
 From there, it's easy to implement all popular design patterns:
 <br>
@@ -139,7 +139,7 @@ And many more available for all levels! [Check them all out!](https://github.com
 
 - Want to learn **Agentic Coding**?
   - To setup, read this [post](https://zacharyhuang.substack.com/p/agentic-coding-the-most-fun-way-to)!
-  - Check out [my YouTube](https://www.youtube.com/@ZacharyLLM?sub_confirmation=1)! Read this [Guide](./agentic_coding)!
+  - Check out [my YouTube](https://www.youtube.com/@ZacharyLLM?sub_confirmation=1)! Read this [Guide](./guides/agentic_coding.md)!
 - Want to build your own LLM App? Start with our [Python template](https://github.com/zvictor/Brainyflow-Template-Python) or [Typescript template](https://github.com/zvictor/Brainyflow-Template-Typescript)!
 
 ![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png) -->
@@ -169,7 +169,7 @@ We do not take responsibility for how the generated output is used, including bu
   <a style="color: inherit" href="https://github.com/sponsors/zvictor?utm_source=brainyflow&utm_medium=sponsorship&utm_campaign=brainyflow&utm_id=brainyflow">
     <img width="150" src="https://cdn.jsdelivr.net/gh/zvictor/brainyflow@main/.github/media/brain.png"  />
   </a><br /><br />
-  BrainyFlow runs on 65 lines of code and your generosity! 💰<br />
+  BrainyFlow runs on 200 lines of code and your generosity! 💰<br />
     <a style="color: inherit" href="https://github.com/sponsors/zvictor?utm_source=brainyflow&utm_medium=sponsorship&utm_campaign=brainyflow&utm_id=brainyflow">
       Help us deliver more AI with less code (but maybe more caffeine)
     </a> ☕<br /><br />
