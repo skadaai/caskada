@@ -32,6 +32,7 @@ jobs:
         uses: pnpm/action-setup@v2
         with:
           version: 10 # Match user's pnpm version
+          run_install: true
           run_install: false
 
       - name: Version Python package using Changesets

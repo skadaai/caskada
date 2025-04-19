@@ -39,6 +39,9 @@ jobs:
           commit: 'chore: update versions'
           title: 'chore: update versions'
           cwd: ./typescript
+          setupGitUser: true
+          createGithubReleases: true
+          createPullRequest: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
