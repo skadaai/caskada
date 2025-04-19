@@ -20,7 +20,7 @@ from brainyflow import Node, Flow
 
 class AgentNode(Node):
     async def prep(self, memory: Memory):
-        message = await message_queue.get()
+        message = await memory.message_queue.get()
         print(f"Agent received: {message}")
         return message
 

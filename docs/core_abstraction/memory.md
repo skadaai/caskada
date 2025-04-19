@@ -87,7 +87,7 @@ class DataWriterNode(Node):
         # Accessible to all nodes in the flow and outside
         memory.fileList = exec_res["files"]
         print(f"Memory updated globally: fileList={memory.fileList}")
-        
+
         # --- Writing to Local Store ---
         # Accessible to this node and all descendants
         memory.local.processedCount = exec_res["count"]
@@ -139,7 +139,7 @@ class DataWriterNode extends Node<MyGlobal, MyLocal, ['process_file']> {
     // --- Writing to Local Store ---
     // Accessible to this node and all descendants
     memory.local.processedCount = execRes.count
-    console.log(`Memory updated locally: processedCount={memory.processedCount}`)
+    console.log(`Memory updated locally: processedCount=${memory.processedCount}`)
 
     // --- Triggering with Local Data (Forking Data) ---
     // 'file' will be added to the local store of the memory clone

@@ -97,13 +97,13 @@ interface QAGlobalStore {
   answer?: string
 }
 class GetQuestionNode extends Node<QAGlobalStore> {
-  async prep(memory: Memory<QAGlobalStore, QALocalStore>): Promise<void> {
+  async prep(memory: Memory<QAGlobalStore>): Promise<void> {
     memory.question = await input({ message: 'Enter your question: ' })
   }
 }
 
 class AnswerNode extends Node<QAGlobalStore> {
-  async prep(memory: Memory<QAGlobalStore>): Promise<string | undefined> {)
+  async prep(memory: Memory<QAGlobalStore>): Promise<string | undefined> {
     return memory.question
   }
 
@@ -220,7 +220,7 @@ if __name__ == '__main__':
 {% tab title="TypeScript" %}
 
 ```typescript
-import { createQaFlow, QAGlobalStore } from './flow'; // defined in the previous steps
+import { createQaFlow, QAGlobalStore } from './flow' // defined in the previous steps
 
 async function main() {
   // Initialize the global store (can be an empty object)

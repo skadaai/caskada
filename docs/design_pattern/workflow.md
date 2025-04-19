@@ -132,7 +132,7 @@ const writingFlow = new Flow(outline)
 // --- Execution ---
 async function main() {
   const data = { topic: 'AI Safety' }
-  console.log(`Starting writing workflow for topic: "${initialMemory.topic}"`)
+  console.log(`Starting writing workflow for topic: "${data.topic}"`)
 
   await writingFlow.run(data) // Run the flow
 
