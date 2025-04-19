@@ -11,8 +11,8 @@
 <nav align="center">
   <a href="https://brainy.gitbook.io/flow/introduction/getting_started">Get Started Now ✨ 🐣</a>
   <a href="https://github.com/zvictor/brainyflow/tree/master/cookbook">Examples 🌈 </a>
-  <a href="https://pypi.org/project/brainyflow">PyPI <img src="https://iconduck.com/vectors/vctrahatphfa/media/svg/download" width="17" height="17" alt="Python Logo" style="vertical-align: sub; margin: 0 2px;"></a>
-  <a href="https://www.npmjs.com/package/brainyflow">NPM <img src="https://iconduck.com/vectors/vctrk180y7wy/media/svg/download" width="17" height="17" alt="Typescript Logo" style="vertical-align: sub; margin: 0 2px;"></a>
+  <a href="https://pypi.org/project/brainyflow">PyPI <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/python.svg" width="17" height="17" alt="Python Logo" style="vertical-align: sub; margin: 0 2px;"></a>
+  <a href="https://www.npmjs.com/package/brainyflow">NPM <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/typescript.svg" width="17" height="17" alt="Typescript Logo" style="vertical-align: sub; margin: 0 2px;"></a>
   <a href="https://discord.gg/MdJJ29Xd">Chat <img src="https://cdn.prod.website-files.com/6257adef93867e50d84d30e2/66e3d80db9971f10a9757c99_Symbol.svg" width="17" height="17" alt="Discord Logo" style="vertical-align: sub; margin: 0 2px;"></a>
   <a href="https://github.com/zvictor/brainyflow">Github <img src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/github-white-icon.svg" width="17" height="17" alt="Github Logo" style="vertical-align: sub; margin: 0 2px;"></a>
   <!-- Dropdown container -->
@@ -22,10 +22,10 @@
     <!-- Dropdown content -->
     <div class="dropdown-content">
       <a href="/docs.python.txt"> <!-- Python Link -->
-        <img class="dropdown-icon" src="https://iconduck.com/vectors/vctrahatphfa/media/svg/download" width="17" height="17" alt="Python Logo">docs.<em>python</em>.txt
+        <img class="dropdown-icon" src="https://github.com/zvictor/brainyflow/raw/main/.github/media/python.svg" width="17" height="17" alt="Python Logo">docs.<em>python</em>.txt
       </a>
       <a href="/docs.typescript.txt"> <!-- Typescript Link -->
-        <img class="dropdown-icon" src="https://iconduck.com/vectors/vctrk180y7wy/media/svg/download" width="17" height="17" alt="Typescript Logo">docs.<em>typescript</em>.txt
+        <img class="dropdown-icon" src="https://github.com/zvictor/brainyflow/raw/main/.github/media/typescript.svg" width="17" height="17" alt="Typescript Logo">docs.<em>typescript</em>.txt
       </a>
       <a href="/docs.txt"> <!-- All Docs Link -->
         📜 docs.txt (<em>all</em>)
@@ -192,12 +192,12 @@
 <div class="glass">
   <p style="font-size: 1.2em; font-weight: bolder; margin: 10px 0">What is <em>BrainyFlow</em>?</p>
   <p>
-    BrainyFlow is a <strong>radically minimalist AI framework</strong> (just 65 lines in Python!) enabling <em>Agentic Coding</em> through powerful, intuitive graph abstractions.<br />Build complex AI systems with unparalleled simplicity and freedom.
+    BrainyFlow is a <strong>radically minimalist AI framework</strong> (just 200 lines in Python!) enabling <em>Agentic Coding</em> through powerful, intuitive graph abstractions.<br />Build complex AI systems with unparalleled simplicity and freedom.
   </p>
   <strong>Key Features:</strong>
   <ul>
     <li><strong>Brain-Easy 🧠</strong>: Intuitive for humans and AI assistants.</li>
-    <li><strong>Minimalist ✨</strong>: Core logic in just 65 lines.</li>
+    <li><strong>Minimalist ✨</strong>: Core logic in just 200 lines.</li>
     <li><strong>Freedom 🔓</strong>: Zero bloat, dependencies, or vendor lock-in.</li>
     <li><strong>Composable 🧩</strong>: Build complex systems from simple parts.</li>
     <li><strong>Powerful 🦾</strong>: Supports Agents, Workflows, RAG, and more.</li>

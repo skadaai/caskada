@@ -22,7 +22,7 @@
       <tr><td>SmolAgent</td><td>Agent</td><td>Some</td><td>Some</td><td>~8K</td><td>~198MB</td></tr>
       <tr><td>LangGraph</td><td>Agent, Graph</td><td>Some</td><td>Some</td><td>~37K</td><td>~51MB</td></tr>
       <tr><td>AutoGen</td><td>Agent</td><td>Some</td><td>Many [Optional]</td><td>~7K</td><td>~26MB</td></tr>
-      <tr><td><strong>BrainyFlow</strong></td><td><strong>Graph</strong></td><td><strong>None</strong></td><td><strong>None</strong></td><td><strong>~65</strong></td><td><strong>~few KB</strong></td></tr>
+      <tr><td><strong>BrainyFlow</strong></td><td><strong>Graph</strong></td><td><strong>None</strong></td><td><strong>None</strong></td><td><strong>~200</strong></td><td><strong>~few KB</strong></td></tr>
     </tbody>
   </table>
   
@@ -47,7 +47,7 @@
   <a style="color: inherit" href="https://github.com/sponsors/zvictor?utm_source=brainyflow&utm_medium=sponsorship&utm_campaign=brainyflow&utm_id=brainyflow">
     <img width="150px" src="https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/brain.png" alt="Brainyflow's logo" />
   </a><br /><br />
-  BrainyFlow runs on 65 lines of code and your generosity! 💰<br />
+  BrainyFlow runs on 200 lines of code and your generosity! 💰<br />
     <a style="color: inherit" href="https://github.com/sponsors/zvictor?utm_source=brainyflow&utm_medium=sponsorship&utm_campaign=brainyflow&utm_id=brainyflow">
       Help us deliver more AI with less code (but maybe more coffee)
     </a> ☕<br /><br />
