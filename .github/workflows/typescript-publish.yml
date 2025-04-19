@@ -3,34 +3,41 @@ name: Publish TypeScript Package
 on:
   workflow_dispatch:
   push:
-    branches: ['main']
+    branches:
+      - main
     paths:
       - 'typescript/**'
 
 jobs:
-  deploy:
+  publish:
     runs-on: ubuntu-latest
     permissions:
       contents: write # Required to push tags and commit version updates
-      pull-requests: write # Required to create the release pull request
     environment: npm
 
     steps:
-      - uses: actions/checkout@v4
-      - name: Use Node.js
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '23'
+
       - name: Install pnpm
         run: npm install -g pnpm
-      - name: Install
+
+      - name: Install Dependencies
         working-directory: typescript
-        run: |
-          pnpm install
-      - name: Run tests
+        run: pnpm install
+
+      - name: Run Tests
         working-directory: typescript
         run: |
           node --import=tsx --experimental-test-snapshots --test-concurrency=1 --test tests/*.test.ts
+
       - name: Create Release Pull Request or Publish to npm
         id: changesets
         uses: changesets/action@v1
@@ -40,7 +47,8 @@ jobs:
           title: 'chore: update versions'
           cwd: ./typescript
           setupGitUser: true
-          createGithubReleases: true
+          createGithubReleases: false
+
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
