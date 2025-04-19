@@ -26,30 +26,119 @@ It's recommended to start with the Naive Chunking and optimize later.
 
 ### 1. Naive (Fixed-Size) Chunking
 
-Splits text by a fixed number of words, ignoring sentence or semantic boundaries.
+Splits text by a fixed number of characters (not words, as the Python example implies), ignoring sentence or semantic boundaries.
+
+{% tabs %}
+{% tab title="Python" %}
 
 ```python
-def fixed_size_chunk(text, chunk_size=100):
+def fixed_size_chunk(text: str, chunk_size: int = 100) -> list[str]:
+    """Splits text into fixed-size chunks based on character count."""
     chunks = []
     for i in range(0, len(text), chunk_size):
         chunks.append(text[i : i + chunk_size])
     return chunks
+
+# Example:
+# text = "This is a sample text to demonstrate fixed-size chunking."
+# chunks = fixed_size_chunk(text, 20)
+# print(chunks)
+# Output: ['This is a sample tex', 't to demonstrate fix', 'ed-size chunking.']
 ```
+
+{% endtab %}
+
+{% tab title="TypeScript" %}
+
+```typescript
+function fixedSizeChunk(text: string, chunkSize: number = 100): string[] {
+  /** Splits text into fixed-size chunks based on character count. */
+  const chunks: string[] = []
+  for (let i = 0; i < text.length; i += chunkSize) {
+    chunks.push(text.slice(i, i + chunkSize))
+  }
+  return chunks
+}
+
+// Example:
+// const text = "This is a sample text to demonstrate fixed-size chunking.";
+// const chunks = fixedSizeChunk(text, 20);
+// console.log(chunks);
+// Output: [ 'This is a sample tex', 't to demonstrate fix', 'ed-size chunking.' ]
+```
+
+{% endtab %}
+{% endtabs %}
 
 However, sentences are often cut awkwardly, losing coherence.
 
 ### 2. Sentence-Based Chunking
 
-```python
-import nltk
+Groups a fixed number of sentences together. Requires a sentence tokenizer library.
 
-def sentence_based_chunk(text, max_sentences=2):
-    sentences = nltk.sent_tokenize(text)
+{% tabs %}
+{% tab title="Python" %}
+
+```python
+import nltk # Requires: pip install nltk
+
+# Ensure NLTK data is downloaded (run once)
+# try:
+#     nltk.data.find('tokenizers/punkt')
+# except nltk.downloader.DownloadError:
+#     nltk.download('punkt')
+
+def sentence_based_chunk(text: str, max_sentences: int = 2) -> list[str]:
+    """Chunks text by grouping a maximum number of sentences."""
+    try:
+        sentences = nltk.sent_tokenize(text)
+    except LookupError:
+        print("NLTK 'punkt' tokenizer not found. Please run nltk.download('punkt')")
+        return [] # Or handle error appropriately
+
     chunks = []
     for i in range(0, len(sentences), max_sentences):
         chunks.append(" ".join(sentences[i : i + max_sentences]))
     return chunks
+
+# Example:
+# text = "Mr. Smith went to Washington. He visited the White House. Then he went home."
+# chunks = sentence_based_chunk(text, 2)
+# print(chunks)
+# Output: ['Mr. Smith went to Washington. He visited the White House.', 'Then he went home.']
 ```
+
+{% endtab %}
+
+{% tab title="TypeScript" %}
+
+```typescript
+// Requires a sentence tokenizer library, e.g., 'sentence-tokenizer'
+// npm install sentence-tokenizer
+import { Tokenizer } from 'sentence-tokenizer'
+
+function sentenceBasedChunk(text: string, maxSentences: number = 2): string[] {
+  /** Chunks text by grouping a maximum number of sentences. */
+  const tokenizer = new Tokenizer('Chuck') // Identifier doesn't matter much here
+  tokenizer.setEntry(text)
+  const sentences = tokenizer.getSentences()
+
+  const chunks: string[] = []
+  for (let i = 0; i < sentences.length; i += maxSentences) {
+    chunks.push(sentences.slice(i, i + maxSentences).join(' '))
+  }
+  return chunks
+}
+
+// Example:
+// const text = "Mr. Smith went to Washington. He visited the White House. Then he went home.";
+// const chunks = sentenceBasedChunk(text, 2);
+// console.log(chunks);
+// Output: [ 'Mr. Smith went to Washington. He visited the White House.', 'Then he went home.' ]
+```
+
+{% endtab %}
+{% endtabs %}
 
 However, might not handle very long sentences or paragraphs well.
 
