@@ -4,7 +4,7 @@
   <p style="text-align: center;">Current LLM frameworks are complex. BrainyFlow cuts through the noise.</p>
   <div align="center">
     <img src="https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/meme.jpg" width="400" alt="Framework comparison meme" style="border-radius: 8px; margin-bottom: 20px;"/>
-  </div>
+
   <table>
     <thead>
       <tr>
@@ -25,12 +25,15 @@
       <tr><td><strong>BrainyFlow</strong></td><td><strong>Graph</strong></td><td><strong>None</strong></td><td><strong>None</strong></td><td><strong>~65</strong></td><td><strong>~few KB</strong></td></tr>
     </tbody>
   </table>
+  
+  </div>
   <p style="text-align: center; margin-top: 15px;"><em>BrainyFlow focuses solely on the core graph abstraction, giving you maximum flexibility.</em></p>
 </div>
 
 ![divider](https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/divider.png ":size=100%")
 
 <div style="text-align: center; margin: 50px 0;">
+  <h3>Choose Your Path:</h3>
   <p>Our documentation is inclusive, suitable for both biological and synthetic minds.<br />Start by selecting your condition - or perhaps <em>the one you've been conditioned to believe</em>:</p>
     <nav style="display: flex; flex-direction: column; align-items: center; gap: 20px; margin: 50px 0;">
       <a href="https://brainy.gitbook.io/flow" class="active">I'm Carbon-Based 🐥</a>
