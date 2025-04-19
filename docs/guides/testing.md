@@ -136,7 +136,7 @@ if __name__ == '__main__':
 
 {% tab title="TypeScript" %}
 
-```typescript
+````typescript
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createQaFlow } from './qaFlow' // Your function that creates the Flow
 import { callLLM } from './utils/callLLM' // Your LLM utility
@@ -273,136 +273,486 @@ describe('MapReduce Flow Test', () => {
 
 For nodes that call LLMs, you can use these approaches:
 
-1. **Canned Responses**: Prepare fixed responses for specific prompts
-2. **Prompt Verification**: Check if prompts contain expected information
-3. **Response Validation**: Test if the node correctly handles various LLM responses
+1.  **Canned Responses**: Prepare fixed responses for specific prompts.
+2.  **Prompt Verification**: Check if prompts contain expected information.
+3.  **Response Validation**: Test if the node correctly handles various LLM responses.
 
+{% tabs %}
+{% tab title="Python (unittest.mock)" %}
+
+```python
+from unittest.mock import patch, AsyncMock
+import asyncio
+
+# Mock LLM with canned responses based on prompt content
+async def mock_llm_logic(prompt: str) -> str:
+    if "summarize" in prompt.lower():
+        return "This is a summary."
+    elif "extract" in prompt.lower():
+        # Simulate returning a JSON-like string
+        return '{"key": "value"}'
+    else:
+        return "Default response"
+
+# Example usage in a test
+async def test_node_with_mocked_llm():
+    # Assume MyLlmNode calls utils.call_llm internally
+    # node = MyLlmNode()
+    # memory = Memory.create({"input": "some text to summarize"})
+
+    # Use patch to replace the actual call_llm
+    with patch('utils.call_llm', new=AsyncMock(side_effect=mock_llm_logic)) as mock_call:
+        # await node.run(memory) # Run the node that uses the LLM
+        pass # Replace pass with actual node execution
+
+    # Assertions can be made here on memory state or mock calls
+    # mock_call.assert_called_once()
+    # assert memory.summary == "This is a summary."
+
+# asyncio.run(test_node_with_mocked_llm())
+````
+
+{% endtab %}
+
+{% tab title="TypeScript (vitest)" %}
+
+```typescript
+import { describe, expect, it, vi } from 'vitest'
+import { callLLM } from './utils/callLLM' // Your LLM utility
+
+// import { MyLlmNode } from './MyLlmNode'; // Your Node implementation
+// import { Memory } from 'brainyflow'; // Assuming Memory is imported if needed
+
+// Mock the LLM utility module
+vi.mock('./utils/callLLM', () => ({
+  callLLM: vi.fn(), // Create a mock function
+}))
+
+describe('Testing LLM Nodes', () => {
+  it('should use canned responses based on prompt', async () => {
+    // Configure the mock implementation
+    vi.mocked(callLLM).mockImplementation(async (prompt: string): Promise<string> => {
+      if (prompt.toLowerCase().includes('summarize')) {
+        return 'This is a summary.'
+      } else if (prompt.toLowerCase().includes('extract')) {
+        return JSON.stringify({ key: 'value' }) // Return JSON string
+      } else {
+        return 'Default response'
+      }
+    })
+
+    // const node = new MyLlmNode();
+    // const memory = { input: 'some text to summarize' }; // Initial memory state
+
+    // await node.run(memory); // Run the node
+
+    // Add assertions here
+    // expect(callLLM).toHaveBeenCalled();
+    // expect(memory.summary).toBe('This is a summary.');
+  })
+})
 ```
 
-# Mock LLM with canned responses
-
-def mock_llm(prompt):
-if "summarize" in prompt.lower():
-return "This is a summary."
-elif "extract" in prompt.lower():
-return "{'key': 'value'}"
-else:
-return "Default response"
-
-# Use mock in test
-
-with patch('utils.call_llm', side_effect=mock_llm): # Run node or flow
-pass
-
-```
+{% endtab %}
+{% endtabs %}
 
 #### Testing Retry Logic
 
 To test retry behavior:
 
-1. **Simulate Transient Failures**: Make the mock function fail a few times before succeeding
-2. **Check Retry Count**: Verify that retries happened the expected number of times
-3. **Test Backoff**: Ensure that wait times between retries are correct
+1.  **Simulate Transient Failures**: Make the mock function fail a few times before succeeding.
+2.  **Check Retry Count**: Verify that retries happened the expected number of times (e.g., by checking `node.cur_retry` inside the mock or tracking calls).
+3.  **Test Backoff**: If using `wait`, mock `asyncio.sleep` (Python) or `setTimeout` (TypeScript) to verify delays without actually waiting.
+
+{% tabs %}
+{% tab title="Python (unittest.mock)" %}
+
+```python
+from unittest.mock import patch, AsyncMock
+import asyncio
+# from brainyflow import Node # Assuming Node is imported
+
+# Mock function that fails twice, then succeeds
+call_count_retry = 0
+async def mock_fails_then_succeeds(*args, **kwargs):
+    global call_count_retry
+    call_count_retry += 1
+    print(f"Mock called (Attempt {call_count_retry})") # For debugging test
+    if call_count_retry <= 2:
+        raise ValueError("Temporary network failure")
+    return "Success on third try"
+
+# Example Node (conceptual)
+# class NodeWithRetry(Node):
+#     def __init__(self):
+#         super().__init__(max_retries=3, wait=0.1) # Retry up to 3 times (4 attempts total)
+#     async def exec(self, prep_res):
+#         # This method calls the function we will mock
+#         return await some_external_call(prep_res)
+
+async def test_retry_logic():
+    global call_count_retry
+    call_count_retry = 0 # Reset counter for test
+    # node = NodeWithRetry()
+    # memory = Memory.create({})
+
+    # Patch the external call made within node.exec
+    # Also patch asyncio.sleep to avoid actual waiting
+    with patch('__main__.some_external_call', new=AsyncMock(side_effect=mock_fails_then_succeeds)), \
+         patch('asyncio.sleep', new=AsyncMock()) as mock_sleep:
+
+        # await node.run(memory) # Run the node
+        pass # Replace pass with actual node execution
+
+    # Assertions
+    # assert call_count_retry == 3 # Should be called 3 times (1 initial + 2 retries)
+    # assert memory.result == "Success on third try" # Check final result
+    # assert mock_sleep.call_count == 2 # Check if sleep was called between retries
+
+# asyncio.run(test_retry_logic())
 
 ```
 
-# Mock that fails twice, then succeeds
+{% endtab %}
 
-call_count = 0
-def failing_mock(\*args):
-global call_count
-call_count += 1
-if call_count <= 2:
-raise Exception("Temporary failure")
-return "Success on third try"
+{% tab title="TypeScript (vitest)" %}
 
-# Use in test
+```typescript
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-with patch('some_function', side_effect=failing_mock): # Run node with retry logic
-pass
+// import { Node, Memory } from 'brainyflow'; // Assuming imports
+// import { someExternalCall } from './utils/externalCall'; // The function called by exec
 
+// Mock the external call module
+vi.mock('./utils/externalCall', () => ({
+  someExternalCall: vi.fn(),
+}))
+
+// Mock setTimeout used for 'wait' (if applicable)
+vi.useFakeTimers()
+
+// Example Node (conceptual)
+// class NodeWithRetry extends Node<any, any, [], any, string> {
+//   constructor() {
+//     super({ maxRetries: 3, wait: 100 }); // Retry up to 3 times, wait 100ms
+//   }
+//   async exec(prepRes: any): Promise<string> {
+//     // This method calls the function we will mock
+//     return await someExternalCall(prepRes);
+//   }
+// }
+
+describe('Retry Logic Testing', () => {
+  let callCountRetry = 0
+
+  beforeEach(() => {
+    callCountRetry = 0 // Reset counter
+    vi.clearAllMocks() // Clear mock history
+    vi.clearAllTimers() // Clear pending timers
+  })
+
+  it('should retry exec on failure and succeed eventually', async () => {
+    // Configure the mock to fail twice, then succeed
+    vi.mocked(someExternalCall).mockImplementation(async () => {
+      callCountRetry++
+      console.log(`Mock called (Attempt ${callCountRetry})`) // For debugging test
+      if (callCountRetry <= 2) {
+        throw new Error('Temporary network failure')
+      }
+      return 'Success on third try'
+    })
+
+    // const node = new NodeWithRetry();
+    // const memory = {}; // Initial memory
+
+    // await node.run(memory); // Run the node
+
+    // Advance timers to simulate waiting (if wait > 0)
+    // vi.advanceTimersByTime(100); // Advance by wait time
+    // await Promise.resolve(); // Allow promises to settle after timer advance
+    // vi.advanceTimersByTime(100); // Advance for second wait
+    // await Promise.resolve();
+
+    // Assertions
+    // expect(callCountRetry).toBe(3); // Called 3 times
+    // expect(memory.result).toBe('Success on third try'); // Check final result
+    // expect(vi.getTimerCount()).toBe(0); // Ensure all timers were cleared/run
+  })
+})
 ```
+
+{% endtab %}
+{% endtabs %}
 
 ## Test Fixtures and Helpers
 
-Creating helper functions can make tests more readable and maintainable:
+Creating helper functions can make tests more readable and maintainable.
+
+{% tabs %}
+{% tab title="Python (unittest/pytest)" %}
+
+```python
+# Example helpers (can be placed in a conftest.py for pytest or a base class for unittest)
+# from brainyflow import Memory, Node # Assuming imports
+
+def create_default_test_memory() -> dict:
+    """Creates a standard dictionary for test memory."""
+    return {"input": "test data", "config": {"setting": "value"}}
+
+async def run_node_with_memory(node: Node, initial_memory: dict | None = None) -> dict:
+    """Runs a node with provided or default initial memory."""
+    memory_obj = initial_memory if initial_memory is not None else create_default_test_memory()
+    # Assuming node.run modifies the dictionary in place or returns it
+    await node.run(memory_obj)
+    return memory_obj
+
+def assert_memory_contains(memory: dict, expected_data: dict):
+    """Asserts that the memory dictionary contains the expected key-value pairs."""
+    for key, value in expected_data.items():
+        assert key in memory, f"Memory missing key: {key}"
+        assert memory[key] == value, f"Memory value mismatch for key '{key}': expected {value}, got {memory[key]}"
+
+# Example usage in a test
+# async def test_my_node_output():
+#     node = MyProcessingNode()
+#     final_memory = await run_node_with_memory(node)
+#     assert_memory_contains(final_memory, {"output": "processed data", "status": "completed"})
 
 ```
 
-# Helper to create a standard test memory
+{% endtab %}
 
-def create_test_memory():
-return {"input": "test data", "config": {"setting": "value"}}
+{% tab title="TypeScript (vitest)" %}
 
-# Helper to run a node with standard setup
+```typescript
+import { expect } from 'vitest'
 
-async def run_test_node(node, memory=None):
-if memory is None:
-memory = create_test_memory()
-return await node.run(memory)
+// import { Node, Memory } from 'brainyflow'; // Assuming imports
 
-# Helper to check memory structure
+// Define a type for your standard test memory if desired
+interface TestMemory {
+  input?: string
+  config?: { setting: string }
+  output?: any
+  status?: string
+  [key: string]: any // Allow other properties
+}
 
-def assert_memory_has_fields(memory, \*fields): # Check if properties exist on the memory object
-for field in fields:
-assert hasattr(memory, field), f"Memory missing field: {field}"
+export function createDefaultTestMemory(): TestMemory {
+  /** Creates a standard object for test memory. */
+  return { input: 'test data', config: { setting: 'value' } }
+}
 
+export async function runNodeWithMemory(
+  node: Node,
+  initialMemory?: TestMemory,
+): Promise<TestMemory> {
+  /** Runs a node with provided or default initial memory. */
+  const memory = initialMemory ?? createDefaultTestMemory()
+  // Assumes node.run modifies the object in place
+  await node.run(memory)
+  return memory
+}
+
+export function assertMemoryContains(memory: TestMemory, expectedData: Partial<TestMemory>): void {
+  /** Asserts that the memory object contains the expected key-value pairs. */
+  for (const key in expectedData) {
+    expect(memory).toHaveProperty(key)
+    expect(memory[key]).toEqual(expectedData[key])
+  }
+}
+
+// Example usage in a test
+/*
+import { MyProcessingNode } from './MyProcessingNode';
+import { runNodeWithMemory, assertMemoryContains } from './testHelpers';
+
+it('should produce correct output in memory', async () => {
+    const node = new MyProcessingNode();
+    const finalMemory = await runNodeWithMemory(node);
+    assertMemoryContains(finalMemory, { output: "processed data", status: "completed" });
+});
+*/
 ```
+
+{% endtab %}
+{% endtabs %}
 
 ## Common Testing Patterns
 
 ### 1. Input Validation Testing
 
-Test that nodes properly handle invalid inputs:
+Test that nodes properly handle invalid or unexpected inputs.
 
-```
+{% tabs %}
+{% tab title="Python (pytest)" %}
 
-@pytest.mark.parametrize("input_value", [None, "", {}, []])
-async def test_node_handles_invalid_input(input_value):
-node = MyNode() # Assuming MyNode handles invalid input appropriately
-memory = Memory.create({"input": input_value}) # Create memory object
+```python
+# Requires: pip install pytest pytest-asyncio
+import pytest
+# from brainyflow import Node, Memory # Assuming imports
+# from my_nodes import MyNodeThatValidates # Your node
 
-    # Should not raise exception (or handle it gracefully)
+@pytest.mark.parametrize("invalid_input", [None, "", {}, [], {"wrong_key": 1}])
+@pytest.mark.asyncio
+async def test_node_handles_invalid_input(invalid_input):
+    """Tests if the node handles various invalid inputs gracefully."""
+    node = MyNodeThatValidates() # Node that should validate memory.input_data
+    memory = {"input_data": invalid_input} # Pass invalid data
+
+    # Expect the node to run without unhandled exceptions
+    # and potentially set an error state or default output
     await node.run(memory)
 
-    # Check for an error flag or expected state in memory
-    assert hasattr(memory, "error") or memory.state == "handled_invalid" # Example assertion
+    # Example assertions: Check for an error flag or a specific state
+    assert memory.get("error_message") is not None or memory.get("status") == "validation_failed"
+    # Or assert that a default value was set
+    # assert memory.get("output") == "default_value"
 
 ```
+
+{% endtab %}
+
+{% tab title="TypeScript (vitest)" %}
+
+```typescript
+import { describe, expect, it } from 'vitest'
+
+// import { MyNodeThatValidates } from './MyNodeThatValidates'; // Your node
+// import { Memory } from 'brainyflow'; // Assuming imports
+
+describe('Input Validation', () => {
+  const invalidInputs = [null, undefined, '', {}, [], { wrongKey: 1 }]
+
+  it.each(invalidInputs)('should handle invalid input: %s', async (invalidInput) => {
+    /** Tests if the node handles various invalid inputs gracefully. */
+    // const node = new MyNodeThatValidates(); // Node that should validate memory.input_data
+    const memory: Record<string, any> = { input_data: invalidInput } // Pass invalid data
+
+    // Expect the node to run without unhandled exceptions
+    // Use try/catch if specific errors are expected, otherwise just run
+    await node.run(memory)
+
+    // Example assertions: Check for an error flag or a specific state
+    expect(memory.error_message || memory.status).toBeDefined() // Check if either is set
+    expect(memory.status === 'validation_failed' || memory.error_message).toBeTruthy()
+    // Or assert that a default value was set
+    // expect(memory.output).toBe('default_value');
+  })
+})
+```
+
+{% endtab %}
+{% endtabs %}
 
 ### 2. Flow Path Testing
 
-Test that flows follow the expected paths:
+Test that flows follow the expected paths based on node triggers.
 
-```
+{% tabs %}
+{% tab title="Python (unittest/pytest)" %}
 
-async def test_flow_follows_success_path(): # Create flow with mocks that track which nodes were visited
-visited_nodes = []
+```python
+import asyncio
+# from brainyflow import Node, Flow, Memory # Assuming imports
 
-    class TrackingNode(Node):
-        def __init__(self, name):
+async def test_flow_follows_correct_path():
+    """Tests if the flow executes nodes in the expected sequence."""
+    visited_nodes_log = []
+
+    # Define simple tracking nodes
+    class SimpleTrackingNode(Node):
+        def __init__(self, name: str, trigger_action: str = "default"):
             super().__init__()
-            self.name = name
+            self._node_name = name
+            self._trigger_action = trigger_action
+
+        async def exec(self, prep_res):
+             # No real work, just track visit
+             visited_nodes_log.append(self._node_name)
+             return f"Processed by {self._node_name}" # Return something for post
 
         async def post(self, memory, prep_res, exec_res):
-            visited_nodes.append(self.name)
-            self.trigger("default")
+            # Trigger the specified action
+            self.trigger(self._trigger_action)
 
-    # Create flow with tracking nodes
-    node1 = TrackingNode("node1")
-    node2 = TrackingNode("node2")
-    node3 = TrackingNode("node3")
+    # Create nodes for a simple path: A -> B -> C
+    node_a = SimpleTrackingNode("A", trigger_action="next_step")
+    node_b = SimpleTrackingNode("B", trigger_action="finish")
+    node_c = SimpleTrackingNode("C") # This node shouldn't be reached
 
-    node1.next(node2)
-    node2.next(node3)
+    # Connect nodes based on actions
+    node_a.on("next_step", node_b)
+    node_b.on("finish", node_c) # Connect C, but B will trigger 'finish'
 
-    flow = Flow(start=node1)
-    await flow.run({}) # Pass empty memory object
+    # Create and run the flow
+    flow = Flow(start=node_a)
+    await flow.run({}) # Pass empty memory
 
-    # Verify all nodes were visited in order
-    assert visited_nodes == ["node1", "node2", "node3"]
+    # Verify the execution path
+    assert visited_nodes_log == ["A", "B"], f"Expected A->B, but got: {visited_nodes_log}"
 
+# asyncio.run(test_flow_follows_correct_path())
 ```
+
+{% endtab %}
+
+{% tab title="TypeScript (vitest)" %}
+
+```typescript
+import { describe, expect, it } from 'vitest'
+
+// import { Node, Flow, Memory, BaseNode } from 'brainyflow'; // Assuming imports
+
+describe('Flow Path Testing', () => {
+  it('should follow the correct path based on triggers', async () => {
+    /** Tests if the flow executes nodes in the expected sequence. */
+    const visitedNodesLog: string[] = []
+
+    // Define simple tracking nodes
+    class SimpleTrackingNode extends Node<any, any, ['next_step', 'finish']> {
+      private nodeName: string
+      private triggerAction: 'next_step' | 'finish' | 'default'
+
+      constructor(name: string, triggerAction: 'next_step' | 'finish' | 'default' = 'default') {
+        super()
+        this.nodeName = name
+        this.triggerAction = triggerAction
+      }
+
+      async exec(prepRes: any): Promise<string> {
+        // No real work, just track visit
+        visitedNodesLog.push(this.nodeName)
+        return `Processed by ${this.nodeName}` // Return something for post
+      }
+
+      async post(memory: Memory, prepRes: any, execRes: string): Promise<void> {
+        // Trigger the specified action
+        this.trigger(this.triggerAction)
+      }
+    }
+
+    // Create nodes for a path: A -> B -> C (where B triggers 'finish')
+    const nodeA = new SimpleTrackingNode('A', 'next_step')
+    const nodeB = new SimpleTrackingNode('B', 'finish')
+    const nodeC = new SimpleTrackingNode('C') // This node shouldn't be reached
+
+    // Connect nodes based on actions
+    nodeA.on('next_step', nodeB)
+    nodeB.on('finish', nodeC) // Connect C, but B will trigger 'finish'
+
+    // Create and run the flow
+    const flow = new Flow(nodeA)
+    await flow.run({}) // Pass empty memory
+
+    // Verify the execution path
+    expect(visitedNodesLog).toEqual(['A', 'B'])
+  })
+})
+```
+
+{% endtab %}
+{% endtabs %}
 
 ## Best Practices
 
@@ -432,6 +782,3 @@ visited_nodes = []
 6. **Implement Distributed Tracing**: Use tracing for complex, distributed applications
 
 By applying these testing techniques, you can ensure your BrainyFlow applications are reliable and maintainable.
-
-
-```

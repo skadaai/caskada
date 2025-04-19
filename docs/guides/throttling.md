@@ -10,64 +10,134 @@ This is particularly important when:
 
 ## Concurrency Control Patterns
 
-### 1. Using Semaphores (Python)
+These patterns limit the number of concurrent operations within a node.
+
+{% tabs %}
+{% tab title="Python (asyncio.Semaphore)" %}
 
 ```python
 import asyncio
+from brainyflow import Node, Memory # Assuming imports
 
-class LimitedParallelExec(Node):
-    def __init__(self, concurrency=3, **kwargs): # Allow passing other Node args
+class LimitedParallelNode(Node):
+    def __init__(self, concurrency_limit: int = 3, **kwargs): # Allow passing other Node args
         super().__init__(**kwargs) # Call parent constructor
-        self.semaphore = asyncio.Semaphore(concurrency)
+        if concurrency_limit <= 0:
+            raise ValueError("Concurrency limit must be positive")
+        self._semaphore = asyncio.Semaphore(concurrency_limit)
+        print(f"Node initialized with concurrency limit: {concurrency_limit}")
 
     # Prep is usually needed to get 'items' from memory
     async def prep(self, memory: Memory):
-        return memory.items_to_process # Assuming items are in memory.items_to_process
+        # Example: Fetch items from memory
+        items = memory.items_to_process or []
+        print(f"Prep: Found {len(items)} items to process.")
+        return items # Assuming items are in memory.items_to_process
 
-    async def exec(self, items): # exec receives result from prep
-        if not items: return []
+    async def exec(self, items: list): # exec receives result from prep
+        if not items:
+            print("Exec: No items to process.")
+            return []
 
-        async def limited_process(item):
-            async with self.semaphore:
-                # process_item should ideally be defined in the subclass or passed in
-                return await self.process_one_item(item) # Renamed for clarity
+        async def limited_task_runner(item):
+            async with self._semaphore:
+                print(f" Starting processing item: {item}")
+                # process_one_item should ideally be defined in the subclass or passed in
+                result = await self.process_one_item(item) # Renamed for clarity
+                print(f" Finished processing item: {item} -> {result}")
+                return result
 
-        tasks = [limited_process(item) for item in items]
-        return await asyncio.gather(*tasks)
+        print(f"Exec: Starting processing of {len(items)} items with limit {self._semaphore._value}...")
+        tasks = [limited_task_runner(item) for item in items]
+        results = await asyncio.gather(*tasks)
+        print("Exec: All items processed.")
+        return results
 
     async def process_one_item(self, item):
-        # This method should be implemented by subclasses or passed dynamically
-        # Example:
-        # await asyncio.sleep(0.1) # Simulate work
-        # return f"Processed {item}"
-        raise NotImplementedError("process_one_item must be implemented by subclasses")
+        """Placeholder: Subclasses must implement this method."""
+        # Example implementation:
+        await asyncio.sleep(0.5) # Simulate async work
+        return f"Processed_{item}"
+        # raise NotImplementedError("process_one_item must be implemented by subclasses")
 
     # Post is needed to store results and trigger next step
-    async def post(self, memory: Memory, prep_res, exec_res):
+    async def post(self, memory: Memory, prep_res: list, exec_res: list):
+        print(f"Post: Storing {len(exec_res)} results.")
         memory.processed_results = exec_res # Store results
         self.trigger('default') # Trigger next node
 ```
 
-### 2. Using p-limit (TypeScript)
+{% endtab %}
+
+{% tab title="TypeScript (p-limit)" %}
 
 ```typescript
+// Requires: npm install p-limit
+import { Memory, Node } from 'brainyflow' // Assuming imports
 import pLimit from 'p-limit'
 
-class LimitedParallelExec extends Node {
-  constructor(private concurrency = 3) {
+class LimitedParallelNodeTs extends Node {
+  private limit: ReturnType<typeof pLimit>
+
+  constructor(concurrency: number = 3) {
     super()
+    if (concurrency <= 0) {
+      throw new Error('Concurrency limit must be positive')
+    }
+    this.limit = pLimit(concurrency)
+    console.log(`Node initialized with concurrency limit: ${concurrency}`)
   }
 
-  async exec(items) {
-    const limit = pLimit(this.concurrency)
-    return Promise.all(items.map((item) => limit(() => this.processItem(item))))
+  // Prep is usually needed to get 'items' from memory
+  async prep(memory: Memory): Promise<any[]> {
+    // Example: Fetch items from memory
+    const items = memory.items_to_process || []
+    console.log(`Prep: Found ${items.length} items to process.`)
+    return items // Assuming items are in memory.items_to_process
   }
 
-  async processItem(item) {
-    // Process a single item
+  async exec(items: any[]): Promise<any[]> {
+    if (!items || items.length === 0) {
+      console.log('Exec: No items to process.')
+      return []
+    }
+
+    console.log(`Exec: Starting processing of ${items.length} items with limit...`)
+    // Map each item to a limited async task
+    const tasks = items.map((item) =>
+      this.limit(async () => {
+        console.log(` Starting processing item: ${item}`)
+        const result = await this.processOneItem(item)
+        console.log(` Finished processing item: ${item} -> ${result}`)
+        return result
+      }),
+    )
+
+    // Wait for all limited tasks to complete
+    const results = await Promise.all(tasks)
+    console.log('Exec: All items processed.')
+    return results
+  }
+
+  async processOneItem(item: any): Promise<any> {
+    /** Placeholder: Subclasses must implement this method. */
+    // Example implementation:
+    await new Promise((resolve) => setTimeout(resolve, 500)) // Simulate async work
+    return `Processed_${item}`
+    // throw new Error("processOneItem must be implemented by subclasses");
+  }
+
+  // Post is needed to store results and trigger next step
+  async post(memory: Memory, prepRes: any[], execRes: any[]): Promise<void> {
+    console.log(`Post: Storing ${execRes.length} results.`)
+    memory.processed_results = execRes // Store results
+    this.trigger('default') // Trigger next node
   }
 }
 ```
+
+{% endtab %}
+{% endtabs %}
 
 ## Rate Limiting with Window Limits
 
