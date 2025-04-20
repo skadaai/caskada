@@ -48,13 +48,16 @@ python-tool-pdf-vision/
 
 ## Flow Description
 
-1. **LoadPDFNode**: Loads PDF and converts pages to images
-2. **ExtractTextNode**: Processes images with Vision API
-3. **CombineResultsNode**: Combines extracted text from all pages
+1. **TriggerPDFProcessingNode**: Lists PDFs in the directory and triggers a sub-flow for each PDF.
+2. **Single PDF Flow (Nested)**: A sub-flow containing:
+   - **LoadPDFNode**: Loads PDF and converts pages to images.
+   - **ExtractTextNode**: Processes images with Vision API.
+   - **CombineResultsNode**: Combines extracted text from all pages and stores the result in the global memory.
+3. **AggregatePDFResultsNode**: Collects results from all processed PDFs and generates a final output.
 
 ## Customization
 
-You can customize the extraction by modifying the prompt in `shared`:
+You can customize the extraction by modifying the prompt in the initial `memory` object passed to the flow:
 
 ```python
 shared = {

@@ -1,14 +1,14 @@
-from brainyflow import Node
+from brainyflow import Node, Memory # Import Memory
 from utils import call_llm, search_web
 import yaml
 
 class DecideAction(Node):
-    async def prep(self, shared):
+    async def prep(self, memory: Memory):
         """Prepare the context and question for the decision-making process."""
         # Get the current context (default to "No previous search" if none exists)
-        context = shared.get("context", "No previous search")
-        # Get the question from the shared store
-        question = shared["question"]
+        context = memory.context if hasattr(memory, 'context') else "No previous search"
+        # Get the question from memory
+        question = memory.question
         # Return both for the exec step
         return question, context
         
@@ -62,24 +62,23 @@ IMPORTANT: Make sure to:
         decision = yaml.safe_load(yaml_str)
         
         return decision
-    
-    async def post(self, shared, prep_res, exec_res):
+
+    async def post(self, memory: Memory, prep_res, exec_res):
         """Save the decision and determine the next step in the flow."""
         # If LLM decided to search, save the search query
         if exec_res["action"] == "search":
-            shared["search_query"] = exec_res["search_query"]
+            memory.search_query = exec_res["search_query"]
             print(f"🔍 Agent decided to search for: {exec_res['search_query']}")
         else:
-            shared["context"] = exec_res["answer"] #save the context if LLM gives the answer without searching.
+            memory.context = exec_res["answer"] #save the context if LLM gives the answer without searching.
             print(f"💡 Agent decided to answer the question")
-        
         # Return the action to determine the next node in the flow
-        return exec_res["action"]
+        self.trigger(exec_res["action"])
 
 class SearchWeb(Node):
-    async def prep(self, shared):
-        """Get the search query from the shared store."""
-        return shared["search_query"]
+    async def prep(self, memory: Memory):
+        """Get the search query from memory."""
+        return memory.search_query
         
     async def exec(self, search_query):
         """Search the web for the given query."""
@@ -87,22 +86,20 @@ class SearchWeb(Node):
         print(f"🌐 Searching the web for: {search_query}")
         results = search_web(search_query)
         return results
-    
-    async def post(self, shared, prep_res, exec_res):
+
+    async def post(self, memory: Memory, prep_res, exec_res):
         """Save the search results and go back to the decision node."""
-        # Add the search results to the context in the shared store
-        previous = shared.get("context", "")
-        shared["context"] = previous + "\n\nSEARCH: " + shared["search_query"] + "\nRESULTS: " + exec_res
+        # Add the search results to the context in memory
+        previous = memory.context if hasattr(memory, 'context') else ""
+        memory.context = previous + "\n\nSEARCH: " + memory.search_query + "\nRESULTS: " + exec_res
         
         print(f"📚 Found information, analyzing results...")
-        
-        # Always go back to the decision node after searching
-        return "decide"
+        self.trigger("decide")
 
 class AnswerQuestion(Node):
-    async def prep(self, shared):
+    async def prep(self, memory: Memory):
         """Get the question and context for answering."""
-        return shared["question"], shared.get("context", "")
+        return memory.question, memory.context if hasattr(memory, 'context') else ""
         
     async def exec(self, inputs):
         """Call the LLM to generate a final answer."""
@@ -123,13 +120,11 @@ Provide a comprehensive answer using the research results.
         # Call the LLM to generate an answer
         answer = call_llm(prompt)
         return answer
-    
-    async def post(self, shared, prep_res, exec_res):
+
+    async def post(self, memory: Memory, prep_res, exec_res):
         """Save the final answer and complete the flow."""
-        # Save the answer in the shared store
-        shared["answer"] = exec_res
+        # Save the answer in memory
+        memory.answer = exec_res
         
         print(f"✅ Answer generated successfully")
-        
-        # We're done - no need to continue the flow
-        return "done"
+        self.trigger("done")

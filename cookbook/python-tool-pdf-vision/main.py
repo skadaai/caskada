@@ -1,3 +1,4 @@
+import asyncio
 from flow import create_vision_flow
 
 async def main():
@@ -7,8 +8,9 @@ async def main():
     await flow.run(shared)
     
     # Print results
-    if "results" in shared:
-        for result in shared["results"]:
+    # Access results directly from the Memory object
+    if hasattr(memory, "results"):
+        for result in memory.results:
             print(f"\nFile: {result['filename']}")
             print("-" * 50)
             print(result["text"])

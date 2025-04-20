@@ -66,9 +66,9 @@ python main.py
 The example comes with a sample text about BrainyFlow, but you can modify `main.py` to summarize your own text:
 
 ```python
-shared = {"data": "Your text to summarize here..."}
-await flow.run(shared)
-print("Summary:", shared["summary"])
+memory = Memory({"data": "Your text to summarize here..."})
+await flow.run(memory)
+print("Summary:", memory.summary)
 ```
 
 ## What You'll Learn
