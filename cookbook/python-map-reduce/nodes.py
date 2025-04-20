@@ -2,6 +2,9 @@ from brainyflow import Node, Memory
 from utils import call_llm
 import yaml
 import os
+from asyncio import Lock
+
+_agg_lock = Lock()
 
 class ReadResumesNode(Node):
     """Map phase: Read all resumes from the data directory into memory."""
@@ -89,11 +92,16 @@ reasons:
     async def post(self, memory: Memory, prep_res, evaluation_result: dict):
         filename, content, index = prep_res
         # Store individual evaluation result in global memory at the correct index
-        memory.evaluations[evaluation_result["index"]] = evaluation_result
         print(f"Processor: Finished {filename} (Index {evaluation_result['index']})")
         # Decrement counter and trigger aggregate if this is the last evaluation
-        memory.remaining_evaluations -= 1
-        if memory.remaining_evaluations == 0:
+        # Use a lock to prevent race conditions when multiple nodes update shared memory concurrently.
+        # Without the lock, two nodes could read remaining_evaluations, both see it > 0,
+        # decrement it, and potentially both miss the condition to trigger the aggregation.
+        async with _agg_lock:
+            memory.evaluations[evaluation_result["index"]] = evaluation_result
+            memory.remaining_evaluations -= 1
+            is_last = memory.remaining_evaluations == 0
+        if is_last:
             print("Processor: All evaluations collected, triggering aggregate.")
             self.trigger('aggregate_results')
         else:
