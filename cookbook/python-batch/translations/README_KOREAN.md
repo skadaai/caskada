@@ -4,7 +4,7 @@
 
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 [![Docs](https://img.shields.io/badge/docs-latest-blue)](https://brainy.gitbook.io/flow/)
-<a href="https://discord.gg/MdJJ29Xd">
+<a href="https://discord.gg/N9mVvxRXyH">
 <img src="https://img.shields.io/discord/1346833819172601907?logo=discord&style=flat">
 </a>
 
@@ -17,7 +17,7 @@ BrainyFlow는 [100줄](https://github.com/zvictor/BrainyFlow/blob/main/python/__
 
 - 설치하려면, `pip install brainyflow`또는 [소스 코드](https://github.com/zvictor/BrainyFlow/blob/main/python/__init__.py)(단 100줄)를 복사하세요.
 - 더 알아보려면, [문서](https://brainy.gitbook.io/flow/)를 확인하세요. 개발 동기를 알아보려면, [이야기](https://zacharyhuang.substack.com/p/i-built-an-llm-framework-in-just)를 읽어보세요.
-- 🎉 우리의 [디스코드](https://discord.gg/MdJJ29Xd)에 참여하세요!
+- 🎉 우리의 [디스코드](https://discord.gg/N9mVvxRXyH)에 참여하세요!
 
 - 🎉 [@zvictor](https://www.github.com/zvictor), [@jackylee941130](https://www.github.com/jackylee941130), [@ZebraRoy](https://www.github.com/ZebraRoy) 덕분에 이제 [TypeScript 버전](https://github.com/The-Pocket/PocketFlow-Typescript)이 있습니다!
 

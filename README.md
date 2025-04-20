@@ -23,7 +23,7 @@
   <a href="https://npmjs.com/packages/brainyflow">
    <img src="https://img.shields.io/npm/d18m/brainyflow?logo=typescript&label=Typescript&style=flat-square" alt="typescript version">
   </a>
-  <a href="https://discord.gg/MdJJ29Xd">
+  <a href="https://discord.gg/N9mVvxRXyH">
     <img src="https://img.shields.io/discord/1346833819172601907?logo=discord&style=flat-square" alt="Discord">
   </a>
   <a href="https://github.com/zvictor/brainyflow">

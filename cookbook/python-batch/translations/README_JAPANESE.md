@@ -4,7 +4,7 @@
 
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 [![Docs](https://img.shields.io/badge/docs-latest-blue)](https://brainy.gitbook.io/flow/)
-<a href="https://discord.gg/MdJJ29Xd">
+<a href="https://discord.gg/N9mVvxRXyH">
 <img src="https://img.shields.io/discord/1346833819172601907?logo=discord&style=flat">
 </a>
 
@@ -17,7 +17,7 @@ BrainyFlowは[100行](https://github.com/zvictor/BrainyFlow/blob/main/python/__i
 
 - インストールするには、`pip install brainyflow`または[ソースコード](https://github.com/zvictor/BrainyFlow/blob/main/python/__init__.py)をコピーするだけです（わずか100行）。
 - 詳細については[ドキュメント](https://brainy.gitbook.io/flow/)をご覧ください。動機について学ぶには、[ストーリー](https://zacharyhuang.substack.com/p/i-built-an-llm-framework-in-just)をお読みください。
-- 🎉 私たちの[Discord](https://discord.gg/MdJJ29Xd)に参加してください！
+- 🎉 私たちの[Discord](https://discord.gg/N9mVvxRXyH)に参加してください！
 
 - 🎉 [@zvictor](https://www.github.com/zvictor)、[@jackylee941130](https://www.github.com/jackylee941130)、[@ZebraRoy](https://www.github.com/ZebraRoy)のおかげで、[TypeScriptバージョン](https://github.com/The-Pocket/PocketFlow-Typescript)もできました！
 
