@@ -171,11 +171,11 @@ class TriggerTranslationsNode(Node):
         text = memory.text if hasattr(memory, 'text') else "(No text provided)"
         languages = memory.languages if hasattr(memory, 'languages') else ["Chinese", "Spanish", "Japanese"]
 
-        return [{"text": text, "languages": lang} for lang in languages]
+        return [{"text": text, "language": lang} for lang in languages]
 
     async def post(self, memory: Memory, prep_res, exec_res):
-        for index, _input in enumerate(input):
-            this.trigger("default", _input | {"index": index})
+        for index, input in enumerate(prep_res):
+            self.trigger("default", input | {"index": index})
 
 # 2. Processor Node (Handles one language)
 class TranslateOneLanguageNode(Node):
@@ -183,13 +183,13 @@ class TranslateOneLanguageNode(Node):
         # Read data passed via forkingData from local memory
         return {
             "text": memory.text,
-            "lang": memory.language,
+            "language": memory.language,
             "index": memory.index
         }
 
     async def exec(self, item):
         # Assume translate_text exists
-        return await translate_text(item.text, item.lang)
+        return await translate_text(item["text"], item["language"])
 
     async def post(self, memory: Memory, prep_res, exec_res):
         # Store result in the global list at the correct index

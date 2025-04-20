@@ -1,3 +1,4 @@
+import asyncio
 from brainyflow import Node, Flow, Memory # Import Memory
 from utils import call_llm
 import yaml
@@ -71,4 +72,4 @@ if __name__ == "__main__":
 
     
     flow = Flow(start=ResumeParserNode())
-    await flow.run(memory) # Pass memory object
+    asyncio.run(flow.run(memory))

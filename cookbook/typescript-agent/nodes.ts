@@ -1,4 +1,4 @@
-import { Memory, Node } from 'brainyflow' // Import Memory
+import { Memory, Node, SharedStore } from 'brainyflow'
 import { parse } from 'yaml'
 import { callLLM, webSearch } from './utils'
 
@@ -9,6 +9,9 @@ export interface SearchAgentGlobalStore {
   searchQuery?: string
   answer?: string
 }
+
+// Define allowed actions for DecideNode
+type DecideNodeActions = ['search', 'answer', 'error']
 
 interface LLMDecision {
   thinking: string
@@ -24,9 +27,12 @@ interface SearchResult {
   body: string
 }
 
-export class DecideNode extends Node<SearchAgentGlobalStore> {
-  // Use GlobalStore type
-  async prep(memory: Memory<SearchAgentGlobalStore>) {
+export class DecideNode extends Node<
+  SearchAgentGlobalStore,
+  SharedStore,
+  DecideNodeActions 
+> {
+  async prep(memory: Memory<SearchAgentGlobalStore, SharedStore>) {
     // Use memory
     const context = memory.context || 'No previous search.' // Use property access
     const question = memory.question // Use property access
@@ -75,14 +81,17 @@ export class DecideNode extends Node<SearchAgentGlobalStore> {
         4. thinking about search query, make sure that you understand the question and use query that appropriate for search engine, not just copying the question
         `
     const response = await callLLM([{ role: 'user', content: prompt }])
-    const yamlStr = response!.split('```yaml')[1].split('```')[0].trim()
-    const decision = parse(yamlStr) as LLMDecision
+    if (!response?.includes('```yaml')) {
+      throw new Error('LLM response missing YAML block')
+    }
 
+    const yamlStr = response.split('```yaml')[1].split('```')[0].trim()
+    const decision = parse(yamlStr) as LLMDecision
     return decision
   }
 
   async post(
-    memory: Memory<SearchAgentGlobalStore>,
+    memory: Memory<SearchAgentGlobalStore, SharedStore>,
     prepRes?: { context: string; question: string },
     execRes?: LLMDecision,
   ) {
@@ -104,7 +113,7 @@ export class DecideNode extends Node<SearchAgentGlobalStore> {
       console.log(`Searching for: ${execRes.searchQuery}`)
       console.log(`Reason: ${execRes.reason}`)
     } else {
-      memory.context = execRes.answer // Use property access
+      memory.answer = execRes.answer // Persist final answer
       console.log(`Answering: ${execRes.answer}`)
       console.log(`Reason: ${execRes.reason}`)
     }
@@ -113,9 +122,15 @@ export class DecideNode extends Node<SearchAgentGlobalStore> {
   }
 }
 
-export class SearchNode extends Node<SearchAgentGlobalStore> {
-  // Use GlobalStore type
-  async prep(memory: Memory<SearchAgentGlobalStore>) {
+// Define allowed actions for SearchNode
+type SearchNodeActions = ['decide', 'error']
+
+export class SearchNode extends Node<
+  SearchAgentGlobalStore,
+  SharedStore,
+  SearchNodeActions // Use defined actions
+> {
+  async prep(memory: Memory<SearchAgentGlobalStore, SharedStore>) {
     // Use memory
     return memory.searchQuery // Use property access
   }
@@ -126,7 +141,11 @@ export class SearchNode extends Node<SearchAgentGlobalStore> {
     return result as SearchResult[]
   }
 
-  async post(memory: Memory<SearchAgentGlobalStore>, prepRes?: string, execRes?: SearchResult[]) {
+  async post(
+    memory: Memory<SearchAgentGlobalStore, SharedStore>,
+    prepRes?: string,
+    execRes?: SearchResult[],
+  ) {
     // Use memory
     if (!prepRes) {
       console.log('No search query provided.')
@@ -147,9 +166,15 @@ export class SearchNode extends Node<SearchAgentGlobalStore> {
   }
 }
 
-export class AnswerNode extends Node<SearchAgentGlobalStore> {
-  // Use GlobalStore type
-  async prep(memory: Memory<SearchAgentGlobalStore>) {
+// Define allowed actions for AnswerNode
+type AnswerNodeActions = ['done', 'error']
+
+export class AnswerNode extends Node<
+  SearchAgentGlobalStore,
+  SharedStore,
+  AnswerNodeActions // Use defined actions
+> {
+  async prep(memory: Memory<SearchAgentGlobalStore, SharedStore>) {
     // Use memory
     const context = memory.context || 'No previous context.' // Use property access
     const question = memory.question // Use property access
@@ -172,7 +197,11 @@ export class AnswerNode extends Node<SearchAgentGlobalStore> {
     return response
   }
 
-  async post(memory: Memory<SearchAgentGlobalStore>, prepRes?: string, execRes?: string) {
+  async post(
+    memory: Memory<SearchAgentGlobalStore, SharedStore>,
+    prepRes?: string,
+    execRes?: string,
+  ) {
     // Use memory
     if (!prepRes) {
       console.log('No answer provided.')

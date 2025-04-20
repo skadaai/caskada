@@ -2,12 +2,6 @@
 
 import os
 from PIL import Image, ImageEnhance, ImageFilter
-from brainyflow import Node
-
-"""Node implementations for image processing."""
-
-import os
-from PIL import Image, ImageEnhance, ImageFilter
 from brainyflow import Node, Memory # Import Memory
 
 class LoadImage(Node):
@@ -15,8 +9,10 @@ class LoadImage(Node):
     
     async def prep(self, memory: Memory): # Use memory and add type hint
         """Get image path from memory."""
-        return os.path.join("images", memory.input_image_name if hasattr(memory, 'input_image_name') else "") # Use property access
-    
+        if not hasattr(memory, "input_image_name"):
+            raise ValueError("input_image_name not provided in memory")
+        return os.path.join("images", memory.input_image_name)    
+
     async def exec(self, image_path):
         """Load the image using PIL."""
         return Image.open(image_path)

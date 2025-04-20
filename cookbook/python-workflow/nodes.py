@@ -66,7 +66,7 @@ Requirements:
 - Keep it very concise (no more than 100 words)
 - Include one brief example or analogy
 """
-            content = await call_llm(prompt) # Await call_llm
+            content = call_llm(prompt)
             section_contents[section] = content
             all_sections_content.append(f"## {section}\n\n{content}\n")
 

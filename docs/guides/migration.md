@@ -242,11 +242,11 @@ class TriggerTranslationsNode(Node):
         text = memory.text if hasattr(memory, 'text') else "(No text provided)"
         languages = memory.languages if hasattr(memory, 'languages') else ["Chinese", "Spanish", "Japanese"]
 
-        return [{"text": text, "languages": lang} for lang in languages]
+        return [{"text": text, "language": lang} for lang in languages]
 
     async def post(self, memory: Memory, prep_res, exec_res):
-        for index, _input in enumerate(input):
-            this.trigger("default", _input | {"index": index})
+        for index, input in enumerate(prep_res):
+            this.trigger("default", input | {"index": index})
 
 # 2. Processor Node (Handles one language)
 class TranslateOneLanguageNode(Node):
@@ -254,13 +254,13 @@ class TranslateOneLanguageNode(Node):
         # Read data passed via forkingData from local memory
         return {
             "text": memory.text,
-            "lang": memory.language,
+            "language": memory.language,
             "index": memory.index
         }
 
     async def exec(self, item):
         # Assume translate_text exists
-        return await translate_text(item.text, item.lang)
+        return await translate_text(item.text, item.language)
 
     async def post(self, memory: Memory, prep_res, exec_res):
         # Store result in the global list at the correct index
@@ -363,24 +363,24 @@ class TranslateOneLanguageNode extends Node<TranslationGlobalStore, TranslationL
     const text = memory.text ?? ''
     const lang = memory.language ?? 'unknown'
     const index = memory.index ?? -1
-    return { text, lang, index }
+    return { text, language, index }
   }
 
   async exec(prepRes: {
     text: string
-    lang: string
+    language: string
     index: number
-  }): Promise<{ translated: string; index: number; lang: string }> {
+  }): Promise<{ translated: string; index: number; language: string }> {
     // Assume translateText exists
-    return await translateText(prepRes.text, prepRes.lang)
+    return await translateText(prepRes.text, prepRes.language)
   }
 
   async post(
     memory: Memory<TranslationGlobalStore, TranslationLocalStore>,
-    prepRes: { text: string; lang: string; index: number }, // prepRes is passed through
-    execRes: { translated: string; index: number; lang: string },
+    prepRes: { text: string; language: string; index: number }, // prepRes is passed through
+    execRes: { translated: string; index: number; language: string },
   ): Promise<void> {
-    const { index, lang, translated } = execRes
+    const { index, language, translated } = execRes
     // Store result in the global list at the correct index
     // Ensure the global array exists and is long enough (important for parallel)
     if (!memory.translations) memory.translations = []
