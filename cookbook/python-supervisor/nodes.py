@@ -131,7 +131,7 @@ Research: {context}
 Provide a comprehensive answer using the research results.
 """
         # Call the LLM to generate an answer
-        answer = await call_llm(prompt)
+        answer = call_llm(prompt)
         return answer
 
     async def post(self, memory: Memory, prep_res, exec_res):

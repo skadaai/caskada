@@ -24,7 +24,7 @@ class TriggerImageProcessingNode(Node):
     async def prep(self, memory: Memory):
         """Generate parameters for each image-filter combination."""
         # Get list of images and filters
-        images = memory.images or []
+        images = getattr(memory, "images", [])
         filters = ["grayscale", "blur", "sepia"]
 
         # Create parameter combinations

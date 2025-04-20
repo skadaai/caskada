@@ -31,7 +31,7 @@ class CalculateAverage(Node):
 
     async def exec(self, grades):
         """Calculate average."""
-        return sum(grades) / len(grades)
+        return 0 if not grades else sum(grades) / len(grades)
 
     async def post(self, memory: Memory, prep_res, average):
         """Store and print result."""

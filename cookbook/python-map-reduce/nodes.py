@@ -28,7 +28,7 @@ class TriggerEvaluationsNode(Node):
 
     async def prep(self, memory: Memory):
         # Get resume data from memory
-        resumes_dict = memory.resumes or {}
+        resumes_dict = getattr(memory, "resumes", {})
         return list(resumes_dict.items()) # [("resume1.txt", "content1"), ...]
 
     async def exec(self, resumes: list):
