@@ -41,7 +41,15 @@ jobs:
 
       - name: Apply Version Updates
         working-directory: typescript
-        run: pnpm dlx @changesets/cli version
+        run: |
+          # Force pnpm workspace recognition @ https://www.perplexity.ai/search/github-workflows-typescript-pu-2CcFkyNPSJ.fnCXbNF47RQ#0
+          touch pnpm-workspace.yaml
+          # Ensure package.json exists
+          if [ ! -f "package.json" ]; then
+            echo "Missing package.json file."
+            exit 1
+          fi
+          pnpm dlx @changesets/cli version
 
       - name: Build Project
         working-directory: typescript
