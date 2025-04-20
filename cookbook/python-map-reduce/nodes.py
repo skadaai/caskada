@@ -4,7 +4,11 @@ import yaml
 import os
 from asyncio import Lock
 
-_agg_lock = Lock()
+def _get_flow_lock(memory: Memory) -> Lock:
+    """Return (and memoise) a lock that is private to this flow instance."""
+    if not hasattr(memory, "_agg_lock"):
+        memory._agg_lock = Lock()
+    return memory._agg_lock
 
 class ReadResumesNode(Node):
     """Map phase: Read all resumes from the data directory into memory."""
@@ -97,7 +101,7 @@ reasons:
         # Use a lock to prevent race conditions when multiple nodes update shared memory concurrently.
         # Without the lock, two nodes could read remaining_evaluations, both see it > 0,
         # decrement it, and potentially both miss the condition to trigger the aggregation.
-        async with _agg_lock:
+        async with _get_flow_lock(memory):
             memory.evaluations[evaluation_result["index"]] = evaluation_result
             memory.remaining_evaluations -= 1
             is_last = memory.remaining_evaluations == 0
