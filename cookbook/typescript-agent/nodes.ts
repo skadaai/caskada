@@ -1,41 +1,46 @@
+import { Memory, Node, SharedStore } from 'brainyflow'
 import { parse } from 'yaml'
-import { Node } from "brainyflow";
-import { callLLM, webSearch } from "./utils";
+import { callLLM, webSearch } from './utils'
 
-export interface SearchAgentSharedContext {
-    question: string
-    context?: string
-    searchQuery?: string
-    answer?: string
+export interface SearchAgentGlobalStore {
+  // Rename to GlobalStore
+  question: string
+  context?: string
+  searchQuery?: string
+  answer?: string
 }
 
+// Define allowed actions for DecideNode
+type DecideNodeActions = ['search', 'answer', 'error']
+
 interface LLMDecision {
-    thinking: string
-    action: 'search' | 'answer'
-    reason: string
-    answer?: string
-    searchQuery?: string
+  thinking: string
+  action: 'search' | 'answer'
+  reason: string
+  answer?: string
+  searchQuery?: string
 }
 
 interface SearchResult {
-    title: string
-    href: string
-    body: string
+  title: string
+  href: string
+  body: string
 }
 
-export class DecideNode extends Node {
-    async prep(shared: SearchAgentSharedContext) {
-        const context = shared.context || "No previous search."
-        const question = shared.question
-        return { context, question };
-    }
+export class DecideNode extends Node<SearchAgentGlobalStore, SharedStore, DecideNodeActions> {
+  async prep(memory: Memory<SearchAgentGlobalStore, SharedStore>) {
+    // Use memory
+    const context = memory.context || 'No previous search.' // Use property access
+    const question = memory.question // Use property access
+    return { context, question }
+  }
 
-    async exec(input: { context: string, question: string }) {
-        const { context, question } = input;
-        const now = new Date();
-        console.log("Deciding whether to search or answer the question...");
+  async exec(input: { context: string; question: string }) {
+    const { context, question } = input
+    const now = new Date()
+    console.log('Deciding whether to search or answer the question...')
 
-        const prompt = `
+    const prompt = `
         ### Context
         Current date is ${now.toISOString()}
         You are helpful assistance that can searching the web to gather real time data.
@@ -71,77 +76,111 @@ export class DecideNode extends Node {
         3. Keep single-line fields without the | character
         4. thinking about search query, make sure that you understand the question and use query that appropriate for search engine, not just copying the question
         `
-        const response = await callLLM([{ role: 'user', content: prompt }]);
-        const yamlStr = response!.split("```yaml")[1].split("```")[0].trim();
-        const decision = parse(yamlStr) as LLMDecision;
-
-        return decision;
+    const response = await callLLM([{ role: 'user', content: prompt }])
+    if (!response?.includes('```yaml')) {
+      throw new Error('LLM response missing YAML block')
     }
 
-    async post(shared: SearchAgentSharedContext, prepRes?: { context: string, question: string }, execRes?: LLMDecision) {
-        if (!prepRes) {
-            console.log("No context or question provided.");
-            return;
-        }
+    const yamlStr = response.split('```yaml')[1].split('```')[0].trim()
+    const decision = parse(yamlStr) as LLMDecision
+    return decision
+  }
 
-        if (!execRes) {
-            console.log("No decision made.");
-            return;
-        }
-
-        if (execRes.action === 'search') {
-            shared.searchQuery = execRes.searchQuery;
-            console.log(`Searching for: ${execRes.searchQuery}`);
-            console.log(`Reason: ${execRes.reason}`);
-        } else {
-            shared.context = execRes.answer;
-            console.log(`Answering: ${execRes.answer}`);
-            console.log(`Reason: ${execRes.reason}`);
-        }
-
-        return execRes.action;
+  async post(
+    memory: Memory<SearchAgentGlobalStore, SharedStore>,
+    prepRes?: { context: string; question: string },
+    execRes?: LLMDecision,
+  ) {
+    // Use memory
+    if (!prepRes) {
+      console.log('No context or question provided.')
+      this.trigger('error') // Use trigger
+      return
     }
+
+    if (!execRes) {
+      console.log('No decision made.')
+      this.trigger('error') // Use trigger
+      return
+    }
+
+    if (execRes.action === 'search') {
+      memory.searchQuery = execRes.searchQuery // Use property access
+      console.log(`Searching for: ${execRes.searchQuery}`)
+      console.log(`Reason: ${execRes.reason}`)
+    } else {
+      memory.answer = execRes.answer // Persist final answer
+      console.log(`Answering: ${execRes.answer}`)
+      console.log(`Reason: ${execRes.reason}`)
+    }
+
+    this.trigger(execRes.action) // Use trigger
+  }
 }
 
-export class SearchNode extends Node {
-    async prep(shared: SearchAgentSharedContext) {
-        return shared.searchQuery;
+// Define allowed actions for SearchNode
+type SearchNodeActions = ['decide', 'error']
+
+export class SearchNode extends Node<
+  SearchAgentGlobalStore,
+  SharedStore,
+  SearchNodeActions // Use defined actions
+> {
+  async prep(memory: Memory<SearchAgentGlobalStore, SharedStore>) {
+    // Use memory
+    return memory.searchQuery // Use property access
+  }
+
+  async exec(searchQuery: string) {
+    console.log(`Calling web search tool.`)
+    const result = await webSearch(searchQuery)
+    return result as SearchResult[]
+  }
+
+  async post(
+    memory: Memory<SearchAgentGlobalStore, SharedStore>,
+    prepRes?: string,
+    execRes?: SearchResult[],
+  ) {
+    // Use memory
+    if (!prepRes) {
+      console.log('No search query provided.')
+      this.trigger('error') // Use trigger
+      return
     }
 
-    async exec(searchQuery: string) {
-        console.log(`Calling web search tool.`);
-        const result = await webSearch(searchQuery);
-        return result as SearchResult[];
+    if (!execRes) {
+      console.log('No search results found.')
+      this.trigger('error') // Use trigger
+      return
     }
 
-    async post(shared: SearchAgentSharedContext, prepRes?: string, execRes?: SearchResult[]) {
-        if (!prepRes) {
-            console.log("No search query provided.");
-            return;
-        }
-
-        if (!execRes) {
-            console.log("No search results found.");
-            return;
-        }
-
-        const previous = shared.context || ""
-        shared.context = previous + "\n\nSearch: " + shared.searchQuery + "\nResult :" + JSON.stringify(execRes);
-        return 'decide';
-    }
+    const previous = memory.context || '' // Use property access
+    memory.context =
+      previous + '\n\nSearch: ' + memory.searchQuery + '\nResult :' + JSON.stringify(execRes) // Use property access
+    this.trigger('decide') // Use trigger
+  }
 }
 
-export class AnswerNode extends Node {
-    async prep(shared: SearchAgentSharedContext) {
-        const context = shared.context || "No previous context."
-        const question = shared.question
-        return { question, context };
-    }
+// Define allowed actions for AnswerNode
+type AnswerNodeActions = ['done', 'error']
 
-    async exec(input: { question: string, context: string }) {
-        const { question, context } = input;
-        console.log("Answering the question...");
-        const prompt = `
+export class AnswerNode extends Node<
+  SearchAgentGlobalStore,
+  SharedStore,
+  AnswerNodeActions // Use defined actions
+> {
+  async prep(memory: Memory<SearchAgentGlobalStore, SharedStore>) {
+    // Use memory
+    const context = memory.context || 'No previous context.' // Use property access
+    const question = memory.question // Use property access
+    return { question, context }
+  }
+
+  async exec(input: { question: string; context: string }) {
+    const { question, context } = input
+    console.log('Answering the question...')
+    const prompt = `
         ### Context
         Based on the following information, answer the question.
         Question: ${question}
@@ -150,23 +189,30 @@ export class AnswerNode extends Node {
         ## Your Answer:
         Provide a comprehensive answer using the research results.
         `
-        const response = await callLLM([{ role: 'user', content: prompt }]);
-        return response;
+    const response = await callLLM([{ role: 'user', content: prompt }])
+    return response
+  }
+
+  async post(
+    memory: Memory<SearchAgentGlobalStore, SharedStore>,
+    prepRes?: { question: string; context: string },
+    execRes?: string,
+  ) {
+    // Use memory
+    if (!prepRes) {
+      console.log('No answer provided.')
+      this.trigger('error') // Use trigger
+      return
     }
 
-    async post(shared: SearchAgentSharedContext, prepRes?: string, execRes?: string) {
-        if (!prepRes) {
-            console.log("No answer provided.");
-            return;
-        }
-
-        if (!execRes) {
-            console.log("No answer generated.");
-            return;
-        }
-
-        shared.answer = execRes;
-        console.log(`Final Answer: ${execRes}`);
-        return 'done';
+    if (!execRes) {
+      console.log('No answer generated.')
+      this.trigger('error') // Use trigger
+      return
     }
+
+    memory.answer = execRes // Use property access
+    console.log(`Final Answer: ${execRes}`)
+    this.trigger('done') // Use trigger
+  }
 }

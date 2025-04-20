@@ -1,4 +1,5 @@
 import asyncio
+from brainyflow import Memory # Import Memory
 from flow import flow
 
 async def main():
@@ -11,14 +12,14 @@ async def main():
     """
 
     # Initialize shared store
-    shared = {"data": text}
+    memory = {"data": text}
     
     # Run the flow
-    await flow.run(shared)
-    
+    await flow.run(memory)
+
     # Print result
     print("\nInput text:", text)
-    print("\nSummary:", shared["summary"])
+    print("\nSummary:", memory.get("summary", "No summary generated"))
 
 if __name__ == "__main__":
-    asyncio.run(main()) 
+    asyncio.run(main())

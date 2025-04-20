@@ -1,4 +1,6 @@
 import os
+import asyncio
+from brainyflow import Memory
 from flow import create_flow
 
 def create_sample_data():
@@ -6,7 +8,7 @@ def create_sample_data():
     # Create directory structure
     os.makedirs("school/class_a", exist_ok=True)
     os.makedirs("school/class_b", exist_ok=True)
-    
+
     # Sample grades
     data = {
         "class_a": {
@@ -18,7 +20,7 @@ def create_sample_data():
             "student4.txt": [9.0, 9.5, 8.0]
         }
     }
-    
+
     # Create files
     for class_name, students in data.items():
         for student, grades in students.items():
@@ -31,12 +33,13 @@ async def main():
     """Run the nested batch example."""
     # Create sample data
     create_sample_data()
-    
+
     print("Processing school grades...\n")
-    
+
     # Create and run flow
     flow = create_flow()
-    await flow.run({})
+    memory = {}
+    await flow.run(memory)
 
 if __name__ == "__main__":
-    asyncio.run(main()) 
+    asyncio.run(main())

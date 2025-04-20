@@ -1,6 +1,6 @@
-# BrainyFlow Nested SequentialBatchFlow Example
+# BrainyFlow Nested Flow Example
 
-This example demonstrates Nested SequentialBatchFlow using a simple school grades calculator.
+This example demonstrates nested Flows and the Trigger/Aggregate pattern for hierarchical processing using a simple school grades calculator.
 
 ## What this Example Does
 
@@ -8,6 +8,7 @@ Calculates average grades for:
 
 1. Each student in a class
 2. Each class in the school
+3. The entire school
 
 ## Structure
 
@@ -23,20 +24,20 @@ school/
 
 ## How it Works
 
-1. **Outer SequentialBatchFlow (SchoolBatchFlow)**
+1. **School Flow (Outer Flow)**
 
-   - Processes each class folder
-   - Returns parameters like: `{"class": "class_a"}`
+   - Starts with `TriggerSchoolProcessingNode` which lists class folders and triggers the `Class Flow` for each class.
+   - After all `Class Flow` instances complete, `AggregateSchoolResultsNode` calculates the overall school average.
 
-2. **Inner SequentialBatchFlow (ClassBatchFlow)**
+2. **Class Flow (Nested Flow)**
 
-   - Processes each student file in a class
-   - Returns parameters like: `{"student": "student1.txt"}`
+   - Starts with `TriggerClassProcessingNode` which lists student files in a class and triggers the `Base Flow` for each student.
+   - After all `Base Flow` instances for a class complete, `AggregateClassResultsNode` calculates the class average.
 
-3. **Base Flow**
-   - Loads student grades
-   - Calculates average
-   - Saves result
+3. **Base Flow (Innermost Flow)**
+   - Processes a single student's grade file.
+   - Contains `LoadGrades` and `CalculateAverage` nodes.
+   - `CalculateAverage` node stores the student's average in the global memory and triggers the next step in the `Class Flow` (the `AggregateClassResultsNode`).
 
 ## Running the Example
 
@@ -48,21 +49,24 @@ python main.py
 ## Expected Output
 
 ```
+Processing school grades...
+
 Processing class_a...
-- student1: Average = 8.2
-- student2: Average = 8.3
+- student1.txt: Average = 8.17
+- student2.txt: Average = 8.33
 Class A Average: 8.25
 
 Processing class_b...
-- student3: Average = 7.3
-- student4: Average = 8.8
-Class B Average: 8.05
+- student3.txt: Average = 7.33
+- student4.txt: Average = 8.83
+Class B Average: 8.08
 
-School Average: 8.15
+School Average: 8.17
 ```
 
 ## Key Concepts
 
-1. **Nested SequentialBatchFlow**: One SequentialBatchFlow inside another
-2. **Parameter Inheritance**: Inner flow gets parameters from outer flow
-3. **Hierarchical Processing**: Process data in a tree-like structure
+1. **Nested Flows**: Using a Flow as a node within another Flow.
+2. **Trigger/Aggregate Pattern**: Using a Trigger node to fan out work and an Aggregate node to collect results.
+3. **Hierarchical Processing**: Processing data in a tree-like structure using nested flows and the fan-out pattern.
+4. **Local vs Global Memory**: Using `forkingData` to pass context to nested flows (local memory) while aggregating results in the main flow's global memory.

@@ -1,11 +1,12 @@
-from brainyflow import Node, Flow
+import asyncio
+from brainyflow import Node, Flow, Memory # Import Memory
 from utils import call_llm
 import yaml
 
 class ResumeParserNode(Node):
-    async def prep(self, shared):
-        """Return resume text from shared state"""
-        return shared["resume_text"]
+    async def prep(self, memory: Memory): # Use memory and add type hint
+        """Return resume text from memory"""
+        return memory.resume_text if hasattr(memory, 'resume_text') else "" # Use property access
     
     async def exec(self, resume_text):
         """Extract structured data from resume using prompt engineering"""
@@ -48,9 +49,9 @@ skills:
         
         return structured_result
     
-    async def post(self, shared, prep_res, exec_res):
+    async def post(self, memory: Memory, prep_res, exec_res): # Use memory and add type hint
         """Store and display structured resume data in YAML"""
-        shared["structured_data"] = exec_res
+        memory.structured_data = exec_res # Use property access
         
         # Print structured data in YAML format
         print("\n=== STRUCTURED RESUME DATA ===\n")
@@ -64,11 +65,11 @@ if __name__ == "__main__":
     print("=== Simple Resume Parser - YAML Output ===\n")
     
     # Read resume text from file
-    shared = {}
+    memory = {}
     with open('data.txt', 'r') as file:
         resume_text = file.read()
-    shared["resume_text"] = resume_text
+    memory.resume_text = resume_text # Use property access
 
     
     flow = Flow(start=ResumeParserNode())
-    await flow.run(shared)
+    asyncio.run(flow.run(memory))

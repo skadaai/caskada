@@ -1,18 +1,18 @@
-from brainyflow import Node
+from brainyflow import Node, Memory # Import Memory
 from tools.embeddings import get_embedding
 
 class EmbeddingNode(Node):
     """Node for getting embeddings from OpenAI API"""
-    
-    async def prep(self, shared):
-        # Get text from shared store
-        return shared.get("text", "")
-        
+
+    async def prep(self, memory: Memory): # Use memory and add type hint
+        # Get text from memory
+        return memory.text if hasattr(memory, 'text') else ""
+
     async def exec(self, text):
         # Get embedding using tool function
         return get_embedding(text)
-        
-    async def post(self, shared, prep_res, exec_res):
-        # Store embedding in shared store
-        shared["embedding"] = exec_res
-        return "default" 
+
+    async def post(self, memory: Memory, prep_res, exec_res): # Use memory and add type hint
+        # Store embedding in memory
+        memory.embedding = exec_res
+        self.trigger("default") # Use trigger

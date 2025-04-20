@@ -1,10 +1,10 @@
 # Sequential vs Parallel Processing
 
-Demonstrates how ParallelBatchNode accelerates processing by 3x over SequentialBatchNode.
+Demonstrates how using a ParallelFlow with Trigger and Processor nodes accelerates processing by 3x over a sequential Flow.
 
 ## Features
 
-- Processes identical tasks with two approaches
+- Processes identical tasks with two approaches using Trigger and Processor nodes within Flow and ParallelFlow
 - Compares sequential vs parallel execution time
 - Shows 3x speed improvement with parallel processing
 
@@ -18,27 +18,32 @@ python main.py
 ## Output
 
 ```
-=== Running Sequential (SequentialBatchNode) ===
-[Sequential] Summarizing file1.txt...
-[Sequential] Summarizing file2.txt...
-[Sequential] Summarizing file3.txt...
+=== Running Sequential ===
+Trigger: Triggering summary for 3 files.
+Processor: Summarizing file1.txt (Index 0)...
+Processor: Summarizing file2.txt (Index 1)...
+Processor: Summarizing file3.txt (Index 2)...
 
-=== Running Parallel (ParallelBatchNode) ===
-[Parallel] Summarizing file1.txt...
-[Parallel] Summarizing file2.txt...
-[Parallel] Summarizing file3.txt...
+=== Running Parallel ===
+Trigger: Triggering summary for 3 files.
+Processor: Summarizing file1.txt (Index 0)...
+Processor: Summarizing file2.txt (Index 1)...
+Processor: Summarizing file3.txt (Index 2)...
 
+--- Results ---
+Sequential Summaries: {'file1.txt': 'Summarized(13 chars)', 'file2.txt': 'Summarized(13 chars)', 'file3.txt': 'Summarized(13 chars)'}
+Parallel Summaries:   {'file1.txt': 'Summarized(13 chars)', 'file2.txt': 'Summarized(13 chars)', 'file3.txt': 'Summarized(13 chars)'}
 Sequential took: 3.00 seconds
 Parallel took:   1.00 seconds
 ```
 
 ## Key Points
 
-- **Sequential**: Total time = sum of all item times
+- **Sequential Flow**: Total time = sum of all item times
 
   - Good for: Rate-limited APIs, maintaining order
 
-- **Parallel**: Total time ≈ longest single item time
+- **Parallel Flow**: Total time ≈ longest single item time
   - Good for: I/O-bound tasks, independent operations
 
 ## Tech Dive Deep
