@@ -14,9 +14,9 @@ class TriggerTranslationsNode(Node):
     async def post(self, memory: Memory, prep_res: list, exec_res):
         items = prep_res
         memory.translations = [] # Initialize results list
+        memory.remaining = len(items) # Initialize counter
         for index, (text, lang) in enumerate(items):
             self.trigger("process_one", {"text": text, "language": lang, "index": index})
-        self.trigger("write_results") # Trigger the next step after fanning out
 
 # 2. Processor Node (Handles one language)
 class TranslateOneLanguageNode(Node):
@@ -50,7 +50,11 @@ Translated:"""
     async def post(self, memory: Memory, prep_res, exec_res):
         # Store individual summary in global memory
         memory.translations.append(exec_res)
-        self.trigger("default") # Trigger next node in the sequential flow
+        memory.remaining -= 1
+        if memory.remaining == 0:
+            self.trigger("write_results") # Trigger write node only when all translations are done
+        else:
+            self.trigger("default") # Trigger next node in the sequential flow (or potentially nothing if not needed)
 
 # 3. Write Results Node (Aggregates and writes)
 class WriteTranslationsNode(Node):
