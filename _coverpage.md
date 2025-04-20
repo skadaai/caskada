@@ -13,7 +13,7 @@
   <a href="https://github.com/zvictor/brainyflow/tree/master/cookbook">Examples 🌈 </a>
   <a href="https://pypi.org/project/brainyflow">PyPI <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/python.svg" width="17" height="17" alt="Python Logo" style="vertical-align: sub; margin: 0 2px;"></a>
   <a href="https://www.npmjs.com/package/brainyflow">NPM <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/typescript.svg" width="17" height="17" alt="Typescript Logo" style="vertical-align: sub; margin: 0 2px;"></a>
-  <a href="https://discord.gg/MdJJ29Xd">Chat <img src="https://cdn.prod.website-files.com/6257adef93867e50d84d30e2/66e3d80db9971f10a9757c99_Symbol.svg" width="17" height="17" alt="Discord Logo" style="vertical-align: sub; margin: 0 2px;"></a>
+  <a href="https://discord.gg/N9mVvxRXyH">Chat <img src="https://cdn.prod.website-files.com/6257adef93867e50d84d30e2/66e3d80db9971f10a9757c99_Symbol.svg" width="17" height="17" alt="Discord Logo" style="vertical-align: sub; margin: 0 2px;"></a>
   <a href="https://github.com/zvictor/brainyflow">Github <img src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/github-white-icon.svg" width="17" height="17" alt="Github Logo" style="vertical-align: sub; margin: 0 2px;"></a>
   <!-- Dropdown container -->
   <div id="docs-dropdown-container">
