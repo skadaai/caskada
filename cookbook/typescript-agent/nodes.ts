@@ -27,11 +27,7 @@ interface SearchResult {
   body: string
 }
 
-export class DecideNode extends Node<
-  SearchAgentGlobalStore,
-  SharedStore,
-  DecideNodeActions 
-> {
+export class DecideNode extends Node<SearchAgentGlobalStore, SharedStore, DecideNodeActions> {
   async prep(memory: Memory<SearchAgentGlobalStore, SharedStore>) {
     // Use memory
     const context = memory.context || 'No previous search.' // Use property access
@@ -199,7 +195,7 @@ export class AnswerNode extends Node<
 
   async post(
     memory: Memory<SearchAgentGlobalStore, SharedStore>,
-    prepRes?: string,
+    prepRes?: { question: string; context: string },
     execRes?: string,
   ) {
     // Use memory

@@ -9,6 +9,8 @@ class ReadResumesNode(Node):
     async def exec(self, _):
         resume_files = {}
         data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
+        if not os.path.isdir(data_dir):
+            raise FileNotFoundError(f"Expected resume folder not found: {data_dir}")
 
         for filename in os.listdir(data_dir):
             if filename.endswith(".txt"):
