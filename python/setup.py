@@ -7,7 +7,7 @@ long_description = (this_directory / "README.md").read_text(encoding="utf-8")
 
 setup(
     name='brainyflow',
-    version='0.2.0',
+    version='1.0.0',
     py_modules=['brainyflow'],
     author="Victor Duarte",
     description="Minimalist AI framework in 200 Lines. Enable LLMs to Program Themselves.",
