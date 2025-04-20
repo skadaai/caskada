@@ -1,36 +1,37 @@
-from brainyflow import Node, Flow
+from brainyflow import Node, Flow, Memory # Import Memory
 
 class TextInput(Node):
-    async def prep(self, shared):
+    async def prep(self, memory: Memory): # Use memory and add type hint
         """Get text input from user."""
-        if "text" not in shared:
+        if not hasattr(memory, 'text'): # Use property access
             text = input("\nEnter text to convert: ")
-            shared["text"] = text
-        return shared["text"]
+            memory.text = text # Use property access
+        return memory.text # Use property access
 
-    async def post(self, shared, prep_res, exec_res):
+    async def post(self, memory: Memory, prep_res, exec_res): # Use memory and add type hint
         print("\nChoose transformation:")
         print("1. Convert to UPPERCASE")
         print("2. Convert to lowercase")
         print("3. Reverse text")
         print("4. Remove extra spaces")
         print("5. Exit")
-        
+
         choice = input("\nYour choice (1-5): ")
-        
+
         if choice == "5":
-            return "exit"
-        
-        shared["choice"] = choice
-        return "transform"
+            self.trigger("exit") # Use trigger
+            return
+
+        memory.choice = choice # Use property access
+        self.trigger("transform") # Use trigger
 
 class TextTransform(Node):
-    async def prep(self, shared):
-        return shared["text"], shared["choice"]
-    
+    async def prep(self, memory: Memory): # Use memory and add type hint
+        return memory.text if hasattr(memory, 'text') else "", memory.choice if hasattr(memory, 'choice') else "" # Use property access
+
     async def exec(self, inputs):
         text, choice = inputs
-        
+
         if choice == "1":
             return text.upper()
         elif choice == "2":
@@ -41,14 +42,16 @@ class TextTransform(Node):
             return " ".join(text.split())
         else:
             return "Invalid option!"
-    
-    async def post(self, shared, prep_res, exec_res):
+
+    async def post(self, memory: Memory, prep_res, exec_res): # Use memory and add type hint
         print("\nResult:", exec_res)
-        
+
         if input("\nConvert another text? (y/n): ").lower() == 'y':
-            shared.pop("text", None)  # Remove previous text
-            return "input"
-        return "exit"
+            if hasattr(memory, 'text'): # Check if text exists before popping
+                del memory.text # Use property access to delete
+            self.trigger("input") # Use trigger
+            return
+        self.trigger("exit") # Use trigger
 
 class EndNode(Node):
     pass
@@ -64,4 +67,4 @@ text_transform - "input" >> text_input
 text_transform - "exit" >> end_node
 
 # Create flow
-flow = Flow(start=text_input) 
+flow = Flow(start=text_input)

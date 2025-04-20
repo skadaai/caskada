@@ -3,8 +3,12 @@
 from brainyflow import Flow
 from nodes import TextInput, WordCounter, ShowStats, EndNode
 
-def create_flow():
-    """Create and configure the flow with all nodes."""
+def create_flow() -> Flow:
+    """Create and configure the flow with all nodes.
+    
+    Returns:
+        Flow: Configured flow ready to run
+    """
     # Create nodes
     text_input = TextInput()
     word_counter = WordCounter()

@@ -31,19 +31,23 @@ python main.py
 
 ## How It Works
 
-The workflow follows a classic Map-Reduce pattern with three sequential nodes:
+The workflow follows a classic Map-Reduce pattern implemented using standard BrainyFlow Nodes and a ParallelFlow for concurrent processing:
 
 ```mermaid
 flowchart LR
-    ReadResumes[Map: Read Resumese] --> EvaluateResumes[Batch: Evaluate Resumes]
-    EvaluateResumes --> ReduceResults[Reduce: Aggregate Results]
+    ReadResumes[Read Resumes] --> TriggerEvaluations[Map: Trigger Evaluations]
+    TriggerEvaluations -->|evaluate_resume| EvaluateOneResume[Process: Evaluate One Resume]
+    EvaluateOneResume -->|aggregate_results| AggregateResults[Reduce: Aggregate Results]
 ```
 
 Here's what each node does:
 
-1. **ReadResumesNode (Map Phase)**: Reads all resume files from the data directory and stores them in the shared data store
-2. **EvaluateResumesNode (Batch Processing)**: Processes each resume individually using an LLM to determine if candidates qualify
-3. **ReduceResultsNode (Reduce Phase)**: Aggregates evaluation results and produces a summary of qualified candidates
+1.  **`ReadResumesNode`**: Reads all resume files from the data directory and stores them in memory.
+2.  **`TriggerEvaluationsNode` (Map Phase)**: Reads the resume data from memory and triggers an `evaluate_resume` action for each resume, passing the resume content and index to the local memory of the next node.
+3.  **`EvaluateOneResumeNode` (Processor Node)**: Receives a single resume from its local memory, evaluates it using an LLM, stores the result in global memory at the correct index, and triggers the `aggregate_results` action when all evaluations are complete.
+4.  **`AggregateResultsNode` (Reduce Phase)**: Reads all the individual evaluation results from global memory, aggregates them into a final summary of qualified candidates, and stores the summary in memory.
+
+This pattern demonstrates how BrainyFlow can efficiently process multiple related tasks concurrently using standard nodes and flows, replacing the need for specialized batch node types.
 
 ## Files
 
