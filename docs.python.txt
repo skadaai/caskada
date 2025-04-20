@@ -872,7 +872,7 @@ const flow = new Flow(startNode, { maxVisits: 10 })
 
 ## Flow Parallelism
 
-BrainyFlow offers two built-in types - and the possibility to create custom ones\_ - of flows that provide different levels of parallelism when nodes trigger multiple successors:
+BrainyFlow offers two built-in types - _and the possibility to create custom ones_ - of flows that provide different levels of parallelism when nodes trigger multiple successors:
 
 ### 1. `Flow` (Sequential Execution)
 
@@ -928,10 +928,17 @@ class CustomExecutionFlow extends Flow {
 
 ## Batch Processing (Fan-Out Pattern)
 
-The standard way to process multiple items (sequentially or in parallel) is using the "fan-out" pattern with multiple triggers:
+The standard way to process multiple items (sequentially or in parallel) is using the "fan-out" pattern with multiple triggers. All you need for that is a trigger node and a processor node:
 
-1.  **Trigger Node**: A standard `Node` whose `post` method iterates through your items (e.g., from `memory.items`). For each item, it calls `this.trigger("process_item", { item: current_item, index: i })`. The `forkingData` (`{ item: ..., index: ... }`) is crucial for passing item-specific data to the local memory of the next node.
-2.  **Processor Node**: Another standard `Node` connected via the `"process_item"` action (`triggerNode.on("process_item", processorNode)`). Its `prep` reads the specific `item` and `index` from its local memory. Its `exec` performs the actual processing for that single item. Its `post` typically stores the result back into global memory (e.g., `memory.results[index] = result`).
+1.  **Trigger Node**:
+    - A standard `Node` whose `post` method iterates through your items (e.g., from `prepRes.items`).
+    - For each item, it calls `this.trigger` with forking data. E.g., `this.trigger("process_item", { item: current_item, index: i })`.
+    - The forked data is crucial for passing item-specific data to the local memory of the next node.
+2.  **Processor Node**:
+    - Another standard `Node` connected via the action triggered by the `TriggerNode`. E.g. `triggerNode.on("process_item", processorNode)`.
+    - Its `prep` reads the forked data from its local memory.
+    - Its `exec` performs the actual processing for that single item.
+    - Its `post` typically stores the result back into global memory (e.g., `memory.results[prepRes.index] = execRes.result`).
 3.  **Flow Choice**:
     - Use `Flow(triggerNode)` for **sequential** batch processing (one item completes before the next starts).
     - Use `ParallelFlow(triggerNode)` for **concurrent** batch processing (all items are processed in parallel).
@@ -941,12 +948,9 @@ This pattern leverages the core `Flow` and `Node` abstractions to handle batchin
 #### Example: Simple Batch Processing
 
 ```python
-# Assume process_single_item exists
-# async def process_single_item(item_data): ...
-
 class TriggerBatchNode(Node):
     async def prep(self, memory: Memory):
-        return memory.get("items_to_process", [])
+        return memory.items_to_process or []
 
     async def post(self, memory: Memory, prep_res: list, exec_res):
         items = prep_res
@@ -960,7 +964,6 @@ class ProcessOneItemNode(Node):
         return {"item": memory.item_data, "index": memory.result_index}
 
     async def exec(self, prep_res):
-        # result = await process_single_item(prep_res["item"])
         result = f"Processed {prep_res['item']}" # Placeholder
         return {"result": result, "index": prep_res["index"]}
 
@@ -970,7 +973,7 @@ class ProcessOneItemNode(Node):
 # Setup
 trigger = TriggerBatchNode()
 processor = ProcessOneItemNode()
-trigger.on("process_one", processor)
+trigger - "process_one" >> processor
 
 # Choose Flow type
 # sequential_batch_flow = Flow(trigger)
@@ -2450,7 +2453,7 @@ A well-organized project structure enhances maintainability and collaboration:
 {% tabs %}
 {% tab title="Python (simple)" %}
 
-```
+```haskell
 my_simple_project/
 ├── main.py
 ├── nodes.py
@@ -2467,7 +2470,7 @@ my_simple_project/
 {% endtab %}
 {% tab title="Python (complex)" %}
 
-```
+```haskell
 my_complex_project/
 ├── main.py                # Entry point
 ├── nodes/                 # Node implementations
