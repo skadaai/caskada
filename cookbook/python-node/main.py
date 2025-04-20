@@ -19,7 +19,7 @@ async def main():
 
     # Print result
     print("\nInput text:", text)
-    print("\nSummary:", memory.summary if hasattr(memory, 'summary') else "No summary generated")
+    print("\nSummary:", memory.get("summary", "No summary generated"))
 
 if __name__ == "__main__":
     asyncio.run(main())
