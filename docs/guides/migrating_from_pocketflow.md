@@ -133,125 +133,199 @@ The functionality is now achieved using standard `Node`s and `Flow`s combined wi
     - Wrap the `TriggerNode` and `ProcessorNode` in a standard `brainyflow.Flow` if you need items processed **sequentially**.
     - Wrap them in a `brainyflow.ParallelFlow` if items can be processed **concurrently**.
 
-#### Example Migration: Document Summarization
+#### Example: Translating Text into Multiple Languages
 
-Let's migrate a conceptual PocketFlow `SummarizeDocsBatchNode`.
+Let's adapt the `TranslateTextNode` example provided earlier. Before, it might have been a `BatchNode`. Now, we split it into a `TriggerTranslationsNode` and a `TranslateOneLanguageNode`.
+
+{% tabs %}
+{% tab title="Python" %}
 
 ```python
-# Before (PocketFlow - Conceptual)
-# from pocketflow import BatchNode
-# import some_llm_library
-#
-# class SummarizeDocsBatchNode(BatchNode):
-#     def prep(self, shared):
-#         # Returns list of (doc_id, doc_content) tuples
-#         return shared.get("documents", []) # Assume documents = [(id1, content1), (id2, content2)]
-#
-#     def exec_one(self, item):
-#         doc_id, doc_content = item
-#         print(f"Summarizing doc {doc_id}...")
-#         summary = some_llm_library.summarize(doc_content)
-#         return (doc_id, summary) # Return tuple (id, result)
-#
-#     def post(self, shared, prep_res, exec_results):
-#         # exec_results is a list of tuples: [(id1, summary1), (id2, summary2)]
-#         shared["summaries"] = dict(exec_results) # Store as a dictionary
-#         print("All documents summarized.")
-#         return "default" # Or trigger next action
+# Before (PocketFlow) - Conceptual BatchNode
+class TranslateTextBatchNode(BatchNode):
+    def prep(self, shared):
+        text = shared.get("text", "(No text provided)")
+        languages = shared.get("languages", ["Chinese", "Spanish", "Japanese"])
+        # BatchNode prep would return items for exec
+        return [(text, lang) for lang in languages]
+
+    def exec(self, item):
+        text, lang = item
+        # Assume translate_text exists
+        return await translate_text(text, lang)
+
+    def post(self, shared, prep_res, exec_results):
+        # BatchNode post might aggregate results
+        shared["translations"] = exec_results
+        return "default"
 ```
 
 ```python
-# After (BrainyFlow v0.3+ - Using Flow Patterns)
-from brainyflow import Node, Flow, ParallelFlow, Memory # Import necessary classes
+# After (BrainyFlow) - Using Flow Patterns
 
-# Assume an async function `summarize_content_api` exists
-# async def summarize_content_api(content: str) -> str:
-#     # ... call external LLM API ...
-#     return "Summary result"
+from brainyflow import Node, Memory
 
-# 1. Trigger Node (Replaces BatchNode's prep and loop logic)
-class TriggerSummarizationNode(Node):
+# 1. Trigger Node (Fans out work)
+class TriggerTranslationsNode(Node):
     async def prep(self, memory: Memory):
-        # Get list of (doc_id, doc_content) tuples
-        return memory.get("documents", [])
+        text = memory.text if hasattr(memory, 'text') else "(No text provided)"
+        languages = memory.languages if hasattr(memory, 'languages') else ["Chinese", "Spanish", "Japanese"]
 
-    async def post(self, memory: Memory, prep_res: list[tuple[str, str]], exec_res):
-        documents = prep_res
-        num_docs = len(documents)
-        # Initialize results structure in global memory
-        memory.summaries = {} # Use dict for potentially out-of-order results
-        memory.summaries_list = [None] * num_docs # Or list if order is critical and handled
-
-        if not documents:
-            self.trigger("summarization_complete") # Skip if no docs
-            return
-
-        # Trigger 'summarize_one' for each document
-        for index, (doc_id, doc_content) in enumerate(documents):
-            self.trigger("summarize_one", {
-                "doc_id": doc_id,
-                "content": doc_content,
-                "result_index": index # Pass index if using list
-            })
-
-        # Optional: Trigger aggregation only after all items are processed.
-        # This can be complex with ParallelFlow. Often, aggregation is a separate
-        # node triggered after the ParallelFlow completes, or managed via counters.
-        # For simplicity here, we might assume a later step reads memory.summaries.
-        # self.trigger("summarization_complete") # Or trigger an aggregation node
-
-# 2. Processor Node (Replaces BatchNode's exec_one logic)
-class SummarizeOneDocNode(Node):
-    async def prep(self, memory: Memory):
-        # Read item-specific data from local memory
-        return {
-            "doc_id": memory.doc_id,
-            "content": memory.content,
-            "index": memory.result_index
-        }
-
-    async def exec(self, prep_res):
-        doc_id = prep_res["doc_id"]
-        content = prep_res["content"]
-        # --- Call external summarization API ---
-        # summary = await summarize_content_api(content)
-        summary = f"Summary of '{content[:20]}...'" # Placeholder
-        # ---------------------------------------
-        return {"doc_id": doc_id, "summary": summary, "index": prep_res["index"]}
+        return [{"text": text, "languages": lang} for lang in languages]
 
     async def post(self, memory: Memory, prep_res, exec_res):
-        doc_id = exec_res["doc_id"]
-        summary = exec_res["summary"]
-        index = exec_res["index"]
-        # Store result in global memory
-        memory.summaries[doc_id] = summary
-        # If using a list for ordered results:
-        # memory.summaries_list[index] = summary
-        # (Add counter logic here if triggering aggregation from processor)
+        for index, _input in enumerate(input):
+            this.trigger("default", _input | {"index": index})
 
+# 2. Processor Node (Handles one language)
+class TranslateOneLanguageNode(Node):
+    async def prep(self, memory: Memory):
+        # Read data passed via forkingData from local memory
+        return {
+            "text": memory.text,
+            "lang": memory.language,
+            "index": memory.index
+        }
+
+    async def exec(self, item):
+        # Assume translate_text exists
+        return await translate_text(item.text, item.lang)
+
+    async def post(self, memory: Memory, prep_res, exec_res):
+        # Store result in the global list at the correct index
+        memory.translations[exec_res["index"]] = exec_res
+        this.trigger("default")
 
 # 3. Flow Setup
-trigger_node = TriggerSummarizationNode()
-processor_node = SummarizeOneDocNode()
-# completion_node = Node() # Optional node after completion
+trigger_node = TriggerTranslationsNode()
+processor_node = TranslateOneLanguageNode()
 
-trigger_node.on("summarize_one", processor_node)
-# trigger_node.on("summarization_complete", completion_node) # If using explicit completion trigger
+trigger_node >> processor_node
+```
 
-# Use ParallelFlow for concurrent summarization
-summarization_flow = ParallelFlow(trigger_node)
-# Or use Flow for sequential summarization
-# summarization_flow = Flow(trigger_node)
+{% endtab %}
 
+{% tab title="TypeScript" %}
 
-# --- Example Execution (Conceptual) ---
-# import asyncio
-# async def main():
-#     initial_memory = { "documents": [("doc1", "Content1"), ("doc2", "Content2")] }
-#     await summarization_flow.run(initial_memory)
-#     # Results are in initial_memory["summaries"]
-# asyncio.run(main())
+```typescript
+// Before (PocketFlow) - Conceptual BatchNode
+class TranslateTextBatchNode extends BatchNode<any, any, any, [string, string], string> {
+  async prep(shared: Record<string, any>): Promise<[string, string][]> {
+    const text = shared['text'] ?? '(No text provided)'
+    const languages = shared['languages'] ?? ['Chinese', 'Spanish', 'Japanese']
+    return languages.map((lang: string) => [text, lang])
+  }
 
+  async exec(item: [string, string]): Promise<string> {
+    const [text, lang] = item
+    // Assume translateText exists
+    return await translateText(text, lang)
+  }
+
+  async post(shared: Record<string, any>, prepRes: any, execResults: string[]): Promise<string> {
+    shared['translations'] = execResults
+    return 'default'
+  }
+}
+```
+
+```typescript
+// After (BrainyFlow) - Using Flow Patterns with ParallelFlow
+
+import { Memory, Node } from 'brainyflow'
+
+// Define Memory structure (optional but recommended)
+interface TranslationGlobalStore {
+  text?: string
+  languages?: string[]
+  translations?: ({ language: string; translation: string } | null)[]
+}
+interface TranslationLocalStore {
+  text?: string
+  language?: string
+  index?: number
+}
+type TranslationActions = 'translate_one' | 'aggregate_results'
+
+// 1. Trigger Node (Fans out work)
+class TriggerTranslationsNode extends Node<
+  TranslationGlobalStore,
+  TranslationLocalStore,
+  TranslationActions[]
+> {
+  async prep(
+    memory: Memory<TranslationGlobalStore, TranslationLocalStore>,
+  ): Promise<{ text: string; languages: string[] }> {
+    const text = memory.text ?? '(No text provided)'
+    const languages = memory.languages ?? getLanguages()
+    return { text, languages }
+  }
+
+  // No exec needed for this trigger node
+
+  async post(
+    memory: Memory<TranslationGlobalStore, TranslationLocalStore>,
+    prepRes: { text: string; languages: string[] },
+    execRes: void, // No exec result
+  ): Promise<void> {
+    const { text, languages } = prepRes
+    // Initialize results array in global memory
+    memory.translations = new Array(languages.length).fill(null)
+
+    // Trigger processing for each language
+    languages.forEach((lang, index) => {
+      this.trigger('default', {
+        text: text,
+        language: lang,
+        index: index,
+      })
+    })
+  }
+}
+
+// 2. Processor Node (Handles one language)
+class TranslateOneLanguageNode extends Node<TranslationGlobalStore, TranslationLocalStore> {
+  async prep(
+    memory: Memory<TranslationGlobalStore, TranslationLocalStore>,
+  ): Promise<{ text: string; lang: string; index: number }> {
+    // Read data passed via forkingData from local memory
+    const text = memory.text ?? ''
+    const lang = memory.language ?? 'unknown'
+    const index = memory.index ?? -1
+    return { text, lang, index }
+  }
+
+  async exec(prepRes: {
+    text: string
+    lang: string
+    index: number
+  }): Promise<{ translated: string; index: number; lang: string }> {
+    // Assume translateText exists
+    return await translateText(prepRes.text, prepRes.lang)
+  }
+
+  async post(
+    memory: Memory<TranslationGlobalStore, TranslationLocalStore>,
+    prepRes: { text: string; lang: string; index: number }, // prepRes is passed through
+    execRes: { translated: string; index: number; lang: string },
+  ): Promise<void> {
+    const { index, lang, translated } = execRes
+    // Store result in the global list at the correct index
+    // Ensure the global array exists and is long enough (important for parallel)
+    if (!memory.translations) memory.translations = []
+    while (memory.translations.length <= index) {
+      memory.translations.push(null)
+    }
+    memory.translations[execRes.index] = execRes
+    this.trigger('default')
+  }
+}
+
+// 3. Flow Setup (Using ParallelFlow for concurrency)
+const triggerNode = new TriggerTranslationsNode()
+const processorNode = new TranslateOneLanguageNode()
+
+triggerNode.next(processorNode)
 ```
 
 _(See the [MapReduce design pattern](../design_pattern/mapreduce.md) for more detailed examples of fan-out/aggregate patterns)._
