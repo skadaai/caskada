@@ -1,6 +1,6 @@
 export const DEFAULT_ACTION = 'default' as const
 
-type SharedStore = Record<string, any>
+export type SharedStore = Record<string, any>
 type Action = string | typeof DEFAULT_ACTION
 type NestedActions<T extends Action[]> = Record<T[number], NestedActions<T>[]>
 
