@@ -49,7 +49,7 @@ jobs:
 
       - name: Publish to npm
         working-directory: typescript
-        run: pnpm publish -r --no-git-checks
+        run: pnpm publish --filter ./ --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
