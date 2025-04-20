@@ -1,4 +1,4 @@
-from brainyflow import Node
+from brainyflow import Node, Memory # Import Memory
 from tools.database import execute_sql, init_db
 
 class InitDatabaseNode(Node):
@@ -8,17 +8,17 @@ class InitDatabaseNode(Node):
         init_db()
         return "Database initialized"
         
-    async def post(self, shared, prep_res, exec_res):
-        shared["db_status"] = exec_res
-        return "default"
+    async def post(self, memory: Memory, prep_res, exec_res): # Use memory and add type hint
+        memory.db_status = exec_res # Use property access
+        self.trigger("default") # Use trigger
 
 class CreateTaskNode(Node):
     """Node for creating a new task"""
     
-    async def prep(self, shared):
+    async def prep(self, memory: Memory): # Use memory and add type hint
         return (
-            shared.get("task_title", ""),
-            shared.get("task_description", "")
+            memory.task_title if hasattr(memory, 'task_title') else "", # Use property access
+            memory.task_description if hasattr(memory, 'task_description') else "" # Use property access
         )
         
     async def exec(self, inputs):
@@ -27,9 +27,9 @@ class CreateTaskNode(Node):
         execute_sql(query, (title, description))
         return "Task created successfully"
         
-    async def post(self, shared, prep_res, exec_res):
-        shared["task_status"] = exec_res
-        return "default"
+    async def post(self, memory: Memory, prep_res, exec_res): # Use memory and add type hint
+        memory.task_status = exec_res # Use property access
+        self.trigger("default") # Use trigger
 
 class ListTasksNode(Node):
     """Node for listing all tasks"""
@@ -38,6 +38,6 @@ class ListTasksNode(Node):
         query = "SELECT * FROM tasks"
         return execute_sql(query)
         
-    async def post(self, shared, prep_res, exec_res):
-        shared["tasks"] = exec_res
-        return "default"
+    async def post(self, memory: Memory, prep_res, exec_res): # Use memory and add type hint
+        memory.tasks = exec_res # Use property access
+        self.trigger("default") # Use trigger

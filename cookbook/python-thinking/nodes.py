@@ -1,40 +1,40 @@
-from brainyflow import Node
+from brainyflow import Node, Memory # Import Memory
 import yaml
 from utils import call_llm
 
 class ChainOfThoughtNode(Node):
-    async def prep(self, shared):
+    async def prep(self, memory: Memory):
         # Gather problem and previous thoughts
-        problem = shared.get("problem", "")
-        thoughts = shared.get("thoughts", [])
-        current_thought_number = shared.get("current_thought_number", 0)
-        # Increment the current thought number in the shared store
-        shared["current_thought_number"] = current_thought_number + 1
-        total_thoughts_estimate = shared.get("total_thoughts_estimate", 5)
-        
+        problem = memory.problem if hasattr(memory, 'problem') else ""
+        thoughts = memory.thoughts if hasattr(memory, 'thoughts') else []
+        current_thought_number = memory.current_thought_number if hasattr(memory, 'current_thought_number') else 0
+        # Increment the current thought number in memory
+        memory.current_thought_number = current_thought_number + 1
+        total_thoughts_estimate = memory.total_thoughts_estimate if hasattr(memory, 'total_thoughts_estimate') else 5
+
         # Format previous thoughts
         thoughts_text = "\n".join([
             f"Thought {t['thought_number']}: {t['content']}" +
             (f" (Revision of Thought {t['revises_thought']})" if t.get('is_revision') and t.get('revises_thought') else "") +
-            (f" (Branch from Thought {t['branch_from_thought']}, Branch ID: {t['branch_id']})" 
+            (f" (Branch from Thought {t['branch_from_thought']}, Branch ID: {t['branch_id']})"
              if t.get('branch_from_thought') else "")
             for t in thoughts
         ])
-        
+
         return {
             "problem": problem,
             "thoughts_text": thoughts_text,
             "thoughts": thoughts,
-            "current_thought_number": current_thought_number + 1, 
+            "current_thought_number": current_thought_number + 1,
             "total_thoughts_estimate": total_thoughts_estimate
         }
-    
+
     async def exec(self, prep_res):
         problem = prep_res["problem"]
         thoughts_text = prep_res["thoughts_text"]
-        current_thought_number = prep_res["current_thought_number"] 
+        current_thought_number = prep_res["current_thought_number"]
         total_thoughts_estimate = prep_res["total_thoughts_estimate"]
-        
+
         # Create the prompt for the LLM
         prompt = f"""
 You are solving a hard problem using Chain of Thought reasoning. Think step-by-step.
@@ -87,30 +87,31 @@ total_thoughts: number
         thought_data["thought_number"] = current_thought_number
         return thought_data
 
-    
-    async def post(self, shared, prep_res, exec_res):
+
+    async def post(self, memory: Memory, prep_res, exec_res):
         # Add the new thought to the list
-        if "thoughts" not in shared:
-            shared["thoughts"] = []
-        
-        shared["thoughts"].append(exec_res)
-        
+        if not hasattr(memory, 'thoughts') or not isinstance(memory.thoughts, list):
+            memory.thoughts = []
+
+        memory.thoughts.append(exec_res)
+
         # Update total_thoughts_estimate if changed
-        if "total_thoughts" in exec_res and exec_res["total_thoughts"] != shared.get("total_thoughts_estimate", 5):
-            shared["total_thoughts_estimate"] = exec_res["total_thoughts"]
-        
+        if "total_thoughts" in exec_res and exec_res["total_thoughts"] != (memory.total_thoughts_estimate if hasattr(memory, 'total_thoughts_estimate') else 5):
+            memory.total_thoughts_estimate = exec_res["total_thoughts"]
+
         # If we're done, extract the solution from the last thought
         if exec_res.get("next_thought_needed", True) == False:
-            shared["solution"] = exec_res["content"]
+            memory.solution = exec_res.get("content", "No solution provided")
             print("\n=== FINAL SOLUTION ===")
-            print(exec_res["content"])
+            print(memory.solution)
             print("======================\n")
-            return "end"
-        
+            self.trigger("end")
+            return
+
         # Otherwise, continue the chain
-        print(f"\n{exec_res['content']}")
+        print(f"\n{exec_res.get('content', 'No content provided')}")
         print(f"Next thought needed: {exec_res.get('next_thought_needed', True)}")
-        print(f"Total thoughts estimate: {shared.get('total_thoughts_estimate', 5)}")
+        print(f"Total thoughts estimate: {memory.total_thoughts_estimate if hasattr(memory, 'total_thoughts_estimate') else 5}")
         print("-" * 50)
-        
-        return "continue"  # Continue the chain
+
+        self.trigger("continue")

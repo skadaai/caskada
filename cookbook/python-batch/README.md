@@ -29,21 +29,20 @@ python main.py
 
 ## How It Works
 
-The implementation uses a `TranslateTextNode` that processes batches of translation requests:
+The implementation now uses a fan-out pattern with three nodes orchestrated by a `Flow` for sequential processing:
 
 ```mermaid
 flowchart LR
-    batch[TranslateTextNode]
+    trigger[TriggerTranslationsNode] -->|process_one| processor[TranslateOneLanguageNode]
+    trigger -->|write_results| writer[WriteTranslationsNode]
+    processor --> writer
 ```
 
-The `TranslateTextNode`:
+1.  **`TriggerTranslationsNode`**: Reads the input text and languages from memory and triggers a `process_one` action for each language, passing the specific text, language, and index to the local memory of the next node. It also triggers the `write_results` action to initiate the final writing step after all processing is triggered.
+2.  **`TranslateOneLanguageNode`**: Receives the specific language and text from its local memory, calls the LLM to perform the translation for that single language, and stores the result in the global memory. It then triggers the default action to proceed.
+3.  **`WriteTranslationsNode`**: Reads all the individual translation results from global memory, creates the output directory if it doesn't exist, and saves each translation to a separate file.
 
-1. Prepares batches for multiple language translations
-2. Executes translations in parallel using the model
-3. Saves the translated content to individual files
-4. Maintains the original markdown structure
-
-This approach demonstrates how BrainyFlow can efficiently process multiple related tasks in parallel.
+This pattern demonstrates how BrainyFlow can process multiple related tasks using standard nodes and flows.
 
 ## Example Output
 

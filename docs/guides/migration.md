@@ -6,9 +6,9 @@ machine-display: false
 
 This guide helps you migrate from older versions of BrainyFlow to the latest version. It covers breaking changes and provides examples for upgrading your code.
 
-## Migrating to v0.3
+## Migrating to v1.0
 
-Version 0.3 includes several major architectural improvements that require code updates:
+Version 1.0 includes several major architectural improvements that require code updates:
 
 ### Key Changes
 
@@ -36,7 +36,7 @@ class MyNode(Node):
 ```
 
 ```python
-# After (v0.3)
+# After (v1.0)
 class MyNode(Node):
     async def prep(self, memory):
         return memory.input_text  # Property access syntax
@@ -65,7 +65,7 @@ class MyNode extends Node {
 ```
 
 ```typescript
-// After (v0.3)
+// After (v1.0)
 class MyNode extends Node {
   async prep(memory: Memory): Promise {
     return memory.input_text // Property access syntax
@@ -98,7 +98,7 @@ async def post(self, shared, prep_res, exec_res):
 ```
 
 ```python
-# After (v0.3)
+# After (v1.0)
 async def post(self, memory, prep_res, exec_res):
     if exec_res > 10:
         memory.status = "high"
@@ -126,7 +126,7 @@ async post(shared: Record, prepRes: any, execRes: number): Promise {
 ```
 
 ```typescript
-// After (v0.3)
+// After (v1.0)
 async post(memory: Memory, prepRes: any, execRes: number): Promise {
   if (execRes > 10) {
     memory.status = "high";
@@ -150,7 +150,7 @@ async post(memory: Memory, prepRes: any, execRes: number): Promise {
 # Before (v0.2)
 flow = Flow(start=start_node)
 
-# After (v0.3)
+# After (v1.0)
 # With default options
 flow = Flow(start=start_node)
 
@@ -166,7 +166,7 @@ flow = Flow(start=start_node, options={"max_visits": 10})
 // Before (v0.2)
 const flow = new Flow(startNode)
 
-// After (v0.3)
+// After (v1.0)
 // With default options
 const flow = new Flow(startNode)
 
@@ -179,12 +179,12 @@ const flow = new Flow(startNode, { maxVisits: 10 })
 
 ### Removal of `params` and `setParams`
 
-In v0.3, `setParams` has been removed in favor of direct property access through the streamlined memory management.
+In v1.0, `setParams` has been removed in favor of direct property access through the streamlined memory management.
 Replace `params` with **local memory** and remove `setParams` from the code.
 
 ### Batch Processing Changes (`*BatchNode` and `*BatchFlow` Removal)
 
-In v0.3, dedicated batch processing classes like `BatchNode`, `ParallelBatchNode`, `BatchFlow`, and `ParallelBatchFlow` have been **removed** from the core library.
+In v1.0, dedicated batch processing classes like `BatchNode`, `ParallelBatchNode`, `BatchFlow`, and `ParallelBatchFlow` have been **removed** from the core library.
 
 The core concept of batching (processing multiple items, often in parallel) is now achieved using a more fundamental pattern built on standard `Node`s and `Flow`s:
 
@@ -213,103 +213,65 @@ Let's adapt the `TranslateTextNode` example provided earlier. Before, it might h
 
 ```python
 # Before (v0.2) - Conceptual BatchNode
-# class TranslateTextBatchNode(BatchNode):
-#     async def prep(self, shared):
-#         text = shared.get("text", "(No text provided)")
-#         languages = shared.get("languages", ["Chinese", "Spanish", "Japanese"])
-#         # BatchNode prep would return items for exec_one
-#         return [(text, lang) for lang in languages]
-#
-#     async def exec_one(self, item):
-#         text, lang = item
-#         # Assume translate_text exists
-#         return await translate_text(text, lang)
-#
-#     async def post(self, shared, prep_res, exec_results):
-#         # BatchNode post might aggregate results
-#         shared["translations"] = exec_results
-#         return "default"
+class TranslateTextBatchNode(BatchNode):
+    async def prep(self, shared):
+        text = shared.get("text", "(No text provided)")
+        languages = shared.get("languages", ["Chinese", "Spanish", "Japanese"])
+        # BatchNode prep would return items for exec
+        return [(text, lang) for lang in languages]
+
+    async def exec(self, item):
+        text, lang = item
+        # Assume translate_text exists
+        return await translate_text(text, lang)
+
+    async def post(self, shared, prep_res, exec_results):
+        # BatchNode post might aggregate results
+        shared["translations"] = exec_results
+        return "default"
 ```
 
 ```python
-# After (v0.3) - Using Flow Patterns with ParallelFlow
+# After (v1.0) - Using Flow Patterns with ParallelFlow
 
-from brainyflow import Node, ParallelFlow, Memory
-import asyncio # For example
-
-# Assume get_languages exists or is defined
-def get_languages() -> list[str]:
-    return ["Chinese", "Spanish", "Japanese", "German", "Russian", "Portuguese", "French", "Korean"]
+from brainyflow import Node, Memory
 
 # 1. Trigger Node (Fans out work)
 class TriggerTranslationsNode(Node):
     async def prep(self, memory: Memory):
-        text = memory.get("text", "(No text provided)")
-        languages = memory.get("languages", get_languages())
-        return {"text": text, "languages": languages}
+        text = memory.text if hasattr(memory, 'text') else "(No text provided)"
+        languages = memory.languages if hasattr(memory, 'languages') else ["Chinese", "Spanish", "Japanese"]
+
+        return [{"text": text, "language": lang} for lang in languages]
 
     async def post(self, memory: Memory, prep_res, exec_res):
-        text = prep_res["text"]
-        languages = prep_res["languages"]
-        # Initialize results list in global memory
-        memory.translations = [None] * len(languages)
-
-        # Trigger processing for each language
-        for index, lang in enumerate(languages):
-            self.trigger("translate_one", {
-                "text_to_translate": text,
-                "language": lang,
-                "result_index": index
-            })
-
-        # Optional: Trigger an aggregation step if needed after all parallel tasks
-        # self.trigger("aggregate_results")
+        for index, input in enumerate(prep_res):
+            this.trigger("default", input | {"index": index})
 
 # 2. Processor Node (Handles one language)
 class TranslateOneLanguageNode(Node):
     async def prep(self, memory: Memory):
         # Read data passed via forkingData from local memory
         return {
-            "text": memory.text_to_translate,
-            "lang": memory.language,
-            "index": memory.result_index
+            "text": memory.text,
+            "language": memory.language,
+            "index": memory.index
         }
 
-    async def exec(self, prep_res):
-        text = prep_res["text"]
-        lang = prep_res["lang"]
-        # --- Call external translation API ---
-        # translated_text = await call_translation_api(text, lang)
-        translated_text = f"'{text}' translated to {lang}" # Placeholder
-        # -------------------------------------
-        return {"translated": translated_text, "index": prep_res["index"], "lang": lang}
+    async def exec(self, item):
+        # Assume translate_text exists
+        return await translate_text(item.text, item.language)
 
     async def post(self, memory: Memory, prep_res, exec_res):
-        index = exec_res["index"]
-        lang = exec_res["lang"]
-        result = exec_res["translated"]
         # Store result in the global list at the correct index
-        memory.translations[index] = {"language": lang, "translation": result}
-        # No trigger needed here, this branch ends.
+        memory.translations[exec_res["index"]] = exec_res
+        this.trigger("default")
 
-
-# 3. Flow Setup (Using ParallelFlow for concurrency)
+# 3. Flow Setup
 trigger_node = TriggerTranslationsNode()
 processor_node = TranslateOneLanguageNode()
 
-trigger_node.on("translate_one", processor_node)
-# trigger_node.on("aggregate_results", aggregation_node) # If aggregation is needed
-
-# Use ParallelFlow to run translations concurrently
-translation_flow = ParallelFlow(trigger_node)
-
-# --- Example Execution (Conceptual) ---
-# import asyncio
-# async def main():
-#     memory_store = {"text": "Hello World"}
-#     await translation_flow.run(memory_store)
-#     # Results are in memory_store["translations"]
-# asyncio.run(main())
+trigger_node >> processor_node
 ```
 
 {% endtab %}
@@ -318,33 +280,30 @@ translation_flow = ParallelFlow(trigger_node)
 
 ```typescript
 // Before (v0.2) - Conceptual BatchNode
-// class TranslateTextBatchNode extends BatchNode<any, any, any, [string, string], string> {
-//   async prep(shared: Record<string, any>): Promise<[string, string][]> {
-//     const text = shared['text'] ?? '(No text provided)';
-//     const languages = shared['languages'] ?? ['Chinese', 'Spanish', 'Japanese'];
-//     return languages.map((lang: string) => [text, lang]);
-//   }
-//
-//   async execOne(item: [string, string]): Promise<string> {
-//     const [text, lang] = item;
-//     // Assume translateText exists
-//     return await translateText(text, lang);
-//   }
-//
-//   async post(shared: Record<string, any>, prepRes: any, execResults: string[]): Promise<string> {
-//     shared['translations'] = execResults;
-//     return 'default';
-//   }
-// }
+class TranslateTextBatchNode extends BatchNode<any, any, any, [string, string], string> {
+  async prep(shared: Record<string, any>): Promise<[string, string][]> {
+    const text = shared['text'] ?? '(No text provided)'
+    const languages = shared['languages'] ?? ['Chinese', 'Spanish', 'Japanese']
+    return languages.map((lang: string) => [text, lang])
+  }
+
+  async exec(item: [string, string]): Promise<string> {
+    const [text, lang] = item
+    // Assume translateText exists
+    return await translateText(text, lang)
+  }
+
+  async post(shared: Record<string, any>, prepRes: any, execResults: string[]): Promise<string> {
+    shared['translations'] = execResults
+    return 'default'
+  }
+}
 ```
 
 ```typescript
-// After (v0.3) - Using Flow Patterns with ParallelFlow
+// After (v1.0) - Using Flow Patterns with ParallelFlow
 
-import { Memory, Node, ParallelFlow } from 'brainyflow'
-
-// Assume getLanguages exists or is defined
-declare function getLanguages(): string[]
+import { Memory, Node } from 'brainyflow'
 
 // Define Memory structure (optional but recommended)
 interface TranslationGlobalStore {
@@ -353,11 +312,11 @@ interface TranslationGlobalStore {
   translations?: ({ language: string; translation: string } | null)[]
 }
 interface TranslationLocalStore {
-  text_to_translate?: string
+  text?: string
   language?: string
-  result_index?: number
+  index?: number
 }
-type TranslationActions = 'translate_one' | 'aggregate_results' // Add aggregate if needed
+type TranslationActions = 'translate_one' | 'aggregate_results'
 
 // 1. Trigger Node (Fans out work)
 class TriggerTranslationsNode extends Node<
@@ -386,15 +345,12 @@ class TriggerTranslationsNode extends Node<
 
     // Trigger processing for each language
     languages.forEach((lang, index) => {
-      this.trigger('translate_one', {
-        text_to_translate: text,
+      this.trigger('default', {
+        text: text,
         language: lang,
-        result_index: index,
+        index: index,
       })
     })
-
-    // Optional: Trigger an aggregation step if needed after all parallel tasks
-    // this.trigger("aggregate_results");
   }
 }
 
@@ -404,39 +360,35 @@ class TranslateOneLanguageNode extends Node<TranslationGlobalStore, TranslationL
     memory: Memory<TranslationGlobalStore, TranslationLocalStore>,
   ): Promise<{ text: string; lang: string; index: number }> {
     // Read data passed via forkingData from local memory
-    const text = memory.text_to_translate ?? ''
+    const text = memory.text ?? ''
     const lang = memory.language ?? 'unknown'
-    const index = memory.result_index ?? -1
-    return { text, lang, index }
+    const index = memory.index ?? -1
+    return { text, language, index }
   }
 
   async exec(prepRes: {
     text: string
-    lang: string
+    language: string
     index: number
-  }): Promise<{ translated: string; index: number; lang: string }> {
-    const { text, lang, index } = prepRes
-    // --- Call external translation API ---
-    // const translated_text = await callTranslationApi(text, lang);
-    const translated_text = `'${text}' translated to ${lang}` // Placeholder
-    // -------------------------------------
-    return { translated: translated_text, index, lang }
+  }): Promise<{ translated: string; index: number; language: string }> {
+    // Assume translateText exists
+    return await translateText(prepRes.text, prepRes.language)
   }
 
   async post(
     memory: Memory<TranslationGlobalStore, TranslationLocalStore>,
-    prepRes: { text: string; lang: string; index: number }, // prepRes is passed through
-    execRes: { translated: string; index: number; lang: string },
+    prepRes: { text: string; language: string; index: number }, // prepRes is passed through
+    execRes: { translated: string; index: number; language: string },
   ): Promise<void> {
-    const { index, lang, translated } = execRes
+    const { index, language, translated } = execRes
     // Store result in the global list at the correct index
     // Ensure the global array exists and is long enough (important for parallel)
     if (!memory.translations) memory.translations = []
     while (memory.translations.length <= index) {
       memory.translations.push(null)
     }
-    memory.translations[index] = { language: lang, translation: translated }
-    // No trigger needed here, this branch ends.
+    memory.translations[execRes.index] = execRes
+    this.trigger('default')
   }
 }
 
@@ -444,19 +396,7 @@ class TranslateOneLanguageNode extends Node<TranslationGlobalStore, TranslationL
 const triggerNode = new TriggerTranslationsNode()
 const processorNode = new TranslateOneLanguageNode()
 
-triggerNode.on('translate_one', processorNode)
-// triggerNode.on("aggregate_results", aggregationNode); // If aggregation is needed
-
-// Use ParallelFlow to run translations concurrently
-const translationFlow = new ParallelFlow<TranslationGlobalStore>(triggerNode)
-
-// --- Example Execution (Conceptual) ---
-// async function main() {
-//   const memoryStore: TranslationGlobalStore = { text: 'Hello World' };
-//   await translationFlow.run(memoryStore);
-//   // Results are in memoryStore.translations
-// }
-// main().catch(console.error);
+triggerNode.next(processorNode)
 ```
 
 {% endtab %}

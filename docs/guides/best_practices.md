@@ -31,7 +31,7 @@ A well-organized project structure enhances maintainability and collaboration:
 {% tabs %}
 {% tab title="Python (simple)" %}
 
-```
+```haskell
 my_simple_project/
 ├── main.py
 ├── nodes.py
@@ -49,7 +49,7 @@ my_simple_project/
 
 {% tab title="Python (complex)" %}
 
-```
+```haskell
 my_complex_project/
 ├── main.py                # Entry point
 ├── nodes/                 # Node implementations
@@ -80,7 +80,7 @@ my_complex_project/
 
 {% tab title="TypeScript (simple)" %}
 
-```
+```haskell
 my_project/
 ├── src/
 │   ├── main.ts
@@ -98,7 +98,7 @@ my_project/
 
 {% tab title="TypeScript (complex)" %}
 
-```
+```haskell
 my_complex_project/
 ├── src/                      # Source code
 │   ├── index.ts              # Entry point

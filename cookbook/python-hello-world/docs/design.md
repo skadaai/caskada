@@ -24,7 +24,7 @@ flowchart TD
 
 ## Data Structure
 
-The shared memory structure will be organized as follows:
+The global memory structure will be organized as follows:
 
 ```python
 shared = {
@@ -39,8 +39,9 @@ shared = {
 - **Purpose**: What the node does
 - **Design**: Regular Node (no Batch)
 - **Data Access**:
-  - Read: "key" from shared store
-  - Write: "key" to shared store
+  - Read: `memory.key` from global memory
+  - Write: `memory.key = value` to global memory
+- **Flow Control**: Uses `self.trigger("action_name")` to transition to the next node.
 
 ### 2. Second Node
 

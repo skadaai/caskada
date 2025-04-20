@@ -1,20 +1,22 @@
 # Parallel Image Processor
 
-Demonstrates how ParallelBatchFlow processes multiple images with multiple filters >8x faster than sequential processing.
+Demonstrates how using a ParallelFlow with a Trigger Node processes multiple images with multiple filters >8x faster than a sequential Flow.
 
 ## Features
 
 ```mermaid
 graph TD
-    subgraph ParallelBatchFlow[Image Processing Flow]
-        subgraph Flow[Per Image-Filter Flow]
-            A[Load Image] --> B[Apply Filter]
-            B --> C[Save Image]
+    A[Trigger Image Processing] --> B(ParallelFlow)
+    subgraph B [Parallel Image Processing Flow]
+        subgraph C [Per Image-Filter Flow]
+            D[Load Image] --> E[Apply Filter]
+            E --> F[Save Image]
         end
     end
+    B --> G[Aggregation (Optional)]
 ```
 
-- Processes images with multiple filters in parallel
+- Processes images with multiple filters in parallel using a Trigger Node and ParallelFlow
 - Applies three different filters (grayscale, blur, sepia)
 - Shows significant speed improvement over sequential processing
 - Manages system resources with semaphores
@@ -36,17 +38,17 @@ Found 3 images:
 - images/cat.jpg
 - images/dog.jpg
 
-Running sequential batch flow...
+Running sequential flow...
 Processing 3 images with 3 filters...
 Total combinations: 9
-Loading image: images/bird.jpg
-Applying grayscale filter...
+Trigger: Triggering summary for 9 files.
+Processor: Summarizing images/bird.jpg (Index 0)...
 Saved: output/bird_grayscale.jpg
 ...etc
 
 Timing Results:
-Sequential batch processing: 13.76 seconds
-Parallel batch processing: 1.71 seconds
+Sequential processing: 13.76 seconds
+Parallel processing: 1.71 seconds
 Speedup: 8.04x
 
 Processing complete! Check the output/ directory for results.
@@ -54,9 +56,9 @@ Processing complete! Check the output/ directory for results.
 
 ## Key Points
 
-- **Sequential**: Total time = sum of all item times
+- **Sequential Flow**: Total time = sum of all item times
 
   - Good for: Rate-limited APIs, maintaining order
 
-- **Parallel**: Total time ≈ longest single item time
+- **Parallel Flow**: Total time ≈ longest single item time
   - Good for: I/O-bound tasks, independent operations
