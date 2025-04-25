@@ -1,3 +1,7 @@
+---
+machine-display: false
+---
+
 # RAG (Retrieval Augmented Generation)
 
 For certain LLM tasks like answering questions, providing relevant context is essential. One common architecture is a **two-stage** RAG pipeline:

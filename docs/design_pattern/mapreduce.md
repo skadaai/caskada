@@ -1,3 +1,7 @@
+---
+machine-display: false
+---
+
 # Map Reduce
 
 MapReduce is a design pattern suitable when you need to process multiple pieces of data (e.g., files, records) independently and then combine the results.

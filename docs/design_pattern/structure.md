@@ -1,3 +1,7 @@
+---
+machine-display: false
+---
+
 # Structured Output
 
 In many use cases, you may want the LLM to output a specific structure, such as a list or a dictionary with predefined keys.
