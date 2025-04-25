@@ -1,3 +1,7 @@
+---
+machine-display: false
+---
+
 # Rate Limiting and Throttling
 
 Effective rate limiting is crucial when working with external APIs and services. This guide covers patterns for implementing throttling in BrainyFlow applications.

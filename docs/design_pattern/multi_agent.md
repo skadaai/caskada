@@ -1,3 +1,7 @@
+---
+machine-display: false
+---
+
 # Multi-Agent Systems Pattern
 
 The multi-agent pattern enables complex behaviors by coordinating multiple specialized agents. Each agent focuses on a specific capability while communicating through shared memory and queues.

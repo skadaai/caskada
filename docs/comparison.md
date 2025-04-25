@@ -1,3 +1,7 @@
+---
+machine-display: false
+---
+
 # Framework Comparison: BrainyFlow vs Alternatives
 
 BrainyFlow exists in an ecosystem of frameworks designed to build AI applications, particularly those centered around Large Language Models (LLMs). This chapter provides a comparative analysis of BrainyFlow against other popular frameworks in the AI orchestration space, highlighting the unique design principles and trade-offs that differentiate BrainyFlow from its alternatives.
