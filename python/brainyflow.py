@@ -8,7 +8,10 @@ from typing import Any, Dict, List, Optional, Tuple, TypeVar, Generic, Callable,
 
 DEFAULT_ACTION = 'default'
 
-class Memory:
+G = TypeVar('G', bound=Dict[str, Any])
+L = TypeVar('L', bound=Dict[str, Any])
+
+class Memory(Generic[G, L]):
     """
     Memory class for managing global and local state.
     
@@ -16,31 +19,31 @@ class Memory:
     - Global store: Shared across the entire flow
     - Local store: Specific to a particular execution path
     """
-    
-    def __init__(self, _global, _local=None):
+
+    def __init__(self, _global: G, _local: Optional[L] = None):
         """Initialize a Memory instance with global and optional local stores."""
         # Directly set attributes in __dict__ to avoid __setattr__
         object.__setattr__(self, '_global', _global)
-        object.__setattr__(self, '_local', _local or {})
-    
-    def __getattr__(self, name):
+        object.__setattr__(self, '_local', _local if _local is not None else cast(L, {}))
+
+    def __getattr__(self, name: str) -> Any:
         """Access properties, checking local store first, then global."""
         if name in self._local:
             return self._local[name]
         if name in self._global:
             return self._global[name]
-        raise AttributeError(f"'Memory' object has no attribute {name!r}")    
-        
-    def __setattr__(self, name, value):
+        raise AttributeError(f"'Memory' object has no attribute {name!r}")
+
+    def __setattr__(self, name: str, value: Any):
         """Write properties, handling reserved names and local/global interaction."""
         # Reserved property handling
-        if name in ['global', 'local', '_global', '_local']:
+        if name in ['global', 'local', '_global', '_local', 'clone', 'create']:
             raise ValueError(f"Reserved property '{name}' cannot be set")
             
         # Remove from local if exists, then set in global
-        if hasattr(self, '_local') and name in self._local:
+        if name in self._local:
             del self._local[name]
-            
+
         # Set in global store
         self._global[name] = value
     
@@ -64,21 +67,21 @@ class Memory:
         return key in self._local or key in self._global
     
     @property
-    def local(self):
+    def local(self) -> L:
         """Access the local store directly."""
         return self._local
-    
-    def clone(self, forking_data=None):
+
+    def clone(self, forking_data: Optional[Dict[str, Any]] = None) -> 'Memory[G, L]':
         """Create a new Memory with shared global store but deep-copied local store."""
         forking_data = forking_data or {}
-        new_local = copy.deepcopy(self._local)
-        new_local.update(copy.deepcopy(forking_data))
-        return Memory.create(self._global, new_local)
-    
+        new_local_store = copy.deepcopy(self._local)
+        new_local_store.update(copy.deepcopy(forking_data))
+        return Memory.create(self._global, cast(L, new_local_store))
+
     @staticmethod
-    def create(global_store, local_store=None):
+    def create(global_store: G, local_store: Optional[L] = None) -> 'Memory[G, L]':
         """Factory method to create a Memory instance."""
-        return Memory(global_store, local_store)
+        return Memory(global_store, local_store if local_store is not None else cast(L, {}))
 
 
 class NodeError(Exception):
@@ -277,7 +280,6 @@ class Flow(BaseNode):
         self.visit_counts = {}
     
     async def exec(self, prep_res):
-        """This method should never be called in a Flow."""
         raise RuntimeError("This method should never be called in a Flow")
     
     async def exec_runner(self, memory, prep_res):
@@ -341,7 +343,6 @@ class Flow(BaseNode):
 class ParallelFlow(Flow):
     """
     Orchestrates execution of a graph of nodes with parallel branching.
-    
     Overrides run_tasks to execute tasks concurrently using asyncio.gather.
     """
     
