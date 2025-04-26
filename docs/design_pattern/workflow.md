@@ -1,7 +1,3 @@
----
-machine-display: false
----
-
 # Workflow
 
 Many real-world tasks are too complex for one LLM call. The solution is **Task Decomposition**: decompose them into a [chain](../core_abstraction/flow.md) of multiple Nodes.

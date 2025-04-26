@@ -1,3 +1,7 @@
+---
+machine-display: false
+---
+
 # Agent
 
 Agent is a powerful design pattern in which nodes can take dynamic actions based on the context.
