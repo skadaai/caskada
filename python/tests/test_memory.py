@@ -1,9 +1,6 @@
 import pytest
 from brainyflow import Memory
 
-# All tests in this module are async
-pytestmark = pytest.mark.asyncio
-
 class TestMemory:
     """Tests for the Memory class."""
 
@@ -91,7 +88,7 @@ class TestMemory:
             """Should throw error when attempting to set reserved properties."""
             with pytest.raises(Exception, match="Reserved property 'global' cannot be set"):
                 # Use the exact reserved name 'global'
-                setattr(memory, 'global', {}) 
+                setattr(memory, 'global', {})
             with pytest.raises(Exception, match="Reserved property 'local' cannot be set"):
                 # Use the exact reserved name 'local'
                 setattr(memory, 'local', {})
@@ -107,13 +104,13 @@ class TestMemory:
         def memory_setup(self):
             """Create a memory instance and data for cloning tests."""
             self.global_store = {
-                "g1": "global1", 
-                "common": "global_common", 
+                "g1": "global1",
+                "common": "global_common",
                 "nested_g": {"val": 1}
             }
             self.local_store = {
-                "l1": "local1", 
-                "common": "local_common", 
+                "l1": "local1",
+                "common": "local_common",
                 "nested_l": {"val": 2}
             }
             self.memory = Memory.create(self.global_store, self.local_store)

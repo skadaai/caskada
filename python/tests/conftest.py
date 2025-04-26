@@ -21,7 +21,7 @@ async def async_sleep(seconds: float):
     await asyncio.sleep(seconds)
 
 # --- Common Test Node Implementations ---
-class TestNode(Node):
+class BaseTestNode(Node):
     """Basic node implementation for testing node lifecycle."""
     
     def __init__(self, id_str="test"):
@@ -50,7 +50,7 @@ class TestNode(Node):
         await self.post_mock(memory, prep_res, exec_res)
         # Default trigger is implicit
 
-class BranchingNode(TestNode):
+class BranchingNode(BaseTestNode):
     """Node that triggers a specific action with optional forking data."""
     
     def __init__(self, id_str="branch"):
