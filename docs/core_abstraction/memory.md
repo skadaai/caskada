@@ -77,12 +77,23 @@ async post(memory: Memory<MyGlobal, MyLocal>, /*...*/) {
 {% tabs %}
 {% tab title="Python" %}
 
+Note that you can set types to the memory, like in TypeScript!
+That is optional, but helps you keep your code organized.
+
 ```python
 from brainyflow import Node, Memory
+from typing import Dict, Any, List
+
+class GlobalStore(Dict[str, Any]):
+    fileList: List[str]
+
+class DataWriterLocalStore(Dict[str, Any]):
+    processedCount: int
+    file: str
 
 # Assume exec returns a dict like {"files": [...], "count": ...}
-class DataWriterNode(Node):
-    async def post(self, memory: Memory, prep_res, exec_res: dict):
+class DataWriterNode(Node[GlobalStore, DataWriterLocalStore]):
+    async def post(self, memory, prep_res, exec_res):
         # --- Writing to Global Store ---
         # Accessible to all nodes in the flow and outside
         memory.fileList = exec_res["files"]
