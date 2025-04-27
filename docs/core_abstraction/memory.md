@@ -82,18 +82,18 @@ That is optional, but helps you keep your code organized.
 
 ```python
 from brainyflow import Node, Memory
-from typing import Dict, Any, List
+from typing import TypedDict, Any, List
 
-class GlobalStore(Dict[str, Any]):
+class GlobalStore(TypedDict, total=False):
     fileList: List[str]
 
-class DataWriterLocalStore(Dict[str, Any]):
+class DataWriterLocalStore(TypedDict, total=False):
     processedCount: int
     file: str
 
 # Assume exec returns a dict like {"files": [...], "count": ...}
 class DataWriterNode(Node[GlobalStore, DataWriterLocalStore]):
-    async def post(self, memory, prep_res, exec_res):
+    async def post(self, memory, prep_res, exec_res) -> None:
         # --- Writing to Global Store ---
         # Accessible to all nodes in the flow and outside
         memory.fileList = exec_res["files"]

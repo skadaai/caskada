@@ -136,15 +136,15 @@ Example:
 from typing import TypedDict, List, Dict, Any
 
 # Define TypedDicts for structure (optional but good practice)
-class InputStore(TypedDict):
+class InputStore(TypedDict, total=False):
     document_path: str
 
-class ProcessingStore(TypedDict):
+class ProcessingStore(TypedDict, total=False):
     document_text: str
     entities: Dict[str, List[Any]] # e.g., {"parties": [], "dates": [], "amounts": []}
     validation_status: str
 
-class OutputStore(TypedDict):
+class OutputStore(TypedDict, total=False):
     summary: str
     storage_id: str
 

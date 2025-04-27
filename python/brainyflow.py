@@ -2,7 +2,7 @@ import asyncio
 import copy
 import warnings
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional, Tuple, TypeVar, Generic, Callable, Union, Type, cast, TypedDict, Literal, overload, Awaitable, Sequence
+from typing import Any, Dict, List, Optional, Tuple, TypeVar, Generic, Callable, Union, cast, TypedDict, Literal, overload, Awaitable, Sequence
 
 DEFAULT_ACTION = 'default'
 
@@ -176,7 +176,7 @@ class BaseNode(Generic[G, L, ActionT, PrepResultT, ExecResultT], ABC):
         """Get successor nodes for a specific action."""
         next_nodes = self.successors.get(action, [])
         if not next_nodes and action != DEFAULT_ACTION and self.successors:
-            warnings.warn(f"Flow ends: '{action}' not found in {list(self.successors.keys())}")
+            warnings.warn(f"Flow ends: '{action}' not found in {list(self.successors.keys())}", stacklevel=2)
         return next_nodes
     
     async def prep(self, memory: Memory[G, L]) -> PrepResultT:
@@ -191,7 +191,7 @@ class BaseNode(Generic[G, L, ActionT, PrepResultT, ExecResultT], ABC):
         """Post-processing phase - override in subclasses."""
         pass
     
-    def trigger(self, action: ActionT, forking_data: Optional[L] = None) -> None:
+    def trigger(self, action: ActionT, forking_data: Optional[SharedStore] = None) -> None:
         """Trigger a successor action with optional forking data."""
         if self._locked:
             raise RuntimeError("An action can only be triggered inside post()")
@@ -222,7 +222,7 @@ class BaseNode(Generic[G, L, ActionT, PrepResultT, ExecResultT], ABC):
     async def run(self, memory: Union[Memory[G, L], G], propagate: bool = False) -> Union[List[Tuple[Action, Memory[G, L]]], ExecResultT]:
         """Run the node's full lifecycle."""
         if self.successors:
-            warnings.warn("Node won't run successors. Use Flow!")
+            warnings.warn("Node won't run successors. Use Flow!", stacklevel=2)
         
         if not isinstance(memory, Memory):
             memory = Memory.create(memory)
@@ -244,9 +244,9 @@ class Node(BaseNode[G, L, ActionT, PrepResultT, ExecResultT]):
     Standard node implementation with retry capabilities.
     
     Attributes:
-    max_retries: Maximum number of execution attempts
-    wait: Seconds to wait between retry attempts
-    cur_retry: Current retry attempt (0-indexed)
+        max_retries: Maximum number of execution attempts
+        wait: Seconds to wait between retry attempts
+        cur_retry: Current retry attempt (0-indexed)
     """
     
     def __init__(self, max_retries: int = 1, wait: float = 0) -> None:
