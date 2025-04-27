@@ -274,7 +274,7 @@ class Node(BaseNode[G, L, ActionT, PrepResultT, ExecResultT]):
                 
                 # Last attempt failed, add retry info and use fallback
                 wrapped = NodeError(str(error))
-                wrapped.retry_count = attempt
+                wrapped.retry_count = attempt + 1
                 return await self.exec_fallback(prep_res, wrapped)
         raise RuntimeError("Unreachable: exec_runner should have returned or raised in the loop")
 
