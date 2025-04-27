@@ -1,5 +1,5 @@
 import pytest
-from brainyflow import Node, Memory, DEFAULT_ACTION
+from brainyflow import Node
 
 class TestNodeCloneDeepCopying:
     """Tests that verify mutable attributes are properly deep-copied during node cloning."""
@@ -78,7 +78,17 @@ class TestNodeCloneDeepCopying:
         assert 3 not in cloned_node.nested["list"]
         assert "y" not in cloned_node.nested["dict"]
         assert cloned_node.nested["complex"][0]["a"] == 1
-    
+
+        # Modify nested structures in clone
+        cloned_node.nested["list"].append(4)
+        cloned_node.nested["dict"]["z"] = 3
+        cloned_node.nested["complex"][1]["b"] = 200
+
+        # Verify changes do NOT affect original
+        assert 4 not in original_node.nested["list"]
+        assert "z" not in original_node.nested["dict"]
+        assert original_node.nested["complex"][1]["b"] == 2
+
     def test_internal_triggers_list_independence(self):
         """Test that internal _triggers list is independent after cloning."""
         # Create custom node that will use _triggers

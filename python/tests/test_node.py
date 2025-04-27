@@ -445,11 +445,11 @@ class TestBaseNodeAndNode:
             node = ErrorNode(max_retries=2, succeed_after=10)  # Will never succeed naturally
             
             # Mock fallback to return a specific value
-        async def mock_fallback(prep_res, error):
-            assert hasattr(error, "retry_count")
-            assert error.retry_count == node.max_retries
-            return "fallback_called"
-            
+            async def mock_fallback(prep_res, error):
+                assert hasattr(error, "retry_count")
+                assert error.retry_count == node.max_retries  # noqa: F821
+                return "fallback_called"
+
             node.exec_fallback = mock_fallback
             
             result = await node.run(Memory.create({}))
