@@ -131,8 +131,8 @@ class BaseNode(Generic[G, L, ActionT, PrepResultT, ExecResultT], ABC):
         # Copy attributes except successors
         for key, value in self.__dict__.items():
             if key != 'successors':
-                setattr(cloned, key, value)
-        
+                # Shallow-copy by default; deep-copy lists/dicts/sets to prevent sharing
+                setattr(cloned, key, copy.deepcopy(value) if isinstance(value, (list, dict, set)) else value)
         # Clone successors with cycle detection
         cloned.successors = {}
         for action, nodes in self.successors.items():
