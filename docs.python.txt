@@ -337,11 +337,11 @@ To create a custom node, extend the `Node` class and implement the lifecycle met
 from brainyflow import Node, Memory
 
 class TextProcessorNode(Node):
-    async def prep(self, memory: Memory):
+    async def prep(self, memory: Memory) -> str:
         # Read input data
         return memory.text
 
-    async def exec(self, text: str):
+    async def exec(self, text: str) -> str:
         # Process the text
         return text.upper()
 
@@ -479,11 +479,11 @@ from brainyflow import Node, Flow, Memory
 # Assuming detect_language, EnglishProcessorNode, SpanishProcessorNode, UnknownProcessorNode are defined elsewhere
 
 class RouterNode(Node):
-    async def prep(self, memory: Memory):
+    async def prep(self, memory: Memory) -> str:
         # Read content from global memory
         return memory.content
 
-    async def exec(self, content: str):
+    async def exec(self, content: str) -> str:
         return await detect_language(content)
 
     async def post(self, memory: Memory, content: str, language: str):
@@ -660,7 +660,7 @@ review - "needs_revision" >> revise   # If needs changes, go to revision
 review - "rejected" >> finish         # If rejected, finish the process
 
 revise >> review   # After revision, go back for another review
-payment >> finish  # After payment, finish the process
+payment >> finish  # After payment, finish the flow
 
 # Create the flow
 expense_flow = Flow(start=review)
@@ -731,6 +731,7 @@ order_pipeline = Flow(start=payment_flow)
 # Run the entire pipeline
 memory = { orderId: 'XYZ789', customerId: 'CUST123' }
 await order_pipeline.run(memory)
+# print('Order pipeline completed. Final state:', memory)
 ```
 
 This creates a clean separation of concerns while maintaining a clear execution path:
@@ -989,12 +990,23 @@ async post(memory: Memory<MyGlobal, MyLocal>, /*...*/) {
 - **Writing to Global Store**: Assigning a value directly to a property on the `memory` object (e.g., `memory.someValue = 'new data'`) writes to the **global store**. The proxy automatically removes the property from the local store first if it exists there.
 - **Writing to Local Store**: While possible via `memory.local.someValue = 'new data'`, the primary and recommended way to populate the local store for downstream nodes is using the `forkingData` argument in `this.trigger()`.
 
+Note that you can set types to the memory, like in TypeScript!
+That is optional, but helps you keep your code organized.
+
 ```python
 from brainyflow import Node, Memory
+from typing import TypedDict, Any, List
+
+class GlobalStore(TypedDict, total=False):
+    fileList: List[str]
+
+class DataWriterLocalStore(TypedDict, total=False):
+    processedCount: int
+    file: str
 
 # Assume exec returns a dict like {"files": [...], "count": ...}
-class DataWriterNode(Node):
-    async def post(self, memory: Memory, prep_res, exec_res: dict):
+class DataWriterNode(Node[GlobalStore, DataWriterLocalStore]):
+    async def post(self, memory, prep_res, exec_res) -> None:
         # --- Writing to Global Store ---
         # Accessible to all nodes in the flow and outside
         memory.fileList = exec_res["files"]
@@ -1180,175 +1192,73 @@ By understanding and applying these design patterns, you can build sophisticated
 
 
 ================================================
-File: docs/design_pattern/agent.md
+File: docs/design_pattern/workflow.md
 ================================================
-# Agent
+# Workflow
 
-Agent is a powerful design pattern in which nodes can take dynamic actions based on the context.
+Many real-world tasks are too complex for one LLM call. The solution is **Task Decomposition**: decompose them into a [chain](../core_abstraction/flow.md) of multiple Nodes.
 
 <div align="center">
-  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/agent.png?raw=true" width="350"/>
+  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/workflow.png?raw=true" width="400"/>
 </div>
 
-## Implement Agent with Graph
+{% hint style="success" %}
+You don't want to make each task **too coarse**, because it may be _too complex for one LLM call_.
+You don't want to make each task **too granular**, because then _the LLM call doesn't have enough context_ and results are _not consistent across nodes_.
 
-1. **Context and Action:** Implement nodes that supply context and perform actions.
-2. **Branching:** Use branching to connect each action node to an agent node. Use action to allow the agent to direct the [flow](../core_abstraction/flow.md) between nodes—and potentially loop back for multi-step.
-3. **Agent Node:** Provide a prompt to decide action—for example:
+You usually need multiple _iterations_ to find the _sweet spot_. If the task has too many _edge cases_, consider using [Agents](./agent.md).
+{% endhint %}
 
-````python
-f"""
-### CONTEXT
-Task: {task_description}
-Previous Actions: {previous_actions}
-Current State: {current_state}
+### Example: Article Writing
 
-### ACTION SPACE
-[1] search
-  Description: Use web search to get results
-  Parameters:
-    - query (str): What to search for
-
-[2] answer
-  Description: Conclude based on the results
-  Parameters:
-    - result (str): Final answer to provide
-
-### NEXT ACTION
-Decide the next action based on the current context and available action space.
-Return your response in the following format:
-
-```yaml
-thinking: |
-    <your step-by-step reasoning process>
-action: <action_name>
-parameters:
-    <parameter_name>: <parameter_value>
-```"""
-````
-
-The core of building **high-performance** and **reliable** agents boils down to:
-
-1. **Context Management:** Provide _relevant, minimal context._ For example, rather than including an entire chat history, retrieve the most relevant via [RAG](./rag.md). Even with larger context windows, LLMs still fall victim to ["lost in the middle"](https://arxiv.org/abs/2307.03172), overlooking mid-prompt content.
-
-2. **Action Space:** Provide _a well-structured and unambiguous_ set of actions—avoiding overlap like separate `read_databases` or `read_csvs`. Instead, import CSVs into the database.
-
-## Example Good Action Design
-
-- **Incremental:** Feed content in manageable chunks (500 lines or 1 page) instead of all at once.
-
-- **Overview-zoom-in:** First provide high-level structure (table of contents, summary), then allow drilling into details (raw texts).
-
-- **Parameterized/Programmable:** Instead of fixed actions, enable parameterized (columns to select) or programmable (SQL queries) actions, for example, to read CSV files.
-
-- **Backtracking:** Let the agent undo the last step instead of restarting entirely, preserving progress when encountering errors or dead ends.
-
-## Example: Search Agent
-
-This agent:
-
-1. Decides whether to search or answer
-2. If searches, loops back to decide if more search needed
-3. Answers when enough context gathered
-
-````python
+```python
 import asyncio
-import yaml
 from brainyflow import Node, Flow, Memory
-# Assuming call_llm and search_web are defined elsewhere
+
+# Assume call_llm is defined elsewhere
 # async def call_llm(prompt: str) -> str: ...
-# async def search_web(query: str) -> str: ...
 
-
-class DecideAction(Node):
-    async def prep(self, memory: Memory):
-        context = memory.context if hasattr(memory, 'context') else "No previous search"
-        query = memory.query
-        return query, context
-
-    async def exec(self, inputs):
-        query, context = inputs
-        prompt = f"""
-Given input: {query}
-Previous search results: {context}
-Should I: 1) Search web for more info 2) Answer with current knowledge
-Output in yaml:
-```yaml
-action: search/answer
-reason: why this action
-search_term: search phrase if action is search
-```"""
-        resp = call_llm(prompt)
-        yaml_str = resp.split("```yaml")[1].split("```")[0].strip()
-        result = yaml.safe_load(yaml_str)
-
-        assert isinstance(result, dict)
-        assert "action" in result
-        assert "reason" in result
-        assert result["action"] in ["search", "answer"]
-        if result["action"] == "search":
-            assert "search_term" in result
-
-        return result
-
-    async def post(self, memory: Memory, prep_res, exec_res: dict):
-        if exec_res["action"] == "search":
-            memory.search_term = exec_res["search_term"]
-        self.trigger(exec_res["action"])
-````
-
-```python
-class SearchWeb(Node):
-    async def prep(self, memory: Memory):
-        return memory.search_term
-
-    async def exec(self, search_term):
-        return await search_web(search_term)
-
+class GenerateOutline(Node):
+    async def prep(self, memory: Memory): return memory.topic
+    async def exec(self, topic): return await call_llm(f"Create a detailed outline for an article about {topic}")
     async def post(self, memory: Memory, prep_res, exec_res):
-        prev_searches = memory.context if hasattr(memory, 'context') else []
-        memory.context = prev_searches + [
-            {"term": prep_res, "result": exec_res}
-        ]
-        self.trigger('decide')
-```
+        memory.outline = exec_res
+        self.trigger('default')
 
-```python
-class DirectAnswer(Node):
-    async def prep(self, memory: Memory):
-        return memory.query, memory.context if hasattr(memory, 'context') else ""
-
-    async def exec(self, inputs):
-        query, context = inputs
-        return call_llm(f"Context: {context}\nAnswer: {query}")
-
+class WriteSection(Node):
+    async def prep(self, memory: Memory): return memory.outline
+    async def exec(self, outline): return await call_llm(f"Write content based on this outline: {outline}")
     async def post(self, memory: Memory, prep_res, exec_res):
-       print(f"Answer: {exec_res}")
-       memory.answer = exec_res
-       # No trigger needed if this is the end of the path
-```
+        memory.draft = exec_res
+        self.trigger('default')
 
-```python
+class ReviewAndRefine(Node):
+    async def prep(self, memory: Memory): return memory.draft
+    async def exec(self, draft): return await call_llm(f"Review and improve this draft: {draft}")
+    async def post(self, memory: Memory, prep_res, exec_res):
+        memory.final_article = exec_res
+        # No trigger needed if this is the end of the flow
+
 # Connect nodes
-decide = DecideAction()
-search = SearchWeb()
-answer = DirectAnswer()
+outline = GenerateOutline()
+write = WriteSection()
+review = ReviewAndRefine()
 
-decide - "search" >> search
-decide - "answer" >> answer
-search - "decide" >> decide # Loop back
+outline >> write >> review
 
-flow = Flow(start=decide)
+# Create and run flow
+writing_flow = Flow(start=outline)
 
 async def main():
-    memory_data = {"query": "Who won the Nobel Prize in Physics 2024?"}
-    result = await flow.run(memory_data) # Pass memory object
-    print(result) # Or handle result as needed
-    print(memory_data) # See final memory state
+    memory = {"topic": "AI Safety"}
+    await writing_flow.run(memory) # Pass memory object
+    print("Final Article:", memory.get("final_article", "Not generated")) # Access memory object
 
 if __name__ == "__main__":
     asyncio.run(main())
 ```
+
+For _dynamic cases_, consider using [Agents](./agent.md).
 
 
 
@@ -1638,15 +1548,15 @@ Example:
 from typing import TypedDict, List, Dict, Any
 
 # Define TypedDicts for structure (optional but good practice)
-class InputStore(TypedDict):
+class InputStore(TypedDict, total=False):
     document_path: str
 
-class ProcessingStore(TypedDict):
+class ProcessingStore(TypedDict, total=False):
     document_text: str
     entities: Dict[str, List[Any]] # e.g., {"parties": [], "dates": [], "amounts": []}
     validation_status: str
 
-class OutputStore(TypedDict):
+class OutputStore(TypedDict, total=False):
     summary: str
     storage_id: str
 

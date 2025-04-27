@@ -1276,230 +1276,101 @@ By understanding and applying these design patterns, you can build sophisticated
 
 
 ================================================
-File: docs/design_pattern/agent.md
+File: docs/design_pattern/workflow.md
 ================================================
-# Agent
+# Workflow
 
-Agent is a powerful design pattern in which nodes can take dynamic actions based on the context.
+Many real-world tasks are too complex for one LLM call. The solution is **Task Decomposition**: decompose them into a [chain](../core_abstraction/flow.md) of multiple Nodes.
 
 <div align="center">
-  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/agent.png?raw=true" width="350"/>
+  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/workflow.png?raw=true" width="400"/>
 </div>
 
-## Implement Agent with Graph
+{% hint style="success" %}
+You don't want to make each task **too coarse**, because it may be _too complex for one LLM call_.
+You don't want to make each task **too granular**, because then _the LLM call doesn't have enough context_ and results are _not consistent across nodes_.
 
-1. **Context and Action:** Implement nodes that supply context and perform actions.
-2. **Branching:** Use branching to connect each action node to an agent node. Use action to allow the agent to direct the [flow](../core_abstraction/flow.md) between nodes—and potentially loop back for multi-step.
-3. **Agent Node:** Provide a prompt to decide action—for example:
+You usually need multiple _iterations_ to find the _sweet spot_. If the task has too many _edge cases_, consider using [Agents](./agent.md).
+{% endhint %}
+
+### Example: Article Writing
 
 ```typescript
-;`### CONTEXT
-Task: ${taskDescription}
-Previous Actions: ${previousActions}
-Current State: ${currentState}
-
-### ACTION SPACE
-[1] search
-  Description: Use web search to get results
-  Parameters:
-    - query (string): What to search for
-
-[2] answer
-  Description: Conclude based on the results  
-  Parameters:
-    - result (string): Final answer to provide
-
-### NEXT ACTION
-Decide the next action based on the current context and available action space.
-Return your response in the following format:
-
-\`\`\`yaml
-thinking: |
-    <your step-by-step reasoning process>
-action: <action_name>
-parameters:
-    <parameter_name>: <parameter_value>
-\`\`\``
-```
-
-The core of building **high-performance** and **reliable** agents boils down to:
-
-1. **Context Management:** Provide _relevant, minimal context._ For example, rather than including an entire chat history, retrieve the most relevant via [RAG](./rag.md). Even with larger context windows, LLMs still fall victim to ["lost in the middle"](https://arxiv.org/abs/2307.03172), overlooking mid-prompt content.
-
-2. **Action Space:** Provide _a well-structured and unambiguous_ set of actions—avoiding overlap like separate `read_databases` or `read_csvs`. Instead, import CSVs into the database.
-
-## Example Good Action Design
-
-- **Incremental:** Feed content in manageable chunks (500 lines or 1 page) instead of all at once.
-
-- **Overview-zoom-in:** First provide high-level structure (table of contents, summary), then allow drilling into details (raw texts).
-
-- **Parameterized/Programmable:** Instead of fixed actions, enable parameterized (columns to select) or programmable (SQL queries) actions, for example, to read CSV files.
-
-- **Backtracking:** Let the agent undo the last step instead of restarting entirely, preserving progress when encountering errors or dead ends.
-
-## Example: Search Agent
-
-This agent:
-
-1. Decides whether to search or answer
-2. If searches, loops back to decide if more search needed
-3. Answers when enough context gathered
-
-````typescript
 import { Flow, Memory, Node } from 'brainyflow'
 
-// Assume callLLM and parseYaml are defined elsewhere
+// Assuming callLLM is defined elsewhere
 declare function callLLM(prompt: string): Promise<string>
-declare function parseYaml(text: string): any
 
-class DecideAction extends Node {
-  async prep(memory: Memory): Promise<{ query: string; context: any }> {
-    // Read from memory
-    const context = memory.context ?? 'No previous search'
-    const query = memory.query
-    return { query, context }
-  }
-
-  async exec(prepRes: { query: string; context: any }): Promise<any> {
-    const { query, context } = prepRes
-    const prompt = `
-Given input: ${query}
-Previous search results: ${JSON.stringify(context)}
-Should I: 1) Search web for more info ('search') 2) Answer with current knowledge ('answer')
-Output in yaml:
-\`\`\`yaml
-action: search | answer
-reason: <why this action>
-search_term: <search phrase if action is search>
-\`\`\``
-    const resp = await callLLM(prompt)
-    // Simplified parsing/validation for docs
-    const yamlStr = resp.split(/```(?:yaml)?/)[1]?.trim()
-    if (!yamlStr) {
-      throw new Error('Missing YAML response')
-    }
-
-    const result = parseYaml(yamlStr)
-
-    if (typeof result !== 'object' || !result) {
-      throw new Error('Invalid YAML response')
-    }
-    if (!('action' in result)) {
-      throw new Error('Missing action in response')
-    }
-    if (!('reason' in result)) {
-      throw new Error('Missing reason in response')
-    }
-    if (!['search', 'answer'].includes(result.action)) {
-      throw new Error('Invalid action value')
-    }
-    if (result.action === 'search' && !('search_term' in result)) {
-      throw new Error('Missing search_term for search action')
-    }
-
-    return result
-  }
-
-  async post(memory: Memory, prepRes: any, execRes: any): Promise<void> {
-    // Write search term if needed
-    if (execRes.action === 'search' && execRes.search_term) {
-      memory.search_term = execRes.search_term
-    }
-    // Trigger the decided action
-    this.trigger(execRes.action)
-  }
-}
-````
-
-```typescript
-import { Memory, Node } from 'brainyflow'
-
-declare function searchWeb(query: string): Promise<any> // Assume `searchWeb` is defined elsewhere
-
-class SearchWeb extends Node {
+class GenerateOutline extends Node {
   async prep(memory: Memory): Promise<string> {
-    // Read search term from memory
-    return memory.search_term
+    return memory.topic // Read topic from memory
   }
-
-  async exec(searchTerm: string): Promise<any> {
-    return await searchWeb(searchTerm)
+  async exec(topic: string): Promise<string> {
+    console.log(`Generating outline for: ${topic}`)
+    return await callLLM(`Create a detailed outline for an article about ${topic}`)
   }
-
-  async post(memory: Memory, prepRes: string, execRes: any): Promise<void> {
-    // Add search result to context (simplified)
-    const prevContext = memory.context ?? []
-    memory.context = [...prevContext, { term: prepRes, result: execRes }]
-    // Trigger loop back to decide
-    this.trigger('decide')
+  async post(memory: Memory, prepRes: any, outline: string): Promise<void> {
+    memory.outline = outline // Store outline in memory
+    this.trigger('default')
   }
 }
-```
 
-```typescript
-import { Memory, Node } from 'brainyflow'
-
-declare function callLLM(prompt: string): Promise<string> // Assuming callLLM is defined elsewhere
-
-class DirectAnswer extends Node {
-  async prep(memory: Memory): Promise<{ query: string; context: any }> {
-    // Read query and context
-    return { query: memory.query, context: memory.context ?? 'No context' }
+class WriteSection extends Node {
+  async prep(memory: Memory): Promise<string> {
+    return memory.outline // Read outline from memory
   }
-
-  async exec(prepRes: { query: string; context: any }): Promise<string> {
-    // Generate answer based on context
-    const prompt = `Context: ${JSON.stringify(prepRes.context)}\nAnswer Query: ${prepRes.query}`
-    return await callLLM(prompt)
+  async exec(outline: string): Promise<string> {
+    console.log('Writing draft based on outline...')
+    return await callLLM(`Write content based on this outline: ${outline}`)
   }
-
-  async post(memory: Memory, prepRes: any, execRes: string): Promise<void> {
-    // Store final answer
-    memory.answer = execRes
-    console.log(`Answer: ${execRes}`)
-    // No trigger needed - end of this path
+  async post(memory: Memory, prepRes: any, draft: string): Promise<void> {
+    memory.draft = draft // Store draft in memory
+    this.trigger('default')
   }
 }
-```
 
-```typescript
-import { Flow } from 'brainyflow'
+class ReviewAndRefine extends Node {
+  async prep(memory: Memory): Promise<string> {
+    return memory.draft // Read draft from memory
+  }
+  async exec(draft: string): Promise<string> {
+    console.log('Reviewing and refining draft...')
+    return await callLLM(`Review and improve this draft: ${draft}`)
+  }
+  async post(memory: Memory, draft: any, finalArticle: string): Promise<void> {
+    memory.final_article = finalArticle // Store final article
+    console.log('Final article generated.')
+    // No trigger needed - end of workflow
+  }
+}
 
-// Assuming DecideAction, SearchWeb, DirectAnswer classes are defined
+// --- Flow Definition ---
+const outline = new GenerateOutline()
+const write = new WriteSection()
+const review = new ReviewAndRefine()
 
-// Instantiate nodes
-const decide = new DecideAction()
-const search = new SearchWeb()
-const answer = new DirectAnswer()
-
-// Define transitions
-decide.on('search', search)
-decide.on('answer', answer)
-search.on('decide', decide) // Loop back
+// Connect nodes sequentially using default trigger
+outline.next(write).next(review)
 
 // Create the flow
-const agentFlow = new Flow(decide)
+const writingFlow = new Flow(outline)
 
-// --- Main execution function ---
-async function runAgent() {
-  const initialMemory = { query: 'Who won the Nobel Prize in Physics 2024?' }
-  console.log(`Starting agent flow with query: "${initialMemory.query}"`)
+// --- Execution ---
+async function main() {
+  const data = { topic: 'AI Safety' }
+  console.log(`Starting writing workflow for topic: "${data.topic}"`)
 
-  try {
-    await agentFlow.run(initialMemory) // Run the flow with memory object
-    console.log('\n--- Flow Complete ---')
-    console.log('Final Memory State:', initialMemory) // Log final memory state
-    console.log('\nFinal Answer:', initialMemory.answer ?? 'No answer found')
-  } catch (error) {
-    console.error('\n--- Agent Flow Failed ---', error)
-    console.error('Memory State on Failure:', initialMemory) // Log memory state on failure
-  }
+  await writingFlow.run(data) // Run the flow
+
+  console.log('\n--- Workflow Complete ---')
+  console.log('Final Memory State:', data)
+  console.log(`\nFinal Article:\n${data.final_article ?? 'Not generated'}`)
 }
 
-// Run the main function
-runAgent()
+main().catch(console.error)
 ```
+
+For _dynamic cases_, consider using [Agents](./agent.md).
 
 
 
