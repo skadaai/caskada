@@ -447,9 +447,9 @@ class TestBaseNodeAndNode:
             # Mock fallback to return a specific value
             async def mock_fallback(prep_res, error):
                 assert hasattr(error, "retry_count")
-                assert error.retry_count == 1  # Second attempt (0-indexed)
+                assert error.retry_count == node.max_retries  # noqa: F821
                 return "fallback_called"
-            
+
             node.exec_fallback = mock_fallback
             
             result = await node.run(Memory.create({}))

@@ -1,10 +1,9 @@
 import pytest
 from unittest.mock import Mock, AsyncMock
-import asyncio
 from brainyflow import Memory, Node, Flow, DEFAULT_ACTION
 
 # --- Helper Node Implementations ---
-class TestNode(Node):
+class BaseTestNode(Node):
     """Basic test node with mocked lifecycle methods."""
     
     def __init__(self, id_str):
@@ -31,7 +30,7 @@ class TestNode(Node):
         # Default trigger is implicit
 
 
-class BranchingNode(TestNode):
+class BranchingNode(BaseTestNode):
     """Node that triggers a specific action with optional forking data."""
     
     def __init__(self, id_str):
@@ -65,10 +64,10 @@ class TestFlow:
     def nodes(self):
         """Create test nodes."""
         return {
-            "A": TestNode("A"),
-            "B": TestNode("B"),
-            "C": TestNode("C"),
-            "D": TestNode("D")
+            "A": BaseTestNode("A"),
+            "B": BaseTestNode("B"),
+            "C": BaseTestNode("C"),
+            "D": BaseTestNode("D")
         }
     
     class TestInitialization:
@@ -391,7 +390,7 @@ class TestFlow:
         
         async def test_return_correct_structure_for_multi_trigger(self, nodes, memory):
             """Should return correct structure for multi-trigger (fan-out)."""
-            class MultiTrigger(TestNode):
+            class MultiTrigger(BaseTestNode):
                 async def post(self, memory, prep_res, exec_res):
                     await super().post(memory, prep_res, exec_res)
                     self.trigger("out1")

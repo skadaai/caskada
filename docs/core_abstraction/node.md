@@ -69,11 +69,11 @@ To create a custom node, extend the `Node` class and implement the lifecycle met
 from brainyflow import Node, Memory
 
 class TextProcessorNode(Node):
-    async def prep(self, memory: Memory):
+    async def prep(self, memory: Memory) -> str:
         # Read input data
         return memory.text
 
-    async def exec(self, text: str):
+    async def exec(self, text: str) -> str:
         # Process the text
         return text.upper()
 
@@ -313,11 +313,11 @@ from brainyflow import Node, Flow, Memory
 # Assuming detect_language, EnglishProcessorNode, SpanishProcessorNode, UnknownProcessorNode are defined elsewhere
 
 class RouterNode(Node):
-    async def prep(self, memory: Memory):
+    async def prep(self, memory: Memory) -> str:
         # Read content from global memory
         return memory.content
 
-    async def exec(self, content: str):
+    async def exec(self, content: str) -> str:
         return await detect_language(content)
 
     async def post(self, memory: Memory, content: str, language: str):

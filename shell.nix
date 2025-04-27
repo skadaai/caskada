@@ -24,7 +24,7 @@ in pkgs.mkShell {
       echo "Installing python dependencies"
 
       printf "Creating virtual environment...\n"
-      uv venv --python 3.12 ${venvDir}
+      uv venv --python 3.13 ${venvDir}
       source "${venvDir}/bin/activate"
 
       if [ -f "requirements.txt" ]; then

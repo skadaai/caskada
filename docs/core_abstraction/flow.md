@@ -139,7 +139,7 @@ review - "needs_revision" >> revise   # If needs changes, go to revision
 review - "rejected" >> finish         # If rejected, finish the process
 
 revise >> review   # After revision, go back for another review
-payment >> finish  # After payment, finish the process
+payment >> finish  # After payment, finish the flow
 
 # Create the flow
 expense_flow = Flow(start=review)
@@ -241,6 +241,7 @@ order_pipeline = Flow(start=payment_flow)
 # Run the entire pipeline
 memory = { orderId: 'XYZ789', customerId: 'CUST123' }
 await order_pipeline.run(memory)
+# print('Order pipeline completed. Final state:', memory)
 ```
 
 {% endtab %}
