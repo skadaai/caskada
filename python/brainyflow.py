@@ -272,8 +272,7 @@ class Node(BaseNode[G, L, ActionT, PrepResultT, ExecResultT]):
                         await asyncio.sleep(self.wait)
                     continue
                 
-                # Last attempt failed, add retry info and use fallback
-                wrapped = NodeError(str(error))
+                wrapped = error if isinstance(error, NodeError) else NodeError(str(error)).with_traceback(error.__traceback__)
                 wrapped.retry_count = attempt + 1
                 return await self.exec_fallback(prep_res, wrapped)
         raise RuntimeError("Unreachable: exec_runner should have returned or raised in the loop")
