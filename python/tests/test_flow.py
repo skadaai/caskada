@@ -309,7 +309,10 @@ class TestFlow:
             
             async def subflow_post(mem, prep_res, exec_res):
                 mem.subflow_post = True
-                return None
+                # sub_flow (as a node) implicitly triggers DEFAULT_ACTION if its internal flow completes
+                # without its own post() explicitly calling self.trigger().
+                # This will be picked up by .next(nodes["D"])
+                return None 
             
             sub_flow.prep.side_effect = subflow_prep
             sub_flow.post.side_effect = subflow_post
@@ -327,6 +330,42 @@ class TestFlow:
             
             assert sub_flow.prep.call_count == 1
             assert sub_flow.post.call_count == 1
+
+        async def test_nested_flow_propagates_terminal_action_to_parent_flow(self, memory):
+            """Should propagate a terminal action from a sub-flow to the parent flow."""
+            main_start_node = BaseTestNode("MainStart")
+            sub_node_a = BaseTestNode("SubA")
+            
+            # SubNodeB will trigger "sub_flow_completed"
+            sub_node_b = BranchingNode("SubB")
+            sub_node_b.set_trigger("sub_flow_completed") # No forking data for this specific test
+            
+            main_end_node = BaseTestNode("MainEnd")
+
+            # Sub-flow: SubA -> SubB
+            # SubB triggers "sub_flow_completed", but has no successor *within* the sub_flow for this.
+            sub_node_a.next(sub_node_b)
+            sub_flow = Flow(start=sub_node_a)
+
+            # Main flow: MainStart -> sub_flow -"sub_flow_completed"-> MainEnd
+            main_start_node.next(sub_flow)
+            sub_flow.on("sub_flow_completed", main_end_node) # Parent flow connection
+
+            main_flow = Flow(start=main_start_node)
+            await main_flow.run(memory)
+
+            # Assert execution order via memory changes
+            assert memory["post_MainStart"] is True, "MainStart node did not complete"
+            assert memory["post_SubA"] is True, "SubNodeA did not complete"
+            assert memory["post_SubB"] is True, "SubNodeB did not complete"
+            assert memory["post_MainEnd"] is True, "MainEnd node did not execute, propagation failed"
+
+            # Verify mock calls for more detailed check of execution
+            main_start_node.post_mock.assert_called_once()
+            sub_node_a.post_mock.assert_called_once()
+            # sub_node_b is a BranchingNode, which inherits from BaseTestNode, so its post_mock is available
+            sub_node_b.post_mock.assert_called_once() 
+            main_end_node.post_mock.assert_called_once()
     
     class TestResultAggregation:
         """Tests for result aggregation."""
@@ -340,11 +379,7 @@ class TestFlow:
             
             expected = {
                 # Results from node A triggering default
-                DEFAULT_ACTION: [
-                    {  # Results from node B triggering default
-                        DEFAULT_ACTION: []  # Terminal node
-                    }
-                ]
+                DEFAULT_ACTION: [ None ]
             }
             
             assert result == expected
@@ -364,11 +399,7 @@ class TestFlow:
             expected_b = {
                 "path_B": [
                     {  # Results from Branch triggering path_B
-                        DEFAULT_ACTION: [
-                            {  # Results from B triggering default
-                                DEFAULT_ACTION: []  # Terminal node D
-                            }
-                        ]
+                        DEFAULT_ACTION: [ None ]
                     }
                 ]
             }
@@ -381,11 +412,7 @@ class TestFlow:
             result_c = await flow_c.run(Memory.create({}))
             
             expected_c = {
-                "path_C": [
-                    {  # Results from Branch triggering path_C
-                        DEFAULT_ACTION: []  # Terminal node C
-                    }
-                ]
+                "path_C": [ None ]
             }
             
             assert result_c == expected_c
@@ -406,16 +433,8 @@ class TestFlow:
             result = await flow.run(memory)
             
             expected = {
-                "out1": [
-                    {  # Results from Multi triggering out1
-                        DEFAULT_ACTION: []  # Terminal node B
-                    }
-                ],
-                "out2": [
-                    {  # Results from Multi triggering out2
-                        DEFAULT_ACTION: []  # Terminal node C
-                    }
-                ]
+                "out1": [ None ],
+                "out2": [ None ]
             }
             
             # Verify structure without being sensitive to key order

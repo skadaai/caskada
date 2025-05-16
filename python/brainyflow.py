@@ -299,13 +299,14 @@ class Flow(BaseNode[G, L, ActionT, PrepResultT, Dict[str, Any]]):
         tasks: List[Callable[[], Awaitable[Tuple[Action, List[Any]]]]] = []
         for action, node_memory in triggers:
             next_nodes = cloned_node.get_next_nodes(action)
-            tasks.append(
-                lambda a=action, nn=next_nodes, nm=node_memory: self._process_trigger(a, nn, nm)
-            )
+            if next_nodes:
+                tasks.append( lambda a=action, nn=next_nodes, nm=node_memory: self._process_trigger(a, nn, nm) )
+            else:
+                self._triggers.append({ "action": action, "forking_data": node_memory._local })
         
         # Run all trigger tasks and build result tree
         tree = await self.run_tasks(tasks)
-        return {action: results for action, results in tree}
+        return {action: results for action, results in tree} if tree else None
     
     async def _process_trigger(self, action: Action, next_nodes: List[BaseNode], node_memory: Memory[G, L]) -> Tuple[Action, List[Any]]:
         """Process a single trigger."""

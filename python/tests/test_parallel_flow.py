@@ -126,8 +126,8 @@ class TestParallelFlow:
         assert isinstance(process_c_results, list) and len(process_c_results) == 1, "'process_c' should be a list with 1 result"
         
         # Check that both branches completed
-        assert process_b_results[0] == {DEFAULT_ACTION: []}
-        assert process_c_results[0] == {DEFAULT_ACTION: []}
+        assert process_b_results[0] == None
+        assert process_c_results[0] == None
         
         # 4. Check total mock calls
         assert setup["node_b"].exec_mock.call_count + setup["node_c"].exec_mock.call_count == 2, "Total exec calls across parallel nodes should be 2"
