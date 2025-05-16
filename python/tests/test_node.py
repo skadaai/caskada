@@ -337,15 +337,6 @@ class TestBaseNodeAndNode:
             assert triggers[0][0] == "test_action"
             assert isinstance(triggers[0][1], Memory)
         
-        async def test_run_warns_if_called_on_node_with_successors(self, memory):
-            """run() should warn if called on a node with successors."""
-            node_a = SimpleNode()
-            node_b = SimpleNode()
-
-            node_a.next(node_b)
-            with pytest.warns(UserWarning, match="won't run successors"):
-                await node_a.run(memory)
-        
         async def test_run_accepts_global_store_directly(self):
             """run() should accept global store directly."""
             node = SimpleNode()

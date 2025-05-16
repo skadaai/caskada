@@ -198,10 +198,7 @@ class BaseNode(Generic[G, L, ActionT, PrepResultT, ExecResultT], ABC):
     async def run(self, memory: Union[Memory[G, L], G], propagate: Literal[False] = False) -> ExecResultT: ...
     
     async def run(self, memory: Union[Memory[G, L], G], propagate: bool = False) -> Union[List[Tuple[Action, Memory[G, L]]], ExecResultT]:
-        """Run the node's full lifecycle."""
-        if self.successors:
-            warnings.warn("Node won't run successors. Use Flow!", stacklevel=2)
-        
+        """Run the node's full lifecycle (prep → exec → post)."""
         if not isinstance(memory, Memory):
             memory = Memory.create(memory)
         
