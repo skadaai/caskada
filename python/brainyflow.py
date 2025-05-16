@@ -23,72 +23,50 @@ class Trigger(TypedDict):
 
 class Memory(Generic[G, L]):
     """
-    Memory class for managing global and local state.
-    Memory provides a dual-scope approach to state management:
+    Manager of global and local state. Provides a dual-scope approach to state management:
     - Global store: Shared across the entire flow
     - Local store: Specific to a particular execution path
     """
-    
     def __init__(self, _global: G, _local: Optional[L] = None):
-        """Initialize a Memory instance with global and optional local stores."""
-        # Directly set attributes in __dict__ to avoid __setattr__
         object.__setattr__(self, '_global', _global)
-        object.__setattr__(self, '_local', _local if _local is not None else cast(L, {}))
-    
-    def __getattr__(self, name: str) -> Any:
-        """Access properties, checking local store first, then global."""
-        if name in self._local:
-            return self._local[name]
-        if name in self._global:
-            return self._global[name]
-        raise AttributeError(f"'Memory' object has no attribute {name!r}")
-    
-    def __setattr__(self, name: str, value: Any) -> None:
-        """Write properties, handling reserved names and local/global interaction."""
-        # Reserved property handling
-        if name in ['global', 'local', '_global', '_local', 'clone', 'create']:
-            raise ValueError(f"Reserved property '{name}' cannot be set")
-        
-        # Remove from local if exists, then set in global
-        if name in self._local:
-            del self._local[name]
-        
-        # Set in global store
-        self._global[name] = value
-    
+        object.__setattr__(self, '_local', _local if _local else cast(L, {}))
+    def __getattr__(self, key: str) -> Any:
+        if key in self._local:
+            return self._local[key]
+        if key in self._global:
+            return self._global[key]
+        raise AttributeError(f"'Memory' object has no attribute {key!r}")
     def __getitem__(self, key: str) -> Any:
-        """Support dictionary-style access (memory['key'])."""
         if key in self._local:
             return self._local[key]
         return self._global.get(key)
-    
-    def __setitem__(self, key: str, value: Any) -> None:
-        """Support dictionary-style assignment (memory['key'] = value)."""
-        # Remove from local if exists, then set in global
+    def _set_value(self, key: str, value: Any) -> None:
+        assert key not in ['global', 'local', '_global', '_local', 'clone', 'create'], f"Reserved property '{key}' cannot be set"
         if key in self._local:
             del self._local[key]
         self._global[key] = value
-    
-    def __contains__(self, key: str) -> bool:
-        """Support 'in' operator (key in memory)."""
-        return key in self._local or key in self._global
-    
+    def __setattr__(self, name: str, value: Any) -> None: self._set_value(name, value)
+    def __setitem__(self, key: str, value: Any) -> None: self._set_value(key, value)
+    def __contains__(self, key: str) -> bool: return key in self._local or key in self._global
+    def clone(self, forking_data: Optional[SharedStore] = None) -> 'Memory[G, L]':
+        new_local = copy.deepcopy(self._local)
+        new_local.update(copy.deepcopy(forking_data or {}))
+        return Memory.create(self._global, cast(L, new_local))
     @property
     def local(self) -> L:
-        """Access the local store directly."""
-        return self._local
-    
-    def clone(self, forking_data: Optional[SharedStore] = None) -> 'Memory[G, L]':
-        """Create a new Memory with shared global store but deep-copied local store."""
-        forking_data = forking_data or {}
-        new_local_store = copy.deepcopy(self._local)
-        new_local_store.update(copy.deepcopy(forking_data))
-        return Memory.create(self._global, cast(L, new_local_store))
-    
+        this = self
+        class LocalProxy:
+            def __getattr__(self, key: str) -> Any: return this._local[key]
+            def __setattr__(self, key: str, value: Any) -> None: this._local[key] = value
+            def __setitem__(self, key: str, value: Any) -> None: this._local[key] = value
+            def __getitem__(self, key: str) -> Any: return this._local[key]
+            def __contains__(self, key: str) -> bool: return key in this._local
+            def __eq__(self, other: object) -> bool: return this._local == other
+            def __repr__(self) -> str: return this._local.__repr__()
+        return cast(L, LocalProxy())
     @staticmethod
     def create(global_store: G, local_store: Optional[L] = None) -> 'Memory[G, L]':
-        """Factory method to create a Memory instance."""
-        return Memory(global_store, local_store if local_store is not None else cast(L, {}))
+        return Memory(global_store, local_store)
 
 class NodeError(Exception):
     """Error raised during node execution with retry count information."""

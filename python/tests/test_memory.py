@@ -3,7 +3,6 @@ from brainyflow import Memory
 
 class TestMemory:
     """Tests for the Memory class."""
-
     class TestInitialization:
         """Tests for Memory initialization."""
 
@@ -12,7 +11,7 @@ class TestMemory:
             global_store = {"g1": "global1"}
             memory = Memory.create(global_store)
             assert memory.g1 == "global1", "Should access global property"
-            assert memory.local == {}, "Local store should be empty"
+            assert memory.local == memory._local == {}, "Local store should be empty"
 
         def test_initialize_with_global_and_local_stores(self):
             """Should initialize with global and local stores."""
@@ -22,7 +21,7 @@ class TestMemory:
             assert memory.g1 == "global1", "Should access global property"
             assert memory.l1 == "local1", "Should access local property"
             assert memory.common == "local_common", "Local should shadow global"
-            assert memory.local == {"l1": "local1", "common": "local_common"}, "Local store should contain initial local data"
+            assert memory.local == memory._local == {"l1": "local1", "common": "local_common"}, "Local store should contain initial local data"
 
     class TestProxyBehaviorReading:
         """Tests for Memory proxy reading behavior."""
@@ -50,7 +49,7 @@ class TestMemory:
 
         def test_correctly_access_the_local_property(self, memory):
             """Should correctly access the local property."""
-            assert memory.local == {"l1": "local1", "common": "local_common"}
+            assert memory.local == memory._local  == {"l1": "local1", "common": "local_common"}
 
     class TestProxyBehaviorWriting:
         """Tests for Memory proxy writing behavior."""
@@ -83,6 +82,7 @@ class TestMemory:
             assert self.global_store["common"] == "updated_common_globally", "Global store should be updated"
             assert "common" not in self.local_store, "Property should be removed from local store"
             assert "common" not in memory.local, "Accessing via memory.local should also show removal"
+            assert "common" not in memory._local, "Accessing via memory._local should also show removal"
 
         def test_throw_error_when_attempting_to_set_reserved_properties(self, memory):
             """Should throw error when attempting to set reserved properties."""
@@ -135,15 +135,15 @@ class TestMemory:
             cloned_memory = memory_setup.clone()
             
             # Verify local store is not shared by reference
-            assert cloned_memory.local is not memory_setup.local, "Local store reference should NOT be shared"
-            assert cloned_memory.local == self.local_store, "Cloned local store should have same values initially"
+            assert (cloned_memory.local is not memory_setup.local) and (cloned_memory._local is not memory_setup._local), "Local store reference should NOT be shared"
+            assert cloned_memory.local == cloned_memory._local == self.local_store, "Cloned local store should have same values initially"
             
             # Modify local via original, check clone
             memory_setup.local["l1"] = "modified_local_original"  # Modify original's internal local store
             
             # Read from the clone. Since its local store is independent, it should still find 'l1' locally.
             assert cloned_memory.l1 == "local1", "Clone local property should be unaffected by original local changes"
-            assert cloned_memory.local["l1"] == "local1", "Clone local store internal value should be unchanged"
+            assert cloned_memory.local["l1"] == cloned_memory._local["l1"] == "local1", "Clone local store internal value should be unchanged"
             
             # Modify local via clone, check original
             cloned_memory.local["l2"] = "added_via_clone_local"
@@ -184,9 +184,9 @@ class TestMemory:
         def test_handle_empty_forking_data(self, memory_setup):
             """Should handle empty forkingData."""
             cloned_memory = memory_setup.clone({})
-            assert cloned_memory.local == self.local_store
+            assert cloned_memory.local == cloned_memory._local == self.local_store
 
         def test_handle_cloning_without_forking_data(self, memory_setup):
             """Should handle cloning without forkingData."""
             cloned_memory = memory_setup.clone()
-            assert cloned_memory.local == self.local_store
+            assert cloned_memory.local == cloned_memory._local == self.local_store
