@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import Mock, AsyncMock
-from brainyflow import Memory, Node, Flow, DEFAULT_ACTION
+from brainyflow import Memory, Node, Flow, DEFAULT_ACTION, BaseNode
 
 # --- Helper Node Implementations ---
 class BaseTestNode(Node):
@@ -244,7 +244,8 @@ class TestFlow:
             loop_memory = Memory.create({})
             
             # Should raise exception when max_visits is exceeded
-            with pytest.raises(Exception, match=f"Maximum cycle count reached.*{max_visits}"):
+            # Updated regex to match the actual error message format and changed Exception to AssertionError
+            with pytest.raises(AssertionError, match=f".*Maximum cycle count \\({max_visits}\\) reached"):
                 await flow.run(loop_memory)
             
             # Verify counts
@@ -260,7 +261,8 @@ class TestFlow:
             
             loop_memory = Memory.create({})
             
-            with pytest.raises(Exception, match=f"Maximum cycle count reached.*{max_visits}"):
+            # Updated regex to match the actual error message format and changed Exception to AssertionError
+            with pytest.raises(AssertionError, match=f".*Maximum cycle count \\({max_visits}\\) reached"):
                 await flow.run(loop_memory)
     
     class TestFlowAsNode:

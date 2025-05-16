@@ -17,7 +17,6 @@ ExecResultT = TypeVar('ExecResultT')
 ActionT = TypeVar('ActionT', bound=str)
 
 class Trigger(TypedDict):
-    """Represents a triggered action with forking data."""
     action: Action
     forking_data: SharedStore
 
@@ -84,11 +83,9 @@ class BaseNode(Generic[G, L, ActionT, PrepResultT, ExecResultT], ABC):
     - PrepResultT: Return type of prep method
     - ExecResultT: Return type of exec method
     """
-    
     _next_id = 0
     
     def __init__(self) -> None:
-        """Initialize a BaseNode instance."""
         self.successors: Dict[Action, List['BaseNode']] = {}  # dict of action -> list of nodes
         self._triggers: List[Trigger] = []  # list of dicts with action and forking_data
         self._locked: bool = True  # Prevent trigger calls outside post()
@@ -97,7 +94,6 @@ class BaseNode(Generic[G, L, ActionT, PrepResultT, ExecResultT], ABC):
     
     def clone(self, seen: Optional[Dict['BaseNode', 'BaseNode']] = None) -> 'BaseNode[G, L, ActionT, PrepResultT, ExecResultT]':
         """Create a deep copy of the node including its successors."""
-        # Create a deep copy with cycle detection
         seen = seen or {}
         if self in seen:
             return seen[self]
@@ -111,6 +107,7 @@ class BaseNode(Generic[G, L, ActionT, PrepResultT, ExecResultT], ABC):
             if key != 'successors':
                 # Shallow-copy by default; deep-copy lists/dicts/sets to prevent sharing
                 setattr(cloned, key, copy.deepcopy(value) if isinstance(value, (list, dict, set)) else value)
+        
         # Clone successors with cycle detection
         cloned.successors = {}
         for action, nodes in self.successors.items():
@@ -131,7 +128,6 @@ class BaseNode(Generic[G, L, ActionT, PrepResultT, ExecResultT], ABC):
         """Convenience method equivalent to on()."""
         return self.on(action, node)
     
-    # Python-specific syntax sugar
     def __rshift__(self, other: 'BaseNode') -> 'BaseNode':
         """Implement node_a >> node_b syntax for default action"""
         return self.next(other)
@@ -171,8 +167,7 @@ class BaseNode(Generic[G, L, ActionT, PrepResultT, ExecResultT], ABC):
     
     def trigger(self, action: ActionT, forking_data: Optional[SharedStore] = None) -> None:
         """Trigger a successor action with optional forking data."""
-        if self._locked:
-            raise RuntimeError("An action can only be triggered inside post()")
+        assert not self._locked, "An action can only be triggered inside post()"
         
         self._triggers.append({
             "action": action,
@@ -193,10 +188,8 @@ class BaseNode(Generic[G, L, ActionT, PrepResultT, ExecResultT], ABC):
     
     @overload
     async def run(self, memory: Union[Memory[G, L], G], propagate: Literal[True]) -> List[Tuple[Action, Memory[G, L]]]: ...
-    
     @overload
     async def run(self, memory: Union[Memory[G, L], G], propagate: Literal[False] = False) -> ExecResultT: ...
-    
     async def run(self, memory: Union[Memory[G, L], G], propagate: bool = False) -> Union[List[Tuple[Action, Memory[G, L]]], ExecResultT]:
         """Run the node's full lifecycle (prep → exec → post)."""
         if not isinstance(memory, Memory):
@@ -223,7 +216,6 @@ class Node(BaseNode[G, L, ActionT, PrepResultT, ExecResultT]):
         wait: Seconds to wait between retry attempts
         cur_retry: Current retry attempt (0-indexed)
     """
-    
     def __init__(self, max_retries: int = 1, wait: float = 0) -> None:
         """Initialize a Node with retry configuration."""
         super().__init__()
@@ -261,7 +253,6 @@ class Flow(BaseNode[G, L, ActionT, PrepResultT, Dict[str, Any]]):
         options: Configuration options like max_visits
         visit_counts: Tracks node visits for cycle detection
     """
-    
     def __init__(self, start: BaseNode, options: Optional[Dict[str, Any]] = None) -> None:
         """Initialize a Flow with a start node and options."""
         super().__init__()
@@ -293,17 +284,12 @@ class Flow(BaseNode[G, L, ActionT, PrepResultT, Dict[str, Any]]):
     
     async def run_node(self, node: BaseNode, memory: Memory[G, L]) -> Dict[str, Any]:
         """Run a node with cycle detection."""
-        node_id = str(node._node_order)
+        node_order = str(node._node_order)
         
         # Check for cycles
-        current_visit_count = self.visit_counts.get(node_id, 0) + 1
-        if current_visit_count > self.options["max_visits"]:
-            raise RuntimeError(
-                f"Maximum cycle count reached ({self.options['max_visits']}) for "
-                f"{node_id}.{node.__class__.__name__}"
-            )
-        
-        self.visit_counts[node_id] = current_visit_count
+        current_visit_count = self.visit_counts.get(node_order, 0) + 1
+        assert current_visit_count <= self.options["max_visits"], f"{node.__class__.__name__}(order:{node_order}): Maximum cycle count ({self.options['max_visits']}) reached"
+        self.visit_counts[node_order] = current_visit_count
         
         # Clone node and run with propagate=True
         cloned_node = node.clone()
@@ -330,13 +316,8 @@ class Flow(BaseNode[G, L, ActionT, PrepResultT, Dict[str, Any]]):
         return (action, results)
 
 class ParallelFlow(Flow[G, L, ActionT, PrepResultT]):
-    """
-    Orchestrates execution of a graph of nodes with parallel branching.
-    Overrides run_tasks to execute tasks concurrently using asyncio.gather.
-    """
-    
+    """Orchestrates execution of a graph of nodes with parallel branching."""    
     async def run_tasks(self, tasks: Sequence[Callable[[], Awaitable[T]]]) -> List[T]:
-        """Run tasks concurrently using asyncio.gather."""
         if not tasks:
             return []
         return await asyncio.gather(*(task() for task in tasks))
