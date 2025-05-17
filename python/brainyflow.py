@@ -2,7 +2,7 @@ import asyncio
 import copy
 import warnings
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional, Tuple, Type, TypeVar, Generic, Callable, Union, cast, TypedDict, Literal, overload, Awaitable, Sequence
+from typing import Any, Dict, List, Optional, Tuple, Type, TypeAlias, TypeVar, Generic, Callable, Union, cast, TypedDict, Literal, overload, Awaitable, Sequence
 
 DEFAULT_ACTION = 'default'
 
@@ -15,6 +15,7 @@ T = TypeVar('T')
 PrepResultT = TypeVar('PrepResultT')
 ExecResultT = TypeVar('ExecResultT')
 ActionT = TypeVar('ActionT', bound=str)
+AnyNode: TypeAlias = 'BaseNode[G, Any, Any, Any, Any]'
 
 class Trigger(TypedDict):
     action: Action
@@ -94,13 +95,13 @@ class BaseNode(Generic[G, L, ActionT, PrepResultT, ExecResultT], ABC):
     _next_id = 0
     
     def __init__(self) -> None:
-        self.successors: Dict[Action, List['BaseNode']] = {}  # dict of action -> list of nodes
+        self.successors: Dict[Action, List[AnyNode[G]]] = {}  # dict of action -> list of nodes
         self._triggers: List[Trigger] = []  # list of dicts with action and forking_data
         self._locked: bool = True  # Prevent trigger calls outside post()
         self._node_order: int = BaseNode._next_id
         BaseNode._next_id += 1
     
-    def clone(self, seen: Optional[Dict['BaseNode', 'BaseNode']] = None) -> 'BaseNode[G, L, ActionT, PrepResultT, ExecResultT]':
+    def clone(self, seen: Optional[Dict[AnyNode[G], AnyNode[G]]] = None) -> 'BaseNode[G, L, ActionT, PrepResultT, ExecResultT]':
         """Create a deep copy of the node including its successors."""
         seen = seen or {}
         if self in seen:
@@ -124,19 +125,18 @@ class BaseNode(Generic[G, L, ActionT, PrepResultT, ExecResultT], ABC):
             ]
         
         return cloned
-    
-    def on(self, action: Action, node: 'BaseNode') -> 'BaseNode':
+    def on(self, action: Action, node: AnyNode[G]) -> AnyNode[G]:
         """Add a successor node for a specific action."""
         if action not in self.successors:
             self.successors[action] = []
         self.successors[action].append(node)
         return node
     
-    def next(self, node: 'BaseNode', action: Action = DEFAULT_ACTION) -> 'BaseNode':
+    def next(self, node: AnyNode[G], action: Action = DEFAULT_ACTION) -> AnyNode[G]:
         """Convenience method equivalent to on()."""
         return self.on(action, node)
     
-    def __rshift__(self, other: 'BaseNode') -> 'BaseNode':
+    def __rshift__(self, other: AnyNode[G]) -> AnyNode[G]:
         """Implement node_a >> node_b syntax for default action"""
         return self.next(other)
     
@@ -146,15 +146,15 @@ class BaseNode(Generic[G, L, ActionT, PrepResultT, ExecResultT], ABC):
     
     class ActionLinker:
         """Helper class for action-specific transitions"""
-        def __init__(self, node: 'BaseNode', action: Action):
+        def __init__(self, node: AnyNode[G], action: Action):
             self.node = node
             self.action = action
         
-        def __rshift__(self, other: 'BaseNode') -> 'BaseNode':
+        def __rshift__(self, other: AnyNode[G]) -> AnyNode[G]:
             """Implement - "action" >> node_b syntax"""
             return self.node.on(self.action, other)
     
-    def get_next_nodes(self, action: Action = DEFAULT_ACTION) -> List['BaseNode']:
+    def get_next_nodes(self, action: Action = DEFAULT_ACTION) -> List[AnyNode[G]]:
         """Get successor nodes for a specific action."""
         next_nodes = self.successors.get(action, [])
         if not next_nodes and action != DEFAULT_ACTION and self.successors:
@@ -201,7 +201,7 @@ class BaseNode(Generic[G, L, ActionT, PrepResultT, ExecResultT], ABC):
     async def run(self, memory: Union[Memory[G, L], G], propagate: bool = False) -> Union[List[Tuple[Action, Memory[G, L]]], ExecResultT]:
         """Run the node's full lifecycle (prep → exec → post)."""
         if not isinstance(memory, Memory):
-            memory = Memory.create(memory)
+            memory = Memory[G, L].create(memory)
         
         self._triggers = []
         prep_res = await self.prep(memory)
@@ -261,7 +261,7 @@ class Flow(BaseNode[G, L, ActionT, PrepResultT, Dict[str, Any]]):
         options: Configuration options like max_visits
         visit_counts: Tracks node visits for cycle detection
     """
-    def __init__(self, start: BaseNode, options: Optional[Dict[str, Any]] = None) -> None:
+    def __init__(self, start: AnyNode[G], options: Optional[Dict[str, Any]] = None) -> None:
         """Initialize a Flow with a start node and options."""
         super().__init__()
         self.start = start
@@ -283,14 +283,14 @@ class Flow(BaseNode[G, L, ActionT, PrepResultT, Dict[str, Any]]):
             results.append(await task())
         return results
     
-    async def run_nodes(self, nodes: List[BaseNode], memory: Memory[G, L]) -> List[Any]:
+    async def run_nodes(self, nodes: List[AnyNode[G]], memory: Memory[G, L]) -> List[Any]:
         """Run a list of nodes with the given memory."""
         tasks: List[Callable[[], Awaitable[Any]]] = [
             lambda n=node, m=memory: self.run_node(n, m) for node in nodes
         ]
         return await self.run_tasks(tasks)
     
-    async def run_node(self, node: BaseNode, memory: Memory[G, L]) -> Dict[str, Any]:
+    async def run_node(self, node: AnyNode[G], memory: Memory[G, L]) -> Dict[str, Any]:
         """Run a node with cycle detection."""
         node_order = str(node._node_order)
         
@@ -316,7 +316,7 @@ class Flow(BaseNode[G, L, ActionT, PrepResultT, Dict[str, Any]]):
         tree = await self.run_tasks(tasks)
         return {action: results for action, results in tree} if tree else None
     
-    async def _process_trigger(self, action: Action, next_nodes: List[BaseNode], node_memory: Memory[G, L]) -> Tuple[Action, List[Any]]:
+    async def _process_trigger(self, action: Action, next_nodes: List[AnyNode[G]], node_memory: Memory[G, L]) -> Tuple[Action, List[Any]]:
         """Process a single trigger."""
         if not next_nodes:
             return (action, [])
