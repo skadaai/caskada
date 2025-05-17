@@ -15,8 +15,10 @@ PrepResultT = TypeVar('PrepResultT')
 ExecResultT = TypeVar('ExecResultT')
 ActionT = TypeVar('ActionT', bound=str)
 AnyNode: TypeAlias = 'BaseNode[G, Any, Any, Any, Any]'
-ExecutionTree: TypeAlias = Optional[Dict[Action, List["ExecutionTree"]]]
-
+class ExecutionTree(TypedDict):
+    order: str
+    type: str
+    triggered: Optional[Dict[Action, List["ExecutionTree"]]]
 class Trigger(TypedDict):
     action: Action
     forking_data: SharedStore
@@ -286,38 +288,40 @@ class Flow(BaseNode[G, L, ActionT, PrepResultT, ExecutionTree]):
     async def run_nodes(self, nodes: List[AnyNode[G]], memory: Memory[G, L]) -> List[ExecutionTree]:
         """Run a list of nodes with the given memory."""
         tasks: List[Callable[[], Awaitable[ExecutionTree]]] = [
-            lambda n=node, m=memory: self.run_node(n, m) for node in nodes
+            (lambda n=node, m=memory: lambda: self.run_node(n, m))() for node in nodes
         ]
         return await self.run_tasks(tasks)
     
     async def run_node(self, node: AnyNode[G], memory: Memory[G, L]) -> ExecutionTree:
-        """Run a node with cycle detection."""
-        node_order = str(node._node_order)
-        
+        """Run a node with cycle detection and return its execution log."""
+        node_order = str(node._node_order)        
         # Check for cycles
         current_visit_count = self.visit_counts.get(node_order, 0) + 1
         assert current_visit_count <= self.options["max_visits"], f"{node.__class__.__name__}(order:{node_order}): Maximum cycle count ({self.options['max_visits']}) reached"
         self.visit_counts[node_order] = current_visit_count
         
-        # Clone node and run with propagate=True
         cloned_node = node.clone()
         triggers = await cloned_node.run(memory.clone(), True)
         
-        # Process each trigger and collect results
+        triggered: Dict[Action, List[ExecutionTree]] = {}
         tasks: List[Callable[[], Awaitable[Tuple[Action, List[ExecutionTree]]]]] = []
         for action, node_memory in triggers:
             next_nodes = cloned_node.get_next_nodes(action)
             if next_nodes:
-                tasks.append( lambda a=action, nn=next_nodes, nm=node_memory: self._process_trigger(a, nn, nm) )
+                tasks.append((lambda act=action, nn_list=next_nodes, nm_mem=node_memory: \
+                                 lambda: self._process_trigger(act, nn_list, nm_mem))())
             else:
                 self._triggers.append({ "action": action, "forking_data": node_memory._local })
-        
-        # Run all trigger tasks and build result tree
+                triggered[action] = []
+
         tree: List[Tuple[Action, List[ExecutionTree]]] = await self.run_tasks(tasks)
-        return {action: results for action, results in tree} if tree else None
+        for action, resulting_node_logs in tree:
+            triggered[action] = resulting_node_logs
+            
+        return { 'order': node_order, 'type': node.__class__.__name__, 'triggered': triggered if triggered else None }
     
     async def _process_trigger(self, action: Action, next_nodes: List[AnyNode[G]], node_memory: Memory[G, L]) -> Tuple[Action, List[ExecutionTree]]:
-        """Process a single trigger."""
+        """Process a single trigger by running its next_nodes."""
         return (action, await self.run_nodes(next_nodes, node_memory))
 
 class ParallelFlow(Flow[G, L, ActionT, PrepResultT]):
