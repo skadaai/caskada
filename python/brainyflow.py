@@ -1,3 +1,4 @@
+from __future__ import annotations
 import asyncio
 import copy
 import warnings
@@ -5,10 +6,8 @@ from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional, Tuple, Type, TypeAlias, TypeVar, Generic, Callable, Union, cast, TypedDict, Literal, overload, Awaitable, Sequence
 
 DEFAULT_ACTION = 'default'
-
 Action = str
 SharedStore = Dict[str, Any]
-
 G = TypeVar('G', bound=SharedStore)
 L = TypeVar('L', bound=SharedStore)
 T = TypeVar('T')
@@ -16,6 +15,7 @@ PrepResultT = TypeVar('PrepResultT')
 ExecResultT = TypeVar('ExecResultT')
 ActionT = TypeVar('ActionT', bound=str)
 AnyNode: TypeAlias = 'BaseNode[G, Any, Any, Any, Any]'
+ExecutionTree: TypeAlias = Optional[Dict[Action, List["ExecutionTree"]]]
 
 class Trigger(TypedDict):
     action: Action
@@ -52,7 +52,7 @@ class Memory(Generic[G, L]):
     def __delattr__(self, key: str) -> None: _delete_from_stores(key, self._global, self._local)
     def __delitem__(self, key: str) -> None: _delete_from_stores(key, self._global, self._local)
     def __contains__(self, key: str) -> bool: return key in self._local or key in self._global
-    def clone(self, forking_data: Optional[SharedStore] = None) -> 'Memory[G, L]':
+    def clone(self, forking_data: Optional[SharedStore] = None) -> Memory[G, L]:
         new_local = copy.deepcopy(self._local)
         new_local.update(copy.deepcopy(forking_data or {}))
         return Memory[G, L].create(self._global, cast(L, new_local))
@@ -73,7 +73,7 @@ class Memory(Generic[G, L]):
             def __repr__(self) -> str: return _local.__repr__()
         return cast(L, LocalProxy())
     @staticmethod
-    def create(global_store: G, local_store: Optional[L] = None) -> 'Memory[G, L]':
+    def create(global_store: G, local_store: Optional[L] = None) -> Memory[G, L]:
         return Memory(global_store, local_store)
 
 class NodeError(Exception):
@@ -101,7 +101,7 @@ class BaseNode(Generic[G, L, ActionT, PrepResultT, ExecResultT], ABC):
         self._node_order: int = BaseNode._next_id
         BaseNode._next_id += 1
     
-    def clone(self, seen: Optional[Dict[AnyNode[G], AnyNode[G]]] = None) -> 'BaseNode[G, L, ActionT, PrepResultT, ExecResultT]':
+    def clone(self, seen: Optional[Dict[AnyNode[G], AnyNode[G]]] = None) -> BaseNode[G, L, ActionT, PrepResultT, ExecResultT]:
         """Create a deep copy of the node including its successors."""
         seen = seen or {}
         if self in seen:
@@ -140,7 +140,7 @@ class BaseNode(Generic[G, L, ActionT, PrepResultT, ExecResultT], ABC):
         """Implement node_a >> node_b syntax for default action"""
         return self.next(other)
     
-    def __sub__(self, action: Action) -> 'ActionLinker':
+    def __sub__(self, action: Action) -> ActionLinker:
         """Implement node_a - "action" syntax for action selection"""
         return self.ActionLinker(self, action)
     
@@ -252,7 +252,7 @@ class Node(BaseNode[G, L, ActionT, PrepResultT, ExecResultT]):
                 return await self.exec_fallback(prep_res, wrapped)
         raise RuntimeError("Unreachable: exec_runner should have returned or raised in the loop")
 
-class Flow(BaseNode[G, L, ActionT, PrepResultT, Dict[str, Any]]):
+class Flow(BaseNode[G, L, ActionT, PrepResultT, ExecutionTree]):
     """
     Orchestrates the execution of a graph of nodes sequentially.
     
@@ -268,10 +268,10 @@ class Flow(BaseNode[G, L, ActionT, PrepResultT, Dict[str, Any]]):
         self.options = options or {"max_visits": 5}
         self.visit_counts: Dict[str, int] = {}
     
-    async def exec(self, prep_res: PrepResultT) -> Dict[str, Any]:
+    async def exec(self, prep_res: PrepResultT) -> ExecutionTree:
         raise RuntimeError("This method should never be called in a Flow")
     
-    async def exec_runner(self, memory: Memory[G, L], prep_res: PrepResultT) -> Dict[str, Any]:
+    async def exec_runner(self, memory: Memory[G, L], prep_res: PrepResultT) -> ExecutionTree:
         """Run the flow starting from the start node."""
         self.visit_counts = {}  # Reset visit counts
         return await self.run_node(self.start, memory)
@@ -283,14 +283,14 @@ class Flow(BaseNode[G, L, ActionT, PrepResultT, Dict[str, Any]]):
             results.append(await task())
         return results
     
-    async def run_nodes(self, nodes: List[AnyNode[G]], memory: Memory[G, L]) -> List[Any]:
+    async def run_nodes(self, nodes: List[AnyNode[G]], memory: Memory[G, L]) -> List[ExecutionTree]:
         """Run a list of nodes with the given memory."""
-        tasks: List[Callable[[], Awaitable[Any]]] = [
+        tasks: List[Callable[[], Awaitable[ExecutionTree]]] = [
             lambda n=node, m=memory: self.run_node(n, m) for node in nodes
         ]
         return await self.run_tasks(tasks)
     
-    async def run_node(self, node: AnyNode[G], memory: Memory[G, L]) -> Dict[str, Any]:
+    async def run_node(self, node: AnyNode[G], memory: Memory[G, L]) -> ExecutionTree:
         """Run a node with cycle detection."""
         node_order = str(node._node_order)
         
@@ -304,7 +304,7 @@ class Flow(BaseNode[G, L, ActionT, PrepResultT, Dict[str, Any]]):
         triggers = await cloned_node.run(memory.clone(), True)
         
         # Process each trigger and collect results
-        tasks: List[Callable[[], Awaitable[Tuple[Action, List[Any]]]]] = []
+        tasks: List[Callable[[], Awaitable[Tuple[Action, List[ExecutionTree]]]]] = []
         for action, node_memory in triggers:
             next_nodes = cloned_node.get_next_nodes(action)
             if next_nodes:
@@ -313,16 +313,12 @@ class Flow(BaseNode[G, L, ActionT, PrepResultT, Dict[str, Any]]):
                 self._triggers.append({ "action": action, "forking_data": node_memory._local })
         
         # Run all trigger tasks and build result tree
-        tree = await self.run_tasks(tasks)
+        tree: List[Tuple[Action, List[ExecutionTree]]] = await self.run_tasks(tasks)
         return {action: results for action, results in tree} if tree else None
     
-    async def _process_trigger(self, action: Action, next_nodes: List[AnyNode[G]], node_memory: Memory[G, L]) -> Tuple[Action, List[Any]]:
+    async def _process_trigger(self, action: Action, next_nodes: List[AnyNode[G]], node_memory: Memory[G, L]) -> Tuple[Action, List[ExecutionTree]]:
         """Process a single trigger."""
-        if not next_nodes:
-            return (action, [])
-        
-        results = await self.run_nodes(next_nodes, node_memory)
-        return (action, results)
+        return (action, await self.run_nodes(next_nodes, node_memory))
 
 class ParallelFlow(Flow[G, L, ActionT, PrepResultT]):
     """Orchestrates execution of a graph of nodes with parallel branching."""    
