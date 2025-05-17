@@ -42,10 +42,13 @@ class TestMemory:
             """Should fall back to global store if property not in local."""
             assert memory.g1 == "global1"
 
-        def test_return_none_if_property_exists_in_neither_store(self, memory):
-            """Should raise AttributeError if property exists in neither store."""
-            with pytest.raises(AttributeError, match="'Memory' object has no attribute 'non_existent'"):
+        def test_return_appropriate_error_if_property_exists_in_neither_store(self, memory):
+            """Should raise AttributeError for attribute access and KeyError for item access if property exists in neither store."""
+            with pytest.raises(AttributeError, match="Key 'non_existent' not found in stores"):
                 _ = memory.non_existent
+            with pytest.raises(KeyError, match="Key 'non_existent_item' not found in stores"):
+                _ = memory["non_existent_item"]
+
 
         def test_correctly_access_the_local_property(self, memory):
             """Should correctly access the local property."""
@@ -87,10 +90,8 @@ class TestMemory:
         def test_throw_error_when_attempting_to_set_reserved_properties(self, memory):
             """Should throw error when attempting to set reserved properties."""
             with pytest.raises(Exception, match="Reserved property 'global' cannot be set"):
-                # Use the exact reserved name 'global'
                 setattr(memory, 'global', {})
             with pytest.raises(Exception, match="Reserved property 'local' cannot be set"):
-                # Use the exact reserved name 'local'
                 setattr(memory, 'local', {})
             with pytest.raises(Exception, match="Reserved property '_global' cannot be set"):
                 memory._global = {}
@@ -138,21 +139,17 @@ class TestMemory:
             assert (cloned_memory.local is not memory_setup.local) and (cloned_memory._local is not memory_setup._local), "Local store reference should NOT be shared"
             assert cloned_memory.local == cloned_memory._local == self.local_store, "Cloned local store should have same values initially"
             
-            # Modify local via original, check clone
-            memory_setup.local["l1"] = "modified_local_original"  # Modify original's internal local store
-            
-            # Read from the clone. Since its local store is independent, it should still find 'l1' locally.
+            memory_setup.local["l1"] = "modified_local_original"
             assert cloned_memory.l1 == "local1", "Clone local property should be unaffected by original local changes"
             assert cloned_memory.local["l1"] == cloned_memory._local["l1"] == "local1", "Clone local store internal value should be unchanged"
             
             # Modify local via clone, check original
             cloned_memory.local["l2"] = "added_via_clone_local"
             # Accessing l2 on the original should raise AttributeError as it wasn't set globally or locally there
-            with pytest.raises(AttributeError, match="'Memory' object has no attribute 'l2'"):
+            with pytest.raises(AttributeError, match="Key 'l2' not found in stores"):
                 _ = memory_setup.l2
             assert "l2" not in memory_setup.local, "Original local store internal value should be unchanged"
             
-            # Test nested objects
             assert cloned_memory.nested_l == {"val": 2}
             memory_setup.local["nested_l"]["val"] = 99
             assert cloned_memory.nested_l == {"val": 2}, "Nested local object in clone should be unaffected"
@@ -168,16 +165,14 @@ class TestMemory:
             assert cloned_memory.g1 == "global1", "Should still access global property"
             assert cloned_memory.nested_f == {"val": 3}
             
-            # Check internal local store state
             assert cloned_memory.local == {
                 "l1": "local1",
-                "common": "forked_common",  # Overwritten
+                "common": "forked_common",
                 "nested_l": {"val": 2},
-                "f1": "forked1",  # Added
-                "nested_f": {"val": 3},  # Added
+                "f1": "forked1",
+                "nested_f": {"val": 3},
             }
             
-            # Ensure forkingData was deep cloned
             forking_data["nested_f"]["val"] = 99
             assert cloned_memory.nested_f == {"val": 3}, "Nested object in forked data should have been deep cloned"
 
@@ -190,3 +185,160 @@ class TestMemory:
             """Should handle cloning without forkingData."""
             cloned_memory = memory_setup.clone()
             assert cloned_memory.local == cloned_memory._local == self.local_store
+
+class TestMemoryDeletion:
+    """Tests for the new Memory deletion functionalities."""
+
+    @pytest.fixture
+    def memory_for_deletion(self):
+        """Fixture to create a Memory instance with global and local values for deletion tests."""
+        global_store = {"g_only": "global_val", "common_gl": "global_common", "g_shadowed": "global_shadow"}
+        local_store = {"l_only": "local_val", "common_gl": "local_common", "g_shadowed": "local_shadow_val"}
+        return Memory.create(global_store, local_store)
+
+    # Tests for del memory.attr and del memory[key]
+    def test_delattr_on_memory_deletes_global_only_key(self, memory_for_deletion):
+        """del memory.attr should delete a key present only in the global store."""
+        assert "g_only" in memory_for_deletion
+        del memory_for_deletion.g_only
+        
+        assert "g_only" not in memory_for_deletion
+        assert "g_only" not in memory_for_deletion._global
+        assert "g_only" not in memory_for_deletion._local
+        with pytest.raises(AttributeError):
+            _ = memory_for_deletion.g_only
+
+    def test_delitem_on_memory_deletes_global_only_key(self, memory_for_deletion):
+        """del memory[key] should delete a key present only in the global store."""
+        assert "g_only" in memory_for_deletion
+        del memory_for_deletion["g_only"]
+
+        assert "g_only" not in memory_for_deletion
+        assert "g_only" not in memory_for_deletion._global
+        assert "g_only" not in memory_for_deletion._local
+        with pytest.raises(KeyError):
+            _ = memory_for_deletion["g_only"]
+
+    def test_delattr_on_memory_deletes_local_only_key(self, memory_for_deletion):
+        """del memory.attr should delete a key present only in the local store."""
+        # Note: current _delete_from_stores(key, self._global, self._local) means
+        # it tries global first, then local. So "l_only" is only in local.
+        assert "l_only" in memory_for_deletion
+        del memory_for_deletion.l_only
+        
+        assert "l_only" not in memory_for_deletion
+        assert "l_only" not in memory_for_deletion._global
+        assert "l_only" not in memory_for_deletion._local
+        with pytest.raises(AttributeError):
+            _ = memory_for_deletion.l_only
+
+    def test_delattr_on_memory_deletes_key_from_both_stores_if_present_in_both(self, memory_for_deletion):
+        """del memory.attr should delete a key from both global and local if it exists in both."""
+        assert memory_for_deletion.common_gl == "local_common"
+        assert "common_gl" in memory_for_deletion._global
+        assert "common_gl" in memory_for_deletion._local
+        
+        del memory_for_deletion.common_gl
+        
+        assert "common_gl" not in memory_for_deletion
+        assert "common_gl" not in memory_for_deletion._global
+        assert "common_gl" not in memory_for_deletion._local
+        with pytest.raises(AttributeError):
+            _ = memory_for_deletion.common_gl
+
+    def test_delattr_on_memory_raises_keyerror_for_non_existent_key(self, memory_for_deletion):
+        """del memory.attr should raise KeyError for a non-existent key."""
+        # __delattr__ uses _delete_from_stores which raises KeyError
+        with pytest.raises(KeyError, match="'non_existent_attr'"):
+            del memory_for_deletion.non_existent_attr
+
+    def test_delitem_on_memory_raises_keyerror_for_non_existent_key(self, memory_for_deletion):
+        """del memory[key] should raise KeyError for a non-existent key."""
+        with pytest.raises(KeyError, match="'non_existent_key'"):
+            del memory_for_deletion["non_existent_key"]
+
+    # Tests for del memory.local.attr and del memory.local[key]
+    def test_delattr_on_local_proxy_deletes_from_local_store_only(self, memory_for_deletion):
+        """del memory.local.attr should delete a key only from the local store."""
+        assert memory_for_deletion.local.l_only == "local_val"
+        
+        del memory_for_deletion.local.l_only
+        
+        assert "l_only" not in memory_for_deletion.local
+        assert "l_only" not in memory_for_deletion._local
+        with pytest.raises(AttributeError):
+            _ = memory_for_deletion.local.l_only
+        
+        assert "l_only" not in memory_for_deletion._global
+
+    def test_delitem_on_local_proxy_deletes_from_local_store_only(self, memory_for_deletion):
+        """del memory.local[key] should delete a key only from the local store."""
+        assert memory_for_deletion.local["l_only"] == "local_val"
+        
+        del memory_for_deletion.local["l_only"]
+        
+        assert "l_only" not in memory_for_deletion.local
+        assert "l_only" not in memory_for_deletion._local
+        with pytest.raises(KeyError):
+            _ = memory_for_deletion.local["l_only"]
+
+    def test_delattr_on_local_proxy_does_not_affect_global_store(self, memory_for_deletion):
+        """del memory.local.attr should not affect the global store, even if key has same name."""
+        # 'g_shadowed' is in both: global_store{"g_shadowed": "global_shadow"}, local_store{"g_shadowed": "local_shadow_val"}
+        assert memory_for_deletion.local.g_shadowed == "local_shadow_val"
+        assert memory_for_deletion._global["g_shadowed"] == "global_shadow"
+        
+        del memory_for_deletion.local.g_shadowed
+        
+        assert "g_shadowed" not in memory_for_deletion.local # Deleted from local
+        assert "g_shadowed" not in memory_for_deletion._local
+        
+        # Global store should be untouched
+        assert memory_for_deletion._global["g_shadowed"] == "global_shadow"
+        # Main memory object should now see the global value
+        assert memory_for_deletion.g_shadowed == "global_shadow"
+
+    def test_delattr_on_local_proxy_unshadows_global_key(self, memory_for_deletion):
+        """del memory.local.attr on a shadowing key should make the global key visible via memory.attr."""
+        # 'g_shadowed' is in both, local value shadows global
+        assert memory_for_deletion.g_shadowed == "local_shadow_val" # Accesses local via memory object
+        
+        del memory_for_deletion.local.g_shadowed # Delete from local proxy
+        
+        # Now, memory.g_shadowed should access the global value
+        assert "g_shadowed" not in memory_for_deletion.local
+        assert memory_for_deletion.g_shadowed == "global_shadow" 
+        assert memory_for_deletion._global["g_shadowed"] == "global_shadow"
+
+    def test_delattr_on_local_proxy_raises_keyerror_for_non_existent_key(self, memory_for_deletion):
+        """del memory.local.attr should raise KeyError for a non-existent key in local store."""
+        # __delattr__ on LocalProxy uses _delete_from_stores which raises KeyError
+        with pytest.raises(KeyError, match="'non_existent_local_attr'"):
+            del memory_for_deletion.local.non_existent_local_attr
+
+    def test_delitem_on_local_proxy_raises_keyerror_for_non_existent_key(self, memory_for_deletion):
+        """del memory.local[key] should raise KeyError for a non-existent key in local store."""
+        with pytest.raises(KeyError, match="'non_existent_local_key'"):
+            del memory_for_deletion.local["non_existent_local_key"]
+
+    def test_contains_check_after_deletions_on_memory(self, memory_for_deletion):
+        """Verify `in` operator behaves correctly after deletions on Memory instance."""
+        memory_for_deletion._global["g_delete_in_test"] = 1
+        memory_for_deletion._local["l_delete_in_test"] = 2
+        
+        assert "g_delete_in_test" in memory_for_deletion
+        assert "l_delete_in_test" in memory_for_deletion
+        
+        del memory_for_deletion.g_delete_in_test
+        assert "g_delete_in_test" not in memory_for_deletion
+        
+        del memory_for_deletion.l_delete_in_test
+        assert "l_delete_in_test" not in memory_for_deletion
+
+    def test_contains_check_after_deletions_on_local_proxy(self, memory_for_deletion):
+        """Verify `in` operator behaves correctly for LocalProxy after deletions."""
+        memory_for_deletion.local["proxy_del_test"] = 3
+        assert "proxy_del_test" in memory_for_deletion.local
+        
+        del memory_for_deletion.local.proxy_del_test
+        assert "proxy_del_test" not in memory_for_deletion.local

@@ -235,7 +235,7 @@ class TestBaseNodeAndNode:
             assert triggered_memory.key == "value"  # Check forking_data applied locally
             assert triggered_memory.local["key"] == "value"
             # Original memory should not have 'key'
-            with pytest.raises(AttributeError, match="'Memory' object has no attribute 'key'"):
+            with pytest.raises(AttributeError, match="Key 'key' not found in stores"):
                 _ = memory.key
         
         async def test_trigger_throws_error_if_called_outside_post(self, memory):

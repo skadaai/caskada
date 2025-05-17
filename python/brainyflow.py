@@ -2,7 +2,7 @@ import asyncio
 import copy
 import warnings
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional, Tuple, TypeVar, Generic, Callable, Union, cast, TypedDict, Literal, overload, Awaitable, Sequence
+from typing import Any, Dict, List, Optional, Tuple, Type, TypeVar, Generic, Callable, Union, cast, TypedDict, Literal, overload, Awaitable, Sequence
 
 DEFAULT_ACTION = 'default'
 
@@ -20,6 +20,16 @@ class Trigger(TypedDict):
     action: Action
     forking_data: SharedStore
 
+def _get_from_stores(key: str, primary: SharedStore, secondary: SharedStore | None = None, Error: Type[Exception] = KeyError) -> Any:
+    if key in primary: return primary[key]
+    if secondary is not None and key in secondary: return secondary[key]
+    raise Error(f"Key '{key}' not found in store{'s' if secondary else ''}")
+
+def _delete_from_stores(key: str, primary: SharedStore, secondary: SharedStore | None = None) -> None:
+    if key not in primary and (secondary is None or key not in secondary): raise KeyError(key)
+    if key in primary: del primary[key]
+    if secondary is not None and key in secondary: del secondary[key]
+
 class Memory(Generic[G, L]):
     """
     Manager of global and local state. Provides a dual-scope approach to state management:
@@ -29,16 +39,8 @@ class Memory(Generic[G, L]):
     def __init__(self, _global: G, _local: Optional[L] = None):
         object.__setattr__(self, '_global', _global)
         object.__setattr__(self, '_local', _local if _local else cast(L, {}))
-    def __getattr__(self, key: str) -> Any:
-        if key in self._local:
-            return self._local[key]
-        if key in self._global:
-            return self._global[key]
-        raise AttributeError(f"'Memory' object has no attribute {key!r}")
-    def __getitem__(self, key: str) -> Any:
-        if key in self._local:
-            return self._local[key]
-        return self._global.get(key)
+    def __getattr__(self, key: str) -> Any: return _get_from_stores(key, self._local, self._global, Error=AttributeError)
+    def __getitem__(self, key: str) -> Any: return _get_from_stores(key, self._local, self._global)
     def _set_value(self, key: str, value: Any) -> None:
         assert key not in ['global', 'local', '_global', '_local', 'clone', 'create'], f"Reserved property '{key}' cannot be set"
         if key in self._local:
@@ -46,22 +48,28 @@ class Memory(Generic[G, L]):
         self._global[key] = value
     def __setattr__(self, name: str, value: Any) -> None: self._set_value(name, value)
     def __setitem__(self, key: str, value: Any) -> None: self._set_value(key, value)
+    def __delattr__(self, key: str) -> None: _delete_from_stores(key, self._global, self._local)
+    def __delitem__(self, key: str) -> None: _delete_from_stores(key, self._global, self._local)
     def __contains__(self, key: str) -> bool: return key in self._local or key in self._global
     def clone(self, forking_data: Optional[SharedStore] = None) -> 'Memory[G, L]':
         new_local = copy.deepcopy(self._local)
         new_local.update(copy.deepcopy(forking_data or {}))
-        return Memory.create(self._global, cast(L, new_local))
+        return Memory[G, L].create(self._global, cast(L, new_local))
     @property
     def local(self) -> L:
-        this = self
+        _local = self._local
         class LocalProxy:
-            def __getattr__(self, key: str) -> Any: return this._local[key]
-            def __setattr__(self, key: str, value: Any) -> None: this._local[key] = value
-            def __setitem__(self, key: str, value: Any) -> None: this._local[key] = value
-            def __getitem__(self, key: str) -> Any: return this._local[key]
-            def __contains__(self, key: str) -> bool: return key in this._local
-            def __eq__(self, other: object) -> bool: return this._local == other
-            def __repr__(self) -> str: return this._local.__repr__()
+            def __getattr__(self, key: str) -> Any: return _get_from_stores(key, _local, Error=AttributeError)
+            def __getitem__(self, key: str) -> Any: return _get_from_stores(key, _local)
+            def __setattr__(self, key: str, value: Any) -> None: _local[key] = value
+            def __setitem__(self, key: str, value: Any) -> None: _local[key] = value
+            def __delattr__(self, key: str) -> None: _delete_from_stores(key, _local)
+            def __delitem__(self, key: str) -> None: _delete_from_stores(key, _local)
+            def __contains__(self, key: str) -> bool: return key in _local
+            def __eq__(self, other: object) -> bool:
+                if isinstance(other, LocalProxy): return _local == other._local
+                return _local == other
+            def __repr__(self) -> str: return _local.__repr__()
         return cast(L, LocalProxy())
     @staticmethod
     def create(global_store: G, local_store: Optional[L] = None) -> 'Memory[G, L]':
