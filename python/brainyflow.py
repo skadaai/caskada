@@ -142,19 +142,14 @@ class BaseNode(Generic[G, L, ActionT, PrepResultT, ExecResultT], ABC):
         """Implement node_a >> node_b syntax for default action"""
         return self.next(other)
     
-    def __sub__(self, action: Action) -> ActionLinker:
+    def __sub__(self, action: Action):
         """Implement node_a - "action" syntax for action selection"""
-        return self.ActionLinker(self, action)
-    
-    class ActionLinker:
-        """Helper class for action-specific transitions"""
-        def __init__(self, node: AnyNode[G], action: Action):
-            self.node = node
-            self.action = action
-        
-        def __rshift__(self, other: AnyNode[G]) -> AnyNode[G]:
-            """Implement - "action" >> node_b syntax"""
-            return self.node.on(self.action, other)
+        that = self
+        class ActionLinker:
+            def __rshift__(self, other: AnyNode[G]) -> AnyNode[G]:
+                """Implement - "action" >> node_b syntax"""
+                return that.on(action, other)
+        return ActionLinker()
     
     def get_next_nodes(self, action: Action = DEFAULT_ACTION) -> List[AnyNode[G]]:
         """Get successor nodes for a specific action."""
