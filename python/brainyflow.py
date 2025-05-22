@@ -3,7 +3,7 @@ import asyncio
 import copy
 import warnings
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional, Tuple, Type, TypeAlias, TypeVar, Generic, Callable, Union, cast, TypedDict, Literal, overload, Awaitable, Sequence
+from typing import Any, Dict, List, Optional, Protocol, Tuple, Type, TypeAlias, TypeVar, Generic, Callable, Union, cast, TypedDict, Literal, overload, Awaitable, Sequence, runtime_checkable
 
 DEFAULT_ACTION = 'default'
 Action = str
@@ -78,8 +78,8 @@ class Memory(Generic[G, L]):
     def create(global_store: G, local_store: Optional[L] = None) -> Memory[G, L]:
         return Memory(global_store, local_store)
 
-class NodeError(Exception):
-    """Error raised during node execution with retry count information."""
+@runtime_checkable
+class NodeError(Protocol):
     retry_count: int = 0
 
 class BaseNode(Generic[G, L, ActionT, PrepResultT, ExecResultT], ABC):
@@ -228,7 +228,7 @@ class Node(BaseNode[G, L, ActionT, PrepResultT, ExecResultT]):
         self.wait = wait
         self.cur_retry = 0
     
-    async def exec_fallback(self, prep_res: PrepResultT, error: NodeError) -> ExecResultT:
+    async def exec_fallback(self, prep_res: PrepResultT, error: Exception) -> ExecResultT:
         """Called when all retry attempts fail."""
         raise error
     
@@ -239,15 +239,14 @@ class Node(BaseNode[G, L, ActionT, PrepResultT, ExecResultT]):
             try:
                 return await self.exec(prep_res)
             except Exception as error:
+                if not hasattr(error, 'retry_count'):
+                    error.retry_count = attempt + 1 # type: ignore
                 if attempt < self.max_retries - 1:
                     if self.wait > 0:
                         await asyncio.sleep(self.wait)
                     continue
-                
-                wrapped = error if isinstance(error, NodeError) else NodeError(str(error)).with_traceback(error.__traceback__)
-                wrapped.retry_count = attempt + 1
-                return await self.exec_fallback(prep_res, wrapped)
-        raise RuntimeError("Unreachable: exec_runner should have returned or raised in the loop")
+                return await self.exec_fallback(prep_res, error)
+        raise RuntimeError("Unreachable: exec_runner should have returned or raised in the loop") # This should never happen if max_retries > 0
 
 class Flow(BaseNode[G, L, ActionT, PrepResultT, ExecutionTree]):
     """
