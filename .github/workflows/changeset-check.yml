@@ -65,10 +65,10 @@ jobs:
         # Only run this step if python files were changed
         if: steps.filter.outputs.python == 'true'
         id: python-check
-        uses: changesets/action@v1
+        uses: changesets/action@v1.4.9
         continue-on-error: true
         with:
-          cwd: ./python
+          cwd: "${{ github.workspace }}/python"
           version: false
           publish: false
           setupGitUser: true
@@ -80,10 +80,10 @@ jobs:
         # Only run this step if typescript files were changed
         if: steps.filter.outputs.typescript == 'true'
         id: typescript-check
-        uses: changesets/action@v1
+        uses: changesets/action@v1.4.9
         continue-on-error: true
         with:
-          cwd: ./typescript
+          cwd: "${{ github.workspace }}/typescript"
           version: false
           publish: false
           setupGitUser: true
