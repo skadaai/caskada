@@ -60,20 +60,20 @@ class Memory(Generic[G, L]):
         return Memory[G, L].create(self._global, cast(L, new_local))
     @property
     def local(self) -> L:
-        _local = self._local
         class LocalProxy:
-            def __getattr__(self, key: str) -> Any: return _get_from_stores(key, _local, Error=AttributeError)
-            def __getitem__(self, key: str) -> Any: return _get_from_stores(key, _local)
-            def __setattr__(self, key: str, value: Any) -> None: _local[key] = value
-            def __setitem__(self, key: str, value: Any) -> None: _local[key] = value
-            def __delattr__(self, key: str) -> None: _delete_from_stores(key, _local)
-            def __delitem__(self, key: str) -> None: _delete_from_stores(key, _local)
-            def __contains__(self, key: str) -> bool: return key in _local
+            def __init__(self, store: L) -> None: self.store = store
+            def __getattr__(self, key: str) -> Any: return _get_from_stores(key, self.store, Error=AttributeError)
+            def __getitem__(self, key: str) -> Any: return _get_from_stores(key, self.store)
+            def __setattr__(self, key: str, value: Any) -> None: self.store[key] = value
+            def __setitem__(self, key: str, value: Any) -> None: self.store[key] = value
+            def __delattr__(self, key: str) -> None: _delete_from_stores(key, self.store)
+            def __delitem__(self, key: str) -> None: _delete_from_stores(key, self.store)
+            def __contains__(self, key: str) -> bool: return key in self.store
             def __eq__(self, other: object) -> bool:
-                if isinstance(other, LocalProxy): return _local == other._local
-                return _local == other
-            def __repr__(self) -> str: return _local.__repr__()
-        return cast(L, LocalProxy())
+                if isinstance(other, LocalProxy): return self.store == other.store
+                return self.store == other
+            def __repr__(self) -> str: return self.store.__repr__()
+        return cast(L, LocalProxy(self._local))
     @staticmethod
     def create(global_store: G, local_store: Optional[L] = None) -> Memory[G, L]:
         return Memory(global_store, local_store)
