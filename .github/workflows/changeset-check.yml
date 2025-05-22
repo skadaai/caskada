@@ -58,6 +58,8 @@ jobs:
           echo "Initializing pnpm project..."
           touch pnpm-workspace.yaml
           pnpm init
+          echo "Checking .changeset:"
+          ls -la .changeset
 
       - name: Check for Python changesets
         # Only run this step if python files were changed
