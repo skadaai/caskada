@@ -12,7 +12,7 @@ async def main():
     # Run flow
     print("\nWelcome to Recipe Finder!")
     print("------------------------")
-    await flow.run_async(shared)
+    await flow.run(shared)
     print("\nThanks for using Recipe Finder!")
 
 if __name__ == "__main__":

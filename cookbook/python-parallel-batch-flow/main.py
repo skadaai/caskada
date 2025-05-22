@@ -41,13 +41,13 @@ async def main():
     # Run and time batch flow
     start_time = time.time()
     print("\nRunning sequential batch flow...")
-    await batch_flow.run_async(shared)
+    await batch_flow.run(shared)
     batch_time = time.time() - start_time
     
     # Run and time parallel batch flow
     start_time = time.time()
     print("\nRunning parallel batch flow...")
-    await parallel_batch_flow.run_async(shared)
+    await parallel_batch_flow.run(shared)
     parallel_time = time.time() - start_time
     
     # Print timing results

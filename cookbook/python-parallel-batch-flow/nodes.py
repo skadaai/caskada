@@ -1,4 +1,3 @@
-"""Node implementations for image processing."""
 import os
 import asyncio
 from PIL import Image, ImageFilter
@@ -7,33 +6,33 @@ from brainyflow import Node
 
 class LoadImage(Node):
     """Node that loads an image from file."""
-    async def prep_async(self, shared):
+    async def prep(self, shared):
         """Get image path from parameters."""
         image_path = self.params["image_path"]
         print(f"Loading image: {image_path}")
         return image_path
     
-    async def exec_async(self, image_path):
+    async def exec(self, image_path):
         """Load image using PIL."""
         # Simulate I/O delay
         await asyncio.sleep(0.5)
         return Image.open(image_path)
     
-    async def post_async(self, shared, prep_res, exec_res):
+    async def post(self, shared, prep_res, exec_res):
         """Store image in shared store."""
         shared["image"] = exec_res
-        return "apply_filter"
+        self.trigger("apply_filter")
 
 class ApplyFilter(Node):
     """Node that applies a filter to an image."""
-    async def prep_async(self, shared):
+    async def prep(self, shared):
         """Get image and filter type."""
         image = shared["image"]
         filter_type = self.params["filter"]
         print(f"Applying {filter_type} filter...")
         return image, filter_type
     
-    async def exec_async(self, inputs):
+    async def exec(self, inputs):
         """Apply the specified filter."""
         image, filter_type = inputs
         
@@ -58,14 +57,14 @@ class ApplyFilter(Node):
         else:
             raise ValueError(f"Unknown filter: {filter_type}")
     
-    async def post_async(self, shared, prep_res, exec_res):
+    async def post(self, shared, prep_res, exec_res):
         """Store filtered image."""
         shared["filtered_image"] = exec_res
-        return "save"
+        self.trigger("save")
 
 class SaveImage(Node):
     """Node that saves the processed image."""
-    async def prep_async(self, shared):
+    async def prep(self, shared):
         """Prepare output path."""
         image = shared["filtered_image"]
         base_name = os.path.splitext(os.path.basename(self.params["image_path"]))[0]
@@ -77,7 +76,7 @@ class SaveImage(Node):
         
         return image, output_path
     
-    async def exec_async(self, inputs):
+    async def exec(self, inputs):
         """Save the image."""
         image, output_path = inputs
         
@@ -87,7 +86,6 @@ class SaveImage(Node):
         image.save(output_path)
         return output_path
     
-    async def post_async(self, shared, prep_res, exec_res):
+    async def post(self, shared, prep_res, exec_res):
         """Print success message."""
         print(f"Saved: {exec_res}")
-        return "default" 

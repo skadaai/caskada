@@ -28,18 +28,15 @@ A web crawler tool built with BrainyFlow that crawls websites and analyzes conte
 ## Usage
 
 Run the crawler:
-
 ```bash
 python main.py
 ```
 
 You will be prompted to:
-
 1. Enter the website URL to crawl
 2. Specify maximum number of pages to crawl (default: 10)
 
 The tool will then:
-
 1. Crawl the specified website
 2. Extract and analyze content using GPT-4
 3. Generate a report with findings
@@ -47,7 +44,7 @@ The tool will then:
 ## Project Structure
 
 ```
-python-tool-crawler/
+brainyflow-tool-crawler/
 ├── tools/
 │   ├── crawler.py     # Web crawling functionality
 │   └── parser.py      # Content analysis using LLM

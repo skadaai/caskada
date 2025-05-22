@@ -1,19 +1,18 @@
-# BrainyFlow Batch Processing Example (Fan-Out Pattern with Nested Flow)
+# BrainyFlow batch Flow Example
 
-This example demonstrates how to process multiple images with different filters using a fan-out pattern with standard BrainyFlow Nodes and a nested Flow orchestrated by a ParallelFlow. This replaces the older `SequentialBatchFlow` approach.
+This example demonstrates the batch Flow concept in BrainyFlow by implementing an image processor that applies different filters to multiple images.
 
 ## What this Example Demonstrates
 
-- How to process multiple items by triggering a sub-flow for each item.
-- Implementing a fan-out pattern to distribute work to a nested Flow.
-- Using a `ParallelFlow` to run multiple instances of a sub-flow concurrently.
-- Using `Memory` for state management, including passing data to nested flows via `forkingData`.
-- Using explicit `trigger()` calls for flow control.
+- How to use batch Flow to run a Flow multiple times with different parameters
+- Key concepts of batch Flow:
+  1. Creating a base Flow for single-item processing
+  2. Using batch Flow to process multiple items with different parameters
+  3. Managing parameters across multiple Flow executions
 
 ## Project Structure
-
 ```
-python-batch-flow/
+brainyflow-batch-flow/
 ├── README.md
 ├── requirements.txt
 ├── images/
@@ -21,30 +20,23 @@ python-batch-flow/
 │   ├── dog.jpg        # Sample image 2
 │   └── bird.jpg       # Sample image 3
 ├── main.py            # Entry point
-├── flow.py            # Main Flow and sub-flow definitions
+├── flow.py            # Flow and batch Flow definitions
 └── nodes.py           # Node implementations for image processing
 ```
 
 ## How it Works
 
-The example processes multiple images with different filters using a main flow orchestrated by a `ParallelFlow` and a nested sub-flow:
+The example processes multiple images with different filters:
 
-```mermaid
-flowchart LR
-    trigger[TriggerImageProcessingNode] -->|process_image| image_flow[Image Processing Sub-Flow]
+1. **Base Flow**: Processes a single image
+   - Load image
+   - Apply filter (grayscale, blur, or sepia)
+   - Save processed image
 
-    subgraph image_flow["Image Processing Sub-Flow"]
-        load[Load Image] --> filter[Apply Filter] --> save[Save Image]
-    end
-```
-
-Here's what each part does:
-
-1.  **`Image Processing Sub-Flow`**: This is a standard `Flow` that handles the processing of a _single_ image with a _single_ filter. It consists of `LoadImage`, `ApplyFilter`, and `SaveImage` nodes.
-2.  **`TriggerImageProcessingNode` (Main Flow)**: This node is part of the main flow. It reads the list of images and filters from memory, generates all image-filter combinations, and then triggers the `image_processing_sub_flow` for _each_ combination using the `process_image` action and passing the specific image name and filter type via `forkingData`.
-3.  **`ParallelFlow` (Main Flow Orchestration)**: The main flow is a `ParallelFlow` starting with the `TriggerImageProcessingNode`. This ensures that all the triggered instances of the `image_processing_sub_flow` run concurrently.
-
-This pattern demonstrates how BrainyFlow can efficiently process multiple related tasks concurrently by fanning out work to nested flows, replacing the need for specialized batch flow types.
+2. **batch Flow**: Processes multiple image-filter combinations
+   - Takes a list of parameters (image + filter combinations)
+   - Runs the base Flow for each parameter set
+   - Organizes output in a structured way
 
 ## Installation
 
@@ -61,20 +53,20 @@ python main.py
 ## Sample Output
 
 ```
-Trigger: Triggering processing for 9 image-filter combinations.
 Processing images with filters...
-Saved filtered image to: output/cat_grayscale.jpg
-Saved filtered image to: output/dog_blur.jpg
-Saved filtered image to: output/bird_sepia.jpg
+
+Processing cat.jpg with grayscale filter...
+Processing cat.jpg with blur filter...
+Processing dog.jpg with sepia filter...
 ...
-All image processing complete!
+
+All images processed successfully!
 Check the 'output' directory for results.
 ```
 
 ## Key Concepts Illustrated
 
-1.  **Fan-Out Pattern**: Shows how to distribute work across multiple instances of a sub-flow.
-2.  **Concurrent Processing**: Demonstrates using `ParallelFlow` to run nested flows concurrently.
-3.  **Nested Flows**: Illustrates using a `Flow` as a node within another `Flow`.
-4.  **Memory Management**: Shows how `Memory` is used for global state and how `forkingData` passes local state to nested flows.
-5.  **Explicit Triggers**: Shows how `self.trigger()` is used for flow control and passing data via `forkingData`.
+1. **Parameter Management**: Shows how batch Flow manages different parameter sets
+2. **Flow Reuse**: Demonstrates running the same Flow multiple times
+3. **Batch Processing**: Shows how to process multiple items efficiently
+4. **Real-world Application**: Provides a practical example of batch processing 

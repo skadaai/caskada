@@ -1,0 +1,5 @@
+brainyflow>=1.0.0
+anthropic>=0.15.0
+python-dotenv
+httpx
+aiofiles 

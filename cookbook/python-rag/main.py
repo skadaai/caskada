@@ -1,5 +1,4 @@
 import sys
-import asyncio
 from flow import offline_flow, online_flow
 
 async def run_rag_demo():
@@ -84,4 +83,5 @@ async def run_rag_demo():
 
 
 if __name__ == "__main__":
-    run_rag_demo()
+    import asyncio
+    asyncio.run(run_rag_demo())

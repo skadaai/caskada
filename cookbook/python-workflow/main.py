@@ -1,6 +1,7 @@
+import asyncio
 from flow import create_article_flow
 
-def run_flow(topic="AI Safety"):
+async def run_flow(topic="AI Safety"):
     """
     Run the article writing workflow with a specific topic
     
@@ -34,4 +35,4 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         topic = " ".join(sys.argv[1:])
     
-    run_flow(topic)
+    asyncio.run(run_flow(topic)) 

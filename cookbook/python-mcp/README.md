@@ -2,20 +2,21 @@
 
 This project shows how to build an agent that performs addition using BrainyFlow and Model Context Protocol (MCP). It presents a comparison between using MCP and basic function calling approaches.
 
+This implementation is based on this tutorial (for Pocketflow): [MCP Simply Explained: Function Calling Rebranded or Genuine Breakthrough?](https://zacharyhuang.substack.com/p/mcp-simply-explained-function-calling)
+
 ## Features
 
-- Addition operations through a simple terminal interface
+- Mathematical operation tools through a simple terminal interface
 - Integration with Model Context Protocol (MCP)
 - Comparison between MCP and direct function calling
+- **Simple toggle** between MCP and local function calling
 
 ## How to Run
 
 1. Set your API key:
-
    ```bash
    export OPENAI_API_KEY="your-api-key-here"
    ```
-
    Or update it directly in `utils.py`
 
 2. Install and run:
@@ -28,20 +29,19 @@ This project shows how to build an agent that performs addition using BrainyFlow
 
 To compare both approaches, this demo provides local function alternatives that don't require MCP:
 
-- To use traditional function calling instead of MCP, replace:
-  - `get_tools()` with `local_get_tools()`
-  - `call_tool()` with `local_call_tool()`
+- **Toggle with a simple flag:** Set `MCP = True` or `MCP = False` at the top of `utils.py` to switch between MCP and local implementations.
+- No code changes needed! The application automatically uses either:
+  - MCP server tools when `MCP = True`
+  - Local function implementations when `MCP = False`
 
 This allows you to see the difference between the two approaches while keeping the same workflow.
 
 ### Function Calling
-
 - Functions are directly embedded in application code
 - Each new tool requires modifying the application
 - Tools are defined within the application itself
 
 ### MCP Approach
-
 - Tools live in separate MCP servers
 - Standard protocol for all tool interactions
 - New tools can be added without changing the agent
@@ -56,9 +56,8 @@ flowchart LR
 ```
 
 The agent uses BrainyFlow to create a workflow where:
-
 1. It takes user input about numbers
-2. Connects to the MCP server for addition operations
+2. Connects to the MCP server for mathematical operations (or uses local functions based on the `MCP` flag)
 3. Returns the result
 
 ## Files

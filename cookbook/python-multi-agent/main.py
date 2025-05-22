@@ -3,14 +3,14 @@ from brainyflow import Node, Flow
 from utils import call_llm
 
 class AsyncHinter(Node):
-    async def prep_async(self, shared):
+    async def prep(self, shared):
         # Wait for message from guesser (or empty string at start)
         guess = await shared["hinter_queue"].get()
         if guess == "GAME_OVER":
             return None
-        return shared["target_word"], shared["forbidden_words"], shared.get("past_guesses", [])
+        return shared["target_word"], shared["forbidden_words"], getattr(shared, "past_guesses", [])
 
-    async def exec_async(self, inputs):
+    async def exec(self, inputs):
         if inputs is None:
             return None
         target, forbidden, past_guesses = inputs
@@ -23,32 +23,32 @@ class AsyncHinter(Node):
         print(f"\nHinter: Here's your hint - {hint}")
         return hint
 
-    async def post_async(self, shared, prep_res, exec_res):
+    async def post(self, shared, prep_res, exec_res):
         if exec_res is None:
             return "end"
         # Send hint to guesser
         await shared["guesser_queue"].put(exec_res)
-        return "continue"
+        self.trigger("continue")
 
 class AsyncGuesser(Node):
-    async def prep_async(self, shared):
+    async def prep(self, shared):
         # Wait for hint from hinter
         hint = await shared["guesser_queue"].get()
-        return hint, shared.get("past_guesses", [])
+        return hint, getattr(shared, "past_guesses", [])
 
-    async def exec_async(self, inputs):
+    async def exec(self, inputs):
         hint, past_guesses = inputs
         prompt = f"Given hint: {hint}, past wrong guesses: {past_guesses}, make a new guess. Directly reply a single word:"
         guess = call_llm(prompt)
         print(f"Guesser: I guess it's - {guess}")
         return guess
 
-    async def post_async(self, shared, prep_res, exec_res):
+    async def post(self, shared, prep_res, exec_res):
         # Check if guess is correct
         if exec_res.lower() == shared["target_word"].lower():
             print("Game Over - Correct guess!")
             await shared["hinter_queue"].put("GAME_OVER")
-            return "end"
+            return self.trigger("end")
             
         # Store the guess in shared state
         if "past_guesses" not in shared:
@@ -57,7 +57,7 @@ class AsyncGuesser(Node):
         
         # Send guess to hinter
         await shared["hinter_queue"].put(exec_res)
-        return "continue"
+        self.trigger("continue")
 
 async def main():
     # Set up game
@@ -90,8 +90,8 @@ async def main():
 
     # Run both agents concurrently
     await asyncio.gather(
-        hinter_flow.run_async(shared),
-        guesser_flow.run_async(shared)
+        hinter_flow.run(shared),
+        guesser_flow.run(shared)
     )
     
     print("=========== Game Complete! ===========")

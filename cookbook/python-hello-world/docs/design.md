@@ -1,8 +1,7 @@
 # Your Project Title
 
 ## Project Requirements
-
-A description of the project requirements.
+A description of the project requirements. 
 
 ## Utility Functions
 
@@ -24,7 +23,7 @@ flowchart TD
 
 ## Data Structure
 
-The global memory structure will be organized as follows:
+The shared memory structure will be organized as follows:
 
 ```python
 shared = {
@@ -35,16 +34,14 @@ shared = {
 ## Node Designs
 
 ### 1. First Node
-
 - **Purpose**: What the node does
-- **Design**: Regular Node (no Batch)
+- **Design**: Regular Node (no batch)
 - **Data Access**:
   - Read: `memory.key` from global memory
   - Write: `memory.key = value` to global memory
 - **Flow Control**: Uses `self.trigger("action_name")` to transition to the next node.
 
 ### 2. Second Node
-
 ...
 
 ### 3. Third Node

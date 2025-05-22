@@ -33,4 +33,5 @@ async def main():
     await flow.run(shared)
 
 if __name__ == "__main__":
-    asyncio.run(main()) 
+    import asyncio
+    asyncio.run(main())

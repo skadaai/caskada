@@ -1,5 +1,4 @@
 import os
-import asyncio
 from PIL import Image
 import numpy as np
 from flow import create_flow
@@ -15,4 +14,5 @@ async def main():
     print("Check the 'output' directory for results.")
 
 if __name__ == "__main__":
-    asyncio.run(main()) 
+    import asyncio
+    asyncio.run(main())

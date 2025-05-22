@@ -34,7 +34,7 @@ A BrainyFlow example project demonstrating PDF processing with OpenAI's Vision A
 ## Project Structure
 
 ```
-python-tool-pdf-vision/
+brainyflow-tool-pdf-vision/
 ├── pdfs/           # Directory for PDF files to process
 ├── tools/
 │   ├── pdf.py     # PDF to image conversion
@@ -48,16 +48,13 @@ python-tool-pdf-vision/
 
 ## Flow Description
 
-1. **TriggerPDFProcessingNode**: Lists PDFs in the directory and triggers a sub-flow for each PDF.
-2. **Single PDF Flow (Nested)**: A sub-flow containing:
-   - **LoadPDFNode**: Loads PDF and converts pages to images.
-   - **ExtractTextNode**: Processes images with Vision API.
-   - **CombineResultsNode**: Combines extracted text from all pages and stores the result in the global memory.
-3. **AggregatePDFResultsNode**: Collects results from all processed PDFs and generates a final output.
+1. **LoadPDFNode**: Loads PDF and converts pages to images
+2. **ExtractTextNode**: Processes images with Vision API
+3. **CombineResultsNode**: Combines extracted text from all pages
 
 ## Customization
 
-You can customize the extraction by modifying the prompt in the initial `memory` object passed to the flow:
+You can customize the extraction by modifying the prompt in `shared`:
 
 ```python
 shared = {

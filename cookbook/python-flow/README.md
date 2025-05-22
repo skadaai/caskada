@@ -38,7 +38,6 @@ graph TD
 ```
 
 Here's what each part does:
-
 1. **TextInput Node**: Collects text input and handles menu choices
 2. **TextTransform Node**: Applies the selected transformation to the text
 
@@ -59,7 +58,7 @@ Choose transformation:
 
 Your choice (1-5): 1
 
-Result: BrainyFlow IS A 100-LINE LLM FRAMEWORK
+Result: BRAINYFLOW IS A 100-LINE LLM FRAMEWORK
 
 Convert another text? (y/n): n
 

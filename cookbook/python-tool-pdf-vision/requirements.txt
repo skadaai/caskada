@@ -1,4 +1,4 @@
-brainyflow>=0.1.0
+brainyflow>=1.0.0
 openai>=1.0.0
 PyMuPDF>=1.22.0  # for PDF processing
 Pillow>=10.0.0   # for image processing
