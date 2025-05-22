@@ -174,7 +174,7 @@ We would like to extend our deepest gratitude to the creators and contributors o
 
 We're looking for contributors for all aspects of the project. Whether you're interested in documentation, testing, or implementing features, we'd love your help!
 
-Get involved by joining our Discord server!
+Get involved by joining our [Discord server](https://discord.gg/N9mVvxRXyH).
 
 ## Liability Disclaimer
 
