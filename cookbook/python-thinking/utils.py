@@ -5,7 +5,7 @@ def call_llm(prompt):
     client = Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY", "your-api-key"))
     response = client.messages.create(
         model="claude-3-7-sonnet-20250219",
-        max_tokens=1000,
+        max_tokens=6000,
         messages=[
             {"role": "user", "content": prompt}
         ]

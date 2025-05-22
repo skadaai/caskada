@@ -1,11 +1,12 @@
-from brainyflow import Node, Memory # Import Memory
+import re
+from brainyflow import Node
 from utils import call_llm
 import yaml
 
 class GenerateOutline(Node):
-    async def prep(self, memory: Memory): # Use memory and add type hint
-        return memory.topic if hasattr(memory, 'topic') else "" # Use property access
-
+    async def prep(self, shared):
+        return shared["topic"]
+    
     async def exec(self, topic):
         prompt = f"""
 Create a simple outline for an article about {topic}.
@@ -15,45 +16,54 @@ Output the sections in YAML format as shown below:
 
 ```yaml
 sections:
-    - First section
-    - Second section
-    - Third section
-```"""
+    - |
+        First section 
+    - |
+        Second section
+    - |
+        Third section
+```
+
+IMPORTANT: Make sure to:
+1. Use proper indentation (4 spaces) for all multi-line fields
+2. Use the | character for multi-line text fields
+3. Keep single-line fields without the | character
+4. Your answer must be wrapped in yaml code block or it will result in an error. Do not forget to include the ```yaml sequence at the beginning and end it with ```.
+"""
         response = call_llm(prompt)
+        assert "```yaml" in response, "Response must contain yaml block"
         yaml_str = response.split("```yaml")[1].split("```")[0].strip()
         structured_result = yaml.safe_load(yaml_str)
         return structured_result
     
-    async def post(self, memory: Memory, prep_res, exec_res): # Use memory and add type hint
+    async def post(self, shared, prep_res, exec_res):
         # Store the structured data
-        memory.outline_yaml = exec_res # Use property access
-
+        shared["outline_yaml"] = exec_res
+        
         # Extract sections
-        sections = exec_res.get("sections", []) # Use .get for safety
-        memory.sections = sections # Use property access
-
+        sections = exec_res["sections"]
+        shared["sections"] = sections
+        
         # Format for display
         formatted_outline = "\n".join([f"{i+1}. {section}" for i, section in enumerate(sections)])
-        memory.outline = formatted_outline # Use property access
-
+        shared["outline"] = formatted_outline
+        
         # Display the results
         print("\n===== OUTLINE (YAML) =====\n")
         print(yaml.dump(exec_res, default_flow_style=False))
         print("\n===== PARSED OUTLINE =====\n")
         print(formatted_outline)
         print("\n=========================\n")
-
-        self.trigger("default") # Use trigger
-
+        
 class WriteSimpleContent(Node):
-    async def prep(self, memory: Memory): # Use memory and add type hint
+    async def prep(self, shared):
         # Get the list of sections to process
-        return memory.sections if hasattr(memory, 'sections') else [] # Use property access
-
+        return getattr(shared, "sections", [])
+    
     async def exec(self, sections):
         all_sections_content = []
         section_contents = {}
-
+        
         for section in sections:
             prompt = f"""
 Write a short paragraph (MAXIMUM 100 WORDS) about this section:
@@ -69,42 +79,39 @@ Requirements:
             content = call_llm(prompt)
             section_contents[section] = content
             all_sections_content.append(f"## {section}\n\n{content}\n")
-
+        
         return sections, section_contents, "\n".join(all_sections_content)
-
-    async def post(self, memory: Memory, prep_res, exec_res): # Use memory and add type hint
+    
+    async def post(self, shared, prep_res, exec_res):
         sections, section_contents, draft = exec_res
-
+        
         # Store the section contents and draft
-        memory.section_contents = section_contents # Use property access
-        memory.draft = draft # Use property access
-
+        shared["section_contents"] = section_contents
+        shared["draft"] = draft
+        
         print("\n===== SECTION CONTENTS =====\n")
         for section, content in section_contents.items():
             print(f"--- {section} ---")
             print(content)
             print()
         print("===========================\n")
-
-        self.trigger("default") # Use trigger
-
+        
 class ApplyStyle(Node):
-    """Node to apply a specific style to the article draft.""" # Add docstring
-    async def prep(self, memory: Memory): # Use memory and add type hint
+    async def prep(self, shared):
         """
-        Get the draft from memory
+        Get the draft from shared data
         """
-        return memory.draft if hasattr(memory, 'draft') else "" # Use property access
-
+        return shared["draft"]
+    
     async def exec(self, draft):
         """
         Apply a specific style to the article
         """
         prompt = f"""
         Rewrite the following draft in a conversational, engaging style:
-
+        
         {draft}
-
+        
         Make it:
         - Conversational and warm in tone
         - Include rhetorical questions that engage the reader
@@ -112,13 +119,12 @@ class ApplyStyle(Node):
         - Include a strong opening and conclusion
         """
         return call_llm(prompt)
-
-    async def post(self, memory: Memory, prep_res, exec_res):
+    
+    async def post(self, shared, prep_res, exec_res):
         """
-        Store the final article in memory
+        Store the final article in shared data
         """
-        memory.final_article = exec_res
+        shared["final_article"] = exec_res
         print("\n===== FINAL ARTICLE =====\n")
         print(exec_res)
         print("\n========================\n")
-        self.trigger("default") # Use trigger

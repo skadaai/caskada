@@ -1,2 +1,2 @@
-brainyflow>=0.1.0
+brainyflow>=1.0.0
 python-dotenv>=0.19.0

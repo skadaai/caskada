@@ -42,10 +42,17 @@ follow_up_queries:
     - query 1
     - query 2
 ```
+
+IMPORTANT: Make sure to:
+1. Use proper indentation (4 spaces) for all multi-line fields
+2. Use the | character for multi-line text fields
+3. Keep single-line fields without the | character
+4. Your answer must be wrapped in yaml code block or it will result in an error. Do not forget to include the ```yaml sequence at the beginning and end it with ```.
 """
     
     try:
         response = call_llm(prompt)
+        assert "```yaml" in response, "Response must contain yaml block"
         # Extract YAML between code fences
         yaml_str = response.split("```yaml")[1].split("```")[0].strip()
         

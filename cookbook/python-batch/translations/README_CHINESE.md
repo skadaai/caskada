@@ -1,117 +1,178 @@
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://cdn.jsdelivr.net/gh/zvictor/brainyflow@main/.github/media/logo-dark.png">
+    <source media="(prefers-color-scheme: light)" srcset="https://cdn.jsdelivr.net/gh/zvictor/brainyflow@main/.github/media/logo-light.png">
+    <img width="280" alt="Brainyflow 标志" src="https://cdn.jsdelivr.net/gh/zvictor/brainyflow@main/.github/media/logo-light.png">
+  </picture>
+<p>
+
+<p align="center">
+  一个极简主义AI框架（仅<a href="https://github.com/zvictor/BrainyFlow/blob/main/python/brainyflow.py">200行Python代码</a>！🤯）
+
+  <br />
+  用最少的代码构建强大的AI代理，享受最大自由。
+  <br />
+  <sub>让代理构建代理，零膨胀、零依赖、零供应商锁定 😮</sub>
+</p>
+
+<p align="center">
+
+  <a href="https://pypi.org/project/brainyflow">
+   <img src="https://img.shields.io/pypi/dw/brainyflow?logo=python&label=Python&style=flat-square" alt="python 版本">
+  </a>
+  <a href="https://npmjs.com/packages/brainyflow">
+   <img src="https://img.shields.io/npm/d18m/brainyflow?logo=typescript&label=Typescript&style=flat-square" alt="typescript 版本">
+  </a>
+  <a href="https://discord.gg/N9mVvxRXyH">
+    <img src="https://img.shields.io/discord/1346833819172601907?logo=discord&style=flat-square" alt="Discord">
+  </a>
+  <a href="https://github.com/zvictor/brainyflow">
+    <img src="https://img.shields.io/github/stars/zvictor/BrainyFlow?logo=github&style=flat-square" alt="GitHub 仓库">
+  </a>
+  <a href="https://github.com/sponsors/zvictor">
+    <img src="https://img.shields.io/github/sponsors/zvictor?logo=github&style=flat-square" alt="GitHub 赞助">
+  </a>
+</p>
+
+BrainyFlow 是通过强大抽象实现 _代理编程_ 的框架。
+
+它为构建基于 _嵌套有向图与共享状态_ 的复杂AI应用提供了简单接口，使人类和AI助手能高效协作设计和实现AI系统。
+
+## 特性
+
+- **智商友好 🧠**：对人和AI助手都直观
+- **极简设计 ✨**：核心抽象仅_200行代码_
+- **自由 🔓**：零膨胀、零依赖、零供应商锁定
+- **可组合 🧩**：用简单可复用组件构建复杂系统
+- **强大 🦾**：支持你喜爱的一切——([多](https://brainy.gitbook.io/flow/design_pattern/multi_agent))[代理](https://brainy.gitbook.io/flow/design_pattern/agent)、[工作流](https://brainy.gitbook.io/flow/design_pattern/workflow)、[RAG](https://brainy.gitbook.io/flow/design_pattern/rag)等
+- **代理编程 🤖**：专为AI辅助开发设计
+- **通用 🌈**：兼容任何LLM供应商或API
+- **多语言 🌍**： <!-- gitbook-ignore-start --><a href="https://pypi.org/project/brainyflow"><img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/python.svg" width="16" height="16" alt="Python 标志" style="vertical-align: middle; margin: 0 2px;"></a><!-- gitbook-ignore-end --> Python 和 <!-- gitbook-ignore-start --><a href="https://npmjs.com/packages/brainyflow"><img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/typescript.svg" width="16" height="16" alt="Typescript 标志" style="vertical-align: middle; margin: 0 2px;"></a><!-- gitbook-ignore-end --> Typescript 皆支持
+
+![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
+
+<!-- gitbook-ignore-start -->
+
+## 文档
+
+我们的文档适合碳基和硅基生命。<br />
+请根据你的_存在形态_或_被灌输的认知_选择：
+
+\>> [我是碳基生命 🐥](https://brainy.gitbook.io/flow/introduction/getting_started) <<
+
+\>> [我是硅基生命 🤖](https://flow.brainy.sh/docs.txt) <<
+
+![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
+
+<!-- gitbook-ignore-end -->
+
+## 为什么选择 Brainy Flow?
+
+现有LLM框架太臃肿... 其实200行就能实现强大的LLM框架!
+
 <div align="center">
-  <img src="https://github.com/zvictor/BrainyFlow/raw/main/.github/media/banner-light.jpg" width="600"/>
+  <img src="https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/meme.jpg" width="500"/>
+
+|                                                                                                                                                                                                                | **抽象层** |                     **应用特定封装**                      |                       **供应商特定封装**                       |                **代码行数**                 |                  **体积**                   |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------: | :----------------------------------------------------------------: | :----------------------------------------------------------------------: | :--------------------------------------: | :-----------------------------------------: |
+| LangChain                                                                                                                                                                                                      |  代理、链式  |      多 <br><sup><sub>(如QA、摘要)</sub></sup>      |      多 <br><sup><sub>(如OpenAI、Pinecone等)</sub></sup>       |                   405K                   |                   +166MB                    |
+| CrewAI                                                                                                                                                                                                         |  代理、链式  | 多 <br><sup><sub>(如FileReadTool、SerperDevTool)</sub></sup> | 多 <br><sup><sub>(如OpenAI、Anthropic、Pinecone等)</sub></sup> |                   18K                    |                   +173MB                    |
+| SmolAgent                                                                                                                                                                                                      |      代理      |   部分 <br><sup><sub>(如CodeAgent、VisitWebTool)</sub></sup>   |  部分 <br><sup><sub>(如DuckDuckGo、Hugging Face等)</sub></sup>   |                    8K                    |                   +198MB                    |
+| LangGraph                                                                                                                                                                                                      |  代理、图  |       部分 <br><sup><sub>(如语义搜索)</sub></sup>       | 部分 <br><sup><sub>(如PostgresStore、SqliteSaver等)</sub></sup> |                   37K                    |                    +51MB                    |
+| AutoGen                                                                                                                                                                                                        |      代理      |   部分 <br><sup><sub>(如工具代理、聊天代理)</sub></sup>    | 多 <sup><sub>[可选]<br> (如OpenAI、Pinecone等)</sub></sup> | 7K <br><sup><sub>(仅核心)</sub></sup> | +26MB <br><sup><sub>(仅核心)</sub></sup> |
+| **BrainyFlow** <!-- gitbook-ignore-start --><img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/typescript.svg" width="16" height="16" alt="Typescript 标志"><!-- gitbook-ignore-end -->.ts |    **图**    |                              **无**                              |                                 **无**                                 |                 **300**                  |                 **几KB**                  |
+| **BrainyFlow** <!-- gitbook-ignore-start --><img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/python.svg" width="16" height="16" alt="Python 标志"><!-- gitbook-ignore-end -->.py         |    **图**    |                              **无**                              |                                 **无**                                 |                 **200**                  |                 **几KB**                  |
+
 </div>
 
-![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
-[![Docs](https://img.shields.io/badge/docs-latest-blue)](https://brainy.gitbook.io/flow/)
-<a href="https://discord.gg/N9mVvxRXyH">
-<img src="https://img.shields.io/discord/1346833819172601907?logo=discord&style=flat">
-</a>
+![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
 
-BrainyFlow 是一个[仅有100行代码](https://github.com/zvictor/BrainyFlow/blob/main/python/__init__.py)的极简主义LLM框架
+## BrainyFlow如何工作?
 
-- **轻量级**：仅100行代码。零臃肿，零依赖，零供应商锁定。
-- **表达力强**：包含你喜爱的一切——([多](https://brainy.gitbook.io/flow/design_pattern/multi_agent))[智能体](https://brainy.gitbook.io/flow/design_pattern/agent)、[工作流](https://brainy.gitbook.io/flow/design_pattern/workflow)、[RAG](https://brainy.gitbook.io/flow/design_pattern/rag)等等。
-
-- **[智能体编程](https://zacharyhuang.substack.com/p/agentic-coding-the-most-fun-way-to)**：让AI智能体（例如Cursor AI）构建智能体——生产力提升10倍！
-
-- 安装方式：`pip install brainyflow`或者直接复制[源代码](https://github.com/zvictor/BrainyFlow/blob/main/python/__init__.py)（仅100行）。
-- 了解更多，请查看[文档](https://brainy.gitbook.io/flow/)。了解开发动机，阅读[故事](https://zacharyhuang.substack.com/p/i-built-an-llm-framework-in-just)。
-- 🎉 加入我们的[Discord社区](https://discord.gg/N9mVvxRXyH)！
-
-- 🎉 感谢[@zvictor](https://www.github.com/zvictor)、[@jackylee941130](https://www.github.com/jackylee941130)和[@ZebraRoy](https://www.github.com/ZebraRoy)，我们现在有了[TypeScript版本](https://github.com/The-Pocket/PocketFlow-Typescript)！
-
-## 为什么选择BrainyFlow？
-
-当前的LLM框架过于臃肿... LLM框架只需要100行代码就够了！
-
-<div align="center">
-  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/meme.jpg" width="400"/>
-
-|                | **抽象概念** |                        **特定应用包装器**                        |                         **特定厂商包装器**                         |             **代码行数**              |                 **大小**                 |
-| -------------- | :----------: | :--------------------------------------------------------------: | :----------------------------------------------------------------: | :-----------------------------------: | :--------------------------------------: |
-| LangChain      |  智能体, 链  |         很多 <br><sup><sub>(例如问答, 摘要)</sub></sup>          |      很多 <br><sup><sub>(例如OpenAI, Pinecone等)</sub></sup>       |                 405K                  |                  +166MB                  |
-| CrewAI         |  智能体, 链  | 很多 <br><sup><sub>(例如FileReadTool, SerperDevTool)</sub></sup> | 很多 <br><sup><sub>(例如OpenAI, Anthropic, Pinecone等)</sub></sup> |                  18K                  |                  +173MB                  |
-| SmolAgent      |    智能体    |   一些 <br><sup><sub>(例如CodeAgent, VisitWebTool)</sub></sup>   |  一些 <br><sup><sub>(例如DuckDuckGo, Hugging Face等)</sub></sup>   |                  8K                   |                  +198MB                  |
-| LangGraph      |  智能体, 图  |          一些 <br><sup><sub>(例如语义搜索)</sub></sup>           | 一些 <br><sup><sub>(例如PostgresStore, SqliteSaver等) </sub></sup> |                  37K                  |                  +51MB                   |
-| AutoGen        |    智能体    |   一些 <br><sup><sub>(例如Tool Agent, Chat Agent)</sub></sup>    |   很多 <sup><sub>[可选]<br> (例如OpenAI, Pinecone等)</sub></sup>   | 7K <br><sup><sub>(仅核心)</sub></sup> | +26MB <br><sup><sub>(仅核心)</sub></sup> |
-| **BrainyFlow** |    **图**    |                              **无**                              |                               **无**                               |                **100**                |                **+56KB**                 |
-
-</div>
-
-## BrainyFlow如何工作？
-
-这[100行代码](https://github.com/zvictor/BrainyFlow/blob/main/python/__init__.py)捕获了LLM框架的核心抽象：图！
+<a href="https://github.com/zvictor/BrainyFlow/blob/main/python/brainyflow.py"><!-- gitbook-ignore-start --><img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/python.svg" width="16" height="16" alt="Python 标志" style="vertical-align: middle; margin: 0 2px;"> <!-- gitbook-ignore-end -->Python</a> 或 <a href="https://github.com/zvictor/BrainyFlow/blob/main/typescript/brainyflow.ts"><!-- gitbook-ignore-start --><img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/typescript.svg" width="16" height="16" alt="Typescript 标志" style="vertical-align: middle; margin: 0 2px;"> <!-- gitbook-ignore-end -->Typescript</a> 单文件实现LLM框架核心抽象：图!
 <br>
 
 <div align="center">
-  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/abstraction.jpg" width="900"/>
+  <img src="https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/abstraction.jpg" width="1300"/>
 </div>
 <br>
 
-基于此，易于实现流行的设计模式，如([多](https://brainy.gitbook.io/flow/design_pattern/multi_agent))[智能体](https://brainy.gitbook.io/flow/design_pattern/agent)、[工作流](https://brainy.gitbook.io/flow/design_pattern/workflow)、[RAG](https://brainy.gitbook.io/flow/design_pattern/rag)等。
+- [节点](https://brainy.gitbook.io/flow/core_abstraction/node)通过生命周期(`准备`→`执行`→`后处理`)处理简单(LLM)任务
+- [流程](https://brainy.gitbook.io/flow/core_abstraction/flow)通过**动作**(带标签边)连接节点，协调执行
+- [内存](https://brainy.gitbook.io/flow/core_abstraction/memory)管理共享(`全局`)和隔离(`本地`)状态，实现节点间通信
+
+由此可轻松实现所有流行设计模式：
 <br>
 
 <div align="center">
-  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/design.jpg" width="900"/>
+  <img src="https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/design.jpg" width="1300"/>
 </div>
 <br>
-✨ 以下是基础教程：
+
+- [代理](https://brainy.gitbook.io/flow/design_pattern/agent)基于上下文自主决策
+- [工作流](https://brainy.gitbook.io/flow/design_pattern/workflow)将多个任务串联成顺序管道
+- [RAG](https://brainy.gitbook.io/flow/design_pattern/rag)整合数据检索与生成
+- [Map Reduce](https://brainy.gitbook.io/flow/design_pattern/mapreduce)将数据任务拆分为映射和归约步骤
+- [结构化输出](https://brainy.gitbook.io/flow/design_pattern/structure)保持输出格式一致
+- [多代理](https://brainy.gitbook.io/flow/design_pattern/multi_agent)协调多个代理协作
+
+![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
+
+## 教程
 
 <div align="center">
   
 |  名称  | 难度    |  描述  |  
 | :-------------:  | :-------------: | :--------------------- |  
-| [聊天](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-chat) | ☆☆☆ <br> *简单*   | 带有会话历史的基础聊天机器人 |
-| [结构化输出](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-structured-output) | ☆☆☆ <br> *简单* | 通过提示从简历中提取结构化数据 |
-| [工作流](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-workflow) | ☆☆☆ <br> *简单*   | 能够概述、撰写内容并应用样式的写作工作流 |
-| [智能体](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-agent) | ☆☆☆ <br> *简单*   | 能够搜索网络并回答问题的研究智能体 |
-| [RAG](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-rag) | ☆☆☆ <br> *简单*   | 简单的检索增强生成过程 |
-| [Map-Reduce](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-map-reduce) | ☆☆☆ <br> *简单* | 使用map-reduce模式进行批量评估的简历资格处理器 |
-| [流式处理](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-llm-streaming) | ☆☆☆ <br> *简单*   | 具有用户中断功能的实时LLM流式演示 |
-| [聊天护栏](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-chat-guardrail) | ☆☆☆ <br> *简单*  | 只处理与旅行相关查询的旅行顾问聊天机器人 |
-| [多智能体](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-multi-agent) | ★☆☆ <br> *初级* | 两个智能体之间进行异步通信的禁忌词游戏 |
-| [监督者](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-supervisor) | ★☆☆ <br> *初级* | 研究智能体变得不可靠...让我们构建一个监督过程 |
-| [并行处理](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-parallel-batch) | ★☆☆ <br> *初级*   | 展示3倍加速的并行执行演示 |
-| [并行流](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-parallel-batch-flow) | ★☆☆ <br> *初级*   | 使用多个过滤器展示8倍加速的并行图像处理演示 |
-| [多数投票](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-majority-vote) | ★☆☆ <br> *初级* | 通过汇总多个解决方案尝试来提高推理准确性 |
-| [思考](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-thinking) | ★☆☆ <br> *初级*   | 通过思维链解决复杂推理问题 |
-| [记忆](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-chat-memory) | ★☆☆ <br> *初级* | 具有短期和长期记忆的聊天机器人 |
-| [MCP](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-mcp) | ★☆☆ <br> *初级* | 使用模型上下文协议进行数值运算的智能体 |
+| [聊天](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-chat) | ☆☆☆ <br> *基础*   | 带对话历史的简单聊天机器人 |
+| [RAG](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-rag) | ☆☆☆ <br> *基础*   | 简单的检索增强生成流程 |
+| [工作流](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-workflow) | ☆☆☆ <br> *基础*   | 写作工作流：提纲→内容→样式 |
+| [Map-Reduce](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-map-reduce) | ☆☆☆ <br> *基础* | 使用map-reduce模式批量评估简历 |
+| [代理](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-agent) | ☆☆☆ <br> *基础*   | 能搜索网络回答问题的研究代理 |
+| [流式处理](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-llm-streaming) | ☆☆☆ <br> *基础*   | 支持用户中断的实时LLM流式演示 |
+| [多代理](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-multi-agent) | ★☆☆ <br> *入门* | 两个代理异步沟通的禁忌词游戏 |
+| [监督者](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-supervisor) | ★☆☆ <br> *入门* | 研究代理不可靠时构建监督流程|
+| [并行](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-parallel-batch) | ★☆☆ <br> *入门*   | 展示3倍加速的并行执行示例 |
+| [思考链](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-thinking) | ★☆☆ <br> *入门*   | 通过思维链解决复杂推理问题 |
+| [记忆](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-chat-memory) | ★☆☆ <br> *入门* | 具备短期和长期记忆的聊天机器人 |
 
 </div>
 
-👀 想看更多初学者教程？[创建一个issue！](https://github.com/zvictor/BrainyFlow/issues/new)
+更多教程适合所有水平！[查看全部](https://github.com/zvictor/BrainyFlow/tree/main/cookbook)
 
-## 如何使用BrainyFlow？
+![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
 
-🚀 通过**智能体编程**——最快的LLM应用开发范式，_人类设计_，_智能体编码_！
+## 快速开始
 
-<br>
-<div align="center">
-  <a href="https://zacharyhuang.substack.com/p/agentic-coding-the-most-fun-way-to" target="_blank">
-    <img src="https://substackcdn.com/image/fetch/f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F423a39af-49e8-483b-bc5a-88cc764350c6_1050x588.png" width="700" alt="IMAGE ALT TEXT" style="cursor: pointer;">
+初次接触BrainyFlow？查看我们的[入门指南](https://brainy.gitbook.io/flow/introduction/getting_started)，快速构建第一个流程。
+
+## 准备开发自编程应用？
+
+了解[代理编程指南](https://brainy.gitbook.io/flow/guides/agentic_coding)，用BrainyFlow开发自编程LLM项目的最快方式！
+
+![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
+
+## 致谢
+
+我们衷心感谢PocketFlow框架的创建者和贡献者，BrainyFlow正是从其分叉而来。
+
+## 免责声明
+
+BrainyFlow按"原样"提供，不作任何保证。  
+对生成内容的使用(包括准确性、合法性及可能后果)概不负责。
+
+## 赞助者
+
+<p align="center">
+  <a style="color: inherit" href="https://github.com/sponsors/zvictor?utm_source=brainyflow&utm_medium=sponsorship&utm_campaign=brainyflow&utm_id=brainyflow">
+    <img width="150" src="https://cdn.jsdelivr.net/gh/zvictor/brainyflow@main/.github/media/brain.png" alt="Brainyflow 标志" />
+  </a><br /><br />
+  BrainyFlow运行在200行代码和您的慷慨之上！💰<br />
+    <a style="color: inherit" href="https://github.com/sponsors/zvictor?utm_source=brainyflow&utm_medium=sponsorship&utm_campaign=brainyflow&utm_id=brainyflow">
+      帮助我们用更少代码(可能更多咖啡因)提供更多AI
+    </a> ☕<br /><br />
+    <a style="color: inherit" href="https://github.com/sponsors/zvictor?utm_source=brainyflow&utm_medium=sponsorship&utm_campaign=brainyflow&utm_id=brainyflow">您的支持</a>让项目保持精简、强大且无依赖！🚀
   </a>
-</div>
-<br>
+</p>
 
-✨ 以下是更复杂LLM应用的示例：
-
-<div align="center">
-  
-|  应用名称     |  难度    | 主题  | 人类设计 | 智能体代码 |
-| :-------------:  | :-------------: | :---------------------: |  :---: |  :---: |
-| [用Cursor构建Cursor](https://github.com/The-Pocket/Tutorial-Cursor) <br> <sup><sub>我们很快就会达到奇点...</sup></sub> | ★★★ <br> *高级*   | [智能体](https://brainy.gitbook.io/flow/design_pattern/agent) | [设计文档](https://github.com/The-Pocket/Tutorial-Cursor/blob/main/docs/design.md) | [流程代码](https://github.com/The-Pocket/Tutorial-Cursor/blob/main/flow.py)
-| [询问AI版Paul Graham](https://github.com/The-Pocket/Tutorial-YC-Partner) <br> <sup><sub>如果你无法联系到真人，可以询问AI版Paul Graham</sup></sub> | ★★☆ <br> *中级*   | [RAG](https://brainy.gitbook.io/flow/design_pattern/rag) <br> [Map Reduce](https://brainy.gitbook.io/flow/design_pattern/mapreduce) <br> [TTS](https://brainy.gitbook.io/flow/utility_function/text_to_speech) | [设计文档](https://github.com/The-Pocket/Tutorial-AI-Paul-Graham/blob/main/docs/design.md) | [流程代码](https://github.com/The-Pocket/Tutorial-AI-Paul-Graham/blob/main/flow.py)
-| [Youtube总结器](https://github.com/The-Pocket/Tutorial-Youtube-Made-Simple)  <br> <sup><sub> 像解释给5岁小孩一样解释YouTube视频 </sup></sub> | ★☆☆ <br> *初级*   | [Map Reduce](https://brainy.gitbook.io/flow/design_pattern/mapreduce) |  [设计文档](https://github.com/The-Pocket/Tutorial-Youtube-Made-Simple/blob/main/docs/design.md) | [流程代码](https://github.com/The-Pocket/Tutorial-Youtube-Made-Simple/blob/main/flow.py)
-| [冷启动开场白生成器](https://github.com/The-Pocket/Tutorial-Cold-Email-Personalization)  <br> <sup><sub> 即时破冰话题，将冷门线索变热 </sup></sub> | ★☆☆ <br> *初级*   | [Map Reduce](https://brainy.gitbook.io/flow/design_pattern/mapreduce) <br> [网络搜索](https://brainy.gitbook.io/flow/utility_function/websearch) |  [设计文档](https://github.com/The-Pocket/Tutorial-Cold-Email-Personalization/blob/master/docs/design.md) | [流程代码](https://github.com/The-Pocket/Tutorial-Cold-Email-Personalization/blob/master/flow.py)
-
-</div>
-
-- 想学习**智能体编程**？
-
-  - 查看[我的YouTube频道](https://www.youtube.com/@ZacharyLLM?sub_confirmation=1)获取关于上述应用制作的视频教程！
-
-  - 想构建自己的LLM应用？阅读这篇[文章](https://zacharyhuang.substack.com/p/agentic-coding-the-most-fun-way-to)！从[这个模板](https://github.com/The-Pocket/PocketFlow-Template-Python)开始！
-
-  - 想了解详细步骤？阅读这份[指南](https://brainy.gitbook.io/flow/guide)！
+![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)

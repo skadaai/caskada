@@ -1,4 +1,4 @@
-from brainyflow import Node, Memory # Import Memory
+from brainyflow import Node
 from tools.database import execute_sql, init_db
 
 class InitDatabaseNode(Node):
@@ -8,17 +8,16 @@ class InitDatabaseNode(Node):
         init_db()
         return "Database initialized"
         
-    async def post(self, memory: Memory, prep_res, exec_res): # Use memory and add type hint
-        memory.db_status = exec_res # Use property access
-        self.trigger("default") # Use trigger
+    async def post(self, shared, prep_res, exec_res):
+        shared["db_status"] = exec_res
 
 class CreateTaskNode(Node):
     """Node for creating a new task"""
     
-    async def prep(self, memory: Memory): # Use memory and add type hint
+    async def prep(self, shared):
         return (
-            memory.task_title if hasattr(memory, 'task_title') else "", # Use property access
-            memory.task_description if hasattr(memory, 'task_description') else "" # Use property access
+            getattr(shared, "task_title", ""),
+            getattr(shared, "task_description", "")
         )
         
     async def exec(self, inputs):
@@ -27,9 +26,8 @@ class CreateTaskNode(Node):
         execute_sql(query, (title, description))
         return "Task created successfully"
         
-    async def post(self, memory: Memory, prep_res, exec_res): # Use memory and add type hint
-        memory.task_status = exec_res # Use property access
-        self.trigger("default") # Use trigger
+    async def post(self, shared, prep_res, exec_res):
+        shared["task_status"] = exec_res
 
 class ListTasksNode(Node):
     """Node for listing all tasks"""
@@ -38,6 +36,5 @@ class ListTasksNode(Node):
         query = "SELECT * FROM tasks"
         return execute_sql(query)
         
-    async def post(self, memory: Memory, prep_res, exec_res): # Use memory and add type hint
-        memory.tasks = exec_res # Use property access
-        self.trigger("default") # Use trigger
+    async def post(self, shared, prep_res, exec_res):
+        shared["tasks"] = exec_res

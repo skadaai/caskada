@@ -19,9 +19,10 @@ async def main():
     # Process the question
     shared = {"question": question}
     print(f"🤔 Processing question: {question}")
-    agent_flow.run(shared)
+    await agent_flow.run(shared)
     print("\n🎯 Final Answer:")
     print(shared.get("answer", "No answer found"))
 
 if __name__ == "__main__":
+    import asyncio
     asyncio.run(main())

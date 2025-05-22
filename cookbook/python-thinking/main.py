@@ -1,10 +1,9 @@
 import sys
-import asyncio
 from flow import create_chain_of_thought_flow
 
 async def main():
     # Default question
-    default_question = "Break a stick, then break the longer piece again. What's the probability of forming a triangle?"
+    default_question = "You keep rolling a fair die until you roll three, four, five in that order consecutively on three rolls. What is the probability that you roll the die an odd number of times?"
     
     # Get question from command line if provided with --
     question = default_question
@@ -31,4 +30,5 @@ async def main():
     await cot_flow.run(shared)
     
 if __name__ == "__main__":
+    import asyncio
     asyncio.run(main())
