@@ -248,7 +248,7 @@ export class Flow<
 
   constructor(
     public start: BaseNode<GlobalStore>,
-    private options: { maxVisits: number } = { maxVisits: 5 },
+    private options: { maxVisits: number } = { maxVisits: 15 },
   ) {
     super()
   }
@@ -286,7 +286,7 @@ export class Flow<
     const currentVisitCount = (this.visitCounts.get(nodeId) || 0) + 1
     if (currentVisitCount > this.options.maxVisits) {
       throw new Error(
-        `Maximum cycle count reached (${this.options.maxVisits}) for ${nodeId}.${node.constructor.name}`,
+        `Maximum cycle count (${this.options.maxVisits}) reached for ${node.constructor.name}#${nodeId}`,
       )
     }
     this.visitCounts.set(nodeId, currentVisitCount)

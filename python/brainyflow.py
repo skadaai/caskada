@@ -261,7 +261,7 @@ class Flow(BaseNode[G, L, ActionT, PrepResultT, ExecutionTree]):
         """Initialize a Flow with a start node and options."""
         super().__init__()
         self.start = start
-        self.options = options or {"max_visits": 5}
+        self.options = options or {"max_visits": 15}
         self.visit_counts: Dict[str, int] = {}
     
     async def exec(self, prep_res: PrepResultT) -> ExecutionTree:
@@ -288,10 +288,10 @@ class Flow(BaseNode[G, L, ActionT, PrepResultT, ExecutionTree]):
     
     async def run_node(self, node: AnyNode[G], memory: Memory[G, L]) -> ExecutionTree:
         """Run a node with cycle detection and return its execution log."""
-        node_order = str(node._node_order)        
+        node_order = str(node._node_order)
         # Check for cycles
         current_visit_count = self.visit_counts.get(node_order, 0) + 1
-        assert current_visit_count <= self.options["max_visits"], f"{node.__class__.__name__}(order:{node_order}): Maximum cycle count ({self.options['max_visits']}) reached"
+        assert current_visit_count <= self.options["max_visits"], f"Maximum cycle count ({self.options['max_visits']}) reached for {node.__class__.__name__}#{node_order}"
         self.visit_counts[node_order] = current_visit_count
         
         cloned_node = node.clone()

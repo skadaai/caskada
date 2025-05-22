@@ -78,7 +78,7 @@ The library is built around several key abstractions:
 - **Purpose:** Orchestrates the execution of a graph of nodes sequentially, managing state and preventing infinite loops.
 - **Inheritance:** Extends `BaseNode`.
 - **Initialization:**
-  - `constructor(start, options?)`: Requires the starting `BaseNode` of the workflow and accepts optional `options` like `maxVisits` (default 5) for cycle detection.
+  - `constructor(start, options?)`: Requires the starting `BaseNode` of the workflow and accepts optional `options` like `maxVisits` (default 15) for cycle detection.
 - **Properties:**
   - `start`: The entry point node of the flow.
   - `visitCounts`: A `Map` to track how many times each node (identified by `__nodeOrder`) has been visited during a single `run` execution to detect cycles.

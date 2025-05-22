@@ -67,7 +67,7 @@ describe('Flow Class', () => {
     it('should store the start node and default options', () => {
       const flow = new Flow(nodeA)
       assert.strictEqual(flow.start, nodeA)
-      assert.deepStrictEqual((flow as any).options, { maxVisits: 5 })
+      assert.deepStrictEqual((flow as any).options, { maxVisits: 15 })
     })
 
     it('should accept custom options', () => {
@@ -233,7 +233,7 @@ describe('Flow Class', () => {
           // If it doesn't throw (which it should), fail the test explicitly
           assert.fail('Flow should have rejected due to cycle limit, but did not.')
         },
-        new RegExp(`Maximum cycle count reached \\(${maxVisitsAllowed}\\)`),
+        new RegExp(`Maximum cycle count \\(${maxVisitsAllowed}\\) reached`),
         'Flow should reject when loop count exceeds maxVisits',
       )
 
@@ -253,7 +253,7 @@ describe('Flow Class', () => {
 
       await assert.rejects(
         flow.run(loopMemory),
-        new RegExp(`Maximum cycle count reached \\(${maxVisitsAllowed}\\)`), // Check error message
+        new RegExp(`Maximum cycle count \\(${maxVisitsAllowed}\\) reached`), // Check error message
         'Flow should reject when loop count exceeds maxVisits (maxVisits=2)',
       )
     })

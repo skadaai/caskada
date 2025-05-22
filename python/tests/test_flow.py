@@ -92,7 +92,7 @@ class TestFlow:
             """Should store the start node and default options."""
             flow = Flow(nodes["A"])
             assert flow.start == nodes["A"]
-            assert getattr(flow, "options", {}).get("max_visits") == 5
+            assert getattr(flow, "options", {}).get("max_visits") == 15
         
         def test_accept_custom_options(self, nodes):
             """Should accept custom options."""
@@ -283,7 +283,7 @@ class TestFlow:
             flow = Flow(nodes["A"], {"max_visits": max_visits})
             loop_memory = Memory.create({})
             
-            with pytest.raises(AssertionError, match=f"{nodes['A'].__class__.__name__}\\(order:{nodes['A']._node_order}\\): Maximum cycle count \\({max_visits}\\) reached"):
+            with pytest.raises(AssertionError, match=f"Maximum cycle count \\({max_visits}\\) reached for {nodes['A'].__class__.__name__}#{nodes['A']._node_order}"):
                 await flow.run(loop_memory)
             
             assert loop_count[0] == max_visits
@@ -297,7 +297,7 @@ class TestFlow:
             flow = Flow(nodes["A"], {"max_visits": max_visits})
             loop_memory = Memory.create({})
             
-            with pytest.raises(AssertionError, match=f"{nodes['A'].__class__.__name__}\\(order:{nodes['A']._node_order}\\): Maximum cycle count \\({max_visits}\\) reached"):
+            with pytest.raises(AssertionError, match=f"Maximum cycle count \\({max_visits}\\) reached for {nodes['A'].__class__.__name__}#{nodes['A']._node_order}"):
                 await flow.run(loop_memory)
     
     class TestFlowAsNode:
