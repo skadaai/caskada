@@ -81,6 +81,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Prepare Python package to use Changesets
+        if: steps.filter.outputs.python == 'true'
+        working-directory: python
+        run: |
+          echo "Initializing pnpm project..."
+          touch pnpm-workspace.yaml
+          pnpm init
+
       - name: Find existing Python comment
         if: steps.filter.outputs.python == 'true'
         uses: peter-evans/find-comment@v2
