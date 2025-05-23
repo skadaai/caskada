@@ -6,7 +6,8 @@
 
 ## Breaking Changes
 
-* If you were traversing the nodes representation given by the `.run()` method, you will need to update your code to use the new `ExecutionTree` class.
+* **Memory creation**: If you were creating a new Memory object using the `Memory.create(data)` static class method, you will need to replace it by simply `Memory(data)`.
+* **Flow.run()**: If you were traversing the nodes representation given by the `.run()` method, you will need to update your code to use the new `ExecutionTree` class.
 
 ### Core Library Changes
 - **Memory class**: Considerable refactor with new deletion methods (`__delattr__`, `__delitem__`) and improved proxy behavior for local memory access

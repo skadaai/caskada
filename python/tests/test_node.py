@@ -58,7 +58,7 @@ class TestBaseNodeAndNode:
     def memory(self):
         """Create a test memory instance."""
         global_store = {"initial": "global"}
-        return Memory.create(global_store)
+        return Memory(global_store)
 
     class TestLifecycleMethods:
         """Tests for node lifecycle methods (prep, exec, post)."""
@@ -426,7 +426,7 @@ class TestBaseNodeAndNode:
             """exec should be retried max_retries-1 times upon failure."""
             node = ErrorNode(max_retries=3, succeed_after=2)  # Succeed on 3rd attempt (after 2 failures)
             
-            result = await node.run(Memory.create({}))
+            result = await node.run(Memory({}))
             
             assert result == "success_after_retry"
             assert node.fail_count == 2  # Should have failed twice
@@ -443,7 +443,7 @@ class TestBaseNodeAndNode:
 
             node.exec_fallback = mock_fallback
             
-            result = await node.run(Memory.create({}))
+            result = await node.run(Memory({}))
             
             assert result == "fallback_called"
             assert node.fail_count == 2  # Should have failed max_retries times
@@ -460,7 +460,7 @@ class TestBaseNodeAndNode:
             
             node.exec_fallback = mock_fallback
             
-            result = await node.run(Memory.create({}))
+            result = await node.run(Memory({}))
             
             end_time = asyncio.get_event_loop().time()
             elapsed = end_time - start_time
@@ -480,4 +480,4 @@ class TestBaseNodeAndNode:
             node.exec_fallback = mock_fallback
             
             with pytest.raises(ValueError, match="Fallback error"):
-                await node.run(Memory.create({}))
+                await node.run(Memory({}))

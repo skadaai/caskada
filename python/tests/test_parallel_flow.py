@@ -64,7 +64,7 @@ class TestParallelFlow:
         """Create test nodes and memory."""
         BaseNode._next_id = 0 # Reset for predictable IDs
         global_store = {"initial": "global"}
-        memory_instance = Memory.create(global_store)
+        memory_instance = Memory(global_store)
         trigger_node_instance = MultiTriggerNode() # id 0
         node_b_instance = DelayedNode("B")         # id 1
         node_c_instance = DelayedNode("C")         # id 2

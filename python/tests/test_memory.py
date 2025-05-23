@@ -9,7 +9,7 @@ class TestMemory:
         def test_initialize_with_global_store_only(self):
             """Should initialize with global store only."""
             global_store = {"g1": "global1"}
-            memory = Memory.create(global_store)
+            memory = Memory(global_store)
             assert memory.g1 == "global1", "Should access global property"
             assert memory.local == memory._local == {}, "Local store should be empty"
 
@@ -17,7 +17,7 @@ class TestMemory:
             """Should initialize with global and local stores."""
             global_store = {"g1": "global1", "common": "global_common"}
             local_store = {"l1": "local1", "common": "local_common"}
-            memory = Memory.create(global_store, local_store)
+            memory = Memory(global_store, local_store)
             assert memory.g1 == "global1", "Should access global property"
             assert memory.l1 == "local1", "Should access local property"
             assert memory.common == "local_common", "Local should shadow global"
@@ -31,7 +31,7 @@ class TestMemory:
             """Create a memory instance with both global and local stores."""
             global_store = {"g1": "global1", "common": "global_common"}
             local_store = {"l1": "local1", "common": "local_common"}
-            return Memory.create(global_store, local_store)
+            return Memory(global_store, local_store)
 
         def test_read_from_local_store_first(self, memory):
             """Should read from local store first."""
@@ -62,7 +62,7 @@ class TestMemory:
             """Create a memory instance with both global and local stores."""
             self.global_store = {"g1": "global1", "common": "global_common"}
             self.local_store = {"l1": "local1", "common": "local_common"}
-            return Memory.create(self.global_store, self.local_store)
+            return Memory(self.global_store, self.local_store)
 
         def test_write_property_to_global_store_by_default(self, memory):
             """Should write property to global store by default."""
@@ -114,7 +114,7 @@ class TestMemory:
                 "common": "local_common",
                 "nested_l": {"val": 2}
             }
-            self.memory = Memory.create(self.global_store, self.local_store)
+            self.memory = Memory(self.global_store, self.local_store)
             return self.memory
 
         def test_create_new_memory_instance_with_shared_global_store(self, memory_setup):
@@ -194,7 +194,7 @@ class TestMemoryDeletion:
         """Fixture to create a Memory instance with global and local values for deletion tests."""
         global_store = {"g_only": "global_val", "common_gl": "global_common", "g_shadowed": "global_shadow"}
         local_store = {"l_only": "local_val", "common_gl": "local_common", "g_shadowed": "local_shadow_val"}
-        return Memory.create(global_store, local_store)
+        return Memory(global_store, local_store)
 
     # Tests for del memory.attr and del memory[key]
     def test_delattr_on_memory_deletes_global_only_key(self, memory_for_deletion):

@@ -58,7 +58,7 @@ class TestFlow:
     def memory(self):
         """Create a test memory instance."""
         global_store = {"initial": "global"}
-        return Memory.create(global_store)
+        return Memory(global_store)
     
     @pytest.fixture
     def nodes(self):
@@ -163,7 +163,7 @@ class TestFlow:
             # Test path B
             branching_node.set_trigger("path_B")
             flow_b = Flow(branching_node)
-            memory_b = Memory.create({})
+            memory_b = Memory({})
             await flow_b.run(memory_b)
             
             assert memory_b.post_Branch is True
@@ -182,7 +182,7 @@ class TestFlow:
 
             branching_node_for_c.set_trigger("path_C")
             flow_c = Flow(branching_node_for_c) 
-            memory_c = Memory.create({})
+            memory_c = Memory({})
             await flow_c.run(memory_c)
             
             assert memory_c.post_Branch is True
@@ -236,7 +236,7 @@ class TestFlow:
             
             branching_node.set_trigger("path_B", {"local_data": "for_B", "common_local": "common"})
             flow_b = Flow(branching_node)
-            memory_b = Memory.create({"global_val": 1})
+            memory_b = Memory({"global_val": 1})
             await flow_b.run(memory_b)
             
             assert node_b_local.prep_mock.call_count == 1
@@ -258,7 +258,7 @@ class TestFlow:
             branching_node_for_c.set_trigger("path_C", {"local_data": "for_C", "common_local": "common"})
             
             flow_c = Flow(branching_node_for_c)
-            memory_c = Memory.create({"global_val": 1})
+            memory_c = Memory({"global_val": 1})
             await flow_c.run(memory_c)
             
             assert node_c_for_c_path.prep_mock.call_count == 1
@@ -281,7 +281,7 @@ class TestFlow:
             
             max_visits = 3
             flow = Flow(nodes["A"], {"max_visits": max_visits})
-            loop_memory = Memory.create({})
+            loop_memory = Memory({})
             
             with pytest.raises(AssertionError, match=f"Maximum cycle count \\({max_visits}\\) reached for {nodes['A'].__class__.__name__}#{nodes['A']._node_order}"):
                 await flow.run(loop_memory)
@@ -295,7 +295,7 @@ class TestFlow:
             
             max_visits = 2
             flow = Flow(nodes["A"], {"max_visits": max_visits})
-            loop_memory = Memory.create({})
+            loop_memory = Memory({})
             
             with pytest.raises(AssertionError, match=f"Maximum cycle count \\({max_visits}\\) reached for {nodes['A'].__class__.__name__}#{nodes['A']._node_order}"):
                 await flow.run(loop_memory)
@@ -432,7 +432,7 @@ class TestFlow:
             # Test path B: Branch -> B -> D
             branching_node.set_trigger("path_B")
             flow_b = Flow(branching_node)
-            result_b = await flow_b.run(Memory.create({}))
+            result_b = await flow_b.run(Memory({}))
             
             expected_b = {
                 'order': str(branching_node._node_order),
@@ -471,7 +471,7 @@ class TestFlow:
 
             branching_node_c_path.set_trigger("path_C")
             flow_c = Flow(branching_node_c_path)
-            result_c = await flow_c.run(Memory.create({}))
+            result_c = await flow_c.run(Memory({}))
             
             expected_c = {
                 'order': str(branching_node_c_path._node_order),

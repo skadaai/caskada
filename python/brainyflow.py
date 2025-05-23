@@ -57,7 +57,7 @@ class Memory(Generic[G, L]):
     def clone(self, forking_data: Optional[SharedStore] = None) -> Memory[G, L]:
         new_local = copy.deepcopy(self._local)
         new_local.update(copy.deepcopy(forking_data or {}))
-        return Memory[G, L].create(self._global, cast(L, new_local))
+        return Memory[G, L](self._global, cast(L, new_local))
     @property
     def local(self) -> L:
         class LocalProxy:
@@ -74,9 +74,6 @@ class Memory(Generic[G, L]):
                 return self.store == other
             def __repr__(self) -> str: return self.store.__repr__()
         return cast(L, LocalProxy(self._local))
-    @staticmethod
-    def create(global_store: G, local_store: Optional[L] = None) -> Memory[G, L]:
-        return Memory(global_store, local_store)
 
 @runtime_checkable
 class NodeError(Protocol):
@@ -198,7 +195,7 @@ class BaseNode(Generic[G, L, ActionT, PrepResultT, ExecResultT], ABC):
     async def run(self, memory: Union[Memory[G, L], G], propagate: bool = False) -> Union[List[Tuple[Action, Memory[G, L]]], ExecResultT]:
         """Run the node's full lifecycle (prep → exec → post)."""
         if not isinstance(memory, Memory):
-            memory = Memory[G, L].create(memory)
+            memory = Memory[G, L](memory)
         
         self._triggers = []
         prep_res = await self.prep(memory)
