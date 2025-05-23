@@ -33,7 +33,6 @@ The library is built around several key abstractions:
   - **Get:** Checks the `__local` store first. If the property is not found, it checks the `__global` store. Special properties like `clone` and `local` (accessing `__local`) are handled directly.
   - **Set:** Writes properties directly to the `__global` store by default after ensuring the property is removed from the `__local` store. Protects reserved property names (`global`, `local`, `__global`, `__local`).
 - **Cloning (`clone(forkingData?)`):** Creates a _new_ `Memory` instance wrapped in a `Proxy`. The `__global` store reference is shared, but the `__local` store is _deep-cloned_ using `structuredClone`. Optional `forkingData` is merged into the new local store using `structuredClone` as well. This is crucial for state isolation when branching in a `Flow`.
-- **Creation (`Memory.create(global, local?)`):** A static factory method to instantiate `Memory` objects wrapped in the necessary `Proxy`.
 
 ### 3.2. `BaseNode` Abstract Class
 

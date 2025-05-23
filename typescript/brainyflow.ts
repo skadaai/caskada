@@ -1,66 +1,76 @@
 export const DEFAULT_ACTION = 'default' as const
 
-export type SharedStore = Record<string, any>
+export type SharedStore = Record<string, unknown>
 type Action = string | typeof DEFAULT_ACTION
 type NestedActions<T extends Action[]> = Record<T[number], NestedActions<T>[]>
+
+export type Memory<GlobalStore extends SharedStore = SharedStore, LocalStore extends SharedStore = SharedStore> = GlobalStore &
+  LocalStore & {
+    local: LocalStore
+    clone<T extends SharedStore = SharedStore>(forkingData?: T): Memory<GlobalStore, LocalStore & T>
+    _isMemoryObject: true
+  }
 
 export type NodeError = Error & {
   retryCount?: number
 }
 
-export class Memory<G extends SharedStore, L extends SharedStore> {
-  constructor(
-    private __global: G,
-    private __local: L = {} as L,
-  ) {}
-
-  // Allow property access on this object to check local memory first, then global
-  [key: string]: any
-
-  clone<T extends SharedStore = SharedStore>(forkingData: T = {} as T): Memory<G, L & T> {
-    return Memory.create(this.__global, {
-      ...structuredClone(this.__local),
-      ...structuredClone(forkingData),
-    })
-  }
-
-  static create<G extends SharedStore = SharedStore, L extends SharedStore = SharedStore>(
-    global: G,
-    local: L = {} as L,
-  ): Memory<G, L> {
-    return new Proxy(new Memory(global, local), {
-      get: (target, prop) => {
-        // if (prop === 'setGlobal') return target.setGlobal.bind(target)
-        if (prop === 'clone') return target.clone.bind(target)
-        if (prop === 'local') return target.__local
-
-        // Check local memory first, then fall back to global
-        if (prop in target.__local) {
-          return target.__local[prop as string]
-        }
-        return target.__global[prop as string]
-      },
-      set: (target, prop, value) => {
-        if (['global', 'local', '__global', '__local'].includes(prop as string))
-          throw new Error(`Reserved property '${String(prop)}' cannot be set`)
-
-        // By default, set in global memory
-        if (typeof prop === 'string') {
-          delete target.__local[prop as string]
-          target.__global[prop as keyof G] = value
-          return true
-        }
-        // For internal properties, set on the target
-        ;(target as any)[prop] = value
-        return true
-      },
-    })
-  }
-}
-
 interface Trigger<Action = string, L extends SharedStore = SharedStore> {
   action: Action
   forkingData: L
+}
+
+function _get_from_stores(key: string | symbol, closer: SharedStore, further?: SharedStore): unknown {
+  if (key in closer) return Reflect.get(closer, key)
+  if (further && key in further) return Reflect.get(further, key)
+}
+
+function _delete_from_stores(key: string | symbol, closer: SharedStore, further?: SharedStore): boolean {
+  // JS does not usually throw errors when key is not found. Otherwise uncomment: `if (!(key in closer) && (!further || !(key in further))) throw new Error(`Key '${key}' not found in store${further ? "s" : ""}`)`
+  let removed = false
+  if (key in closer) removed = Reflect.deleteProperty(closer, key)
+  if (further && key in further) removed = Reflect.deleteProperty(further, key) || removed
+  return removed
+}
+
+function createProxyHandler<T extends SharedStore>(closer: T, further?: SharedStore): ProxyHandler<SharedStore> {
+  return {
+    get: (target, prop) => {
+      if (Reflect.has(target, prop)) return Reflect.get(target, prop)
+      return _get_from_stores(prop, closer, further)
+    },
+    set: (target, prop, value) => {
+      if (target._isMemoryObject && prop in target) {
+        throw new Error(`Reserved property '${String(prop)}' cannot be set to ${target}`)
+      }
+      _delete_from_stores(prop, closer, further)
+      if (further) return Reflect.set(further, prop, value)
+      return Reflect.set(closer, prop, value)
+    },
+    deleteProperty: (target, prop) => _delete_from_stores(prop, closer, further),
+    has: (target, prop) => Reflect.has(closer, prop) || (further ? Reflect.has(further, prop) : false),
+  }
+}
+
+export function createMemory<GlobalStore extends SharedStore = SharedStore, LocalStore extends SharedStore = SharedStore>(
+  global: GlobalStore,
+  local: LocalStore = {} as LocalStore,
+): Memory<GlobalStore, LocalStore> {
+  const localProxy = new Proxy(local, createProxyHandler(local))
+  const memory = new Proxy(
+    {
+      _isMemoryObject: true,
+      local: localProxy,
+      clone: <T extends SharedStore = SharedStore>(forkingData: T = {} as T): Memory<GlobalStore, LocalStore & T> =>
+        createMemory<GlobalStore, LocalStore & T>(global, {
+          ...structuredClone(local),
+          ...structuredClone(forkingData),
+        }),
+    },
+    createProxyHandler(localProxy, global),
+  )
+
+  return memory as Memory<GlobalStore, LocalStore>
 }
 
 export abstract class BaseNode<
@@ -175,8 +185,9 @@ export abstract class BaseNode<
       console.warn("Node won't run successors. Use Flow!")
     }
 
-    const _memory: Memory<GlobalStore, LocalStore> =
-      memory instanceof Memory ? memory : Memory.create(memory)
+    const _memory: Memory<GlobalStore, LocalStore> = memory._isMemoryObject
+      ? (memory as Memory<GlobalStore, LocalStore>)
+      : createMemory<GlobalStore, LocalStore>(memory as GlobalStore)
 
     this.triggers = []
     const prepRes = await this.prep(_memory)
