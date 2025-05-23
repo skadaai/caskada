@@ -68,7 +68,7 @@ jobs:
         uses: changesets/action@v1.4.9
         continue-on-error: true
         with:
-          cwd: "${{ github.workspace }}/python"
+          cwd: '${{ github.workspace }}/python'
           version: false
           publish: false
           setupGitUser: true
@@ -83,7 +83,7 @@ jobs:
         uses: changesets/action@v1.4.9
         continue-on-error: true
         with:
-          cwd: "${{ github.workspace }}/typescript"
+          cwd: '${{ github.workspace }}/typescript'
           version: false
           publish: false
           setupGitUser: true
