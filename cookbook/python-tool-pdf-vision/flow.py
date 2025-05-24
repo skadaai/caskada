@@ -1,7 +1,10 @@
 from brainyflow import Flow
-from nodes import create_main_flow # Import the new main flow creation function
+from nodes import TriggerPDFNode, ProcessPDFNode
 
 def create_vision_flow():
     """Create a flow for batch PDF processing with Vision API"""
-    # Use the new main flow creation function from nodes.py
-    return create_main_flow()
+    trigger_node = TriggerPDFNode()
+    process_node = ProcessPDFNode()
+
+    trigger_node >> process_node
+    return Flow(start=trigger_node)

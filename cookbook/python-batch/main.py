@@ -1,36 +1,29 @@
-import os
 import asyncio
-from brainyflow import Node, Flow, Memory
+import os
+import time
+from brainyflow import Node, Flow
 from utils import call_llm
 
-# 1. Trigger Node (Fans out work)
 class TriggerTranslationsNode(Node):
-    async def prep(self, memory: Memory):
-        text = memory.text if hasattr(memory, 'text') else "(No text provided)"
-        languages = memory.languages if hasattr(memory, 'languages') else ["Chinese", "Spanish", "Japanese", "German", 
-                              "Russian", "Portuguese", "French", "Korean"]
-        return [(text, lang) for lang in languages]
-
-    async def post(self, memory: Memory, prep_res: list, exec_res):
-        items = prep_res
-        memory.translations = [] # Initialize results list
-        memory.remaining = len(items) # Initialize counter
-        for index, (text, lang) in enumerate(items):
-            self.trigger("process_one", {"text": text, "language": lang, "index": index})
-
-# 2. Processor Node (Handles one language)
-class TranslateOneLanguageNode(Node):
-    async def prep(self, memory: Memory):
-        # Read data passed via forkingData from local memory
-        return {
-            "text": memory.text,
-            "language": memory.language,
-            "index": memory.index
-        }
-
-    async def exec(self, item):
-        text, language, index = item["text"], item["language"], item["index"]
+    async def prep(self, shared):
+        text = getattr(shared, "text", "(No text provided)")
+        languages = getattr(shared, "languages", ["Chinese", "Spanish", "Japanese", "German", 
+                              "Russian", "Portuguese", "French", "Korean"])
         
+        return [(text, lang) for lang in languages]
+    
+    async def post(self, memory, prep_res, exec_res):
+        for index, input in enumerate(prep_res):
+            self.trigger("default", {"index": index, "data": input})
+            
+
+class TranslateTextNode(Node):
+    async def prep(self, memory):
+        return memory.index, memory.data            
+
+    async def exec(self, data_tuple):
+        index, (text, language) = data_tuple
+
         prompt = f"""
 Please translate the following markdown file into {language}. 
 But keep the original markdown format, links and code blocks.
@@ -42,54 +35,27 @@ Original:
 Translated:"""
         
         result = call_llm(prompt)
-        
         print(f"Translated {language} text")
+        return {"language": language, "translation": result}
 
-        return {"language": language, "translation": result, "index": index}
-
-    async def post(self, memory: Memory, prep_res, exec_res):
-        # Store individual summary in global memory
-        memory.translations.append(exec_res)
-        memory.remaining -= 1
-        if memory.remaining == 0:
-            self.trigger("write_results") # Trigger write node only when all translations are done
-        else:
-            self.trigger("default") # Trigger next node in the sequential flow (or potentially nothing if not needed)
-
-# 3. Write Results Node (Aggregates and writes)
-class WriteTranslationsNode(Node):
-    async def prep(self, memory: Memory):
-        return {
-            "translations": memory.translations if hasattr(memory, 'translations') else [],
-            "output_dir": memory.output_dir if hasattr(memory, 'output_dir') else "translations"
-        }
-
-    async def exec(self, prep_res):
-        translations = prep_res["translations"]
-        output_dir = prep_res["output_dir"]
+    async def post(self, shared, prep_res, result):
+        if not isinstance(result, dict):
+            print(f"Warning: Invalid result received: {result}")
+            return
 
         # Create output directory if it doesn't exist
+        output_dir = getattr(shared, "output_dir", "translations")
         os.makedirs(output_dir, exist_ok=True)
         
         # Write each translation to a file
-        for result in translations:
-            language, translation = result["language"], result["translation"]
-            
-            # Write to file
-            filename = os.path.join(output_dir, f"README_{language.upper()}.md")
-            with open(filename, "w", encoding="utf-8") as f:
-                f.write(translation)
-            
-            print(f"Saved translation to {filename}")
+        language, translation = result["language"], result["translation"]
         
-        return output_dir
-
-    async def post(self, memory: Memory, prep_res, exec_res):
-        output_dir = exec_res
-        print("\n=== Translation Complete ===")
-        print(f"Translations saved to: {output_dir}")
-        print("============================")
-        self.trigger("default") # End of the flow
+        # Write to file
+        filename = os.path.join(output_dir, f"README_{language.upper()}.md")
+        with open(filename, "w", encoding="utf-8") as f:
+            f.write(translation)
+        
+        print(f"Saved translation to {filename}")
 
 async def main():
     # read the text from ../../README.md
@@ -97,23 +63,31 @@ async def main():
         text = f.read()
     
     # Default settings
-    memory = Memory({
+    shared = {
         "text": text,
         "languages": ["Chinese", "Spanish", "Japanese", "German", "Russian", "Portuguese", "French", "Korean"],
         "output_dir": "translations"
-    })
+    }
+
+    # --- Time Measurement Start ---
+    print(f"Starting sequential translation into {len(shared['languages'])} languages...")
+    start_time = time.perf_counter()
 
     # Run the translation flow
-    trigger_node = TriggerTranslationsNode()
-    processor_node = TranslateOneLanguageNode()
-    write_node = WriteTranslationsNode()
-
-    trigger_node - "process_one" >> processor_node
-    trigger_node - "write_results" >> write_node # Trigger write node after fanning out
-    processor_node >> write_node # This transition is not strictly needed in a sequential flow where trigger_node handles the next step, but kept for clarity.
-
+    trigger_node = TriggerTranslationsNode(max_retries=3)
+    translate_node = TranslateTextNode(max_retries=3)
+    trigger_node >> translate_node
     flow = Flow(start=trigger_node)
-    await flow.run(memory)
+    await flow.run(shared)
+
+    # --- Time Measurement End ---
+    end_time = time.perf_counter()
+    duration = end_time - start_time
+
+    print(f"\nTotal sequential translation time: {duration:.4f} seconds") # Print duration
+    print("\n=== Translation Complete ===")
+    print(f"Translations saved to: {shared['output_dir']}")
+    print("============================")
 
 if __name__ == "__main__":
     asyncio.run(main())

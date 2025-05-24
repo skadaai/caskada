@@ -1,118 +1,114 @@
 import asyncio
 import time
+import os
+from brainyflow import ParallelFlow, Node
+from utils import call_llm
 
-from brainyflow import Node, Flow, ParallelFlow, Memory
+# --- Node Definitions ---
 
-####################################
-# Dummy async function (1s delay)
-####################################
-async def dummy_llm_summarize(text):
-    """Simulates an async LLM call that takes 1 second."""
-    await asyncio.sleep(1)
-    return f"Summarized({len(text)} chars)"
+class TriggerTranslationsNode(Node):
+    """Triggers translation of README files into multiple languages in parallel."""
+    async def prep(self, shared):
+        """Reads text and target languages from shared store."""
+        text = getattr(shared, "text", "(No text provided)")
+        languages = getattr(shared, "languages", [])
+        return [(text, lang) for lang in languages]
 
-###############################################
-# Batch Processing Nodes
-###############################################
+    async def post(self, memory, prep_res, exec_res):
+        for index, input in enumerate(prep_res):
+            self.trigger("default", {"index": index, "data": input})
 
-class TriggerSummariesNode(Node):
-    """
-    Triggers processing for each item in the batch.
-    """
-    async def prep(self, memory: Memory):
-        # Return a list of items to process.
-        # Each item is (filename, content).
-        return list(memory.data.items())
 
-    async def post(self, memory: Memory, files_to_process: list, exec_res):
-        print(f"Trigger: Triggering summary for {len(files_to_process)} files.")
-        # Initialize results list in global memory
-        memory.sequential_summaries = [None] * len(files_to_process)
-        memory.parallel_summaries = [None] * len(files_to_process)
+class TranslateTextNodeParallel(Node):
+    """Translates text into multiple languages in parallel and saves files."""
+    async def prep(self, memory):
+        return memory.index, memory.data            
 
-        # Trigger a 'process_item' action for each file
-        for index, (filename, content) in enumerate(files_to_process):
-            self.trigger('process_item', { "filename": filename, "content": content, "index": index })
 
-class SummarizeFileNode(Node):
-    """
-    Processes a single item (summarizes a file).
-    """
-    async def prep(self, memory: Memory):
-        # Read specific file data from local memory (passed via forkingData)
-        return memory.filename, memory.content, memory.index
+    async def exec(self, data_tuple):
+        """Calls the async LLM utility for each target language."""
+        index, (text, language) = data_tuple
+        
+        prompt = f"""
+Please translate the following markdown file into {language}. 
+But keep the original markdown format, links and code blocks.
+Directly return the translated text, without any other text or comments.
 
-    async def exec(self, prep_res):
-        filename, content, index = prep_res
-        print(f"Processor: Summarizing {filename} (Index {index})...")
-        summary = await dummy_llm_summarize(content)
-        return {"filename": filename, "summary": summary, "index": index}
+Original: 
+{text}
 
-    async def post(self, memory: Memory, prep_res, exec_res):
-        # Store individual summary in global memory at the correct index
-        # This node will be used by both sequential and parallel flows,
-        # so we need to handle both result lists.
-        index = exec_res["index"]
-        if hasattr(memory, 'sequential_summaries'):
-             memory.sequential_summaries[index] = (exec_res["filename"], exec_res["summary"])
-        if hasattr(memory, 'parallel_summaries'):
-             memory.parallel_summaries[index] = (exec_res["filename"], exec_res["summary"])
+Translated:"""
+        
+        result = await call_llm(prompt)
+        print(f"Translated {language} text")
+        return {"language": language, "translation": result}
 
-        # No trigger needed if this is the end of the processing for this item
+    async def post(self, shared, prep_res, result):
+        """Stores the dictionary of {language: translation} pairs and writes to files."""
+        if not isinstance(result, dict):
+            print(f"Warning: Invalid result received: {result}")
+            return
+        
+        output_dir = getattr(shared, "output_dir", "translations")
+        os.makedirs(output_dir, exist_ok=True)
+        
+        language, translation = result["language"], result["translation"]
+        
+        filename = os.path.join(output_dir, f"README_{language.upper()}.md")
+        try:
+            import aiofiles
+            async with aiofiles.open(filename, "w", encoding="utf-8") as f:
+                await f.write(translation)
+            print(f"Saved translation to {filename}")
+        except ImportError:
+            with open(filename, "w", encoding="utf-8") as f:
+                f.write(translation)
+            print(f"Saved translation to {filename} (sync fallback)")
+        except Exception as e:
+            print(f"Error writing file {filename}: {e}")
 
-###############################################
-# Demo comparing the two approaches
-###############################################
+# --- Flow Creation ---
+
+def create_parallel_translation_flow():
+    """Creates and returns the parallel translation flow."""
+    trigger_node = TriggerTranslationsNode()
+    translate_node = TranslateTextNodeParallel(max_retries=3)
+    trigger_node >> translate_node
+    return ParallelFlow(start=trigger_node)
+
+# --- Main Execution ---
 
 async def main():
-    # We'll use the same data for both flows
-    memory = Memory({
-        "data": {
-            "file1.txt": "Hello world 1",
-            "file2.txt": "Hello world 2",
-            "file3.txt": "Hello world 3",
-        }
-    })
+    source_readme_path = "../../README.md"
+    try:
+        with open(source_readme_path, "r", encoding='utf-8') as f:
+            text = f.read()
+    except FileNotFoundError:
+        print(f"Error: Could not find the source README file at {source_readme_path}")
+        exit(1)
+    except Exception as e:
+        print(f"Error reading file {source_readme_path}: {e}")
+        exit(1)
 
-    # 1) Run the sequential version
-    trigger_seq = TriggerSummariesNode()
-    processor_seq = SummarizeFileNode()
-    trigger_seq - 'process_item' >> processor_seq
-    seq_flow = Flow(start=trigger_seq)
+    shared = {
+        "text": text,
+        "languages": ["Chinese", "Spanish", "Japanese", "German", "Russian", "Portuguese", "French", "Korean"],
+        "output_dir": "translations"
+    }
 
-    print("\n=== Running Sequential ===")
-    t0 = time.time()
-    await seq_flow.run(memory)
-    t1 = time.time()
+    translation_flow = create_parallel_translation_flow()
 
-    # Convert list of tuples to dictionary for consistent output
-    memory.sequential_summaries = dict(memory.sequential_summaries)
+    print(f"Starting parallel translation into {len(shared['languages'])} languages...")
+    start_time = time.perf_counter()
 
-    # Reset memory for the parallel run (except initial data)
-    memory.parallel_summaries = [None] * len(memory.data)
+    await translation_flow.run(shared)
 
-
-    # 2) Run the parallel version
-    trigger_par = TriggerSummariesNode()
-    processor_par = SummarizeFileNode()
-    trigger_par - 'process_item' >> processor_par
-    par_flow = ParallelFlow(start=trigger_par)
-
-    print("\n=== Running Parallel ===")
-    t2 = time.time()
-    await par_flow.run(memory)
-    t3 = time.time()
-
-    # Convert list of tuples to dictionary for consistent output
-    memory.parallel_summaries = dict(memory.parallel_summaries)
-
-    # Show times
-    print("\n--- Results ---")
-    print(f"Sequential Summaries: {memory.sequential_summaries}")
-    print(f"Parallel Summaries:   {memory.parallel_summaries}")
-
-    print(f"Sequential took: {t1 - t0:.2f} seconds")
-    print(f"Parallel took:   {t3 - t2:.2f} seconds")
+    end_time = time.perf_counter()
+    duration = end_time - start_time
+    print(f"\nTotal parallel translation time: {duration:.4f} seconds")
+    print("\n=== Translation Complete ===")
+    print(f"Translations saved to: {shared['output_dir']}")
+    print("============================")
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(main()) 

@@ -1,117 +1,125 @@
-<div align="center">
-  <img src="https://github.com/zvictor/BrainyFlow/raw/main/.github/media/banner-light.jpg" width="600"/>
-</div>
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://cdn.jsdelivr.net/gh/zvictor/brainyflow@main/.github/media/logo-dark.png">
+    <source media="(prefers-color-scheme: light)" srcset="https://cdn.jsdelivr.net/gh/zvictor/brainyflow@main/.github/media/logo-light.png">
+    <img width="280" alt="Logo do Brainyflow" src="https://cdn.jsdelivr.net/gh/zvictor/brainyflow@main/.github/media/logo-light.png">
+  </picture>
+<p>
 
-![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
-[![Docs](https://img.shields.io/badge/docs-latest-blue)](https://brainy.gitbook.io/flow/)
-<a href="https://discord.gg/N9mVvxRXyH">
-<img src="https://img.shields.io/discord/1346833819172601907?logo=discord&style=flat">
-</a>
+<p align="center">
+  Um framework de IA radicalmente minimalista (apenas <a href="https://github.com/zvictor/BrainyFlow/blob/main/python/brainyflow.py">200 linhas em Python</a>! 🤯)
 
-BrainyFlow é um framework LLM minimalista de [100 linhas](https://github.com/zvictor/BrainyFlow/blob/main/python/__init__.py)
+  <br />
+  Construa agentes de IA poderosos com código mínimo e liberdade máxima.
+  <br />
+  <sub>Deixe os agentes construírem agentes sem bloat, dependências ou lock-in de fornecedor 😮</sub>
+</p>
 
-- **Leve**: Apenas 100 linhas. Zero inchaço, zero dependências, zero bloqueio de fornecedor.
-- **Expressivo**: Tudo o que você ama—([Multi-](https://brainy.gitbook.io/flow/design_pattern/multi_agent))[Agentes](https://brainy.gitbook.io/flow/design_pattern/agent), [Fluxo de Trabalho](https://brainy.gitbook.io/flow/design_pattern/workflow), [RAG](https://brainy.gitbook.io/flow/design_pattern/rag), e mais.
+<p align="center">
 
-- **[Codificação Agêntica](https://zacharyhuang.substack.com/p/agentic-coding-the-most-fun-way-to)**: Deixe os Agentes de IA (por exemplo, Cursor AI) construírem Agentes—aumento de produtividade de 10x!
-
-- Para instalar, `pip install brainyflow` ou apenas copie o [código-fonte](https://github.com/zvictor/BrainyFlow/blob/main/python/__init__.py) (apenas 100 linhas).
-- Para saber mais, consulte a [documentação](https://brainy.gitbook.io/flow/). Para entender a motivação, leia a [história](https://zacharyhuang.substack.com/p/i-built-an-llm-framework-in-just).
-- 🎉 Junte-se ao nosso [discord](https://discord.gg/N9mVvxRXyH)!
-
-- 🎉 Graças a [@zvictor](https://www.github.com/zvictor), [@jackylee941130](https://www.github.com/jackylee941130) e [@ZebraRoy](https://www.github.com/ZebraRoy), agora temos uma [versão TypeScript](https://github.com/The-Pocket/PocketFlow-Typescript)!
-
-## Por que BrainyFlow?
-
-Os frameworks LLM atuais são inchados... Você só precisa de 100 linhas para um Framework LLM!
-
-<div align="center">
-  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/meme.jpg" width="400"/>
-
-|                | **Abstração**  |                        **Wrappers Específicos de App**                        |                  **Wrappers Específicos de Fornecedor**                   |                  **Linhas**                  |                   **Tamanho**                   |
-| -------------- | :------------: | :---------------------------------------------------------------------------: | :-----------------------------------------------------------------------: | :------------------------------------------: | :---------------------------------------------: |
-| LangChain      | Agente, Cadeia |            Muitos <br><sup><sub>(ex., QA, Sumarização)</sub></sup>            |      Muitos <br><sup><sub>(ex., OpenAI, Pinecone, etc.)</sub></sup>       |                     405K                     |                     +166MB                      |
-| CrewAI         | Agente, Cadeia |      Muitos <br><sup><sub>(ex., FileReadTool, SerperDevTool)</sub></sup>      | Muitos <br><sup><sub>(ex., OpenAI, Anthropic, Pinecone, etc.)</sub></sup> |                     18K                      |                     +173MB                      |
-| SmolAgent      |     Agente     |        Alguns <br><sup><sub>(ex., CodeAgent, VisitWebTool)</sub></sup>        |  Alguns <br><sup><sub>(ex., DuckDuckGo, Hugging Face, etc.)</sub></sup>   |                      8K                      |                     +198MB                      |
-| LangGraph      | Agente, Grafo  |            Alguns <br><sup><sub>(ex., Busca Semântica)</sub></sup>            | Alguns <br><sup><sub>(ex., PostgresStore, SqliteSaver, etc.) </sub></sup> |                     37K                      |                      +51MB                      |
-| AutoGen        |     Agente     | Alguns <br><sup><sub>(ex., Agente de Ferramentas, Agente de Chat)</sub></sup> | Muitos <sup><sub>[Opcional]<br> (ex., OpenAI, Pinecone, etc.)</sub></sup> | 7K <br><sup><sub>(apenas núcleo)</sub></sup> | +26MB <br><sup><sub>(apenas núcleo)</sub></sup> |
-| **BrainyFlow** |   **Grafo**    |                                  **Nenhum**                                   |                                **Nenhum**                                 |                   **100**                    |                    **+56KB**                    |
-
-</div>
-
-## Como funciona o BrainyFlow?
-
-As [100 linhas](https://github.com/zvictor/BrainyFlow/blob/main/python/__init__.py) capturam a abstração central dos frameworks LLM: Grafo!
-<br>
-
-<div align="center">
-  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/abstraction.jpg" width="900"/>
-</div>
-<br>
-
-A partir daí, é fácil implementar padrões de design populares como ([Multi-](https://brainy.gitbook.io/flow/design_pattern/multi_agent))[Agentes](https://brainy.gitbook.io/flow/design_pattern/agent), [Fluxo de Trabalho](https://brainy.gitbook.io/flow/design_pattern/workflow), [RAG](https://brainy.gitbook.io/flow/design_pattern/rag), etc.
-<br>
-
-<div align="center">
-  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/design.jpg" width="900"/>
-</div>
-<br>
-✨ Abaixo estão tutoriais básicos:
-
-<div align="center">
-  
-|  Nome  | Dificuldade    |  Descrição  |  
-| :-------------:  | :-------------: | :--------------------- |  
-| [Chat](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-chat) | ☆☆☆ <br> *Iniciante*   | Um chatbot básico com histórico de conversas |
-| [Saída Estruturada](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-structured-output) | ☆☆☆ <br> *Iniciante* | Extraindo dados estruturados de currículos por prompt |
-| [Fluxo de Trabalho](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-workflow) | ☆☆☆ <br> *Iniciante*   | Um fluxo de escrita que esboça, escreve conteúdo e aplica estilo |
-| [Agente](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-agent) | ☆☆☆ <br> *Iniciante*   | Um agente de pesquisa que pode buscar na web e responder perguntas |
-| [RAG](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-rag) | ☆☆☆ <br> *Iniciante*   | Um processo simples de Geração Aumentada por Recuperação |
-| [Map-Reduce](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-map-reduce) | ☆☆☆ <br> *Iniciante* | Um processador de qualificação de currículo usando o padrão map-reduce para avaliação em lote |
-| [Streaming](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-llm-streaming) | ☆☆☆ <br> *Iniciante*   | Uma demonstração de streaming LLM em tempo real com capacidade de interrupção pelo usuário |
-| [Guarda-rail de Chat](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-chat-guardrail) | ☆☆☆ <br> *Iniciante*  | Um chatbot de consultoria de viagens que processa apenas consultas relacionadas a viagens |
-| [Multi-Agente](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-multi-agent) | ★☆☆ <br> *Intermediário* | Um jogo de palavras Tabu para comunicação assíncrona entre dois agentes |
-| [Supervisor](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-supervisor) | ★☆☆ <br> *Intermediário* | O agente de pesquisa está ficando não confiável... Vamos construir um processo de supervisão|
-| [Paralelo](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-parallel-batch) | ★☆☆ <br> *Intermediário*   | Uma demonstração de execução paralela que mostra aceleração de 3x |
-| [Fluxo Paralelo](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-parallel-batch-flow) | ★☆☆ <br> *Intermediário*   | Uma demonstração de processamento de imagem paralela mostrando aceleração de 8x com múltiplos filtros |
-| [Voto por Maioria](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-majority-vote) | ★☆☆ <br> *Intermediário* | Melhore a precisão do raciocínio agregando múltiplas tentativas de solução |
-| [Pensamento](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-thinking) | ★☆☆ <br> *Intermediário*   | Resolva problemas de raciocínio complexos através da Cadeia de Pensamento |
-| [Memória](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-chat-memory) | ★☆☆ <br> *Intermediário* | Um chatbot com memória de curto e longo prazo |
-| [MCP](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-mcp) | ★☆☆ <br> *Intermediário* |  Agente usando Protocolo de Contexto de Modelo para operações numéricas |
-
-</div>
-
-👀 Quer ver outros tutoriais para iniciantes? [Crie uma issue!](https://github.com/zvictor/BrainyFlow/issues/new)
-
-## Como Usar BrainyFlow?
-
-🚀 Através da **Codificação Agêntica**—o paradigma mais rápido de desenvolvimento de aplicativos LLM—onde _humanos projetam_ e _agentes codificam_!
-
-<br>
-<div align="center">
-  <a href="https://zacharyhuang.substack.com/p/agentic-coding-the-most-fun-way-to" target="_blank">
-    <img src="https://substackcdn.com/image/fetch/f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F423a39af-49e8-483b-bc5a-88cc764350c6_1050x588.png" width="700" alt="IMAGE ALT TEXT" style="cursor: pointer;">
+  <a href="https://pypi.org/project/brainyflow">
+   <img src="https://img.shields.io/pypi/dw/brainyflow?logo=python&label=Python&style=flat-square" alt="python version">
   </a>
+  <a href="https://npmjs.com/package/brainyflow">
+   <img src="https://img.shields.io/npm/d18m/brainyflow?logo=typescript&label=Typescript&style=flat-square" alt="typescript version">
+  </a>
+  <a href="https://discord.gg/N9mVvxRXyH">
+    <img src="https://img.shields.io/discord/1346833819172601907?logo=discord&style=flat-square" alt="Discord">
+  </a>
+  <a href="https://github.com/zvictor/brainyflow">
+    <img src="https://img.shields.io/github/stars/zvictor/BrainyFlow?logo=github&style=flat-square" alt="GitHub Repository">
+  </a>
+  <a href="https://github.com/sponsors/zvictor">
+    <img src="https://img.shields.io/github/sponsors/zvictor?logo=github&style=flat-square" alt="GitHub Sponsors">
+  </a>
+</p>
+
+Brainy Flow é um framework que permite a programação de agentes através de poderosas abstrações.
+
+Ele fornece uma interface simples para construir aplicações complexas de IA baseadas em grafos direcionados aninhados com estado compartilhado. Ele permite que humanos e assistentes de IA colaborem efetivamente no design e implementação de sistemas de IA.
+
+## Características
+
+- **Fácil para o cérebro 🧠**: Intuitivo tanto para humanos quanto para assistentes de IA
+- **Design minimalista ✨**: Abstrações principais em apenas 200 linhas de código
+- **Liberdade 🔓**: Sem bloat, dependências ou lock-in de fornecedor
+- **Componível 🧩**: Construa sistemas complexos a partir de componentes simples e reutilizáveis
+- **Poderoso 🦾**: Suporta tudo que você ama - ([Multi-](https://brainy.gitbook.io/flow/design_pattern/multi_agent))[Agentes](https://brainy.gitbook.io/flow/design_pattern/agent), [Fluxos de trabalho](https://brainy.gitbook.io/flow/design_pattern/workflow), [RAG](https://brainy.gitbook.io/flow/design_pattern/rag) e mais
+- **Programação de agentes 🤖**: Projetado para desenvolvimento assistido por IA
+- **Universal 🌈**: Funciona com qualquer provedor de LLM ou API
+- **Poliglota 🌍**: <!-- gitbook-ignore-start --><a href="https://pypi.org/project/brainyflow"><img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/python.svg" width="16" height="16" alt="Python Logo" style="vertical-align: middle; margin: 0 2px;"></a><!-- gitbook-ignore-end --> Python e <!-- gitbook-ignore-start --><a href="https://npmjs.com/package/brainyflow"><img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/typescript.svg" width="16" height="16" alt="Typescript Logo" style="vertical-align: middle; margin: 0 2px;"></a><!-- gitbook-ignore-end --> TypeScript são suportados
+
+![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
+
+<!-- gitbook-ignore-start -->
+
+## Documentação
+
+Nossa documentação é inclusiva, adequada tanto para mentes biológicas quanto sintéticas.<br />
+Comece selecionando sua condição - ou talvez aquela que você foi condicionado a acreditar:
+
+\>> [Eu sou baseado em carbono 🐥](https://brainy.gitbook.io/flow/introduction/getting_started) <<
+
+\>> [Eu sou baseado em silício 🤖](https://flow.brainy.sh/docs.txt) <<
+
+![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
+
+<!-- gitbook-ignore-end -->
+
+## Por que Brainy Flow?
+
+Os frameworks atuais de LLM são inchados... Você só precisa de 200 linhas para um framework robusto de LLM!
+
+<div align="center">
+  <img src="https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/meme.jpg" width="500"/>
+
+|                                                                                                                                                                                                                | **Abstração** |                     **Wrappers específicos de aplicação**                      |                       **Wrappers específicos de fornecedor**                       |                **Linhas**                 |                  **Tamanho**                  |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------: | :----------------------------------------------------------------: | :----------------------------------------------------------------------: | :--------------------------------------: | :-----------------------------------------: |
+| LangChain                                                                                                                                                                                                      |  Agente, Cadeia  |      Muitos <br><sup><sub>(ex: QA, sumarização)</sub></sup>      |      Muitos <br><sup><sub>(ex: OpenAI, Pinecone, etc.)</sub></sup>      |                   405K                   |                   +166MB                    |
+| CrewAI                                                                                                                                                                                                         |  Agente, Cadeia  | Muitos <br><sup><sub>(ex: FileReadTool, SerperDevTool)</sub></sup> | Muitos <br><sup><sub>(ex: OpenAI, Anthropic, Pinecone, etc.)</sub></sup> |                   18K                    |                   +173MB                    |
+| SmolAgent                                                                                                                                                                                                      |      Agente      |   Alguns <br><sup><sub>(ex: CodeAgent, VisitWebTool)</sub></sup>   |  Alguns <br><sup><sub>(ex: DuckDuckGo, Hugging Face, etc.)</sub></sup>   |                    8K                    |                   +198MB                    |
+| LangGraph                                                                                                                                                                                                      |  Agente, Grafo  |       Alguns <br><sup><sub>(ex: busca semântica)</sub></sup>       | Alguns <br><sup><sub>(ex: PostgresStore, SqliteSaver, etc.)</sub></sup> |                   37K                    |                    +51MB                    |
+| AutoGen                                                                                                                                                                                                        |      Agente      |   Alguns <br><sup><sub>(ex: Tool Agent, Chat Agent)</sub></sup>    | Muitos <sup><sub>[Opcional]<br> (ex: OpenAI, Pinecone, etc.)</sub></sup> | 7K <br><sup><sub>(núcleo)</sub></sup> | +26MB <br><sup><sub>(núcleo)</sub></sup> |
+| **Brainy Flow** <!-- gitbook-ignore-start --><img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/typescript.svg" width="16" height="16" alt="Typescript Logo"><!-- gitbook-ignore-end -->.ts |    **Grafo**    |                              **Nenhum**                              |                                 **Nenhum**                                 |                 **300**                  |                 **poucos KB**                 |
+| **Brainy Flow** <!-- gitbook-ignore-start --><img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/python.svg" width="16" height="16" alt="Python Logo"><!-- gitbook-ignore-end -->.py         |    **Grafo**    |                              **Nenhum**                              |                                 **Nenhum**                                 |                 **200**                  |                 **poucos KB**                 |
+
+</div>
+
+![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
+
+## Como o Brainy Flow funciona?
+
+O arquivo único em <a href="https://github.com/zvictor/BrainyFlow/blob/main/python/brainyflow.py"><!-- gitbook-ignore-start --><img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/python.svg" width="16" height="16" alt="Python Logo" style="vertical-align: middle; margin: 0 2px;"> <!-- gitbook-ignore-end -->Python</a> ou <a href="https://github.com/zvictor/BrainyFlow/blob/main/typescript/brainyflow.ts"><!-- gitbook-ignore-start --><img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/typescript.svg" width="16" height="16" alt="Typescript Logo" style="vertical-align: middle; margin: 0 2px;"> <!-- gitbook-ignore-end -->TypeScript</a> captura a abstração central dos frameworks LLM: o grafo!
+<br>
+
+<div align="center">
+  <img src="https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/abstração.jpg" width="1300"/>
 </div>
 <br>
 
-✨ Abaixo estão exemplos de aplicativos LLM mais complexos:
+- [Nó](https://brainy.gitbook.io/flow/core_abstraction/node) lida com tarefas simples (LLM) com um ciclo de vida claro (`prep` → `exec` → `post`).
+- [Fluxo](https://brainy.gitbook.io/flow/core_abstraction/flow) conecta nós através de **Ações** (bordas rotuladas), orquestrando a execução.
+- [Memória](https://brainy.gitbook.io/flow/core_abstraction/memory) gerencia estado compartilhado (`global`) e isolado (`local`), permitindo comunicação entre nós.
+
+A partir daí, é fácil implementar todos os padrões de design populares:
+<br>
+
+<div align="center">
+  <img src="https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/design.jpg" width="1300"/>
+</div>
+<br>
+
+- [Agente](https://brainy.gitbook.io/flow/design_pattern/agent) toma decisões autonomamente baseado no contexto.
+- [Fluxo de trabalho](https://brainy.gitbook.io/flow/design_pattern/workflow) encadeia múltiplas tarefas em um pipeline sequencial.
+- [RAG](https://brainy.gitbook.io/flow/design_pattern/rag) integra recuperação de dados com geração.
+- [Map Reduce](https://brainy.gitbook.io/flow/design_pattern/mapreduce) divide tarefas de dados em etapas de mapeamento e redução.
+- [Saída estruturada](https://brainy.gitbook.io/flow/design_pattern/structure) formata saídas consistentemente.
+- [Multi-Agentes](https://brainy.gitbook.io/flow/design_pattern/multi_agent) coordena múltiplos agentes.
+
+![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
+
+## Tutoriais
 
 <div align="center">
   
-|  Nome do App     |  Dificuldade    | Tópicos  | Design Humano | Código do Agente |
-| :-------------:  | :-------------: | :---------------------: |  :---: |  :---: |
-| [Construir Cursor com Cursor](https://github.com/The-Pocket/Tutorial-Cursor) <br> <sup><sub>Logo chegaremos à singularidade ...</sup></sub> | ★★★ <br> *Avançado*   | [Agente](https://brainy.gitbook.io/flow/design_pattern/agent) | [Doc de Design](https://github.com/The-Pocket/Tutorial-Cursor/blob/main/docs/design.md) | [Código Flow](https://github.com/The-Pocket/Tutorial-Cursor/blob/main/flow.py)
-| [Pergunte ao AI Paul Graham](https://github.com/The-Pocket/Tutorial-YC-Partner) <br> <sup><sub>Pergunte ao AI Paul Graham, caso você não seja aceito</sup></sub> | ★★☆ <br> *Médio*   | [RAG](https://brainy.gitbook.io/flow/design_pattern/rag) <br> [Map Reduce](https://brainy.gitbook.io/flow/design_pattern/mapreduce) <br> [TTS](https://brainy.gitbook.io/flow/utility_function/text_to_speech) | [Doc de Design](https://github.com/The-Pocket/Tutorial-AI-Paul-Graham/blob/main/docs/design.md) | [Código Flow](https://github.com/The-Pocket/Tutorial-AI-Paul-Graham/blob/main/flow.py)
-| [Resumidor de Youtube](https://github.com/The-Pocket/Tutorial-Youtube-Made-Simple)  <br> <sup><sub> Explica vídeos do YouTube como se você tivesse 5 anos </sup></sub> | ★☆☆ <br> *Iniciante*   | [Map Reduce](https://brainy.gitbook.io/flow/design_pattern/mapreduce) |  [Doc de Design](https://github.com/The-Pocket/Tutorial-Youtube-Made-Simple/blob/main/docs/design.md) | [Código Flow](https://github.com/The-Pocket/Tutorial-Youtube-Made-Simple/blob/main/flow.py)
-| [Gerador de Aberturas Frias](https://github.com/The-Pocket/Tutorial-Cold-Email-Personalization)  <br> <sup><sub> Quebra-gelos instantâneos que transformam leads frios em quentes </sup></sub> | ★☆☆ <br> *Iniciante*   | [Map Reduce](https://brainy.gitbook.io/flow/design_pattern/mapreduce) <br> [Busca Web](https://brainy.gitbook.io/flow/utility_function/websearch) |  [Doc de Design](https://github.com/The-Pocket/Tutorial-Cold-Email-Personalization/blob/master/docs/design.md) | [Código Flow](https://github.com/The-Pocket/Tutorial-Cold-Email-Personalization/blob/master/flow.py)
-
-</div>
-
-- Quer aprender **Codificação Agêntica**?
-
-  - Confira [meu YouTube](https://www.youtube.com/@ZacharyLLM?sub_confirmation=1) para tutorial em vídeo sobre como alguns aplicativos acima são feitos!
-
-  - Quer construir seu próprio aplicativo LLM? Leia este [post](https://zacharyhuang.substack.com/p/agentic-coding-the-most-fun-way-to)! Comece com [este modelo](https://github.com/The-Pocket/PocketFlow-Template-Python)!
-
-  - Quer aprender os passos detalhados? Leia este [Guia](https://brainy.gitbook.io/flow/guide)!
+|  Nome  | Dificuldade    |  Descrição 

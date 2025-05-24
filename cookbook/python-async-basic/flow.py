@@ -1,4 +1,4 @@
-"""Flow implementation for recipe finder."""
+"""Implementation for recipe finder."""
 
 from brainyflow import Flow, Node
 from nodes import FetchRecipes, SuggestRecipe, GetApproval

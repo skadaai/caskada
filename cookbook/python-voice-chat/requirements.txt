@@ -1,0 +1,6 @@
+openai
+brainyflow
+numpy
+sounddevice
+scipy
+soundfile 

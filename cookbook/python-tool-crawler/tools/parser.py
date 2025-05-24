@@ -31,10 +31,17 @@ topics:
     - topic 2
 content_type: type here
 ```
+
+IMPORTANT: Make sure to:
+1. Use proper indentation (4 spaces) for all multi-line fields
+2. Use the | character for multi-line text fields
+3. Keep single-line fields without the | character
+4. Your answer must be wrapped in yaml code block or it will result in an error. Do not forget to include the ```yaml sequence at the beginning and end it with ```.
 """
     
     try:
         response = call_llm(prompt)
+        assert "```yaml" in response, "Response must contain yaml block"
         # Extract YAML between code fences
         yaml_str = response.split("```yaml")[1].split("```")[0].strip()
         
@@ -57,21 +64,16 @@ content_type: type here
             "content_type": "unknown"
         }
 
-def analyze_site(crawl_results: List[Dict]) -> List[Dict]:
+def analyze_site(content: Dict) -> Dict:
     """Analyze all crawled pages
     
     Args:
-        crawl_results (List[Dict]): List of crawled page contents
+        crawl_results (Dict): Crawled page contents
         
     Returns:
-        List[Dict]: Original content with added analysis
+        Dict: Original content with added analysis
     """
-    analyzed_results = []
-    
-    for content in crawl_results:
-        if content and content.get("text"):
-            analysis = analyze_content(content)
-            content["analysis"] = analysis
-            analyzed_results.append(content)
-            
-    return analyzed_results
+    if content and content.get("text"):
+        analysis = analyze_content(content)
+        content["analysis"] = analysis
+        return content

@@ -1,52 +1,37 @@
 import os
-from brainyflow import Node, Memory
+from brainyflow import Node
 
 class LoadGrades(Node):
     """Node that loads grades from a student's file."""
-
-    async def prep(self, memory: Memory):
-        """Get file path from memory."""
-        class_name = memory.class_name
-        student_file = memory.student_file
-        return os.path.join("school", class_name, student_file)
-
+    
+    async def prep(self, shared):
+        """Get file path from parameters."""
+        return os.path.join("school", shared.class_name, shared.item)
+    
     async def exec(self, file_path):
         """Load and parse grades from file."""
         with open(file_path, 'r') as f:
             # Each line is a grade
             grades = [float(line.strip()) for line in f]
         return grades
-
-    async def post(self, memory: Memory, prep_res, grades):
-        """Store grades in memory."""
-        memory.grades = grades
-        self.trigger("calculate")
+    
+    async def post(self, shared, prep_res, grades):
+        """Store grades in shared store."""
+        self.trigger("calculate", {"grades": grades})
 
 class CalculateAverage(Node):
     """Node that calculates average grade."""
-
-    async def prep(self, memory: Memory):
-        """Get grades from memory."""
-        return memory.grades
-
-    async def exec(self, grades):
+    
+    async def prep(self, shared):
+        """Get grades from shared store."""
+        return shared.class_name, shared["grades"]
+    
+    async def exec(self, prep_res):
         """Calculate average."""
-        return 0 if not grades else sum(grades) / len(grades)
-
-    async def post(self, memory: Memory, prep_res, average):
+        return sum(prep_res[1]) / len(prep_res[1])
+    
+    async def post(self, shared, prep_res, average):
         """Store and print result."""
-        # Store in results dictionary
-        if not hasattr(memory, "results"):
-            memory.results = {}
-
-        class_name = memory.class_name
-        student = memory.student_file # Assuming student_file is the student name
-
-        if class_name not in memory.results:
-            memory.results[class_name] = {}
-
-        memory.results[class_name][student] = average
-
         # Print individual result
-        print(f"- {student}: Average = {average:.1f}")
-        self.trigger("default")
+        print(f"- {shared.item}: Average = {average:.1f}")
+        self.trigger("default", {"average": average})

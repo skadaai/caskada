@@ -4,60 +4,60 @@ from utils import fetch_recipes, call_llm_async, get_user_input
 class FetchRecipes(Node):
     """Node that fetches recipes."""
     
-    async def prep_async(self, shared):
+    async def prep(self, shared):
         """Get ingredient from user."""
         ingredient = await get_user_input("Enter ingredient: ")
         return ingredient
     
-    async def exec_async(self, ingredient):
+    async def exec(self, ingredient):
         """Fetch recipes asynchronously."""
         recipes = await fetch_recipes(ingredient)
         return recipes
     
-    async def post_async(self, shared, prep_res, recipes):
+    async def post(self, shared, prep_res, recipes):
         """Store recipes and continue."""
         shared["recipes"] = recipes
         shared["ingredient"] = prep_res
-        return "suggest"
+        self.trigger("suggest")
 
 class SuggestRecipe(Node):
     """Node that suggests a recipe using LLM."""
     
-    async def prep_async(self, shared):
+    async def prep(self, shared):
         """Get recipes from shared store."""
         return shared["recipes"]
     
-    async def exec_async(self, recipes):
+    async def exec(self, recipes):
         """Get suggestion from LLM."""
         suggestion = await call_llm_async(
             f"Choose best recipe from: {', '.join(recipes)}"
         )
         return suggestion
     
-    async def post_async(self, shared, prep_res, suggestion):
+    async def post(self, shared, prep_res, suggestion):
         """Store suggestion and continue."""
         shared["suggestion"] = suggestion
-        return "approve"
+        self.trigger("approve")
 
 class GetApproval(Node):
     """Node that gets user approval."""
     
-    async def prep_async(self, shared):
+    async def prep(self, shared):
         """Get current suggestion."""
         return shared["suggestion"]
     
-    async def exec_async(self, suggestion):
+    async def exec(self, suggestion):
         """Ask for user approval."""
         answer = await get_user_input(f"\nAccept this recipe? (y/n): ")
         return answer
     
-    async def post_async(self, shared, prep_res, answer):
+    async def post(self, shared, prep_res, answer):
         """Handle user's decision."""
         if answer == "y":
             print("\nGreat choice! Here's your recipe...")
             print(f"Recipe: {shared['suggestion']}")
             print(f"Ingredient: {shared['ingredient']}")
-            return "accept"
-        else:
-            print("\nLet's try another recipe...")
-            return "retry" 
+            return self.trigger("accept")
+            
+        print("\nLet's try another recipe...")
+        self.trigger("retry")

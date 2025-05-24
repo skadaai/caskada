@@ -10,39 +10,23 @@ This project demonstrates a batch processing implementation that enables LLMs to
 ## Getting Started
 
 1. Install the required packages:
-
 ```bash
 pip install -r requirements.txt
 ```
 
 2. Set up your API key:
-
 ```bash
 export ANTHROPIC_API_KEY="your-api-key-here"
 ```
 
 3. Run the translation process:
-
 ```bash
 python main.py
 ```
 
 ## How It Works
 
-The implementation now uses a fan-out pattern with three nodes orchestrated by a `Flow` for sequential processing:
-
-```mermaid
-flowchart LR
-    trigger[TriggerTranslationsNode] -->|process_one| processor[TranslateOneLanguageNode]
-    trigger -->|write_results| writer[WriteTranslationsNode]
-    processor --> writer
-```
-
-1.  **`TriggerTranslationsNode`**: Reads the input text and languages from memory and triggers a `process_one` action for each language, passing the specific text, language, and index to the local memory of the next node. It also triggers the `write_results` action to initiate the final writing step after all processing is triggered.
-2.  **`TranslateOneLanguageNode`**: Receives the specific language and text from its local memory, calls the LLM to perform the translation for that single language, and stores the result in the global memory. It then triggers the default action to proceed.
-3.  **`WriteTranslationsNode`**: Reads all the individual translation results from global memory, creates the output directory if it doesn't exist, and saves each translation to a separate file.
-
-This pattern demonstrates how BrainyFlow can process multiple related tasks using standard nodes and flows.
+The implementation uses a fan-out pattern with nodes orchestrated by a `Flow` for sequential processing.
 
 ## Example Output
 

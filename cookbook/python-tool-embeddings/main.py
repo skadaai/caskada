@@ -19,4 +19,5 @@ async def main():
     print("First 5 values:", shared["embedding"][:5])
 
 if __name__ == "__main__":
+    import asyncio
     asyncio.run(main())

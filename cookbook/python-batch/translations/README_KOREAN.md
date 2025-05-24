@@ -1,117 +1,103 @@
-<div align="center">
-  <img src="https://github.com/zvictor/BrainyFlow/raw/main/.github/media/banner-light.jpg" width="600"/>
-</div>
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://cdn.jsdelivr.net/gh/zvictor/brainyflow@main/.github/media/logo-dark.png">
+    <source media="(prefers-color-scheme: light)" srcset="https://cdn.jsdelivr.net/gh/zvictor/brainyflow@main/.github/media/logo-light.png">
+    <img width="280" alt="Brainyflow 로고" src="https://cdn.jsdelivr.net/gh/zvictor/brainyflow@main/.github/media/logo-light.png">
+  </picture>
+<p>
 
-![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
-[![Docs](https://img.shields.io/badge/docs-latest-blue)](https://brainy.gitbook.io/flow/)
-<a href="https://discord.gg/N9mVvxRXyH">
-<img src="https://img.shields.io/discord/1346833819172601907?logo=discord&style=flat">
-</a>
+<p align="center">
+  혁신적으로 미니멀한 AI 프레임워크 (단 200줄의 Python 코드! 🤯)
 
-BrainyFlow는 [100줄](https://github.com/zvictor/BrainyFlow/blob/main/python/__init__.py)의 미니멀리스트 LLM 프레임워크입니다
+  <br />
+  최소한의 코드로 강력한 AI 에이전트를 구축하세요. 최대한의 자유를 누리세요.
+  <br />
+  <sub>에이전트가 에이전트를 구축하도록 하세요. 불필요한 요소, 의존성, 벤더 종속성 없이 😮</sub>
+</p>
 
-- **경량화**: 단 100줄. 불필요한 요소 없음, 종속성 없음, 벤더 락인 없음.
-- **표현력**: 당신이 좋아하는 모든 것—([다중-](https://brainy.gitbook.io/flow/design_pattern/multi_agent))[에이전트](https://brainy.gitbook.io/flow/design_pattern/agent), [워크플로우](https://brainy.gitbook.io/flow/design_pattern/workflow), [RAG](https://brainy.gitbook.io/flow/design_pattern/rag) 등.
+<p align="center">
 
-- **[에이전틱 코딩](https://zacharyhuang.substack.com/p/agentic-coding-the-most-fun-way-to)**: AI 에이전트(예: Cursor AI)가 에이전트를 구축하도록—생산성 10배 향상!
+  <a href="https://pypi.org/project/brainyflow">
+   <img src="https://img.shields.io/pypi/dw/brainyflow?logo=python&label=Python&style=flat-square" alt="Python 버전">
+  </a>
+  <a href="https://npmjs.com/package/brainyflow">
+   <img src="https://img.shields.io/npm/d18m/brainyflow?logo=typescript&label=Typescript&style=flat-square" alt="Typescript 버전">
+  </a>
+  <a href="https://discord.gg/N9mVvxRXyH">
+    <img src="https://img.shields.io/discord/1346833819172601907?logo=discord&style=flat-square" alt="Discord">
+  </a>
+  <a href="https://github.com/zvictor/brainyflow">
+    <img src="https://img.shields.io/github/stars/zvictor/BrainyFlow?logo=github&style=flat-square" alt="GitHub 저장소">
+  </a>
+  <a href="https://github.com/sponsors/zvictor">
+    <img src="https://img.shields.io/github/sponsors/zvictor?logo=github&style=flat-square" alt="GitHub 스폰서">
+  </a>
+</p>
 
-- 설치하려면, `pip install brainyflow`또는 [소스 코드](https://github.com/zvictor/BrainyFlow/blob/main/python/__init__.py)(단 100줄)를 복사하세요.
-- 더 알아보려면, [문서](https://brainy.gitbook.io/flow/)를 확인하세요. 개발 동기를 알아보려면, [이야기](https://zacharyhuang.substack.com/p/i-built-an-llm-framework-in-just)를 읽어보세요.
-- 🎉 우리의 [디스코드](https://discord.gg/N9mVvxRXyH)에 참여하세요!
+BrainyFlow는 강력한 추상화를 통해 '에이전트 중심 코딩'을 가능하게 하는 프레임워크입니다.
 
-- 🎉 [@zvictor](https://www.github.com/zvictor), [@jackylee941130](https://www.github.com/jackylee941130), [@ZebraRoy](https://www.github.com/ZebraRoy) 덕분에 이제 [TypeScript 버전](https://github.com/The-Pocket/PocketFlow-Typescript)이 있습니다!
+이 프레임워크는 공유 상태를 가진 중첩 방향성 그래프를 기반으로 복잡한 AI 애플리케이션을 구축하기 위한 간단한 인터페이스를 제공합니다. 인간과 AI 보조자가 AI 시스템 설계 및 구현에 효과적으로 협업할 수 있도록 지원합니다.
 
-## 왜 BrainyFlow인가?
+## 주요 기능
 
-현재 LLM 프레임워크들은 너무 비대합니다... LLM 프레임워크는 100줄만 필요합니다!
+- **뇌 친화적 🧠**: 인간과 AI 보조자 모두에게 직관적
+- **미니멀한 디자인 ✨**: 핵심 추상화가 단 200줄의 코드로 구현됨
+- **자유로움 🔓**: 불필요한 요소, 의존성, 벤더 종속성 없음
+- **조립 가능 🧩**: 간단하고 재사용 가능한 컴포넌트로 복잡한 시스템 구축
+- **강력한 기능 🦾**: 모든 것을 지원함 (멀티 에이전트, 워크플로우, RAG 등)
+- **에이전트 중심 코딩 🤖**: AI 지원 개발을 위해 설계됨
+- **범용성 🌈**: 모든 LLM 제공자 또는 API와 호환
+- **다국어 지원 🌍**: Python과 Typescript 모두 지원
 
-<div align="center">
-  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/meme.jpg" width="400"/>
+![](https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/divider.png)
 
-|                |    **추상화**    |                         **앱 특화 래퍼**                         |                         **벤더 특화 래퍼**                          |            **코드 줄 수**             |                 **크기**                 |
-| -------------- | :--------------: | :--------------------------------------------------------------: | :-----------------------------------------------------------------: | :-----------------------------------: | :--------------------------------------: |
-| LangChain      |  에이전트, 체인  |          다수 <br><sup><sub>(예: QA, 요약)</sub></sup>           |      다수 <br><sup><sub>(예: OpenAI, Pinecone 등)</sub></sup>       |                 405K                  |                  +166MB                  |
-| CrewAI         |  에이전트, 체인  | 다수 <br><sup><sub>(예: FileReadTool, SerperDevTool)</sub></sup> | 다수 <br><sup><sub>(예: OpenAI, Anthropic, Pinecone 등)</sub></sup> |                  18K                  |                  +173MB                  |
-| SmolAgent      |     에이전트     |   일부 <br><sup><sub>(예: CodeAgent, VisitWebTool)</sub></sup>   |  일부 <br><sup><sub>(예: DuckDuckGo, Hugging Face 등)</sub></sup>   |                  8K                   |                  +198MB                  |
-| LangGraph      | 에이전트, 그래프 |         일부 <br><sup><sub>(예: 시맨틱 검색)</sub></sup>         | 일부 <br><sup><sub>(예: PostgresStore, SqliteSaver 등) </sub></sup> |                  37K                  |                  +51MB                   |
-| AutoGen        |     에이전트     |   일부 <br><sup><sub>(예: Tool Agent, Chat Agent)</sub></sup>    | 다수 <sup><sub>[선택사항]<br> (예: OpenAI, Pinecone 등)</sub></sup> | 7K <br><sup><sub>(핵심만)</sub></sup> | +26MB <br><sup><sub>(핵심만)</sub></sup> |
-| **BrainyFlow** |    **그래프**    |                             **없음**                             |                              **없음**                               |                **100**                |                **+56KB**                 |
+## 문서
 
-</div>
+우리 문서는 생물학적 및 인공 지능 모두에게 적합합니다.<br />
+다음 중 하나를 선택하여 시작하세요:
 
-## BrainyFlow는 어떻게 작동하나요?
+\>> [저는 탄소 기반입니다 🐥](https://brainy.git.com/docs/human) <<
 
-[100줄](https://github.com/zvictor/BrainyFlow/blob/main/python/__init__.py)은 LLM 프레임워크의 핵심 추상화를 담고 있습니다: 그래프!
-<br>
+\>> [저는 실리콘 기반입니다 🤖](https://flow.brainy.sh/docs.txt) <<
 
-<div align="center">
-  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/abstraction.jpg" width="900"/>
-</div>
-<br>
+![](https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/divider.png)
 
-이를 기반으로 ([다중-](https://brainy.gitbook.io/flow/design_pattern/multi_agent))[에이전트](https://brainy.gitbook.io/flow/design_pattern/agent), [워크플로우](https://brainy.gitbook.io/flow/design_pattern/workflow), [RAG](https://brainy.gitbook.io/flow/design_pattern/rag) 등과 같은 인기 있는 디자인 패턴을 쉽게 구현할 수 있습니다.
-<br>
+## 왜 Brainy Flow인가?
 
-<div align="center">
-  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/design.jpg" width="900"/>
-</div>
-<br>
-✨ 아래는 기본 튜토리얼입니다:
+현재 LLM 프레임워크는 너무 복잡합니다... 사실 견고한 LLM 프레임워크를 위해 필요한 건 단 200줄의 코드입니다!
 
-<div align="center">
-  
+![](https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/abstraction.jpg)
+
+## 작동 방식
+
+BrainyFlow는 강력한 추상화를 통해 에이전트 중심 코딩을 가능하게 합니다.
+
+![](https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/design.jpg)
+
+## 튜토리얼
+
 |  이름  | 난이도    |  설명  |  
 | :-------------:  | :-------------: | :--------------------- |  
-| [채팅](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-chat) | ☆☆☆ <br> *초보*   | 대화 기록이 있는 기본 채팅 봇 |
-| [구조화된 출력](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-structured-output) | ☆☆☆ <br> *초보* | 프롬프트를 통해 이력서에서 구조화된 데이터 추출 |
-| [워크플로우](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-workflow) | ☆☆☆ <br> *초보*   | 개요 작성, 콘텐츠 작성, 스타일 적용을 수행하는 글쓰기 워크플로우 |
-| [에이전트](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-agent) | ☆☆☆ <br> *초보*   | 웹을 검색하고 질문에 답할 수 있는 연구 에이전트 |
-| [RAG](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-rag) | ☆☆☆ <br> *초보*   | 간단한 검색 증강 생성 프로세스 |
-| [맵-리듀스](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-map-reduce) | ☆☆☆ <br> *초보* | 배치 평가를 위한 맵-리듀스 패턴을 사용하는 이력서 자격 처리기 |
-| [스트리밍](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-llm-streaming) | ☆☆☆ <br> *초보*   | 사용자 중단 기능이 있는 실시간 LLM 스트리밍 데모 |
-| [채팅 가드레일](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-chat-guardrail) | ☆☆☆ <br> *초보*  | 여행 관련 쿼리만 처리하는 여행 어드바이저 챗봇 |
-| [다중 에이전트](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-multi-agent) | ★☆☆ <br> *초급* | 두 에이전트 간의 비동기 통신을 위한 금기어 게임 |
-| [감독자](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-supervisor) | ★☆☆ <br> *초급* | 연구 에이전트가 신뢰할 수 없게 되었습니다... 감독 프로세스를 구축해 봅시다 |
-| [병렬](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-parallel-batch) | ★☆☆ <br> *초급*   | 3배 속도 향상을 보여주는 병렬 실행 데모 |
-| [병렬 플로우](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-parallel-batch-flow) | ★☆☆ <br> *초급*   | 여러 필터로 8배 속도 향상을 보여주는 병렬 이미지 처리 데모 |
-| [다수결 투표](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-majority-vote) | ★☆☆ <br> *초급* | 여러 솔루션 시도를 집계하여 추론 정확도 향상 |
-| [사고](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-thinking) | ★☆☆ <br> *초급*   | 사고 체인을 통한 복잡한 추론 문제 해결 |
-| [메모리](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-chat-memory) | ★☆☆ <br> *초급* | 단기 및 장기 메모리가 있는 채팅 봇 |
-| [MCP](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-mcp) | ★☆☆ <br> *초급* | 수치 연산을 위한 모델 컨텍스트 프로토콜을 사용하는 에이전트 |
+| [채팅](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-chat) | ☆☆☆ <br> *초보자*   | 대화 기록이 있는 기본 채팅 봇 |
+| [RAG](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-rag) | ☆☆☆ <br> *초보자*   | 간단한 검색 강화 생성 프로세스 |
+| [워크플로우](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-workflow) | ☆☆☆ <br> *초보자*   | 개요 작성, 콘텐츠 작성, 스타일 적용이 가능한 글쓰기 워크플로우 |
 
-</div>
+![](https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/divider.png)
 
-👀 초보자를 위한 다른 튜토리얼을 보고 싶으신가요? [이슈를 생성하세요!](https://github.com/zvictor/BrainyFlow/issues/new)
+## 빠른 시작
 
-## BrainyFlow를 어떻게 사용하나요?
+BrainyFlow가 처음이신가요? [시작하기](https://brainy.com/docs/start) 가이드를 확인하여 빠르게 첫 번째 플로우를 구축해보세요.
 
-🚀 **에이전틱 코딩**을 통해—가장 빠른 LLM 앱 개발 패러다임-*인간이 설계*하고 *에이전트가 코딩*합니다!
+## 면책 조항
 
-<br>
-<div align="center">
-  <a href="https://zacharyhuang.substack.com/p/agentic-coding-the-most-fun-way-to" target="_blank">
-    <img src="https://substackcdn.com/image/fetch/f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F423a39af-49e8-483b-bc5a-88cc764350c6_1050x588.png" width="700" alt="IMAGE ALT TEXT" style="cursor: pointer;">
-  </a>
-</div>
-<br>
+BrainyFlow는 "있는 그대로" 제공되며 어떠한 보증도 제공하지 않습니다.  
+생성된 출력물의 사용 방법에 대한 책임을 지지 않습니다.
 
-✨ 아래는 더 복잡한 LLM 앱의 예시입니다:
+## 스폰서
 
-<div align="center">
-  
-|  앱 이름     |  난이도    | 주제  | 인간 설계 | 에이전트 코드 |
-| :-------------:  | :-------------: | :---------------------: |  :---: |  :---: |
-| [Cursor로 Cursor 만들기](https://github.com/The-Pocket/Tutorial-Cursor) <br> <sup><sub>우리는 곧 특이점에 도달할 것입니다...</sup></sub> | ★★★ <br> *고급*   | [에이전트](https://brainy.gitbook.io/flow/design_pattern/agent) | [설계 문서](https://github.com/The-Pocket/Tutorial-Cursor/blob/main/docs/design.md) | [플로우 코드](https://github.com/The-Pocket/Tutorial-Cursor/blob/main/flow.py)
-| [AI Paul Graham에게 물어보기](https://github.com/The-Pocket/Tutorial-YC-Partner) <br> <sup><sub>입학하지 못한 경우를 대비해 AI Paul Graham에게 물어보세요</sup></sub> | ★★☆ <br> *중급*   | [RAG](https://brainy.gitbook.io/flow/design_pattern/rag) <br> [맵 리듀스](https://brainy.gitbook.io/flow/design_pattern/mapreduce) <br> [TTS](https://brainy.gitbook.io/flow/utility_function/text_to_speech) | [설계 문서](https://github.com/The-Pocket/Tutorial-AI-Paul-Graham/blob/main/docs/design.md) | [플로우 코드](https://github.com/The-Pocket/Tutorial-AI-Paul-Graham/blob/main/flow.py)
-| [유튜브 요약기](https://github.com/The-Pocket/Tutorial-Youtube-Made-Simple)  <br> <sup><sub> 유튜브 비디오를 5세 아이에게 설명하듯이 설명해 줍니다 </sup></sub> | ★☆☆ <br> *초급*   | [맵 리듀스](https://brainy.gitbook.io/flow/design_pattern/mapreduce) |  [설계 문서](https://github.com/The-Pocket/Tutorial-Youtube-Made-Simple/blob/main/docs/design.md) | [플로우 코드](https://github.com/The-Pocket/Tutorial-Youtube-Made-Simple/blob/main/flow.py)
-| [콜드 오프너 생성기](https://github.com/The-Pocket/Tutorial-Cold-Email-Personalization)  <br> <sup><sub> 차가운 리드를 뜨겁게 만드는 즉각적인 아이스브레이커 </sup></sub> | ★☆☆ <br> *초급*   | [맵 리듀스](https://brainy.gitbook.io/flow/design_pattern/mapreduce) <br> [웹 검색](https://brainy.gitbook.io/flow/utility_function/websearch) |  [설계 문서](https://github.com/The-Pocket/Tutorial-Cold-Email-Personalization/blob/master/docs/design.md) | [플로우 코드](https://github.com/The-Pocket/Tutorial-Cold-Email-Personalization/blob/master/flow.py)
+![](https://cdn.jsdelivr.net/gh/zvictor/brainyflow@main/.github/media/brain.png)
 
-</div>
+BrainyFlow는 200줄의 코드와 여러분의 후원으로 운영됩니다! 💰
+```
 
-- **에이전틱 코딩**을 배우고 싶으신가요?
-
-  - 위의 앱 중 일부가 어떻게 만들어졌는지 비디오 튜토리얼을 보려면 [내 YouTube](https://www.youtube.com/@ZacharyLLM?sub_confirmation=1)를 확인하세요!
-
-  - 자신만의 LLM 앱을 만들고 싶으신가요? 이 [포스트](https://zacharyhuang.substack.com/p/agentic-coding-the-most-fun-way-to)를 읽어보세요! [이 템플릿](https://github.com/The-Pocket/PocketFlow-Template-Python)으로 시작하세요!
-
-  - 자세한 단계를 배우고 싶으신가요? 이 [가이드](https://brainy.gitbook.io/flow/guide)를 읽어보세요!
+이 번역은 원본 마크다운 구조를 유지하면서 모든 내용을 한국어로 번역했습니다. 코드 블록, 링크, 이미지 URL 등은 원본 그대로 유지되었으며, 텍스트 내용만 한국어로 변환되었습니다.

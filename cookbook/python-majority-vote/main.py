@@ -1,44 +1,49 @@
 import argparse
-import asyncio # Import asyncio
-from brainyflow import Node, Flow, Memory # Import Node, Flow, Memory
+from brainyflow import Node, Flow
 import collections
 from utils import call_llm
 import yaml
 
-class TriggerAttemptsNode(Node):
-    async def prep(self, memory: Memory):
-        question = memory.question if hasattr(memory, "question") else "(No question provided)"
-        attempts_count = memory.num_tries if hasattr(memory, "num_tries") else 3
-        memory.attempts_count = attempts_count # Store count for aggregation
-        memory.answers = [] # Initialize list for answers
-        return question, attempts_count
 
-    async def post(self, memory: Memory, prep_res, exec_res):
-        question, attempts_count = prep_res
-        for i in range(attempts_count):
-            # Trigger the processing node for each attempt
-            self.trigger("process_question", forkingData={"question": question, "attempt_num": i + 1})
-        # The aggregation node will be triggered when all attempts are processed
+class TriggerMajorityVoteNode(Node):
+    async def prep(self, shared):
+        question = getattr(shared, "question", "(No question provided)")
+        attempts_count = getattr(shared, "num_tries", 3)
+        return [question for _ in range(attempts_count)]
 
-class ProcessQuestionNode(Node):
-    async def prep(self, memory: Memory):
-        # Read data passed via forkingData from local memory
-        return memory.question, memory.attempt_num
+    async def post(self, memory, prep_res, exec_res):
+        memory.remaining_items = len(prep_res)
 
-    async def exec(self, inputs):
-        question, attempt_num = inputs
-        print(f"Attempt {attempt_num}: Processing question...")
+        for index, input in enumerate(prep_res):
+            self.trigger("default", {"index": index, "data": input})
+          
+
+class MajorityVoteNode(Node):
+    async def prep(self, memory):# -> tuple[Any, Any]:# -> tuple[Any, Any]:
+        return memory.index, memory.data
+
+    async def exec(self, data_tuple):
+        index, single_question = data_tuple
+
         prompt = f"""
 You are a helpful assistant. Please answer the user's question below.
-Question: {question}
+Question: {single_question}
 
 Return strictly using the following YAML structure:
 ```yaml
 thinking: |
     (Your thinking process here)
 answer: 0.123 # Final answer as a decimal with 3 decimal places
-```"""
+```
+
+IMPORTANT: Make sure to:
+1. Use proper indentation (4 spaces) for all multi-line fields
+2. Use the | character for multi-line text fields
+3. Keep single-line fields without the | character
+4. Your answer must be wrapped in yaml code block or it will result in an error. Do not forget to include the ```yaml sequence at the beginning and end it with ```.
+"""
         raw_response = call_llm(prompt)
+        assert "```yaml" in raw_response, "Response must contain yaml block"
         yaml_part = raw_response.split("```yaml")[1].split("```")[0].strip()
         parsed = yaml.safe_load(yaml_part)
 
@@ -48,41 +53,35 @@ answer: 0.123 # Final answer as a decimal with 3 decimal places
 
         # Return only the 'answer' field for the majority vote.
         return str(parsed['answer'])
-
+    
     async def exec_fallback(self, prep_res, exc):
         return None
 
-    async def post(self, memory: Memory, prep_res, exec_res):
-        # Store the answer in the global list
-        memory.answers.append(exec_res)
-        # Decrement the counter and trigger aggregation if this is the last attempt
-        memory.attempts_count -= 1
-        if memory.attempts_count == 0:
-            print("Processor: All attempts processed, triggering majority vote.")
-            self.trigger("aggregate_votes")
+    async def post(self, memory, prep_res, exec_res):
+        if not hasattr(memory, "results"):
+            memory.results = [None] * memory.remaining_items
+        memory.results[prep_res[0]] = exec_res
+        print(f"Processor: Finished item {prep_res[0]}")
 
-class AggregateVotesNode(Node):
-    async def prep(self, memory: Memory):
-        # Get all answers from memory
-        return memory.answers or []
+        # Decrement counter and trigger combine if this is the last summary
+        memory.remaining_items -= 1
+        if not memory.remaining_items == 0:
+            return
+        
+        exec_res_list = memory.results
+        print(f"Processor: exec_res_list: {exec_res_list}")
+        
 
-    async def exec(self, answers: list):
-        """Calculate majority vote."""
         # Count frequency for non-None answers
-        valid_answers = [res for res in answers if res is not None]
-        counter = collections.Counter(valid_answers)
-        if not counter:
-            return None, 0
+        exec_res_list = [res for res in exec_res_list if res is not None]
+        counter = collections.Counter(exec_res_list)
         best_answer, freq = counter.most_common(1)[0]
-        return best_answer, freq
 
-    async def post(self, memory: Memory, prep_res, exec_res):
-        best_answer, freq = exec_res
         # Store final
-        memory.majority_answer = best_answer
+        memory["majority_answer"] = best_answer
 
         print("========================")
-        print("All structured answers:", prep_res) # prep_res contains the list of answers
+        print("All structured answers:", exec_res_list)
         print("Majority vote =>", best_answer)
         print("Frequency =>", freq)
         print("========================")
@@ -90,37 +89,32 @@ class AggregateVotesNode(Node):
         # End the flow
         self.trigger("end")
 
-
-if __name__ == "__main__":
+async def main():
     # Set up argument parser
     parser = argparse.ArgumentParser(description="Run majority vote reasoning on a problem")
     parser.add_argument("--problem", type=str, help="Your reasoning problem to solve")
     parser.add_argument("--tries", type=int, default=5, help="Number of attempts to make (default: 5)")
     args = parser.parse_args()
-
+    
     # Default problem if none provided
     default_problem = """You work at a shoe factory. In front of you, there are three pairs of shoes (six individual shoes) with the following sizes: two size 4s, two size 5s, and two size 6s. The factory defines an "acceptable pair" as two shoes that differ in size by a maximum of one size (e.g., a size 5 and a size 6 would be an acceptable pair). If you close your eyes and randomly pick three pairs of shoes without replacement, what is the probability that you end up drawing three acceptable pairs?"""
-
-    memory = Memory({ # Use Memory object
+    
+    shared = {
         "question": args.problem if args.problem else default_problem,
         "num_tries": args.tries
-    })
+    }
 
-    # Create nodes
-    trigger_attempts = TriggerAttemptsNode()
-    process_question = ProcessQuestionNode()
-    aggregate_votes = AggregateVotesNode()
+    trigger = TriggerMajorityVoteNode()
+    majority_node = MajorityVoteNode()
+    trigger >> majority_node
 
-    # Connect nodes
-    trigger_attempts - "process_question" >> process_question
-    process_question - "aggregate_votes" >> aggregate_votes # ProcessQuestion triggers aggregation
-
-    # Create flow
-    flow = Flow(start=trigger_attempts) # Flow starts with the trigger node
-
-    # Run the flow
-    asyncio.run(flow.run(memory)) # Use asyncio.run and pass memory
+    flow = Flow(start=trigger)
+    await flow.run(shared)
 
     print("\n=== Final Answer ===")
-    print(memory.majority_answer) # Access from memory
+    print(shared["majority_answer"])
     print("====================")
+
+if __name__ == "__main__":
+    import asyncio
+    asyncio.run(main()) 

@@ -1,6 +1,7 @@
 # Retrieval Augmented Generation (RAG)
 
-This project demonstrates a simplified RAG system that retrieves relevant documents based on user queries and generates answers using an LLM. This implementation is based directly on the tutorial: [Retrieval Augmented Generation (RAG) from Scratch — Tutorial For Dummies](https://zacharyhuang.substack.com/p/retrieval-augmented-generation-rag).
+This project demonstrates a simplified RAG system that retrieves relevant documents based on user queries and generates answers using an LLM. This implementation is based directly on this  tutorial (for Pocketflow): [Retrieval Augmented Generation (RAG) from Scratch — Tutorial For Dummies](https://zacharyhuang.substack.com/p/retrieval-augmented-generation-rag).
+
 
 ## Features
 
@@ -11,15 +12,18 @@ This project demonstrates a simplified RAG system that retrieves relevant docume
 ## How to Run
 
 1. Set your API key:
-
    ```bash
    export OPENAI_API_KEY="your-api-key-here"
    ```
-
    Or update it directly in `utils.py`
 
-2. Install and run with the default query:
+   Let's do a quick check to make sure your API key is working properly:
 
+   ```bash
+   python utils.py
+   ```
+
+2. Install and run with the default query:
    ```bash
    pip install -r requirements.txt
    python main.py
@@ -40,14 +44,13 @@ graph TD
     subgraph OfflineFlow[Offline Document Indexing]
         ChunkDocs[ChunkDocumentsNode] --> EmbedDocs[EmbedDocumentsNode] --> CreateIndex[CreateIndexNode]
     end
-
+    
     subgraph OnlineFlow[Online Processing]
         EmbedQuery[EmbedQueryNode] --> RetrieveDoc[RetrieveDocumentNode] --> GenerateAnswer[GenerateAnswerNode]
     end
 ```
 
 Here's what each part does:
-
 1. **ChunkDocumentsNode**: Breaks documents into smaller chunks for better retrieval
 2. **EmbedDocumentsNode**: Converts document chunks into vector representations
 3. **CreateIndexNode**: Creates a searchable FAISS index from embeddings

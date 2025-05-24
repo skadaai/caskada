@@ -9,12 +9,12 @@ async def main():
     
     # Run the flow
     print("Starting resume qualification processing...")
-    resume_flow.run(shared)
+    await resume_flow.run(shared)
     
     # Display final summary information (additional to what's already printed in ReduceResultsNode)
     if "summary" in shared:
         print("\nDetailed evaluation results:")
-        for filename, evaluation in shared.get("evaluations", {}).items():
+        for filename, evaluation in shared.get("data", {}).items():
             qualified = "✓" if evaluation.get("qualifies", False) else "✗"
             name = evaluation.get("candidate_name", "Unknown")
             print(f"{qualified} {name} ({filename})")
@@ -22,4 +22,5 @@ async def main():
     print("\nResume processing complete!")
 
 if __name__ == "__main__":
+    import asyncio
     asyncio.run(main())

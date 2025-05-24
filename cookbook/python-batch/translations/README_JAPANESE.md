@@ -1,117 +1,180 @@
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://cdn.jsdelivr.net/gh/zvictor/brainyflow@main/.github/media/logo-dark.png">
+    <source media="(prefers-color-scheme: light)" srcset="https://cdn.jsdelivr.net/gh/zvictor/brainyflow@main/.github/media/logo-light.png">
+    <img width="280" alt="Brainyflowのロゴ" src="https://cdn.jsdelivr.net/gh/zvictor/brainyflow@main/.github/media/logo-light.png">
+  </picture>
+<p>
+
+<p align="center">
+  革新的にミニマルなAIフレームワーク（<a href="https://github.com/zvictor/BrainyFlow/blob/main/python/brainyflow.py">たった200行のPythonコード</a>！🤯）
+
+  <br />
+  最小限のコードで強力なAIエージェントを構築し、最大限の自由を実現。
+  <br />
+  <sub>余計な機能、依存関係、ベンダーロックインなしでエージェントにエージェントを構築させましょう 😮</sub>
+</p>
+
+<p align="center">
+
+  <a href="https://pypi.org/project/brainyflow">
+   <img src="https://img.shields.io/pypi/dw/brainyflow?logo=python&label=Python&style=flat-square" alt="pythonバージョン">
+  </a>
+  <a href="https://npmjs.com/packages/brainyflow">
+   <img src="https://img.shields.io/npm/d18m/brainyflow?logo=typescript&label=Typescript&style=flat-square" alt="typescriptバージョン">
+  </a>
+  <a href="https://discord.gg/N9mVvxRXyH">
+    <img src="https://img.shields.io/discord/1346833819172601907?logo=discord&style=flat-square" alt="Discord">
+  </a>
+  <a href="https://github.com/zvictor/brainyflow">
+    <img src="https://img.shields.io/github/stars/zvictor/BrainyFlow?logo=github&style=flat-square" alt="GitHubリポジトリ">
+  </a>
+  <a href="https://github.com/sponsors/zvictor">
+    <img src="https://img.shields.io/github/sponsors/zvictor?logo=github&style=flat-square" alt="GitHubスポンサー">
+  </a>
+</p>
+
+BrainyFlowは、強力な抽象化を通じて_エージェンティックコーディング_を可能にするフレームワークです。
+
+共有状態を持つ_ネストされた有向グラフ_に基づいて複雑なAIアプリケーションを構築するためのシンプルなインターフェースを提供します。
+人間とAIアシスタントが効果的に協力してAIシステムを設計・実装することを可能にします。
+
+## 特徴
+
+- **Brain-Easy 🧠**: 人間とAIアシスタントの両方にとって直感的
+- **ミニマルデザイン ✨**: 核心的な抽象化が（驚くべきことに！）たった200行のコードで実現
+- **自由 🔓**: 余計な機能、依存関係、ベンダーロックインなし
+- **コンポーザブル 🧩**: シンプルで再利用可能なコンポーネントから複雑なシステムを構築
+- **強力 🦾**: お気に入りの機能をすべてサポート - ([マルチ](https://brainy.gitbook.io/flow/design_pattern/multi_agent))[エージェント](https://brainy.gitbook.io/flow/design_pattern/agent)、[ワークフロー](https://brainy.gitbook.io/flow/design_pattern/workflow)、[RAG](https://brainy.gitbook.io/flow/design_pattern/rag)など
+- **エージェンティックコーディング 🤖**: AI支援開発向けに設計
+- **ユニバーサル 🌈**: 任意のLLMプロバイダーやAPIと連携可能
+- **ポリグロット 🌍**: <!-- gitbook-ignore-start --><a href="https://pypi.org/project/brainyflow"><img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/python.svg" width="16" height="16" alt="Pythonロゴ" style="vertical-align: middle; margin: 0 2px;"></a><!-- gitbook-ignore-end --> Pythonと<!-- gitbook-ignore-start --><a href="https://npmjs.com/packages/brainyflow"><img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/typescript.svg" width="16" height="16" alt="Typescriptロゴ" style="vertical-align: middle; margin: 0 2px;"></a><!-- gitbook-ignore-end --> Typescriptの両方をサポート
+
+![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
+
+<!-- gitbook-ignore-start -->
+
+## ドキュメント
+
+私たちのドキュメントは包括的で、生物学的頭脳と人工知能の両方に適しています。<br />
+あなたの条件 - あるいはあなたが信じ込まされている条件 - を選択してください:
+
+\>> [私は炭素ベースです 🐥](https://brainy.gitbook.io/flow/introduction/getting_started) <<
+
+\>> [私はシリコンベースです 🤖](https://flow.bbrainy.sh/docs.txt) <<
+
+![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
+
+<!-- gitbook-ignore-end -->
+
+## Brainy Flowを選ぶ理由？
+
+現在のLLMフレームワークは肥大化しています... 実際には堅牢なLLMフレームワークに必要なのはたった200行だけです！
+
 <div align="center">
-  <img src="https://github.com/zvictor/BrainyFlow/raw/main/.github/media/banner-light.jpg" width="600"/>
+  <img src="https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/meme.jpg" width="500"/>
+
+|                                                                                                                                                                                                                | **抽象化** |                     **アプリ固有ラッパー**                      |                       **ベンダー固有ラッパー**                       |                **行数**                 |                  **サイズ**                   |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------: | :----------------------------------------------------------------: | :----------------------------------------------------------------------: | :--------------------------------------: | :-----------------------------------------: |
+| LangChain                                                                                                                                                                                                      |  エージェント, チェーン |      多数 <br><sup><sub>(例: QA, 要約)</sub></sup>      |      多数 <br><sub>(例: OpenAI, Pineconeなど)</sub></sup>       |                   405K                   |                   +166MB                    |
+| CrewAI                                                                                                                                                                                                         |  エージェント, チェーン | 多数 <br><sub>(例: FileReadTool, SerperDevTool)</sub></sup> | 多数 <br><sub>(例: OpenAI, Anthropic, Pineconeなど)</sub></sup> |                   18K                    |                   +173MB                    |
+| SmolAgent                                                                                                                                                                                                      |      エージェント      |   一部 <br><sub>(例: CodeAgent, VisitWebTool)</sub></sup>   |  一部 <br><sub>(例: DuckDuckGo, Hugging Faceなど)</sub></sup>   |                    8K                    |                   +198MB                    |
+| LangGraph                                                                                                                                                                                                      |  エージェント, グラフ |       一部 <br><sub>(例: セマンティック検索)</sub></sup>       | 一部 <br><sub>(例: PostgresStore, SqliteSaverなど)</sub></sup> |                   37K                    |                    +51MB                    |
+| AutoGen                                                                                                                                                                                                        |      エージェント      |   一部 <br><sub>(例: ツールエージェント, チャットエージェント)</sub></sup>    | 多数 <sub>[オプション]<br> (例: OpenAI, Pineconeなど)</sub></sup> | 7K <br><sub>(コアのみ)</sub></sup> | +26MB <br><sub>(コアのみ)</sub></sup> |
+| **BrainyFlow** <!-- gitbook-ignore-start --><img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/typescript.svg" width="16" height="16" alt="Typescriptロゴ"><!-- gitbook-ignore-end -->.ts |    **グラフ**    |                              **なし**                              |                                 **なし**                                 |                 **300**                  |                 **数KB**                  |
+| **BrainyFlow** <!-- gitbook-ignore-start --><img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/python.svg" width="16" height="16" alt="Pythonロゴ"><!-- gitbook-ignore-end -->.py         |    **グラフ**    |                              **なし**                              |                                 **なし**                                 |                 **200**                  |                 **数KB**                  |
+
 </div>
 
-![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
-[![Docs](https://img.shields.io/badge/docs-latest-blue)](https://brainy.gitbook.io/flow/)
-<a href="https://discord.gg/N9mVvxRXyH">
-<img src="https://img.shields.io/discord/1346833819172601907?logo=discord&style=flat">
-</a>
+![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
 
-BrainyFlowは[100行](https://github.com/zvictor/BrainyFlow/blob/main/python/__init__.py)のミニマリストLLMフレームワークです
+## BrainyFlowの仕組み
 
-- **軽量**: わずか100行。余分なもの一切なし、依存関係なし、ベンダーロックインなし。
-- **表現力**: あなたが好きなもの全て—([マルチ-](https://brainy.gitbook.io/flow/design_pattern/multi_agent))[エージェント](https://brainy.gitbook.io/flow/design_pattern/agent)、[ワークフロー](https://brainy.gitbook.io/flow/design_pattern/workflow)、[RAG](https://brainy.gitbook.io/flow/design_pattern/rag)など。
-
-- **[エージェンティックコーディング](https://zacharyhuang.substack.com/p/agentic-coding-the-most-fun-way-to)**: AIエージェント（例：Cursor AI）にエージェントを構築させる—生産性が10倍に！
-
-- インストールするには、`pip install brainyflow`または[ソースコード](https://github.com/zvictor/BrainyFlow/blob/main/python/__init__.py)をコピーするだけです（わずか100行）。
-- 詳細については[ドキュメント](https://brainy.gitbook.io/flow/)をご覧ください。動機について学ぶには、[ストーリー](https://zacharyhuang.substack.com/p/i-built-an-llm-framework-in-just)をお読みください。
-- 🎉 私たちの[Discord](https://discord.gg/N9mVvxRXyH)に参加してください！
-
-- 🎉 [@zvictor](https://www.github.com/zvictor)、[@jackylee941130](https://www.github.com/jackylee941130)、[@ZebraRoy](https://www.github.com/ZebraRoy)のおかげで、[TypeScriptバージョン](https://github.com/The-Pocket/PocketFlow-Typescript)もできました！
-
-## なぜBrainyFlow？
-
-現在のLLMフレームワークは膨大すぎます... LLMフレームワークには100行だけで十分です！
-
-<div align="center">
-  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/meme.jpg" width="400"/>
-
-|                |       **抽象化**       |                             **アプリ固有のラッパー**                              |                        **ベンダー固有のラッパー**                        |                **行数**                 |                 **サイズ**                 |
-| -------------- | :--------------------: | :-------------------------------------------------------------------------------: | :----------------------------------------------------------------------: | :-------------------------------------: | :----------------------------------------: |
-| LangChain      | エージェント、チェーン |                   多数 <br><sup><sub>(例：QA、要約)</sub></sup>                   |        多数 <br><sup><sub>(例：OpenAI、Pineconeなど)</sub></sup>         |                  405K                   |                   +166MB                   |
-| CrewAI         | エージェント、チェーン |         多数 <br><sup><sub>(例：FileReadTool、SerperDevTool)</sub></sup>          |   多数 <br><sup><sub>(例：OpenAI、Anthropic、Pineconeなど)</sub></sup>   |                   18K                   |                   +173MB                   |
-| SmolAgent      |      エージェント      |         いくつか <br><sup><sub>(例：CodeAgent、VisitWebTool)</sub></sup>          |  いくつか <br><sup><sub>(例：DuckDuckGo、Hugging Faceなど)</sub></sup>   |                   8K                    |                   +198MB                   |
-| LangGraph      |  エージェント、グラフ  |            いくつか <br><sup><sub>(例：セマンティック検索)</sub></sup>            | いくつか <br><sup><sub>(例：PostgresStore、SqliteSaverなど) </sub></sup> |                   37K                   |                   +51MB                    |
-| AutoGen        |      エージェント      | いくつか <br><sup><sub>(例：ツールエージェント、チャットエージェント)</sub></sup> |  多数 <sup><sub>[オプション]<br> (例：OpenAI、Pineconeなど)</sub></sup>  | 7K <br><sup><sub>(コアのみ)</sub></sup> | +26MB <br><sup><sub>(コアのみ)</sub></sup> |
-| **BrainyFlow** |       **グラフ**       |                                     **なし**                                      |                                 **なし**                                 |                 **100**                 |                 **+56KB**                  |
-
-</div>
-
-## BrainyFlowはどのように動作しますか？
-
-[100行](https://github.com/zvictor/BrainyFlow/blob/main/python/__init__.py)のコードはLLMフレームワークの核となる抽象化を捉えています：グラフ！
+<a href="https://github.com/zvictor/BrainyFlow/blob/main/python/brainyflow.py"><!-- gitbook-ignore-start --><img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/python.svg" width="16" height="16" alt="Pythonロゴ" style="vertical-align: middle; margin: 0 2px;"> <!-- gitbook-ignore-end -->Python</a>または<a href="https://github.com/zvictor/BrainyFlow/blob/main/typescript/brainyflow.ts"><!-- gitbook-ignore-start --><img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/typescript.svg" width="16" height="16" alt="Typescriptロゴ" style="vertical-align: middle; margin: 0 2px;"> <!-- gitbook-ignore-end -->Typescript</a>の単一ファイルがLLMフレームワークの核心的な抽象化であるグラフを実装しています！
 <br>
 
 <div align="center">
-  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/abstraction.jpg" width="900"/>
+  <img src="https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/abstraction.jpg" width="1300"/>
 </div>
 <br>
 
-そこから、([マルチ-](https://brainy.gitbook.io/flow/design_pattern/multi_agent))[エージェント](https://brainy.gitbook.io/flow/design_pattern/agent)、[ワークフロー](https://brainy.gitbook.io/flow/design_pattern/workflow)、[RAG](https://brainy.gitbook.io/flow/design_pattern/rag)などの人気のあるデザインパターンを簡単に実装できます。
+- [ノード](https://brainy.gitbook.io/flow/core_abstraction/node)は明確なライフサイクル（`prep` → `exec` → `post`）を持つシンプルな(LLM)タスクを処理します。
+- [フロー](https://brainy.gitbook.io/flow/core_abstraction/flow)はノードを**アクション**（ラベル付きエッジ）で接続し、実行をオーケストレーションします。
+- [メモリ](https://brainy.gitbook.io/flow/core_abstraction/memory)は共有（`global`）状態と分離（`local`）状態を管理し、ノード間の通信を可能にします。
+
+そこから、全ての人気デザインパターンを簡単に実装できます:
 <br>
 
 <div align="center">
-  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/design.jpg" width="900"/>
+  <img src="https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/design.jpg" width="1300"/>
 </div>
 <br>
-✨ 以下は基本的なチュートリアルです：
+
+- [エージェント](https://brainy.gitbook.io/flow/design_pattern/agent)はコンテキストに基づいて自律的に意思決定します。
+- [ワークフロー](https://brainy.gitbook.io/flow/design_pattern/workflow)は複数のタスクを連鎖させたシーケンシャルパイプラインを構築します。
+- [RAG](https://brainy.gitbook.io/flow/design_pattern/rag)はデータ取得と生成を統合します。
+- [マップリデュース](https://brainy.gitbook.io/flow/design_pattern/mapreduce)はデータタスクをマップとリデュースのステップに分割します。
+- [構造化出力](https://brainy.gitbook.io/flow/design_pattern/structure)は出力を一貫した形式で整形します。
+- [マルチエージェント](https://brainy.gitbook.io/flow/design_pattern/multi_agent)は複数のエージェントを調整します。
+
+![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
+
+## チュートリアル
 
 <div align="center">
   
 |  名前  | 難易度    |  説明  |  
 | :-------------:  | :-------------: | :--------------------- |  
-| [チャット](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-chat) | ☆☆☆ <br> *超簡単*   | 会話履歴を持つ基本的なチャットボット |
-| [構造化出力](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-structured-output) | ☆☆☆ <br> *超簡単* | プロンプトによる履歴書からの構造化データの抽出 |
-| [ワークフロー](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-workflow) | ☆☆☆ <br> *超簡単*   | 概要を作成し、コンテンツを書き、スタイルを適用するライティングワークフロー |
-| [エージェント](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-agent) | ☆☆☆ <br> *超簡単*   | ウェブを検索して質問に答えることができる研究エージェント |
-| [RAG](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-rag) | ☆☆☆ <br> *超簡単*   | シンプルな検索拡張生成プロセス |
-| [マップ-リデュース](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-map-reduce) | ☆☆☆ <br> *超簡単* | バッチ評価のためのマップリデュースパターンを使用した履歴書資格処理 |
-| [ストリーミング](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-llm-streaming) | ☆☆☆ <br> *超簡単*   | ユーザー中断機能を備えたリアルタイムLLMストリーミングデモ |
-| [チャットガードレール](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-chat-guardrail) | ☆☆☆ <br> *超簡単*  | 旅行関連のクエリのみを処理する旅行アドバイザーチャットボット |
-| [マルチエージェント](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-multi-agent) | ★☆☆ <br> *初級* | 2つのエージェント間の非同期通信のためのタブーワードゲーム |
-| [スーパーバイザー](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-supervisor) | ★☆☆ <br> *初級* | 研究エージェントが信頼性に欠ける場合... 監視プロセスを構築しましょう |
-| [並列](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-parallel-batch) | ★☆☆ <br> *初級*   | 3倍の速度向上を示す並列実行デモ |
-| [並列フロー](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-parallel-batch-flow) | ★☆☆ <br> *初級*   | 複数のフィルターで8倍の速度向上を示す並列画像処理デモ |
-| [多数決](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-majority-vote) | ★☆☆ <br> *初級* | 複数の解決策を集約して推論精度を向上させる |
-| [思考](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-thinking) | ★☆☆ <br> *初級*   | 思考連鎖を通じて複雑な推論問題を解決する |
-| [メモリ](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-chat-memory) | ★☆☆ <br> *初級* | 短期および長期記憶を持つチャットボット |
-| [MCP](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-mcp) | ★☆☆ <br> *初級* | 数値演算のためのモデルコンテキストプロトコルを使用するエージェント |
+| [チャット](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-chat) | ☆☆☆ <br> *初級*   | 会話履歴を持つ基本的なチャットボット |
+| [RAG](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-rag) | ☆☆☆ <br> *初級*   | シンプルな検索拡張生成プロセス |
+| [ワークフロー](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-workflow) | ☆☆☆ <br> *初級*   | アウトライン作成、コンテンツ執筆、スタイル適用を行うライティングワークフロー |
+| [マップリデュース](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-map-reduce) | ☆☆☆ <br> *初級* | バッチ評価のためのマップリデュースパターンを使用した履歴書選考プロセッサ |
+| [エージェント](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-agent) | ☆☆☆ <br> *初級*   | ウェブを検索して質問に答えられるリサーチエージェント |
+| [ストリーミング](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-llm-streaming) | ☆☆☆ <br> *初級*   | ユーザー中断機能付きのリアルタイムLLMストリーミングデモ |
+| [マルチエージェント](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-multi-agent) | ★☆☆ <br> *中級* | 2つのエージェント間の非同期通信のためのタブー語ゲーム |
+| [スーパーバイザー](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-supervisor) | ★☆☆ <br> *中級* | 信頼性の低いリサーチエージェント...監視プロセスを構築しよう|
+| [並列処理](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-parallel-batch) | ★☆☆ <br> *中級*   | 3倍の高速化を示す並列実行デモ |
+| [思考](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-thinking) | ★☆☆ <br> *中級*   | 連鎖思考を通じた複雑な推論問題の解決 |
+| [メモリ](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-chat-memory) | ★☆☆ <br> *中級* | 短期記憶と長期記憶を持つチャットボット |
 
 </div>
 
-👀 他の超簡単なチュートリアルが見たいですか？[課題を作成してください！](https://github.com/zvictor/BrainyFlow/issues/new)
+他にも多数のチュートリアルがすべてのレベルに対応！[こちらで全てチェック！](https://github.com/zvictor/BrainyFlow/tree/main/cookbook)
 
-## BrainyFlowの使い方は？
+![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
 
-🚀 **エージェンティックコーディング**を通じて—最速のLLMアプリ開発パラダイムで、_人間が設計し_、_エージェントがコードを書く_！
+## クイックスタート
 
-<br>
-<div align="center">
-  <a href="https://zacharyhuang.substack.com/p/agentic-coding-the-most-fun-way-to" target="_blank">
-    <img src="https://substackcdn.com/image/fetch/f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F423a39af-49e8-483b-bc5a-88cc764350c6_1050x588.png" width="700" alt="IMAGE ALT TEXT" style="cursor: pointer;">
+BrainyFlowが初めてですか？[スタートガイド](https://brainy.gitbook.io/flow/introduction/getting_started)をチェックして、すぐに最初のフローを構築しましょう。
+
+## 自動コーディングアプリを構築する準備は？
+
+[エージェンティックコーディングガイド](https://brainy.gitbook.io/flow/guides/agentic_coding)をチェックし、BrainyFlowで自動コーディングLLMプロジェクトを最速で開発しましょう！
+
+![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
+
+## 謝辞
+
+brainyFlowの元となったPocketFlowフレームワークの作成者と貢献者に深く感謝いたします。
+
+## 免責事項
+
+BrainyFlowは「現状のまま」提供され、いかなる保証もありません。  
+生成された出力の使用方法、正確性、合法性、またはその使用から生じる可能性のある結果について、私たちは責任を負いません。
+
+## スポンサー
+
+<p align="center">
+  <a style="color: inherit" href="https://github.com/sponsors/zvictor?utm_source=brainyflow&utm_medium=sponsorship&utm_campaign=brainyflow&utm_id=brainyflow">
+    <img width="150" src="https://cdn.jsdelivr.net/gh/zvictor/brainyflow@main/.github/media/brain.png" alt="Brainyflowのロゴ" />
+  </a><br /><br />
+  BrainyFlowは200行のコードとあなたの寛大さで動いています！ 💰<br />
+    <a style="color: inherit" href="https://github.com/sponsors/zvictor?utm_source=brainyflow&utm_medium=sponsorship&utm_campaign=brainyflow&utm_id=brainyflow">
+      より少ないコードでより多くのAIを届けるのを支援してください（ただしカフェインは多めに必要かも）
+    </a> ☕<br /><br />
+    <a style="color: inherit" href="https://github.com/sponsors/zvictor?utm_source=brainyflow&utm_medium=sponsorship&utm_campaign=brainyflow&utm_id=brainyflow">あなたの支援</a>がBrainyFlowをミニマルで強力、依存関係なしで保ちます！ 🚀
   </a>
-</div>
-<br>
+</p>
 
-✨ 以下はより複雑なLLMアプリの例です：
-
-<div align="center">
-  
-|  アプリ名     |  難易度    | トピック  | 人間による設計 | エージェントによるコード |
-| :-------------:  | :-------------: | :---------------------: |  :---: |  :---: |
-| [Cursorを使ってCursorを構築](https://github.com/The-Pocket/Tutorial-Cursor) <br> <sup><sub>もうすぐシンギュラリティに到達します...</sup></sub> | ★★★ <br> *上級*   | [エージェント](https://brainy.gitbook.io/flow/design_pattern/agent) | [設計書](https://github.com/The-Pocket/Tutorial-Cursor/blob/main/docs/design.md) | [フローコード](https://github.com/The-Pocket/Tutorial-Cursor/blob/main/flow.py)
-| [AI Paul Grahamに質問する](https://github.com/The-Pocket/Tutorial-YC-Partner) <br> <sup><sub>もし入れなかった場合は、AI Paul Grahamに聞いてみましょう</sup></sub> | ★★☆ <br> *中級*   | [RAG](https://brainy.gitbook.io/flow/design_pattern/rag) <br> [マップリデュース](https://brainy.gitbook.io/flow/design_pattern/mapreduce) <br> [TTS](https://brainy.gitbook.io/flow/utility_function/text_to_speech) | [設計書](https://github.com/The-Pocket/Tutorial-AI-Paul-Graham/blob/main/docs/design.md) | [フローコード](https://github.com/The-Pocket/Tutorial-AI-Paul-Graham/blob/main/flow.py)
-| [Youtubeサマライザー](https://github.com/The-Pocket/Tutorial-Youtube-Made-Simple)  <br> <sup><sub> 5歳児にもわかるようにYouTube動画を説明 </sup></sub> | ★☆☆ <br> *初級*   | [マップリデュース](https://brainy.gitbook.io/flow/design_pattern/mapreduce) |  [設計書](https://github.com/The-Pocket/Tutorial-Youtube-Made-Simple/blob/main/docs/design.md) | [フローコード](https://github.com/The-Pocket/Tutorial-Youtube-Made-Simple/blob/main/flow.py)
-| [コールドオープナージェネレーター](https://github.com/The-Pocket/Tutorial-Cold-Email-Personalization)  <br> <sup><sub> 冷たいリードを熱くする即席アイスブレーカー </sup></sub> | ★☆☆ <br> *初級*   | [マップリデュース](https://brainy.gitbook.io/flow/design_pattern/mapreduce) <br> [Web検索](https://brainy.gitbook.io/flow/utility_function/websearch) |  [設計書](https://github.com/The-Pocket/Tutorial-Cold-Email-Personalization/blob/master/docs/design.md) | [フローコード](https://github.com/The-Pocket/Tutorial-Cold-Email-Personalization/blob/master/flow.py)
-
-</div>
-
-- **エージェンティックコーディング**を学びたいですか？
-
-  - 上記のアプリがどのように作られたかのビデオチュートリアルについては、[私のYouTube](https://www.youtube.com/@ZacharyLLM?sub_confirmation=1)をチェックしてください！
-
-  - 自分のLLMアプリを構築したいですか？この[投稿](https://zacharyhuang.substack.com/p/agentic-coding-the-most-fun-way-to)を読んでください！[このテンプレート](https://github.com/The-Pocket/PocketFlow-Template-Python)から始めましょう！
-
-  - 詳細な手順を学びたいですか？この[ガイド](https://brainy.gitbook.io/flow/guide)を読んでください！
+![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
+```
