@@ -2,7 +2,7 @@ export const DEFAULT_ACTION = 'default' as const
 
 export type SharedStore = Record<string, unknown>
 type Action = string | typeof DEFAULT_ACTION
-type NestedActions<T extends Action[]> = Record<T[number], NestedActions<T>[]>
+type NestedActions<T extends Action[]> = Record<T[number], ExecutionTree[]>
 
 export type Memory<GlobalStore extends SharedStore = SharedStore, LocalStore extends SharedStore = SharedStore> = GlobalStore &
   LocalStore & {
@@ -15,8 +15,14 @@ export type NodeError = Error & {
   retryCount?: number
 }
 
-interface Trigger<Action = string, L extends SharedStore = SharedStore> {
-  action: Action
+export type ExecutionTree = {
+  order: number
+  type: string
+  triggered: NestedActions<Action[]> | null
+}
+
+interface Trigger<A extends Action, L extends SharedStore = SharedStore> {
+  action: A
   forkingData: L
 }
 
@@ -63,8 +69,8 @@ export function createMemory<GlobalStore extends SharedStore = SharedStore, Loca
       local: localProxy,
       clone: <T extends SharedStore = SharedStore>(forkingData: T = {} as T): Memory<GlobalStore, LocalStore & T> =>
         createMemory<GlobalStore, LocalStore & T>(global, {
-          ...structuredClone(local),
-          ...structuredClone(forkingData),
+          ...structuredClone({ ...local } /* de-proxy it first */),
+          ...structuredClone({ ...forkingData } /* de-proxyfy it first */),
         }),
     },
     createProxyHandler(localProxy, global),
@@ -222,7 +228,7 @@ export class Flow<GlobalStore extends SharedStore = SharedStore, AllowedActions 
   SharedStore,
   AllowedActions,
   void,
-  NestedActions<AllowedActions>
+  ExecutionTree
 > {
   private visitCounts: Map<number, number> = new Map()
 
@@ -238,7 +244,7 @@ export class Flow<GlobalStore extends SharedStore = SharedStore, AllowedActions 
     throw new Error('Flow.exec() must never be called directly.')
   }
 
-  protected async execRunner(memory: Memory<GlobalStore, SharedStore>, prepRes: void): Promise<NestedActions<AllowedActions>> {
+  protected async execRunner(memory: Memory<GlobalStore, SharedStore>, prepRes: void): Promise<ExecutionTree> {
     this.visitCounts.clear()
     return await this.runNode(this.start, memory)
   }
@@ -251,11 +257,11 @@ export class Flow<GlobalStore extends SharedStore = SharedStore, AllowedActions 
     return results
   }
 
-  private async runNodes(nodes: BaseNode<GlobalStore>[], memory: Memory<GlobalStore>): Promise<NestedActions<AllowedActions>[]> {
+  private async runNodes(nodes: BaseNode<GlobalStore>[], memory: Memory<GlobalStore>): Promise<ExecutionTree[]> {
     return await this.runTasks(nodes.map((node) => () => this.runNode(node, memory)))
   }
 
-  private async runNode(node: BaseNode<GlobalStore>, memory: Memory<GlobalStore, SharedStore>): Promise<NestedActions<AllowedActions>> {
+  private async runNode(node: BaseNode<GlobalStore>, memory: Memory<GlobalStore, SharedStore>): Promise<ExecutionTree> {
     const nodeOrder = node.__nodeOrder
     const currentVisitCount = (this.visitCounts.get(nodeOrder) || 0) + 1
     if (currentVisitCount > this.options.maxVisits!) {
@@ -263,19 +269,28 @@ export class Flow<GlobalStore extends SharedStore = SharedStore, AllowedActions 
     }
     this.visitCounts.set(nodeOrder, currentVisitCount)
 
-    const clone = node.clone()
-    const triggers = await clone.run(memory.clone(), true)
-    if (!Array.isArray(triggers)) {
-      throw new Error('Node.run with propagate:true must return an array of triggers')
+    const clonedNode = node.clone()
+    const triggers = await clonedNode.run(memory.clone(), true)
+    const triggered: NestedActions<Action[]> = {}
+    const tasks: (() => Promise<[Action, ExecutionTree[]]>)[] = []
+
+    for (const [action, nodeMemory] of triggers) {
+      let nextNodes = clonedNode.getNextNodes(action)
+      if (nextNodes.length > 0) {
+        tasks.push(async () => [action, await this.runNodes(nextNodes, nodeMemory)])
+      } else {
+        // If the sub-node triggered an action that has no successors, that action becomes a terminal trigger for this Flow itself (if Flow is nested).
+        this.triggers.push({ action, forkingData: nodeMemory.local || {} })
+        triggered[action] = [] // Log that this action was triggered but led to no further nodes within this Flow.
+      }
     }
 
-    const tasks = triggers.map(([action, nodeMemory]) => async () => {
-      const nextNodes = clone.getNextNodes(action)
-      return [action, !nextNodes.length ? [] : await this.runNodes(nextNodes, nodeMemory as Memory<GlobalStore, SharedStore>)]
-    })
-
     const tree = await this.runTasks(tasks)
-    return Object.fromEntries(tree)
+    for (const [action, executionTrees] of tree) {
+      triggered[action] = executionTrees
+    }
+
+    return { order: nodeOrder, type: node.constructor.name, triggered: Object.keys(triggered).length > 0 ? triggered : null }
   }
 }
 

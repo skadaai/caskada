@@ -111,19 +111,23 @@ describe('ParallelFlow Class', () => {
 
     // 3. Check the aggregated result structure
     assert.ok(result && typeof result === 'object', 'Result should be an object')
-    assert.ok('process_b' in result, "Result should contain 'process_b' key")
-    assert.ok('process_c' in result, "Result should contain 'process_c' key")
-    const processB_Results = result.process_b
-    const processC_Results = result.process_c
+    assert.ok(Object.keys(result.triggered).includes('process_b'), "Result should contain 'process_b' key")
+    assert.ok(Object.keys(result.triggered).includes('process_c'), "Result should contain 'process_c' key")
+    const processB_Results = result.triggered.process_b
+    const processC_Results = result.triggered.process_c
     assert.ok(Array.isArray(processB_Results) && processB_Results.length === 1, "'process_b' should be an array with 1 result")
     assert.ok(Array.isArray(processC_Results) && processC_Results.length === 1, "'process_c' should be an array with 1 result")
 
     // Check that both branches completed (results are empty objects as DelayedNode has no successors)
-    assert.deepStrictEqual(processB_Results[0], { [DEFAULT_ACTION]: [] })
-    assert.deepStrictEqual(processC_Results[0], { [DEFAULT_ACTION]: [] })
+    assert.deepStrictEqual(processB_Results[0].triggered, { [DEFAULT_ACTION]: [] })
+    assert.deepStrictEqual(processC_Results[0].triggered, { [DEFAULT_ACTION]: [] })
 
     // 4. Check total mock calls
-    assert.equal(nodeB.execMock.mock.calls.length + nodeC.execMock.mock.calls.length, 2, 'Total exec calls across parallel nodes should be 2')
+    assert.equal(
+      nodeB.execMock.mock.calls.length + nodeC.execMock.mock.calls.length,
+      2,
+      'Total exec calls across parallel nodes should be 2',
+    )
   })
 
   it('should handle mix of parallel and sequential execution', async () => {
