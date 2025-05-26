@@ -402,12 +402,12 @@ class TestFlow:
             result = await flow.run(memory)
             
             expected = {
-                'order': str(node_a._node_order),
+                'order': node_a._node_order,
                 'type': node_a.__class__.__name__,
                 'triggered': {
                     DEFAULT_ACTION: [
                         {
-                            'order': str(node_b._node_order),
+                            'order': node_b._node_order,
                             'type': node_b.__class__.__name__,
                             'triggered': {DEFAULT_ACTION: []} # Node B is terminal
                         }
@@ -435,17 +435,17 @@ class TestFlow:
             result_b = await flow_b.run(Memory({}))
             
             expected_b = {
-                'order': str(branching_node._node_order),
+                'order': branching_node._node_order,
                 'type': branching_node.__class__.__name__,
                 'triggered': {
                     "path_B": [
                         {
-                            'order': str(node_b._node_order),
+                            'order': node_b._node_order,
                             'type': node_b.__class__.__name__,
                             'triggered': {
                                 DEFAULT_ACTION: [
                                     {
-                                        'order': str(node_d._node_order),
+                                        'order': node_d._node_order,
                                         'type': node_d.__class__.__name__,
                                         'triggered': {DEFAULT_ACTION: []} # Node D is terminal
                                     }
@@ -474,12 +474,12 @@ class TestFlow:
             result_c = await flow_c.run(Memory({}))
             
             expected_c = {
-                'order': str(branching_node_c_path._node_order),
+                'order': branching_node_c_path._node_order,
                 'type': branching_node_c_path.__class__.__name__,
                 'triggered': {
                     "path_C": [
                         {
-                            'order': str(node_c_c_path._node_order),
+                            'order': node_c_c_path._node_order,
                             'type': node_c_c_path.__class__.__name__,
                             'triggered': {DEFAULT_ACTION: []} # Node C is terminal
                         }
@@ -510,21 +510,21 @@ class TestFlow:
             expected_triggered = {
                 "out1": [
                     {
-                        'order': str(node_b._node_order),
+                        'order': node_b._node_order,
                         'type': node_b.__class__.__name__,
                         'triggered': {DEFAULT_ACTION: []} # Node B is terminal
                     }
                 ],
                 "out2": [
                     {
-                        'order': str(node_c._node_order),
+                        'order': node_c._node_order,
                         'type': node_c.__class__.__name__,
                         'triggered': {DEFAULT_ACTION: []} # Node C is terminal
                     }
                 ]
             }
             
-            assert result['order'] == str(multi_node._node_order)
+            assert result['order'] == multi_node._node_order
             assert result['type'] == multi_node.__class__.__name__
             assert result['triggered'] is not None
             assert set(result['triggered'].keys()) == {"out1", "out2"}

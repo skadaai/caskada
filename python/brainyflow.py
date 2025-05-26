@@ -16,7 +16,7 @@ ExecResultT = TypeVar('ExecResultT')
 ActionT = TypeVar('ActionT', bound=str)
 AnyNode: TypeAlias = 'BaseNode[G, Any, Any, Any, Any]'
 class ExecutionTree(TypedDict):
-    order: str
+    order: int
     type: str
     triggered: Optional[Dict[Action, List["ExecutionTree"]]]
 class Trigger(TypedDict):
@@ -61,18 +61,18 @@ class Memory(Generic[G, L]):
     @property
     def local(self) -> L:
         class LocalProxy:
-            def __init__(self, store: L) -> None: self.store = store
-            def __getattr__(self, key: str) -> Any: return _get_from_stores(key, self.store, Error=AttributeError)
-            def __getitem__(self, key: str) -> Any: return _get_from_stores(key, self.store)
-            def __setattr__(self, key: str, value: Any) -> None: self.store[key] = value
-            def __setitem__(self, key: str, value: Any) -> None: self.store[key] = value
-            def __delattr__(self, key: str) -> None: _delete_from_stores(key, self.store)
-            def __delitem__(self, key: str) -> None: _delete_from_stores(key, self.store)
-            def __contains__(self, key: str) -> bool: return key in self.store
+            def __init__(self, store: L) -> None: object.__setattr__(self, '_store', store)
+            def __getattr__(self, key: str) -> Any: return _get_from_stores(key, self._store, Error=AttributeError)
+            def __getitem__(self, key: str) -> Any: return _get_from_stores(key, self._store)
+            def __setattr__(self, key: str, value: Any) -> None: self._store[key] = value
+            def __setitem__(self, key: str, value: Any) -> None: self._store[key] = value
+            def __delattr__(self, key: str) -> None: _delete_from_stores(key, self._store)
+            def __delitem__(self, key: str) -> None: _delete_from_stores(key, self._store)
+            def __contains__(self, key: str) -> bool: return key in self._store
             def __eq__(self, other: object) -> bool:
-                if isinstance(other, LocalProxy): return self.store == other.store
-                return self.store == other
-            def __repr__(self) -> str: return self.store.__repr__()
+                if isinstance(other, LocalProxy): return self._store == other._store
+                return self._store == other
+            def __repr__(self) -> str: return self._store.__repr__()
         return cast(L, LocalProxy(self._local))
 
 @runtime_checkable
@@ -92,10 +92,9 @@ class BaseNode(Generic[G, L, ActionT, PrepResultT, ExecResultT], ABC):
     - ExecResultT: Return type of exec method
     """
     _next_id = 0
-    
     def __init__(self) -> None:
         self.successors: Dict[Action, List[AnyNode[G]]] = {}  # dict of action -> list of nodes
-        self._triggers: List[Trigger] = []  # list of dicts with action and forking_data
+        self._triggers: List[Trigger] = [] # list of dicts with action and forking_data
         self._locked: bool = True  # Prevent trigger calls outside post()
         self._node_order: int = BaseNode._next_id
         BaseNode._next_id += 1
@@ -103,25 +102,17 @@ class BaseNode(Generic[G, L, ActionT, PrepResultT, ExecResultT], ABC):
     def clone(self, seen: Optional[Dict[AnyNode[G], AnyNode[G]]] = None) -> BaseNode[G, L, ActionT, PrepResultT, ExecResultT]:
         """Create a deep copy of the node including its successors."""
         seen = seen or {}
-        if self in seen:
-            return seen[self]
+        if self in seen: return seen[self]
         
-        # Create new instance maintaining class hierarchy
-        cloned = type(self).__new__(type(self))
+        cloned = type(self).__new__(type(self)) # Create new instance maintaining class hierarchy
         seen[self] = cloned
-        
-        # Copy attributes except successors
-        for key, value in self.__dict__.items():
+        for key, value in self.__dict__.items(): # Copy attributes except successors
             if key != 'successors':
-                # Shallow-copy by default; deep-copy lists/dicts/sets to prevent sharing
-                setattr(cloned, key, copy.deepcopy(value) if isinstance(value, (list, dict, set)) else value)
+                setattr(cloned, key, copy.deepcopy(value) if isinstance(value, (list, dict, set)) else value) # Shallow-copy by default; deep-copy lists/dicts/sets to prevent sharing
         
-        # Clone successors with cycle detection
-        cloned.successors = {}
+        cloned.successors = {} # Clone successors with cycle detection
         for action, nodes in self.successors.items():
-            cloned.successors[action] = [
-                node.clone(seen) if node else node for node in nodes
-            ]
+            cloned.successors[action] = [node.clone(seen) if node else node for node in nodes]
         
         return cloned
     def on(self, action: Action, node: AnyNode[G]) -> AnyNode[G]:
@@ -151,8 +142,8 @@ class BaseNode(Generic[G, L, ActionT, PrepResultT, ExecResultT], ABC):
     def get_next_nodes(self, action: Action = DEFAULT_ACTION) -> List[AnyNode[G]]:
         """Get successor nodes for a specific action."""
         next_nodes = self.successors.get(action, [])
-        if not next_nodes and action != DEFAULT_ACTION and self.successors:
-            warnings.warn(f"Flow ends: '{action}' not found in {list(self.successors.keys())}", stacklevel=2)
+        if not next_nodes and action and action != DEFAULT_ACTION and self.successors:
+            warnings.warn(f"Flow ends for node {self.__class__.__name__}#{self._node_order}: Action '{action}' not found in its defined successors {list(self.successors.keys())}", stacklevel=2)
         return next_nodes
     
     async def prep(self, memory: Memory[G, L]) -> PrepResultT:
@@ -170,11 +161,7 @@ class BaseNode(Generic[G, L, ActionT, PrepResultT, ExecResultT], ABC):
     def trigger(self, action: ActionT, forking_data: Optional[SharedStore] = None) -> None:
         """Trigger a successor action with optional forking data."""
         assert not self._locked, "An action can only be triggered inside post()"
-        
-        self._triggers.append({
-            "action": action,
-            "forking_data": forking_data or {}
-        })
+        self._triggers.append({ "action": action, "forking_data": forking_data or {} })
     
     def list_triggers(self, memory: Memory[G, L]) -> List[Tuple[Action, Memory[G, L]]]:
         """Process triggers or return default."""
@@ -233,14 +220,11 @@ class Node(BaseNode[G, L, ActionT, PrepResultT, ExecResultT]):
         """Run exec with retry logic."""
         for attempt in range(self.max_retries):
             self.cur_retry = attempt
-            try:
-                return await self.exec(prep_res)
+            try: return await self.exec(prep_res)
             except Exception as error:
-                if not hasattr(error, 'retry_count'):
-                    error.retry_count = attempt + 1 # type: ignore
+                if not hasattr(error, 'retry_count'): error.retry_count = attempt + 1 # type: ignore
                 if attempt < self.max_retries - 1:
-                    if self.wait > 0:
-                        await asyncio.sleep(self.wait)
+                    if self.wait > 0: await asyncio.sleep(self.wait)
                     continue
                 return await self.exec_fallback(prep_res, error)
         raise RuntimeError("Unreachable: exec_runner should have returned or raised in the loop") # This should never happen if max_retries > 0
@@ -259,7 +243,7 @@ class Flow(BaseNode[G, L, ActionT, PrepResultT, ExecutionTree]):
         super().__init__()
         self.start = start
         self.options = options or {"max_visits": 15}
-        self.visit_counts: Dict[str, int] = {}
+        self.visit_counts: Dict[int, int] = {}
     
     async def exec(self, prep_res: PrepResultT) -> ExecutionTree:
         raise RuntimeError("This method should never be called in a Flow")
@@ -285,29 +269,29 @@ class Flow(BaseNode[G, L, ActionT, PrepResultT, ExecutionTree]):
     
     async def run_node(self, node: AnyNode[G], memory: Memory[G, L]) -> ExecutionTree:
         """Run a node with cycle detection and return its execution log."""
-        node_order = str(node._node_order)
-        # Check for cycles
+        node_order = node._node_order
         current_visit_count = self.visit_counts.get(node_order, 0) + 1
         assert current_visit_count <= self.options["max_visits"], f"Maximum cycle count ({self.options['max_visits']}) reached for {node.__class__.__name__}#{node_order}"
         self.visit_counts[node_order] = current_visit_count
         
         cloned_node = node.clone()
         triggers = await cloned_node.run(memory.clone(), True)
-        
         triggered: Dict[Action, List[ExecutionTree]] = {}
         tasks: List[Callable[[], Awaitable[Tuple[Action, List[ExecutionTree]]]]] = []
+
         for action, node_memory in triggers:
             next_nodes = cloned_node.get_next_nodes(action)
             if next_nodes:
                 tasks.append((lambda act=action, nn_list=next_nodes, nm_mem=node_memory: \
                                  lambda: self._process_trigger(act, nn_list, nm_mem))())
             else:
+                # If the sub-node triggered an action that has no successors, that action becomes a terminal trigger for this Flow itself
                 self._triggers.append({ "action": action, "forking_data": node_memory._local })
-                triggered[action] = []
+                triggered[action] = [] # Log that this action was triggered but led to no further nodes within this Flow.
 
         tree: List[Tuple[Action, List[ExecutionTree]]] = await self.run_tasks(tasks)
-        for action, resulting_node_logs in tree:
-            triggered[action] = resulting_node_logs
+        for action, execution_trees in tree:
+            triggered[action] = execution_trees
             
         return { 'order': node_order, 'type': node.__class__.__name__, 'triggered': triggered if triggered else None }
     
@@ -318,6 +302,4 @@ class Flow(BaseNode[G, L, ActionT, PrepResultT, ExecutionTree]):
 class ParallelFlow(Flow[G, L, ActionT, PrepResultT]):
     """Orchestrates execution of a graph of nodes with parallel branching."""    
     async def run_tasks(self, tasks: Sequence[Callable[[], Awaitable[T]]]) -> List[T]:
-        if not tasks:
-            return []
         return await asyncio.gather(*(task() for task in tasks))

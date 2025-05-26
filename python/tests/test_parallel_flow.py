@@ -113,7 +113,7 @@ class TestParallelFlow:
         assert setup["memory"][f"post_C_C"] == f"exec_C_slept_{delay_c}"
         
         assert result and isinstance(result, dict), "Result should be a dictionary (ExecutionTree)"
-        assert result['order'] == str(trigger_node._node_order)
+        assert result['order'] == trigger_node._node_order
         assert result['type'] == trigger_node.__class__.__name__
         
         triggered = result['triggered']
@@ -129,12 +129,12 @@ class TestParallelFlow:
         
         # Check structure of individual node logs
         expected_log_b: ExecutionTree = {
-            'order': str(node_b._node_order),
+            'order': node_b._node_order,
             'type': node_b.__class__.__name__,
             'triggered': {DEFAULT_ACTION: []} # DelayedNode is terminal for this action
         }
         expected_log_c: ExecutionTree = {
-            'order': str(node_c._node_order),
+            'order': node_c._node_order,
             'type': node_c.__class__.__name__,
             'triggered': {DEFAULT_ACTION: []} # DelayedNode is terminal for this action
         }
@@ -190,18 +190,18 @@ class TestParallelFlow:
         assert node_d.exec_mock.call_count == 2
 
         # Optionally, assert the structure of result_mix if needed
-        assert result_mix['order'] == str(trigger_node._node_order)
+        assert result_mix['order'] == trigger_node._node_order
         triggered_mix = result_mix['triggered']
         assert triggered_mix is not None
         
         path_b_log = triggered_mix['parallel_b'][0]
         path_c_log = triggered_mix['parallel_c'][0]
 
-        assert path_b_log['order'] == str(node_b._node_order)
-        assert path_b_log['triggered'][DEFAULT_ACTION][0]['order'] == str(node_d._node_order)
+        assert path_b_log['order'] == node_b._node_order
+        assert path_b_log['triggered'][DEFAULT_ACTION][0]['order'] == node_d._node_order
         assert path_b_log['triggered'][DEFAULT_ACTION][0]['triggered'] == {DEFAULT_ACTION: []}
 
-        assert path_c_log['order'] == str(node_c._node_order)
-        assert path_c_log['triggered'][DEFAULT_ACTION][0]['order'] == str(node_d._node_order)
+        assert path_c_log['order'] == node_c._node_order
+        assert path_c_log['triggered'][DEFAULT_ACTION][0]['order'] == node_d._node_order
         assert path_c_log['triggered'][DEFAULT_ACTION][0]['triggered'] == {DEFAULT_ACTION: []}
 
