@@ -164,10 +164,6 @@ export abstract class BaseNode<
     memory: Memory<GlobalStore, LocalStore> | GlobalStore,
     propagate?: boolean,
   ): Promise<ReturnType<typeof this.execRunner> | ReturnType<typeof this.listTriggers>> {
-    if (this.successors.size > 0) {
-      console.warn("Node won't run successors. Use Flow!")
-    }
-
     const _memory: Memory<GlobalStore, LocalStore> = memory._isMemoryObject
       ? (memory as Memory<GlobalStore, LocalStore>)
       : createMemory<GlobalStore, LocalStore>(memory as GlobalStore)

@@ -262,19 +262,6 @@ describe('BaseNode & Node', () => {
       assert.ok(triggers[0][1]._isMemoryObject)
     })
 
-    it('run() should warn if called on a node with successors', async () => {
-      const nodeA = new SimpleNode()
-      const nodeB = new SimpleNode()
-      nodeA.next(nodeB)
-      const warnMock = mock.method(console, 'warn', () => {})
-      await nodeA.run(memory)
-      assert.equal(warnMock.mock.calls.length, 1, 'Expected a warning when running a node that has successors')
-      warnMock.mock.restore()
-      // assert.match(warnMock.mock.calls[0].arguments[0], /Node won't run successors. Use Flow!/);
-      // warnMock.mock.restore();
-      // Skipping direct assertion due to console.warn mocking difficulty
-    })
-
     it('run() should accept global store directly', async () => {
       const node = new SimpleNode()
       // Global store must match the node's expected GlobalStore type <{ count?: number }>
