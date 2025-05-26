@@ -57,7 +57,7 @@ export function createMemory<GlobalStore extends SharedStore = SharedStore, Loca
   local: LocalStore = {} as LocalStore,
 ): Memory<GlobalStore, LocalStore> {
   const localProxy = new Proxy(local, createProxyHandler(local))
-  const memory = new Proxy(
+  return new Proxy(
     {
       _isMemoryObject: true,
       local: localProxy,
@@ -68,9 +68,7 @@ export function createMemory<GlobalStore extends SharedStore = SharedStore, Loca
         }),
     },
     createProxyHandler(localProxy, global),
-  )
-
-  return memory as Memory<GlobalStore, LocalStore>
+  ) as Memory<GlobalStore, LocalStore>
 }
 
 export abstract class BaseNode<
@@ -80,8 +78,8 @@ export abstract class BaseNode<
   PrepResult = any,
   ExecResult = any,
 > {
-  private successors: Map<Action, BaseNode[]> = new Map()
-  private triggers: Trigger<AllowedActions[number], SharedStore>[] = []
+  private successors: Map<Action, BaseNode<GlobalStore>[]> = new Map()
+  protected triggers: Trigger<AllowedActions[number], SharedStore>[] = []
   private locked = true
   private static __nextId = 0
   readonly __nodeOrder = BaseNode.__nextId++
@@ -100,15 +98,13 @@ export abstract class BaseNode<
     for (const [key, value] of this.successors.entries()) {
       cloned.successors.set(
         key,
-        Symbol.iterator in value
-          ? value.map((node) => (node && typeof node.clone === 'function' ? node.clone(seen) : node))
-          : value,
+        Symbol.iterator in value ? value.map((node) => (node && typeof node.clone === 'function' ? node.clone(seen) : node)) : value,
       )
     }
     return cloned
   }
 
-  on<T extends BaseNode>(action: Action, node: T): T {
+  on<N extends BaseNode<GlobalStore>>(action: Action, node: N): N {
     if (!this.successors.has(action)) {
       this.successors.set(action, [])
     }
@@ -116,14 +112,17 @@ export abstract class BaseNode<
     return node
   }
 
-  next<T extends BaseNode>(node: T, action: Action = DEFAULT_ACTION): T {
+  next<N extends BaseNode<GlobalStore>>(node: N, action: Action = DEFAULT_ACTION): N {
     return this.on(action, node)
   }
 
-  getNextNodes(action: Action = DEFAULT_ACTION): BaseNode[] {
+  getNextNodes(action: Action = DEFAULT_ACTION): BaseNode<GlobalStore>[] {
     const next = this.successors.get(action) || []
     if (!next.length && this.successors.size > 0 && action !== DEFAULT_ACTION) {
-      console.warn(`Flow ends: '${action}' not found in`, this.successors.keys())
+      console.warn(
+        `Flow ends for node ${this.constructor.name}#${this.__nodeOrder}: Action '${action}' not found in its defined successors`,
+        Array.from(this.successors.keys()),
+      )
     }
     return next
   }
@@ -141,25 +140,20 @@ export abstract class BaseNode<
     if (this.locked) {
       throw new Error(`An action can only be triggered inside post()`)
     }
-
-    this.triggers.push({
-      action,
-      forkingData,
-    })
+    this.triggers.push({ action, forkingData })
   }
 
-  private listTriggers(memory: Memory<GlobalStore, LocalStore>): [AllowedActions[number], Memory<GlobalStore, LocalStore>][] {
+  private listTriggers(memory: Memory<GlobalStore, LocalStore>): [AllowedActions[number], Memory<GlobalStore>][] {
     if (!this.triggers.length) {
       return [[DEFAULT_ACTION, memory.clone()]]
     }
-
     return this.triggers.map((t) => [t.action, memory.clone(t.forkingData)])
   }
 
   protected abstract execRunner(memory: Memory<GlobalStore, LocalStore>, prepRes: PrepResult | void): Promise<ExecResult | void>
 
-  async run(memory: Memory<GlobalStore, LocalStore> | GlobalStore, propagate?: false): Promise<ReturnType<typeof this.execRunner>>
   async run(memory: Memory<GlobalStore, LocalStore> | GlobalStore, propagate: true): Promise<ReturnType<typeof this.listTriggers>>
+  async run(memory: Memory<GlobalStore, LocalStore> | GlobalStore, propagate?: false): Promise<ReturnType<typeof this.execRunner>>
   async run(
     memory: Memory<GlobalStore, LocalStore> | GlobalStore,
     propagate?: boolean,
@@ -178,7 +172,6 @@ export abstract class BaseNode<
     if (propagate) {
       return this.listTriggers(_memory)
     }
-
     return execRes
   }
 }
@@ -191,36 +184,34 @@ class RetryNode<
   ExecResult = any,
 > extends BaseNode<GlobalStore, LocalStore, AllowedActions, PrepResult, ExecResult> {
   private curRetry = 0
-  private maxRetries = 1
-  private wait = 0
+  private readonly maxRetries: number
+  private readonly wait: number
 
   constructor(options: { maxRetries?: number; wait?: number } = {}) {
     super()
-
     this.maxRetries = options.maxRetries ?? 1
     this.wait = options.wait ?? 0
   }
 
-  async execFallback(prepRes: PrepResult, error: NodeError): Promise<ExecResult> {
+  async execFallback(prepRes: PrepResult | void, error: NodeError): Promise<ExecResult | void> {
     throw error
   }
 
-  protected async execRunner(memory: Memory<GlobalStore, LocalStore>, prepRes: PrepResult): Promise<ExecResult | void> {
+  protected async execRunner(memory: Memory<GlobalStore, LocalStore>, prepRes: PrepResult | void): Promise<ExecResult | void> {
     for (this.curRetry = 0; this.curRetry < this.maxRetries; this.curRetry++) {
       try {
         return await this.exec(prepRes)
-      } catch (error) {
+      } catch (error: any) {
         if (this.curRetry < this.maxRetries - 1) {
           if (this.wait > 0) {
             await new Promise((resolve) => setTimeout(resolve, this.wait * 1000))
           }
           continue
         }
-        ;(error as NodeError).retryCount = this.curRetry
+        error.retryCount = error.retryCount || this.curRetry
         return await this.execFallback(prepRes, error as NodeError)
       }
     }
-    throw new Error('Unreachable')
   }
 }
 
@@ -233,42 +224,44 @@ export class Flow<GlobalStore extends SharedStore = SharedStore, AllowedActions 
   void,
   NestedActions<AllowedActions>
 > {
-  private visitCounts: Map<string, number> = new Map()
+  private visitCounts: Map<number, number> = new Map()
 
   constructor(
-    public start: BaseNode<GlobalStore>,
-    private options: { maxVisits: number } = { maxVisits: 15 },
+    public readonly start: BaseNode<GlobalStore>,
+    private readonly options: { maxVisits?: number } = {},
   ) {
     super()
+    this.options.maxVisits = options.maxVisits ?? 15
   }
 
-  exec(): never {
-    throw new Error('This method should never be called in a Flow')
+  async exec(prepRes: void): Promise<never> {
+    throw new Error('Flow.exec() must never be called directly.')
   }
 
-  protected async execRunner(memory: Memory<GlobalStore, SharedStore>): Promise<NestedActions<AllowedActions>> {
+  protected async execRunner(memory: Memory<GlobalStore, SharedStore>, prepRes: void): Promise<NestedActions<AllowedActions>> {
+    this.visitCounts.clear()
     return await this.runNode(this.start, memory)
   }
 
-  async runTasks<T>(tasks: (() => T)[]): Promise<Awaited<T>[]> {
-    const res: Awaited<T>[] = []
+  protected async runTasks<TaskResult>(tasks: (() => TaskResult | Promise<TaskResult>)[]): Promise<TaskResult[]> {
+    const results: TaskResult[] = []
     for (const task of tasks) {
-      res.push(await task())
+      results.push(await task())
     }
-    return res
+    return results
   }
 
-  private async runNodes(nodes: BaseNode[], memory: Memory<GlobalStore, SharedStore>): Promise<NestedActions<AllowedActions>[]> {
+  private async runNodes(nodes: BaseNode<GlobalStore>[], memory: Memory<GlobalStore>): Promise<NestedActions<AllowedActions>[]> {
     return await this.runTasks(nodes.map((node) => () => this.runNode(node, memory)))
   }
 
-  private async runNode(node: BaseNode, memory: Memory<GlobalStore, SharedStore>): Promise<NestedActions<AllowedActions>> {
-    const nodeId = node.__nodeOrder.toString()
-    const currentVisitCount = (this.visitCounts.get(nodeId) || 0) + 1
-    if (currentVisitCount > this.options.maxVisits) {
-      throw new Error(`Maximum cycle count (${this.options.maxVisits}) reached for ${node.constructor.name}#${nodeId}`)
+  private async runNode(node: BaseNode<GlobalStore>, memory: Memory<GlobalStore, SharedStore>): Promise<NestedActions<AllowedActions>> {
+    const nodeOrder = node.__nodeOrder
+    const currentVisitCount = (this.visitCounts.get(nodeOrder) || 0) + 1
+    if (currentVisitCount > this.options.maxVisits!) {
+      throw new Error(`Maximum cycle count (${this.options.maxVisits}) reached for ${node.constructor.name}#${nodeOrder}`)
     }
-    this.visitCounts.set(nodeId, currentVisitCount)
+    this.visitCounts.set(nodeOrder, currentVisitCount)
 
     const clone = node.clone()
     const triggers = await clone.run(memory.clone(), true)
@@ -290,14 +283,12 @@ export class ParallelFlow<GlobalStore extends SharedStore = SharedStore, Allowed
   GlobalStore,
   AllowedActions
 > {
-  async runTasks<T>(tasks: (() => T)[]): Promise<Awaited<T>[]> {
+  protected async runTasks<TaskResult>(tasks: (() => Promise<TaskResult>)[]): Promise<TaskResult[]> {
     return await Promise.all(tasks.map((task) => task()))
   }
 }
 
-// Make classes available globally in the browser for UMD bundle
-// @ts-ignore
+// @ts-ignore - Make classes available globally in the browser for UMD bundle
 if (typeof window !== 'undefined' && !globalThis.brainyflow) {
-  // @ts-ignore
-  globalThis.brainyflow = { Memory, BaseNode, Node, Flow, ParallelFlow }
+  ;(globalThis as any).brainyflow = { createMemory, BaseNode, Node, Flow, ParallelFlow, DEFAULT_ACTION }
 }

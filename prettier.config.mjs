@@ -9,7 +9,7 @@ const config = {
   singleQuote: true,
   arrowParens: 'always',
   tabWidth: 2,
-  printWidth: 130,
+  printWidth: 135,
   trailingComma: 'all',
   plugins: ['@ianvs/prettier-plugin-sort-imports'],
   importOrderTypeScriptVersion: '5.4.5',
