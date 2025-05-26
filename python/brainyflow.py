@@ -96,6 +96,7 @@ class BaseNode(Generic[G, L, ActionT, PrepResultT, ExecResultT], ABC):
     def __init__(self) -> None:
         self.successors: Dict[Action, List[AnyNode[G]]] = {}  # dict of action -> list of nodes
         self._triggers: List[Trigger] = []  # list of dicts with action and forking_data
+        self._permeated: List[Action] = []
         self._locked: bool = True  # Prevent trigger calls outside post()
         self._node_order: int = BaseNode._next_id
         BaseNode._next_id += 1
@@ -178,7 +179,7 @@ class BaseNode(Generic[G, L, ActionT, PrepResultT, ExecResultT], ABC):
     
     def list_triggers(self, memory: Memory[G, L]) -> List[Tuple[Action, Memory[G, L]]]:
         """Process triggers or return default."""
-        if not self._triggers:
+        if not self._triggers and not DEFAULT_ACTION in self._permeated:
             return [(DEFAULT_ACTION, memory.clone())]
         
         return [(t["action"], memory.clone(t["forking_data"])) for t in self._triggers]
@@ -198,6 +199,7 @@ class BaseNode(Generic[G, L, ActionT, PrepResultT, ExecResultT], ABC):
             memory = Memory[G, L](memory)
         
         self._triggers = []
+        self._permeated = []
         prep_res = await self.prep(memory)
         exec_res = await self.exec_runner(memory, prep_res)
         
@@ -298,12 +300,16 @@ class Flow(BaseNode[G, L, ActionT, PrepResultT, ExecutionTree]):
         tasks: List[Callable[[], Awaitable[Tuple[Action, List[ExecutionTree]]]]] = []
         for action, node_memory in triggers:
             next_nodes = cloned_node.get_next_nodes(action)
+            if not next_nodes:
+                # If the sub-node triggered an action that has no successors *within its own definition*,
+                # that action becomes a terminal trigger for this Flow itself (if Flow is nested).
+                next_nodes = [n.clone() for n in self.get_next_nodes(action)]
+                # if next_nodes:
+                self._permeated.append(action)
+
             if next_nodes:
                 tasks.append((lambda act=action, nn_list=next_nodes, nm_mem=node_memory: \
                                  lambda: self._process_trigger(act, nn_list, nm_mem))())
-            else:
-                self._triggers.append({ "action": action, "forking_data": node_memory._local })
-                triggered[action] = []
 
         tree: List[Tuple[Action, List[ExecutionTree]]] = await self.run_tasks(tasks)
         for action, resulting_node_logs in tree:
