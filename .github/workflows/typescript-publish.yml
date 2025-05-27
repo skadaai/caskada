@@ -39,7 +39,15 @@ jobs:
         run: |
           node --import=tsx --experimental-test-snapshots --test-concurrency=1 --test tests/*.test.ts
 
+      - name: Get current version
+        id: current_version
+        working-directory: typescript
+        run: |
+          CURRENT_VERSION=$(cat package.json | jq -r '.version')
+          echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+
       - name: Apply Version Updates
+        id: version
         working-directory: typescript
         run: |
           # Force pnpm workspace recognition @ https://www.perplexity.ai/search/github-workflows-typescript-pu-2CcFkyNPSJ.fnCXbNF47RQ#0
@@ -50,25 +58,81 @@ jobs:
             exit 1
           fi
           pnpm dlx @changesets/cli version
+          
+          NEW_VERSION=$(cat package.json | jq -r '.version')
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          
+          if [ "${{ steps.current_version.outputs.current_version }}" == "$NEW_VERSION" ]; then
+            echo "No version change detected."
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "Version changed from ${{ steps.current_version.outputs.current_version }} to $NEW_VERSION"
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          fi
 
       - name: Build Project
+        if: steps.version.outputs.has_changes == 'true'
         working-directory: typescript
         run: pnpm build
 
       - name: Publish to npm
+        if: steps.version.outputs.has_changes == 'true'
         working-directory: typescript
         run: pnpm publish --filter ./ --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Commit and push version bump
+        if: steps.version.outputs.has_changes == 'true'
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: 'chore: update TS version and publish'
-          file_pattern: 'typescript/package.json typescript/.changeset/*'
-          # The action defaults to pushing to the branch that triggered the workflow (main)
-          # It also uses the github-actions[bot] user by default
+          file_pattern: 'typescript/package.json typescript/.changeset/* typescript/CHANGELOG.md'
 
+      - name: Extract changelog text
+        if: steps.version.outputs.has_changes == 'true'
+        id: changelog_text # Changed id for clarity
+        run: |
+          CHANGELOG_CONTENT=$(node .github/scripts/extract-changelog-text.js typescript ${{ steps.version.outputs.new_version }})
+          echo "content<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG_CONTENT" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        if: steps.version.outputs.has_changes == 'true'
+        uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        with:
+          tag_name: typescript-v${{ steps.version.outputs.new_version }}
+          release_name: TypeScript Package v${{ steps.version.outputs.new_version }}
+          body: |
+            ## BrainyFlow TypeScript Package v${{ steps.version.outputs.new_version }}
+            
+            ${{ steps.changelog.outputs.changelog }}
+            
+            ### Installation
+            
+            npm install brainyflow
+            # or
+            pnpm add brainyflow
+            # or
+            yarn add brainyflow
+            
+            
+            ### NPM Package
+            📦 [View on NPM](https://www.npmjs.com/package/brainyflow/v/${{ steps.version.outputs.new_version }})
+          draft: false
+          prerelease: false
+
+      - name: Notify Discord
+        if: steps.version.outputs.has_changes == 'true' && env.DISCORD_WEBHOOK_URL != ''
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          node .github/scripts/discord-notify.js \
+            "$DISCORD_WEBHOOK_URL" \
+            "BrainyFlow TypeScript" \
+            "${{ steps.version.outputs.new_version }}" \
+            "${{ steps.changelog.outputs.changelog }}" \
+            "${{ github.server_url }}/${{ github.repository }}"
