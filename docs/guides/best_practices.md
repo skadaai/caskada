@@ -1,28 +1,38 @@
-# BrainyFlow Best Practices
+# Best Practices for BrainyFlow Development
 
-## Node Design
+Developing robust and maintainable applications with BrainyFlow involves adhering to certain best practices. These guidelines help ensure your flows are clear, efficient, and easy to debug and extend.
 
-1.  **Keep Nodes Focused**: Each node should perform a single, well-defined task.
-2.  **Idempotent Execution**: If using retries (`maxRetries > 1`), design the `exec()` method to be idempotent (produce the same result for the same input) as it might be called multiple times.
-3.  **Clear Lifecycle**: Use `prep` to read/prepare data, `exec` for computation (no memory access), and `post` to write results and trigger successors.
-4.  **Graceful Degradation**: Implement `execFallback` in `Node` subclasses to handle errors gracefully after all retries are exhausted, potentially returning a default value instead of throwing an error.
+## General Principles
 
-## Memory (State) Management
+- **Modularity**: Break down complex problems into smaller, manageable nodes and sub-flows.
+- **Explicitness**: Make data dependencies and flow transitions clear and easy to follow.
+- **Separation of Concerns**: Keep computation logic (in `exec`) separate from data handling (`prep`, `post`) and orchestration (`Flow`).
 
-1.  **Schema Design**: Define clear interfaces (in TypeScript) or conventions (in Python) for your `GlobalStore` and `LocalStore` structures.
-2.  **Global vs. Local**: Use the `GlobalStore` (accessed via `memory.prop = value`) for state shared across the entire flow. Use the `LocalStore` (populated via `forkingData` in `trigger`) for context specific to a particular execution branch.
-3.  **Minimize Global State**: Prefer passing data locally via `forkingData` when possible to keep the global state clean and reduce potential conflicts, especially in parallel flows.
-4.  **Read Transparently**: Always read via the `memory` proxy (e.g., `memory.value`); it handles the local-then-global lookup.
+## Design & Architecture
 
-## Flow Design
+- **Memory Planning**: Clearly define the structure of your global and local memory stores upfront (e.g., using `TypedDict` in Python or interfaces/types in TypeScript). Decide what state needs to be globally accessible versus what should be passed down specific branches via `forkingData` into the local store.
+- **Action Naming**: Use descriptive, meaningful action names (e.g., `'user_clarification_needed'`, `'data_validated'`) rather than generic names like `'next'` or `'step2'`. This improves the readability of your flow logic and the resulting `ExecutionTree`.
+- **Explicit Transitions**: Clearly define transitions for all expected actions a node might trigger using `.on()` or `>>`. Consider adding a default `.next()` transition for unexpected or general completion actions.
+- **Cycle Management**: Be mindful of loops. Use the `maxVisits` option in the `Flow` constructor (default is now 15, can be customized) to prevent accidental infinite loops. The `ExecutionTree` can also help visualize loops.
+- **Error Handling Strategy**:
+  - Use the built-in retry mechanism (`maxRetries`, `wait` in Node constructor) for transient errors in `exec()`.
+  - Implement `execFallback(prepRes, error: NodeError)` to provide a default result or perform cleanup if retries fail.
+  - Define specific error-handling nodes and transitions (e.g., `node.on('error', errorHandlerNode)`) for critical errors.
+- **Parallelism Choice**: Use `ParallelFlow` when a node fans out to multiple independent branches that can benefit from concurrent execution. Stick with the standard `Flow` (sequential branch execution) if branches have interdependencies or if concurrent modification of shared global memory state is a concern.
+- **Memory Isolation with `forkingData`**: When triggering successors, use the `forkingData` argument to pass data specifically to the `local` store of the next node(s) in a branch. This keeps the `global` store cleaner and is essential for correct state management in parallel branches.
+- **Test Incrementally**:
+  - Test individual nodes in isolation using `node.run(memory)`. Remember this only runs the single node and does not follow graph transitions.
+  - Test sub-flows before integrating them into larger pipelines.
+  - Write tests that verify the final state of the `Memory` object and, if important, the structure of the `ExecutionTree` returned by `flow.run()`.
+- **Avoid Deep Nesting of Flows**: While nesting flows is a powerful feature for modularity, keep the hierarchy reasonably flat (e.g., 2-3 levels deep) to maintain understandability and ease of debugging.
 
-1.  **Visualization First**: Sketch your flow diagram (e.g., using Mermaid) before coding to clarify logic and transitions.
-2.  **Modularity**: Break complex processes into smaller, potentially nested, sub-flows (`Flow` extends `BaseNode`).
-3.  **Explicit Transitions**: Clearly define transitions using descriptive action names (`node.on('action', nextNode)`). Consider default paths (`node.next(defaultNode)`).
-4.  **Error Paths**: Define explicit transitions for error conditions (e.g., `node.on('error', errorHandlerNode)`) or handle errors within `execFallback`.
-5.  **Cycle Management**: Use the `maxVisits` option in the `Flow` constructor to prevent infinite loops.
-6.  **Parallelism**: Choose `ParallelFlow` for independent branches that can run concurrently; use `Flow` (sequential) otherwise or if order matters.
-7.  **Test Incrementally**: Test individual nodes (`node.run()`) and sub-flows before integrating them.
+## Code Quality
+
+- **Type Hinting/Interfaces**: Use Python's type hints (`TypedDict`, `List`, `Dict`, `Optional`, `Union`) and TypeScript interfaces/types to clearly define the expected shapes of `Memory` stores, `prep_res`, `exec_res`, and `actions`. This improves readability, enables static analysis, and reduces runtime errors.
+- **Docstrings/Comments**: Document your nodes, their purpose, expected inputs/outputs, and any complex logic.
+- **Consistent Naming**: Follow consistent naming conventions for nodes, actions, and memory keys.
+- **Idempotent `exec`**: Strive to make your `exec` methods idempotent where possible, meaning running them multiple times with the same input produces the same result and no additional side effects. This simplifies retries and debugging.
+
 
 ## Project Structure
 

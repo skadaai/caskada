@@ -1,14 +1,19 @@
----
-machine-display: false
----
+# Comparison with Other Frameworks
 
-# Framework Comparison: BrainyFlow vs Alternatives
+BrainyFlow stands out in the AI framework landscape by prioritizing simplicity, modularity, and developer experience over feature bloat.
 
-BrainyFlow exists in an ecosystem of frameworks designed to build AI applications, particularly those centered around Large Language Models (LLMs). This chapter provides a comparative analysis of BrainyFlow against other popular frameworks in the AI orchestration space, highlighting the unique design principles and trade-offs that differentiate BrainyFlow from its alternatives.
+## Quick Framework Comparison
+
+| Framework      | Core Abstraction | App-Specific Wrappers | Vendor-Specific Wrappers | Lines | Size  |
+| -------------- | ---------------- | --------------------- | ------------------------ | ----- | ----- |
+| **BrainyFlow** | ✨               | ❌                    | ❌                       | ~300  | ~15KB |
+| LangChain      | ⚠️               | ✅                    | ✅                       | ~500K | ~50MB |
+| LlamaIndex     | ⚠️               | ✅                    | ✅                       | ~200K | ~25MB |
+| Haystack       | ⚠️               | ✅                    | ✅                       | ~100K | ~20MB |
 
 ## BrainyFlow's Philosophy Recap
 
-Before diving into comparisons, let's reiterate BrainyFlow's core tenets:
+Before diving into deeper comparisons, let's reiterate BrainyFlow's core tenets:
 
 - **Minimalist Core:** A tiny codebase (~200 lines in Python) providing essential abstractions (`Node`, `Flow`, `Memory`).
 - **Graph-Based Abstraction:** Uses nested directed graphs to model application logic, separating data flow (`Memory`) from computation (`Node`).
@@ -27,15 +32,18 @@ We'll compare BrainyFlow against competitors based on:
 - **Vendor Integrations:** Built-in support for specific LLMs, databases, etc.
 - **Learning Curve:** Perceived difficulty in getting started and mastering the framework.
 
-## BrainyFlow vs. PocketFlow (Origin)
+
+## Relationship to PocketFlow
 
 BrainyFlow originated as a fork of PocketFlow, inheriting its core philosophy of minimalism and a graph-based abstraction. However, BrainyFlow has evolved with some key differences:
 
-- **Core Abstraction:** PocketFlow is bloated with unnecessary specialized classes (e.g. `AsyncNode`, `BatchNode`, `AsyncBatchNode`, `AsyncParallelBatchNode`, `AsyncFlow`, `BatchFlow`, `AsyncBatchFlow`, `AsyncParallelBatchFlow`). BrainyFlow simplifies this by removing all of them from the core. Instead, it relies only on standard `Node` lifecycle methods (which can be `async`) combined with `Flow` (or `ParallelFlow`) and the use of multiple `trigger` calls within a single node's `post` method to achieve batch-like fan-out operations.
-- **State Management:** While both use a shared store, BrainyFlow places greater emphasis on the `Memory` object's `global` vs. `local` stores and using `forkingData` during `trigger` calls to manage branch-specific context, eliminating the need for PocketFlow's `Params` concept and all the complex `Batch` classes that come with it.
+- **Core Abstraction & Batching**: PocketFlow included many specialized classes for async operations and batching (e.g., `AsyncNode`, `BatchNode`, `AsyncBatchNode`, `AsyncParallelBatchNode`, `AsyncFlow`, `BatchFlow`, `AsyncBatchFlow`, `AsyncParallelBatchFlow`). BrainyFlow simplifies this by removing all of these specialized classes from its core. Instead, it relies on standard `Node` lifecycle methods (which are inherently `async`-capable) combined with `Flow` (or `ParallelFlow`). Batch-like fan-out operations are achieved using multiple `trigger` calls within a single node's `post` method.
+- **State Management (`Memory`)**: While both use a shared store, BrainyFlow's `Memory` object now has a more refined distinction between `global` and `local` stores. The `local` store is primarily populated via `forkingData` during `trigger` calls, crucial for managing branch-specific context. This eliminates the need for PocketFlow's separate `Params` concept and simplifies the `Memory` model, removing the complexities that `Batch*` classes in PocketFlow tried to solve. BrainyFlow's `Memory` is created with enhanced proxy mechanisms for attribute access and isolation.
 - **Focus:** BrainyFlow sharpens the focus on the fundamental `Node`, `Flow`, and `Memory` abstractions as the absolute core, reinforcing the idea that patterns like batching or parallelism are handled by how flows orchestrate standard nodes rather than requiring specialized node types.
 
 Essentially, BrainyFlow refines PocketFlow's minimalist approach, aiming for an even leaner core by handling execution patterns like batching and parallelism primarily at the `Flow` orchestration level.
+BrainyFlow also emphasizes a more consistent and refined API across its Python and TypeScript implementations, particularly for state management and flow execution.
+
 
 On top of that, BrainyFlow has been designed to be more agentic-friendly, with a focus on building flows that can be used by both humans and AI assistants. Its code is more readable and maintainable, prioritizing developer experience over an arbitrarily defined amount of lines of code.
 
@@ -77,7 +85,7 @@ On top of that, BrainyFlow has been designed to be more agentic-friendly, with a
 | ------------------------- | ----------------- | ----------------- | -------------------- | ------------------------- | --------------------- | ---------------- |
 | **Core Abstraction**      | Nodes & Flows     | Chains & Agents   | State Graphs         | Agents & Crews            | Conversational Agents | Nodes & Flows    |
 | **Dependencies**          | None              | Many              | Many (via LangChain) | Several                   | Several               | None             |
-| **Codebase Size**         | Tiny (~200 lines) | Large             | Medium               | Medium                    | Medium                | Tiny (100 lines) |
+| **Codebase Size**         | Tiny (~300 lines) | Large             | Medium               | Medium                    | Medium                | Tiny (100 lines) |
 | **Flexibility**           | High              | Medium            | Medium               | Low                       | Medium                | High             |
 | **Built-in Integrations** | None              | Extensive         | Via LangChain        | Several                   | Several               | None             |
 | **Learning Curve**        | Moderate          | Steep             | Very Steep           | Moderate                  | Moderate              | Moderate         |

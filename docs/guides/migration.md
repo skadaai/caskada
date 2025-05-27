@@ -1,10 +1,31 @@
----
-machine-display: false
----
+# Migrating Between BrainyFlow Versions
 
-# Migration Guide
+This guide helps you update your BrainyFlow applications when migrating from older versions (pre-major refactor, roughly pre-v0.3 Python and equivalent TS) to newer ones. We strive for backward compatibility, but major refactors sometimes introduce breaking changes for significant improvements.
 
-This guide helps you migrate from older versions of BrainyFlow to the latest version. It covers breaking changes and provides examples for upgrading your code.
+## General Advice
+
+- **Start Small**: Migrate one part of your application at a time.
+- **Consult the Changelog**: Check the  release notes on the repository for the specific version you are upgrading to. It will list breaking changes, new features, and bug fixes.
+- **Review Core Abstraction Docs**: Changes often revolve around the core `Node`, `Flow`, or `Memory` components. Re-reading their documentation can clarify new behaviors or APIs.
+
+## Migrating to v2.0
+
+The most significant recent changes revolve around `Memory` management and `Flow` execution results.
+
+1.  **Memory Management (`Memory` object/`createMemory` factory):**
+
+    - **Explicit Creation**:
+      - Python: `Memory(global_store={...}, local_store={...})`
+      - TypeScript: `createMemory(globalStore, localStore)`
+
+2.  **Flow Execution (`Flow.run()`)**:
+
+    - **Return Value**: `Flow.run()` now returns a structured `ExecutionTree` object instead of a simple dictionary. This `ExecutionTree` provides a detailed trace of node execution order, triggered actions, and nested results.
+    - **`maxVisits` Default**: The default `maxVisits` for cycle detection in `Flow` has been increased (e.g., from 5 to 15).
+
+3.  **Error Handling (`NodeError`)**:
+    - Python: `NodeError` is now a `typing.Protocol`, promoting structural typing. You'd typically catch the specific underlying error and then check `isinstance(err, NodeError)` if you need to access `err.retry_count`.
+    - TypeScript: `NodeError` remains an `Error` subtype with an optional `retryCount`.
 
 ## Migrating to v1.0
 
@@ -409,5 +430,7 @@ If you encounter issues during migration, you can:
 1. Check the [documentation](../index.md) for detailed explanations
 2. Look at the [examples](../examples/index.md) for reference implementations
 3. File an issue on [GitHub](https://github.com/zvictor/brainyflow/issues)
+
+Always consult the specific release notes for the version you are migrating to for the most accurate and detailed list of changes.
 
 Happy migrating!

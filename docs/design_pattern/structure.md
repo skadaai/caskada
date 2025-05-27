@@ -65,7 +65,7 @@ from brainyflow import Node, Memory
 # async def call_llm(prompt: str) -> str: ...
 
 class SummarizeNode(Node):
-    async def prep(self, memory: Memory):
+    async def prep(self, memory):
         # Assuming the text to summarize is in memory.text
         return memory.text or ""
 
@@ -104,7 +104,7 @@ summary:
 
         return structured_result # e.g., {"summary": ["Point 1", "Point 2", "Point 3"]}
 
-    async def post(self, memory: Memory, prep_res, exec_res: dict):
+    async def post(self, memory, prep_res, exec_res: dict):
         # Store the structured result in memory
         memory.structured_summary = exec_res
         print("Stored structured summary:", exec_res)
@@ -123,7 +123,7 @@ declare function callLLM(prompt: string): Promise<string>
 declare function parseYaml(text: string): any
 
 class SummarizeNode extends Node {
-  async prep(memory: Memory): Promise<string> {
+  async prep(memory): Promise<string> {
     // Assuming the text to summarize is in memory.text
     return memory.text ?? ''
   }
@@ -165,7 +165,7 @@ summary:
     return structuredResult // e.g., { summary: ['Point 1', 'Point 2', 'Point 3'] }
   }
 
-  async post(memory: Memory, prepRes: any, execRes: any): Promise<void> {
+  async post(memory, prepRes: any, execRes: any): Promise<void> {
     // Store the structured result in memory
     memory.structured_summary = execRes
     console.log('Stored structured summary:', execRes)

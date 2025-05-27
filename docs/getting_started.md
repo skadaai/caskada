@@ -61,12 +61,12 @@ from brainyflow import Node, Flow, Memory
 from utils import call_llm  # Your LLM implementation
 
 class GetQuestionNode(Node):
-    async def prep(self, memory: Memory):
+    async def prep(self, memory):
         """Get text input from user."""
         memory.question = input("Enter your question: ")
 
 class AnswerNode(Node):
-    async def prep(self, memory: Memory):
+    async def prep(self, memory):
         """Extract the question from memory."""
         return memory.question
 
@@ -76,7 +76,7 @@ class AnswerNode(Node):
         prompt = f"Answer the following question: {question}"
         return await call_llm(prompt)
 
-    async def post(self, memory: Memory, prep_res: str | None, exec_res: str):
+    async def post(self, memory, prep_res: str | None, exec_res: str):
         """Store the answer in memory."""
         memory.answer = exec_res
         print(f"AnswerNode: Stored answer '{exec_res}'")
@@ -112,11 +112,7 @@ class AnswerNode extends Node<QAGlobalStore> {
     return await callLLM(prompt)
   }
 
-  async post(
-    memory: Memory<QAGlobalStore>,
-    prepRes: string | undefined,
-    execRes: string,
-  ): Promise<void> {
+  async post(memory: Memory<QAGlobalStore>, prepRes: string | undefined, execRes: string): Promise<void> {
     memory.answer = execRes
     console.log(`AnswerNode: Stored answer '${execRes}'`)
   }
