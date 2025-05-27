@@ -46,7 +46,7 @@ def call_llm(prompt, model="gpt-4o", temperature=0.7):
 // utils/callLLM.ts
 import OpenAI from 'openai'
 
-export async function callLLM(prompt: string, model: string = 'gpt-4o', temperature: number = 0.7): Promise {
+export async function callLLM(prompt: string, model: string = 'gpt-4o', temperature: number = 0.7): Promise<string> {
   const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
   })

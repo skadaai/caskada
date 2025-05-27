@@ -34,7 +34,7 @@ This node represents an individual agent that processes messages from a queue.
 
 ```python
 import asyncio
-from brainyflow import Node, Memory
+from brainyflow import Node
 
 class AgentNode(Node):
     async def prep(self, memory):
@@ -60,7 +60,7 @@ class AgentNode(Node):
         if prep_res: # Only trigger if a message was processed
             memory.last_processed_message = exec_res
             print(f"AgentNode: Stored processed message: {exec_res}")
-            self.trigger(DEFAULT_ACTION) # Continue processing
+            self.trigger("default") # Continue processing
         else:
             # If no message was processed, re-trigger self to check queue again
             self.trigger("check_queue")
@@ -71,7 +71,7 @@ class AgentNode(Node):
 {% tab title="TypeScript" %}
 
 ```typescript
-import { Flow, Memory, Node } from 'brainyflow'
+import { Flow, Node } from 'brainyflow'
 
 class AgentNode extends Node {
   // We'll store the queue in global memory for simplicity here,
