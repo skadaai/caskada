@@ -6,13 +6,13 @@ from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional, Protocol, Tuple, Type, TypeAlias, TypeVar, Generic, Callable, Union, cast, TypedDict, Literal, overload, Awaitable, Sequence, runtime_checkable
 
 DEFAULT_ACTION = 'default'
-Action = str
+Action = str | None
 SharedStore = Dict[str, Any]
-M = TypeVar('M', bound=SharedStore) # Memory
+M = TypeVar('M', default=SharedStore) # Memory
 T = TypeVar('T') # Task
-PrepResultT = TypeVar('PrepResultT')
-ExecResultT = TypeVar('ExecResultT')
-ActionT = TypeVar('ActionT', bound=str)
+PrepResultT = TypeVar('PrepResultT', default=Any)
+ExecResultT = TypeVar('ExecResultT', default=Any)
+ActionT = TypeVar('ActionT', bound=str|None, default=Action)
 AnyNode: TypeAlias = 'BaseNode[M, Any, Any, Any]'
 class ExecutionTree(TypedDict):
     order: int
@@ -72,23 +72,23 @@ class Memory(Generic[M]):
         new_local.update(copy.deepcopy(forking_data or {}))
         return Memory[M](self._global, new_local)
     @property
-    def local(self):
+    def local(self) -> LocalProxy[SharedStore]:
         return LocalProxy(self._local) # cast(M["local"], LocalProxy(self._local))
 
 @runtime_checkable
 class NodeError(Protocol):
     retry_count: int = 0
 
-class BaseNode(Generic[M, ActionT, PrepResultT, ExecResultT], ABC):
+class BaseNode(Generic[M, PrepResultT, ExecResultT, ActionT], ABC):
     """
     Base class for all computational nodes in a flow.
     Implements the core lifecycle (prep, exec, post) and graph connection logic.
     
     Type Parameters:
     - G: Global memory store type
-    - ActionT: Type of actions this node can trigger
     - PrepResultT: Return type of prep method
     - ExecResultT: Return type of exec method
+    - ActionT: Type of actions this node can trigger
     """
     _next_id = 0
     def __init__(self) -> None:
@@ -98,7 +98,7 @@ class BaseNode(Generic[M, ActionT, PrepResultT, ExecResultT], ABC):
         self._node_order: int = BaseNode._next_id
         BaseNode._next_id += 1
     
-    def clone(self, seen: Optional[Dict[AnyNode[M], AnyNode[M]]] = None) -> BaseNode[M, ActionT, PrepResultT, ExecResultT]:
+    def clone(self, seen: Optional[Dict[AnyNode[M], AnyNode[M]]] = None) -> BaseNode[M, PrepResultT, ExecResultT, ActionT]:
         """Create a deep copy of the node including its successors."""
         seen = seen or {}
         if self in seen: return seen[self]
@@ -185,17 +185,17 @@ class BaseNode(Generic[M, ActionT, PrepResultT, ExecResultT], ABC):
         
         self._triggers = []
         prep_res = await self.prep(cast(M, memory))
-        exec_res = await self.exec_runner(memory, prep_res)
+        exec_res = await self.exec_runner(cast(Memory[M], memory), prep_res)
         
         self._locked = False
         await self.post(cast(M, memory), prep_res, exec_res)
         self._locked = True
         
         if propagate:
-            return self.list_triggers(memory)
+            return self.list_triggers(cast(Memory[M], memory))
         return exec_res
 
-class Node(BaseNode[M, ActionT, PrepResultT, ExecResultT]):
+class Node(BaseNode[M, PrepResultT, ExecResultT, ActionT]):
     """
     Standard node implementation with retry capabilities.
     
@@ -221,14 +221,14 @@ class Node(BaseNode[M, ActionT, PrepResultT, ExecResultT]):
             self.cur_retry = attempt
             try: return await self.exec(prep_res)
             except Exception as error:
-                if not hasattr(error, 'retry_count'): error.retry_count = attempt + 1 # type: ignore
+                if not hasattr(error, 'retry_count'): setattr(error, 'retry_count', attempt + 1)
                 if attempt < self.max_retries - 1:
                     if self.wait > 0: await asyncio.sleep(self.wait)
                     continue
                 return await self.exec_fallback(prep_res, error)
         raise RuntimeError("Unreachable: exec_runner should have returned or raised in the loop") # This should never happen if max_retries > 0
 
-class Flow(BaseNode[M, ActionT, PrepResultT, ExecutionTree]):
+class Flow(BaseNode[M, PrepResultT, ExecutionTree, ActionT]):
     """
     Orchestrates the execution of a graph of nodes sequentially.
     
@@ -262,7 +262,7 @@ class Flow(BaseNode[M, ActionT, PrepResultT, ExecutionTree]):
     async def run_nodes(self, nodes: List[AnyNode[M]], memory: Memory[M]) -> List[ExecutionTree]:
         """Run a list of nodes with the given memory."""
         tasks: List[Callable[[], Awaitable[ExecutionTree]]] = [
-            (lambda n=node, m=memory: lambda: self.run_node(n, m))() for node in nodes
+            (lambda n=node, m=memory: lambda: self.run_node(n, m))() for node in nodes # type: ignore
         ]
         return await self.run_tasks(tasks)
     
@@ -281,7 +281,7 @@ class Flow(BaseNode[M, ActionT, PrepResultT, ExecutionTree]):
         for action, node_memory in triggers:
             next_nodes = cloned_node.get_next_nodes(action)
             if next_nodes:
-                tasks.append((lambda act=action, nn_list=next_nodes, nm_mem=node_memory: \
+                tasks.append((lambda act=action, nn_list=next_nodes, nm_mem=node_memory: # type: ignore
                                  lambda: self._process_trigger(act, nn_list, nm_mem))())
             else:
                 # If the sub-node triggered an action that has no successors, that action becomes a terminal trigger for this Flow itself
@@ -298,7 +298,7 @@ class Flow(BaseNode[M, ActionT, PrepResultT, ExecutionTree]):
         """Process a single trigger by running its next_nodes."""
         return (action, await self.run_nodes(next_nodes, node_memory))
 
-class ParallelFlow(Flow[M, ActionT, PrepResultT]):
+class ParallelFlow(Flow[M, PrepResultT, ActionT]):
     """Orchestrates execution of a graph of nodes with parallel branching."""    
     async def run_tasks(self, tasks: Sequence[Callable[[], Awaitable[T]]]) -> List[T]:
         return await asyncio.gather(*(task() for task in tasks))
