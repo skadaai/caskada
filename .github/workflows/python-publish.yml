@@ -28,7 +28,7 @@ jobs:
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install build twine pytest
+          pip install build twine pytest pytest-asyncio
 
       - name: Run tests
         run: |
@@ -115,8 +115,10 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: 'chore: update PY version and publish'
-
           file_pattern: 'python/setup.py python/.changeset/* python/package.json python/CHANGELOG.md'
+          pull_strategy: 'rebase'
+          # The action defaults to pushing to the branch that triggered the workflow (main)
+          # It also uses the github-actions[bot] user by default
 
       - name: Extract changelog text
         if: steps.version.outputs.has_changes == 'true'

@@ -88,6 +88,9 @@ jobs:
         with:
           commit_message: 'chore: update TS version and publish'
           file_pattern: 'typescript/package.json typescript/.changeset/* typescript/CHANGELOG.md'
+          pull_strategy: 'rebase'
+          # The action defaults to pushing to the branch that triggered the workflow (main)
+          # It also uses the github-actions[bot] user by default
 
       - name: Extract changelog text
         if: steps.version.outputs.has_changes == 'true'
