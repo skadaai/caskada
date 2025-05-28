@@ -1,7 +1,6 @@
 # Retrieval Augmented Generation (RAG)
 
-This project demonstrates a simplified RAG system that retrieves relevant documents based on user queries and generates answers using an LLM. This implementation is based directly on this  tutorial (for Pocketflow): [Retrieval Augmented Generation (RAG) from Scratch — Tutorial For Dummies](https://zacharyhuang.substack.com/p/retrieval-augmented-generation-rag).
-
+This project demonstrates a simplified RAG system that retrieves relevant documents based on user queries and generates answers using an LLM. This implementation is based directly on this tutorial (for Pocketflow): [Retrieval Augmented Generation (RAG) from Scratch — Tutorial For Dummies](https://zacharyhuang.substack.com/p/retrieval-augmented-generation-rag).
 
 ## Features
 
@@ -12,9 +11,11 @@ This project demonstrates a simplified RAG system that retrieves relevant docume
 ## How to Run
 
 1. Set your API key:
+
    ```bash
    export OPENAI_API_KEY="your-api-key-here"
    ```
+
    Or update it directly in `utils.py`
 
    Let's do a quick check to make sure your API key is working properly:
@@ -24,6 +25,7 @@ This project demonstrates a simplified RAG system that retrieves relevant docume
    ```
 
 2. Install and run with the default query:
+
    ```bash
    pip install -r requirements.txt
    python main.py
@@ -44,13 +46,14 @@ graph TD
     subgraph OfflineFlow[Offline Document Indexing]
         ChunkDocs[ChunkDocumentsNode] --> EmbedDocs[EmbedDocumentsNode] --> CreateIndex[CreateIndexNode]
     end
-    
+
     subgraph OnlineFlow[Online Processing]
         EmbedQuery[EmbedQueryNode] --> RetrieveDoc[RetrieveDocumentNode] --> GenerateAnswer[GenerateAnswerNode]
     end
 ```
 
 Here's what each part does:
+
 1. **ChunkDocumentsNode**: Breaks documents into smaller chunks for better retrieval
 2. **EmbedDocumentsNode**: Converts document chunks into vector representations
 3. **CreateIndexNode**: Creates a searchable FAISS index from embeddings
@@ -68,12 +71,12 @@ Here's what each part does:
 🔍 Embedding query: How to install BrainyFlow?
 🔎 Searching for relevant documents...
 📄 Retrieved document (index: 0, distance: 0.3427)
-📄 Most relevant text: "BrainyFlow is a 100-line minimalist LLM framework
-        Lightweight: Just 100 lines. Zero bloat, zero dependencies, zero vendor lock-in.
+📄 Most relevant text: "BrainyFlow is a 300-line minimalist LLM framework
+        Lightweight: Just 300 lines. Zero bloat, zero dependencies, zero vendor lock-in.
         Expressive: Everything you love—(Multi-)Agents, Workflow, RAG, and more.
         Agentic Coding: Let AI Agents (e.g., Cursor AI) build Agents—10x productivity boost!
-        To install, pip install brainyflow or just copy the source code (only 100 lines)."
+        To install, pip install brainyflow or just copy the source code (only 300 lines)."
 
 🤖 Generated Answer:
-To install BrainyFlow, use the command `pip install brainyflow` or simply copy its 100 lines of source code.
+To install BrainyFlow, use the command `pip install brainyflow` or simply copy its 300 lines of source code.
 ```

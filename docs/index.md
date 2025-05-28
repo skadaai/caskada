@@ -11,7 +11,7 @@ machine-display: false
 <p>
 
 <p align="center">
-  A radically minimalist AI framework (just <a href="https://github.com/zvictor/BrainyFlow/blob/main/python/brainyflow.py">200 lines in Python</a>! 🤯)
+  A radically minimalist AI framework (just <a href="https://github.com/zvictor/BrainyFlow/blob/main/python/brainyflow.py">300 lines in Python</a>! 🤯)
 
   <br />
   Build Powerful AI Agents with Minimal Code, Maximum Freedom.
@@ -46,7 +46,7 @@ It enables both humans and AI assistants to collaborate effectively on designing
 ## Features
 
 - **Brain-Easy 🧠**: Intuitive for both humans and AI assistants
-- **Minimalist Design ✨**: Core abstractions in just (_you heard it right!_) 200 lines of code
+- **Minimalist Design ✨**: Core abstractions in just (_you heard it right!_) 300 lines of code
 - **Freedom 🔓**: Zero bloat, dependencies, or vendor lock-in
 - **Composable 🧩**: Build complex systems from simple, reusable components
 - **Powerful 🦾**: Supports everything you love—([Multi-](./design_pattern/multi_agent.md))[Agents](./design_pattern/agent.md), [Workflow](./design_pattern/workflow.md), [RAG](./design_pattern/rag.md), and more
@@ -60,7 +60,7 @@ It enables both humans and AI assistants to collaborate effectively on designing
 
 ## Why Brainy Flow?
 
-Current LLM frameworks are bloated... You actually only need 200 lines for a robust LLM Framework!
+Current LLM frameworks are bloated... You actually only need 300 lines for a robust LLM Framework!
 
 <div align="center">
   <img src="https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/meme.jpg" width="500"/>
@@ -73,7 +73,7 @@ Current LLM frameworks are bloated... You actually only need 200 lines for a rob
 | LangGraph                                                                                                                                                                                                      |  Agent, Graph   |       Some <br><sup><sub>(e.g., Semantic Search)</sub></sup>       | Some <br><sup><sub>(e.g., PostgresStore, SqliteSaver, etc.) </sub></sup> |                   37K                    |                    +51MB                    |
 | AutoGen                                                                                                                                                                                                        |      Agent      |   Some <br><sup><sub>(e.g., Tool Agent, Chat Agent)</sub></sup>    | Many <sup><sub>[Optional]<br> (e.g., OpenAI, Pinecone, etc.)</sub></sup> | 7K <br><sup><sub>(core-only)</sub></sup> | +26MB <br><sup><sub>(core-only)</sub></sup> |
 | **BrainyFlow** .ts |    **Graph**    |                              **None**                              |                                 **None**                                 |                 **300**                  |                 **few KB**                  |
-| **BrainyFlow** .py         |    **Graph**    |                              **None**                              |                                 **None**                                 |                 **200**                  |                 **few KB**                  |
+| **BrainyFlow** .py         |    **Graph**    |                              **None**                              |                                 **None**                                 |                 **300**                  |                 **few KB**                  |
 
 </div>
 
@@ -172,7 +172,7 @@ We do not take responsibility for how the generated output is used, including bu
   <a style="color: inherit" href="https://github.com/sponsors/zvictor?utm_source=brainyflow&utm_medium=sponsorship&utm_campaign=brainyflow&utm_id=brainyflow">
     <img width="150" src="https://cdn.jsdelivr.net/gh/zvictor/brainyflow@main/.github/media/brain.png"  />
   </a><br /><br />
-  BrainyFlow runs on 200 lines of code and your generosity! 💰<br />
+  BrainyFlow runs on 300 lines of code and your generosity! 💰<br />
     <a style="color: inherit" href="https://github.com/sponsors/zvictor?utm_source=brainyflow&utm_medium=sponsorship&utm_campaign=brainyflow&utm_id=brainyflow">
       Help us deliver more AI with less code (but maybe more caffeine)
     </a> ☕<br /><br />

@@ -15,7 +15,7 @@ BrainyFlow stands out in the AI framework landscape by prioritizing simplicity, 
 
 Before diving into deeper comparisons, let's reiterate BrainyFlow's core tenets:
 
-- **Minimalist Core:** A tiny codebase (~200 lines in Python) providing essential abstractions (`Node`, `Flow`, `Memory`).
+- **Minimalist Core:** A tiny codebase (~300 lines) providing essential abstractions (`Node`, `Flow`, `Memory`).
 - **Graph-Based Abstraction:** Uses nested directed graphs to model application logic, separating data flow (`Memory`) from computation (`Node`).
 - **Zero Dependencies:** The core framework has no external dependencies, offering maximum flexibility.
 - **No Vendor Lock-in:** Encourages using external utilities directly, avoiding framework-specific wrappers for APIs or databases.
@@ -32,7 +32,6 @@ We'll compare BrainyFlow against competitors based on:
 - **Vendor Integrations:** Built-in support for specific LLMs, databases, etc.
 - **Learning Curve:** Perceived difficulty in getting started and mastering the framework.
 
-
 ## Relationship to PocketFlow
 
 BrainyFlow originated as a fork of PocketFlow, inheriting its core philosophy of minimalism and a graph-based abstraction. However, BrainyFlow has evolved with some key differences:
@@ -43,7 +42,6 @@ BrainyFlow originated as a fork of PocketFlow, inheriting its core philosophy of
 
 Essentially, BrainyFlow refines PocketFlow's minimalist approach, aiming for an even leaner core by handling execution patterns like batching and parallelism primarily at the `Flow` orchestration level.
 BrainyFlow also emphasizes a more consistent and refined API across its Python and TypeScript implementations, particularly for state management and flow execution.
-
 
 On top of that, BrainyFlow has been designed to be more agentic-friendly, with a focus on building flows that can be used by both humans and AI assistants. Its code is more readable and maintainable, prioritizing developer experience over an arbitrarily defined amount of lines of code.
 

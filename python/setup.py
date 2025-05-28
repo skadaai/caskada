@@ -10,7 +10,7 @@ setup(
     version='1.1.0',
     py_modules=['brainyflow'],
     author="Victor Duarte",
-    description="Minimalist AI framework in 200 Lines. Enable LLMs to Program Themselves.",
+    description="Minimalist AI framework in 300 Lines. Enable LLMs to Program Themselves.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://flow.brainy.sh",

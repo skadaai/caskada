@@ -22,7 +22,7 @@
   "bugs": {
     "url": "https://github.com/zvictor/brainyFlow/issues"
   },
-  "description": "Minimalist AI framework",
+  "description": "Minimalist AI framework in 300 Lines. Enable LLMs to Program Themselves.",
   "keywords": [
     "AI",
     "brainy",
