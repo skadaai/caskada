@@ -30,7 +30,7 @@
     "Workflow",
     "LLM"
   ],
-  "license": "MIT",
+  "license": "MPL-2.0",
   "author": {
     "name": "Victor Duarte",
     "url": "https://github.com/zvictor"

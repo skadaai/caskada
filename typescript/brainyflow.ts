@@ -1,3 +1,5 @@
+// This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
+// Copyright (c) 2025, Victor Duarte
 export const DEFAULT_ACTION = 'default' as const
 
 export type SharedStore = Record<string, unknown>

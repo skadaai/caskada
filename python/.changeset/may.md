@@ -11,6 +11,7 @@ This release introduces a significant overhaul of the `Memory` class, refines `F
 - **Flow as Node - Trigger Propagation**: When a sub-flow (acting as a node) has an internal node triggering an action for which the sub-flow has no defined successor, this action now correctly propagates as a trigger from the sub-flow node itself in the parent flow's `ExecutionTree`.
 - **Simplified Generic Type Hints**: The generic type hints for `Flow` and `Node` have been simplified, removing the `L` (i.e. `LocalMemory`) type parameter and moving the `ActionT` to the end of the list as it is rarely used. Before: `Node[G, L, ActionT, PrepResultT, ExecResultT]`; Now: `Node[G, PrepResultT, ExecResultT, ActionT]`.
 - **NodeError**: Changed from an `Exception` subclass to a `Protocol` (`runtime_checkable`). This affects how `NodeError` might be caught or checked, promoting structural typing and fixing the double-raising of the exception.
+- **New License**: Brainyflow is now licensed under the Mozilla Public License 2.0.
 
 Rarely used other than internally, but still breaking changes:
 
