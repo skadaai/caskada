@@ -54,7 +54,15 @@ function createProxyHandler<T extends SharedStore>(closer: T, further?: SharedSt
       return Reflect.set(closer, prop, value)
     },
     deleteProperty: (target, prop) => _delete_from_stores(prop, closer, further),
-    has: (target, prop) => Reflect.has(closer, prop) || (further ? Reflect.has(further, prop) : false),
+    has: (target, prop) => Reflect.has(target, prop) || Reflect.has(closer, prop) || (further ? Reflect.has(further, prop) : false),
+    ownKeys: (target) =>
+      Array.from(new Set([...Reflect.ownKeys(target), ...Reflect.ownKeys(closer), ...(further ? Reflect.ownKeys(further) : [])])),
+    getOwnPropertyDescriptor: (target, prop) => {
+      if (Reflect.has(target, prop)) return Reflect.getOwnPropertyDescriptor(target, prop)
+      if (Reflect.has(closer, prop)) return Reflect.getOwnPropertyDescriptor(closer, prop)
+      if (further && Reflect.has(further, prop)) return Reflect.getOwnPropertyDescriptor(further, prop)
+      return undefined
+    },
   }
 }
 
@@ -218,6 +226,7 @@ class RetryNode<
         return await this.execFallback(prepRes, error as NodeError)
       }
     }
+    throw new Error('Max retries reached in execRunner without returning or throwing via exec/execFallback.')
   }
 }
 
