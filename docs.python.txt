@@ -1,32 +1,6 @@
 
 
 ================================================
-File: docs/installation.md
-================================================
-# Installation
-
-BrainyFlow is currently available for both Python and TypeScript.
-
-You can install the Python package using pip:
-
-```bash
-pip install brainyflow
-```
-
-## Alternative: Copy the Source Code
-
-Since BrainyFlow is lightweight and dependency-free, you can also install it by simply copying the source code file directly into your project:
-
-Copy [`python/brainyflow.py`](https://github.com/zvictor/BrainyFlow/blob/main/python/brainyflow.py)
-
-## Next Steps
-
-Once you have BrainyFlow installed, check out the [Getting Started](./getting_started.md) guide to build your first flow, or explore the [Core Abstractions](./core_abstraction/node.md) to understand the framework's fundamental concepts.
-
-
-
-
-================================================
 File: docs/getting_started.md
 ================================================
 # Getting Started with BrainyFlow
@@ -75,12 +49,12 @@ from brainyflow import Node, Flow, Memory
 from utils import call_llm  # Your LLM implementation
 
 class GetQuestionNode(Node):
-    async def prep(self, memory: Memory):
+    async def prep(self, memory):
         """Get text input from user."""
         memory.question = input("Enter your question: ")
 
 class AnswerNode(Node):
-    async def prep(self, memory: Memory):
+    async def prep(self, memory):
         """Extract the question from memory."""
         return memory.question
 
@@ -90,7 +64,7 @@ class AnswerNode(Node):
         prompt = f"Answer the following question: {question}"
         return await call_llm(prompt)
 
-    async def post(self, memory: Memory, prep_res: str | None, exec_res: str):
+    async def post(self, memory, prep_res: str | None, exec_res: str):
         """Store the answer in memory."""
         memory.answer = exec_res
         print(f"AnswerNode: Stored answer '{exec_res}'")
@@ -188,6 +162,115 @@ Now that you understand the basics, explore these resources to build sophisticat
 
 
 ================================================
+File: docs/comparison.md
+================================================
+# Comparison with Other Frameworks
+
+BrainyFlow stands out in the AI framework landscape by prioritizing simplicity, modularity, and developer experience over feature bloat.
+
+## Quick Framework Comparison
+
+| Framework      | Core Abstraction | App-Specific Wrappers | Vendor-Specific Wrappers | Lines | Size  |
+| -------------- | ---------------- | --------------------- | ------------------------ | ----- | ----- |
+| **BrainyFlow** | ✨               | ❌                    | ❌                       | ~300  | ~15KB |
+| LangChain      | ⚠️               | ✅                    | ✅                       | ~500K | ~50MB |
+| LlamaIndex     | ⚠️               | ✅                    | ✅                       | ~200K | ~25MB |
+| Haystack       | ⚠️               | ✅                    | ✅                       | ~100K | ~20MB |
+
+## BrainyFlow's Philosophy Recap
+
+Before diving into deeper comparisons, let's reiterate BrainyFlow's core tenets:
+
+- **Minimalist Core:** A tiny codebase (~300 lines) providing essential abstractions (`Node`, `Flow`, `Memory`).
+- **Graph-Based Abstraction:** Uses nested directed graphs to model application logic, separating data flow (`Memory`) from computation (`Node`).
+- **Zero Dependencies:** The core framework has no external dependencies, offering maximum flexibility.
+- **No Vendor Lock-in:** Encourages using external utilities directly, avoiding framework-specific wrappers for APIs or databases.
+- **Agentic Coding Friendly:** Designed to be intuitive for both human developers and AI assistants collaborating on code.
+- **Composability:** Flows can be nested within other flows, enabling modular design.
+
+## Comparison Points
+
+We'll compare BrainyFlow against competitors based on:
+
+- **Core Abstraction:** The fundamental building blocks and mental model.
+- **Dependencies & Size:** The footprint and external requirements.
+- **Flexibility vs. Opinionation:** How much structure the framework imposes versus how much freedom the developer has.
+- **Vendor Integrations:** Built-in support for specific LLMs, databases, etc.
+- **Learning Curve:** Perceived difficulty in getting started and mastering the framework.
+
+## Relationship to PocketFlow
+
+BrainyFlow originated as a fork of PocketFlow, inheriting its core philosophy of minimalism and a graph-based abstraction. However, BrainyFlow has evolved with some key differences:
+
+- **Core Abstraction & Batching**: PocketFlow included many specialized classes for async operations and batching (e.g., `AsyncNode`, `BatchNode`, `AsyncBatchNode`, `AsyncParallelBatchNode`, `AsyncFlow`, `BatchFlow`, `AsyncBatchFlow`, `AsyncParallelBatchFlow`). BrainyFlow simplifies this by removing all of these specialized classes from its core. Instead, it relies on standard `Node` lifecycle methods (which are inherently `async`-capable) combined with `Flow` (or `ParallelFlow`). Batch-like fan-out operations are achieved using multiple `trigger` calls within a single node's `post` method.
+- **State Management (`Memory`)**: While both use a shared store, BrainyFlow's `Memory` object now has a more refined distinction between `global` and `local` stores. The `local` store is primarily populated via `forkingData` during `trigger` calls, crucial for managing branch-specific context. This eliminates the need for PocketFlow's separate `Params` concept and simplifies the `Memory` model, removing the complexities that `Batch*` classes in PocketFlow tried to solve. BrainyFlow's `Memory` is created with enhanced proxy mechanisms for attribute access and isolation.
+- **Focus:** BrainyFlow sharpens the focus on the fundamental `Node`, `Flow`, and `Memory` abstractions as the absolute core, reinforcing the idea that patterns like batching or parallelism are handled by how flows orchestrate standard nodes rather than requiring specialized node types.
+
+Essentially, BrainyFlow refines PocketFlow's minimalist approach, aiming for an even leaner core by handling execution patterns like batching and parallelism primarily at the `Flow` orchestration level.
+BrainyFlow also emphasizes a more consistent and refined API across its Python and TypeScript implementations, particularly for state management and flow execution.
+
+On top of that, BrainyFlow has been designed to be more agentic-friendly, with a focus on building flows that can be used by both humans and AI assistants. Its code is more readable and maintainable, prioritizing developer experience over an arbitrarily defined amount of lines of code.
+
+## BrainyFlow vs. LangChain
+
+- **Core Abstraction:** LangChain offers a vast array of components (Chains, LCEL, Agents, Tools, Retrievers, etc.). BrainyFlow focuses solely on the Node/Flow/Memory graph.
+- **Dependencies & Size:** LangChain has numerous dependencies depending on the components used, leading to a larger footprint. BrainyFlow core is dependency-free.
+- **Flexibility vs. Opinionation:** LangChain provides many pre-built components, which can be faster but potentially more opinionated. BrainyFlow offers higher flexibility, requiring developers to build or integrate utilities themselves.
+- **Vendor Integrations:** LangChain has extensive built-in integrations. BrainyFlow intentionally avoids these in its core.
+- **Learning Curve:** LangChain's breadth can be overwhelming. BrainyFlow's core is small, but mastering its flexible application requires understanding the graph pattern well.
+
+## BrainyFlow vs. LangGraph
+
+- **Core Abstraction:** LangGraph is built on LangChain and specifically focuses on cyclical graphs using a state-based approach. BrainyFlow uses action-based transitions between nodes within its graph structure.
+- **Dependencies & Size:** LangGraph inherits LangChain's dependencies. BrainyFlow remains dependency-free.
+- **Flexibility vs. Opinionation:** LangGraph is tied to the LangChain ecosystem and state management patterns. BrainyFlow offers more fundamental graph control.
+- **Vendor Integrations:** Inherited from LangChain. BrainyFlow has none.
+- **Learning Curve:** Requires understanding LangChain concepts plus LangGraph's state model. BrainyFlow focuses only on its core abstractions.
+
+## BrainyFlow vs. CrewAI
+
+- **Core Abstraction:** CrewAI provides higher-level abstractions like Agent, Task, and Crew, focusing on collaborative agent workflows. BrainyFlow provides the lower-level graph building blocks upon which such agent systems _can be built_.
+- **Dependencies & Size:** CrewAI has dependencies related to its agent and tooling features. BrainyFlow is minimal.
+- **Flexibility vs. Opinionation:** CrewAI is more opinionated towards specific multi-agent structures. BrainyFlow is more general-purpose.
+- **Vendor Integrations:** CrewAI integrates with tools and LLMs, often via LangChain. BrainyFlow does not.
+- **Learning Curve:** CrewAI's high-level concepts might be quicker for specific agent tasks. BrainyFlow requires building the agent logic from its core components.
+
+## BrainyFlow vs. AutoGen
+
+- **Core Abstraction:** AutoGen focuses on conversational agents (`ConversableAgent`) and multi-agent frameworks, often emphasizing automated chat orchestration. BrainyFlow focuses on the underlying execution graph.
+- **Dependencies & Size:** AutoGen has a core set of dependencies, with optional ones for specific tools/models. BrainyFlow core has none.
+- **Flexibility vs. Opinionation:** AutoGen is geared towards conversational agent patterns. BrainyFlow is a more general graph execution engine.
+- **Vendor Integrations:** AutoGen offers integrations, particularly for LLMs. BrainyFlow avoids them.
+- **Learning Curve:** AutoGen's conversational focus might be specific. BrainyFlow's graph is general but requires explicit construction.
+
+## Feature Comparison Matrix
+
+| Feature                   | BrainyFlow        | LangChain         | LangGraph            | CrewAI                    | AutoGen               | PocketFlow       |
+| ------------------------- | ----------------- | ----------------- | -------------------- | ------------------------- | --------------------- | ---------------- |
+| **Core Abstraction**      | Nodes & Flows     | Chains & Agents   | State Graphs         | Agents & Crews            | Conversational Agents | Nodes & Flows    |
+| **Dependencies**          | None              | Many              | Many (via LangChain) | Several                   | Several               | None             |
+| **Codebase Size**         | Tiny (~300 lines) | Large             | Medium               | Medium                    | Medium                | Tiny (100 lines) |
+| **Flexibility**           | High              | Medium            | Medium               | Low                       | Medium                | High             |
+| **Built-in Integrations** | None              | Extensive         | Via LangChain        | Several                   | Several               | None             |
+| **Learning Curve**        | Moderate          | Steep             | Very Steep           | Moderate                  | Moderate              | Moderate         |
+| **Primary Focus**         | Graph Execution   | Component Library | State Machines       | Multi-Agent Collaboration | Conversational Agents | Graph Execution  |
+
+## Conclusion: When to Choose BrainyFlow?
+
+BrainyFlow excels when you prioritize:
+
+- **Minimalism and Control:** You want a lightweight core without unnecessary bloat or dependencies.
+- **Flexibility:** You prefer to integrate your own utilities and avoid framework-specific wrappers.
+- **Understanding the Core:** You value a simple, fundamental abstraction (the graph) that you can build upon.
+- **Avoiding Vendor Lock-in:** You want the freedom to choose and switch external services easily.
+- **Agentic Coding:** You plan to collaborate with AI assistants, leveraging a framework they can easily understand and manipulate.
+
+If you need extensive pre-built integrations, higher-level abstractions for specific patterns (like multi-agent collaboration out-of-the-box), or prefer a more opinionated framework, other options might be a better fit initially. However, BrainyFlow provides the fundamental building blocks to implement _any_ of these patterns with maximum transparency and control.
+
+
+
+
+================================================
 File: docs/core_abstraction/index.md
 ================================================
 # Understanding BrainyFlow's Core Abstractions
@@ -213,7 +296,7 @@ BrainyFlow follows these fundamental principles:
 The fundamental pattern in BrainyFlow combines two key elements:
 
 - **Computation Graph**: A directed graph where nodes represent discrete units of work and edges represent the flow of control.
-- **Shared Store**: A state management system that enables communication between nodes, separating global and local state.
+- **Shared `Memory` Object**: A state management store that enables communication between nodes, separating `global` and `local` state.
 
 This pattern offers several advantages:
 
@@ -237,13 +320,13 @@ BrainyFlow's architecture is based on these fundamental building blocks:
 1. **Nodes** perform individual tasks with a clear lifecycle:
 
    - `prep`: Read from shared store and prepare data
-   - `exec`: Execute computation (often LLM calls)
+   - `exec`: Execute computation (often LLM calls), cannot access memory directly.
    - `post`: Process results, write to shared store, and trigger next actions
 
 2. **Flows** orchestrate nodes by:
 
    - Starting with a designated `start` node.
-   - Following action-based transitions (`trigger` calls in `post`) between nodes.
+   - Following action-based transitions (driven by `trigger` calls in `post`) between nodes.
    - Supporting branching, looping, and nested flows.
    - Executing triggered branches sequentially (`Flow`) or concurrently (`ParallelFlow`).
    - Supporting nested batch operations.
@@ -251,7 +334,7 @@ BrainyFlow's architecture is based on these fundamental building blocks:
 3. **Communication** happens through the `memory` instance provided to each node's lifecycle methods (in `prep` and `post` methods):
 
    - **Global Store**: A shared object accessible throughout the flow. Nodes typically write results here.
-   - **Local Store**: An isolated object specific to a node and its downstream path.
+   - **Local Store**: An isolated object specific to a node and its downstream path, typically populated via `forkingData` in `trigger` calls.
 
 ## Getting Started
 
@@ -269,9 +352,9 @@ Once you understand these core abstractions, you'll be ready to implement variou
 ================================================
 File: docs/core_abstraction/node.md
 ================================================
-# Nodes
+# Node: The Basic Unit of Work
 
-Nodes are the fundamental building blocks in BrainyFlow. Each node performs a specific task within your workflow, processing data and optionally triggering downstream nodes.
+In BrainyFlow, a **Node** is the fundamental building block of any application. It represents a discrete, self-contained unit of work within a larger flow. Nodes are designed to be reusable, testable, and fault-tolerant.
 
 ## Node Lifecycle
 
@@ -279,50 +362,39 @@ Nodes are the fundamental building blocks in BrainyFlow. Each node performs a sp
   <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/node.jpg" width="400"/>
 </div>
 
-Every node follows a three-phase lifecycle:
+Every node follows a clear, three-phase lifecycle when executed: `prep` → `exec` → `post`. This separation of concerns ensures clean data handling, computation, and state management.
 
-1.  **`prep`**: Gather and prepare input data from the `memory` object.
-2.  **`exec`**: Perform the main processing task (potentially retried). Receives data from `prep`. **Cannot** access the `memory` object directly.
-3.  **`post`**: Process results, update the `memory` object (global or local store), and trigger downstream actions. Receives data from `prep` and `exec`, plus the `memory` instance.
+1.  **`prep(memory)`**:
 
-{% hint style="info" %}
-**Why 3 steps?** This design enforces separation of concerns.
+    - **Purpose**: Prepare the node for execution. This is where the node reads necessary input data from the `Memory` object (which includes both global and local state).
+    - **Output**: Returns a `prep_res` (preparation result) that will be passed directly to the `exec` method. This ensures `exec` is pure and doesn't directly access shared memory.
+    - **Best Practice**: Keep `prep` focused on data retrieval and initial validation. Avoid heavy computation or side effects here.
 
-All steps are **optional**. For example, you can implement only `prep` and `post` if you just need to process data without external computation.
-{% endhint %}
+2.  **`exec(prep_res)`**:
 
-### 1. `async prep(memory)`
+    - **Purpose**: Execute the core business logic or computation of the node. This method receives only the `prep_res` from the `prep` method.
+    - **Output**: Returns an `exec_res` (execution result) that will be passed to the `post` method.
+    - **Key Principle**: `exec` should be a **pure function** (or as close as possible). It should not directly access the `Memory` object or perform side effects. This makes `exec` highly testable and retryable.
+    - **Fault Tolerance**: This is the phase where retries are applied if configured.
 
-- Receives the current `memory` instance (a proxy managing global and local stores).
-- Extracts necessary data by external sources or by accessing properties on the `memory` object (e.g., `memory.someData`). The proxy reads from the local store first, then the global store.
-- Performs any required preprocessing or validation.
-- Can optionally return a `PrepResult`, which is passed as input to `exec()` and `post()`.
-
-### 2. `async exec(prepRes)`
-
-- Receives the result from `prep()` (`prepRes`).
-- Performs the main computation (e.g., LLM call, API request, calculation).
-- ⚠️ **Cannot** access the `Memory` instance directly. This enforces separation and aids retry logic.
-- ⚠️ Should ideally be idempotent (produce the same result given the same input) and have no side effects if retries (`maxRetries > 1`) are enabled, as it might be called multiple times.
-- Returns an `ExecResult`, which is passed to `post()`.
-- _Note:_ The actual execution logic, including retries, is handled by the internal `execRunner` method, which calls this `exec` method.
-
-### 3. `async post(memory, prepRes, execRes)`
-
-- Receives the `memory` instance, the result from `prep()` (`prepRes`), and the result from `exec()` (`execRes`).
-- Processes results and writes data back to the `memory` object (usually the global store, e.g., `memory.result = execRes`).
-- **This is the only place to call `this.trigger()`** to specify which downstream nodes should run next and optionally pass `forkingData` to their local memory.
-  - If no `trigger` is called, the flow proceeds via the `DEFAULT_ACTION` ('default') with no specific `forkingData`.
+3.  **`post(memory, prep_res, exec_res)`**:
+    - **Purpose**: Post-process the results of `exec`, update the `Memory` object, and determine the next steps in the flow.
+    - **Input**: Receives the `Memory` object, `prep_res`, and `exec_res`.
+    - **Key Actions**:
+      - Write results back to the global `Memory` store.
+      - Call `self.trigger("action_name", forking_data={...})` (Python) or `this.trigger("action_name", {...})` (TypeScript) to specify which action was completed and pass any branch-specific data to the local store of successor nodes.
+      - A node can trigger multiple actions, leading to parallel execution if the flow is a `ParallelFlow`.
 
 ```mermaid
 sequenceDiagram
-    participant M as Memory (Proxy)
+    participant M as Memory
     participant N as Node
 
     N->>M: 1. prep(memory): Read from memory
     Note right of N: Return prep_res
 
     N->>N: 2. exec(prep_res): Compute result
+    Note right of N: (May be retried on failure)
     Note right of N: Return exec_res
 
     N->>M: 3. post(memory, prep_res, exec_res): Write to memory
@@ -337,7 +409,7 @@ To create a custom node, extend the `Node` class and implement the lifecycle met
 from brainyflow import Node, Memory
 
 class TextProcessorNode(Node):
-    async def prep(self, memory: Memory) -> str:
+    async def prep(self, memory) -> str:
         # Read input data
         return memory.text
 
@@ -345,7 +417,7 @@ class TextProcessorNode(Node):
         # Process the text
         return text.upper()
 
-    async def post(self, memory: Memory, input_text: str, result: str):
+    async def post(self, memory, input_text: str, result: str):
         # Store the result in the global store
         memory.processed_text = result
 
@@ -353,71 +425,79 @@ class TextProcessorNode(Node):
         self.trigger('default')
 ```
 
+All step definitions are **optional**. For example, you can implement only `prep` and `post` if you just need to alter data without external computation, or skip `post` if the node does not write any data to memory.
+
 ## Error Handling
 
 Nodes include built-in retry capabilities for handling transient failures in `exec()` calls.
 
-You can configure retries via the constructor:
+You can configure retries with 2 options in their constructor to control their behavior:
 
+- `id` (string, optional): A unique identifier for the node. If not provided, a UUID is generated.
 - `maxRetries` (number): Maximum number of attempts for `exec()` (default: 1, meaning no retry).
 - `wait` (number): Seconds to wait between retry attempts (default: 0).
+  The `wait` parameter is especially helpful when you encounter rate-limits or quota errors from your LLM provider and need to back off.
 
-The `wait` parameter is specially helpful when you encounter rate-limits or quota errors from your LLM provider and need to back off.
 During retries, you can access the current retry count (0-based) via `self.cur_retry` (Python) or `this.curRetry` (TypeScript).
 
 To handle failures gracefully after all retry attempts for `exec()` are exhausted, override the `execFallback` method.
 
 By default, `execFallback` just re-raises the exception. You can override it to return a fallback result instead, which becomes the `exec_res` passed to `post()`, allowing the flow to potentially continue.
+The `error` object passed to `execFallback` will be an instance of `NodeError` and will include a `retryCount` property indicating the number of retries performed.
 
 ```python
-from brainyflow import Node, Memory, NodeError
-
-my_node = MyNode(max_retries=3, wait=10) # Assuming MyNode is defined elsewhere
+from brainyflow import Node, NodeError, Flow
 
 class CustomErrorHandlingNode(Node):
     async def exec(self, prep_res):
         print(f"Exec attempt: {self.cur_retry + 1}")
-        if self.cur_retry < 2:
-             raise ValueError("Temporary failure!")
-        return "Success on retry"
+        if self.cur_retry < 2: # Fail for first 2 attempts
+            raise ValueError("Simulated exec failure")
+        return "Successful result on retry"
 
     async def exec_fallback(self, prep_res, error: NodeError) -> str:
         # This is called only if exec fails on the last attempt
         print(f"Exec failed after {error.retry_count + 1} attempts: {error}")
-        # Return a fallback value instead of raising error
+        # Return a fallback value instead of re-raising the error
         return f"Fallback response due to repeated errors: {error}"
 
-    async def post(self, memory: Memory, prep_res, exec_res: str):
+    async def post(self, memory, prep_res, exec_res: str):
         # exec_res will be "Success on retry" or "Fallback response..."
         print(f"Post: Received result '{exec_res}'")
         memory.final_result = exec_res
-        self.trigger('default')
+        print(f"Post: Final result is '{exec_res}'")
 
+# Example usage
+node = CustomErrorHandlingNode(max_retries=3, wait=5) # Will retry twice, then fallback
+flow = Flow(start=node)
+await flow.run({})
 ```
 
-## Triggering Successors (`trigger`)
+## Node Transitions
 
-Nodes signal which path(s) the flow should take next by calling `this.trigger()` within their `post` method.
+Nodes define how the flow progresses by triggering actions. These actions are then used by the `Flow` to determine the next node(s) to execute.
 
-```typescript
-this.trigger(actionName: string | typeof DEFAULT_ACTION, forkingData?: SharedStore): void
+```python
+self.trigger(action_name: str, forking_data: Optional[SharedStore] = None) -> None
 ```
 
-- `actionName`: A string identifying the transition (e.g., 'success', 'failure', 'categoryA'). If omitted or if `trigger` is not called, `DEFAULT_ACTION` ('default') is assumed.
-- `forkingData` (optional): An object containing data to be added _only_ to the `local` store of the `memory` instance passed to the triggered successor(s). This allows passing specific data down a particular branch without polluting the global store.
-
-The running [Flow](./flow.md) uses the `actionName` to look up the successor nodes defined using `.on()` or `.next()`.
+- Call this method within the `post` method of your node.
+- `action_name`: A string identifying the action that just completed (e.g., `"success"`, `"error"`, `"data_ready"`). This name corresponds to the transitions defined in the `Flow` (e.g., `node.on('action_name', nextNode)`).
+- `forking_data` (optional): A dictionary (Python) or object (TypeScript) whose key-value pairs will be deeply cloned and merged into the **local store** (`memory.local`) of the memory instance passed to the next node(s) triggered by this action. This allows for passing specific data down a particular branch without polluting the global store.
+- A node can call `trigger` multiple times in its `post` method, leading to multiple successor branches being executed (sequentially in `Flow`, concurrently in `ParallelFlow`).
 
 {% hint style="warning" %}
-`trigger()` can **only** be called inside the `post()` method. Calling it elsewhere will throw an error.
+`trigger()` can **only** be called inside the `post()` method. Calling it elsewhere will result in errors.
 {% endhint %}
+
+The running [Flow](./flow.md) uses the `action_name` triggered to look up the successor nodes, which are defined using `.on()` or `.next()` (as seen in the next section below).
 
 ## Defining Connections (`on`, `next`)
 
 While `trigger` determines _which_ path to take _during_ execution, you define the possible paths _before_ execution, by using either `.next()` or `.on()`, as shown below:
 
 {% tabs %}
-{% tab title="Python + sugar 🍭" %}
+{% tab title="Python + syntax sugar 🍭" %}
 
 You can define transitions with syntax sugar:
 
@@ -473,30 +553,37 @@ These methods are typically called when constructing your `Flow`. See the [Flow 
 
 ### Example: Conditional Branching
 
-```python
-from brainyflow import Node, Flow, Memory
+A common pattern is a "router" node that determines the next step based on some condition (e.g., language detection, data validation result).
 
-# Assuming detect_language, EnglishProcessorNode, SpanishProcessorNode, UnknownProcessorNode are defined elsewhere
+```python
+import asyncio
+from brainyflow import Flow, Node, DEFAULT_ACTION
+
+async def detect_language(content: str) -> str:
+    if "hello" in content.lower(): return "english"
+    if "hola" in content.lower(): return "spanish"
+    return "unknown"
 
 class RouterNode(Node):
-    async def prep(self, memory: Memory) -> str:
-        # Read content from global memory
+    async def prep(self, memory):
         return memory.content
 
-    async def exec(self, content: str) -> str:
+    async def exec(self, content: str):
         return await detect_language(content)
 
-    async def post(self, memory: Memory, content: str, language: str):
-        print(f"RouterPost: Detected language '{language}', storing and triggering.")
-        memory.language = language
+    async def post(self, memory, prep_res: str, exec_res: str):
+        print(f"RouterPost: Detected language '{exec_res}', storing and triggering.")
+        memory.language = exec_res # Store language in global memory
         # Trigger the specific action based on the detected language
-        self.trigger(language) # e.g., trigger 'english' or 'spanish' or 'unknown'
+        self.trigger(exec_res) # e.g., trigger 'english' or 'spanish' or 'unknown'
+
+# Assuming EnglishProcessorNode, SpanishProcessorNode, UnknownProcessorNode are defined elsewhere
 
 # --- Flow Definition ---
 router = RouterNode()
 english_processor = EnglishProcessorNode()
 spanish_processor = SpanishProcessorNode()
-unknown_processor = UnknownProcessorNode() # Handle unknown case
+unknown_processor = UnknownProcessorNode()
 
 # Define connections for specific actions using syntax sugar
 router - "english" >> english_processor
@@ -505,7 +592,6 @@ router - "unknown" >> unknown_processor # Add path for unknown
 
 flow = Flow(start=router)
 
-# --- Execution Example ---
 async def run_flow():
     memory_en = {"content": "Hello world"}
     await flow.run(memory_en)
@@ -532,32 +618,38 @@ For a detailed explanation and examples of implementing batch processing using t
 
 ## Running Individual Nodes
 
-Nodes have an extra method `run(memory)`, which calls `prep → exec → post`. Use it only for **testing or debugging individual nodes in isolation**.
+Nodes have a `run(memory, propagate?)` method, which executes its full lifecycle (`prep` -> `execRunner` (which handles `exec` and `execFallback`) -> `post`). This method is primarily intended for **testing or debugging individual nodes in isolation**.
 
 {% hint style="danger" %}
 **Do NOT use `node.run()` to execute a workflow.**
 
 `node.run()` executes only the single node it's called on. It **does not** look up or execute any successor nodes defined via `.on()` or `.next()`.
 
-Always use `Flow.run()` or `ParallelFlow.run()` to execute a complete graph workflow. Using `node.run()` directly will lead to incomplete execution.
+Always use `Flow.run(memory)` or `ParallelFlow.run(memory)` to execute a complete graph workflow. Using `node.run()` directly will lead to incomplete execution if you expect the flow to continue.
 {% endhint %}
 
-```typescript
-// Run with propagate: false (default) - returns ExecResult
-async node.run(memory: Memory | GlobalStore): Promise<ExecResult | void> // Accepts Memory object or initial global store
+The `node.run()` method can, however, return information about triggered actions if the `propagate` argument is set to `true`. This is used internally by the `Flow` execution mechanism.
 
-// Run with propagate: true - returns triggers for Flow execution
-async node.run(memory: Memory | GlobalStore, propagate: true): Promise<[Action, Memory][]> // Accepts Memory object or initial global store
+```python
+from typing import List, Tuple, Optional
+from typing_extensions import Literal
+from brainyflow import Memory, GlobalStore, Action, ExecResult
+
+# Run with propagate=False (default) - returns ExecResult
+async def run(self, memory: Union[Memory, GlobalStore], propagate: Literal[False] = False) -> Optional[ExecResult]: ...
+
+# Run with propagate=True - returns triggers for Flow execution
+async def run(self, memory: Union[Memory, GlobalStore], propagate: Literal[True]) -> List[Tuple[Action, Memory]]: ...
 ```
 
 ## Best Practices
 
-- **Single Responsibility**: Keep nodes focused on a single, well-defined task.
-- **Read in `prep`**: Gather all necessary data from the `memory` object in the `prep` phase. Return only what `exec` needs.
-- **Compute in `exec`**: Perform the core computation in `exec`. Keep it free of side effects and direct `memory` object access.
-- **Write & Trigger in `post`**: Update the `memory` object (usually the global store) and call `trigger` in the `post` phase.
+- **Single Responsibility**: Each node should do one thing well. Avoid at all costs monolithic nodes that handle too many responsibilities!
+- **Pure `exec`**: Keep the `exec` method free of side effects and direct memory access. All inputs should come from `prep_res`, and all outputs should go to `exec_res`.
+- **Clear `prep` and `post`**: Use `prep` for input gathering and `post` for output handling and triggering.
+- **Respect the lifecycle**: Read in `prep`, compute in `exec`, write and trigger in `post`. No exceptions allowed!
 - **Use `forkingData`**: Pass branch-specific data via `trigger`'s `forkingData` argument to populate the `local` store for successors, keeping the global store clean.
-- **Type Safety**: Use TypeScript generics (`Node<G, L, A, P, E>`) to define the expected structure of `memory` stores, actions, and results.
+- **Type Safety**: For better developer experience, define the expected structure of `memory` stores, actions, and results.
 - **Error Handling**: Leverage the built-in retry logic (`maxRetries`, `wait`) and `execFallback` for resilience.
 
 
@@ -585,17 +677,20 @@ node_a >> node_b
 node_b - "success" >> node_c
 node_b - "error" >> node_d
 
-# Create a shared/global store (an empty dictionary)
+# Start with an empty memory object
 memory = {}
 
 # Create flow starting with node_a
 flow = Flow(start=node_a)
 
 # Run the flow, passing the memory object
-await flow.run(memory)
+execution_result = await flow.run(memory)
 
-# The memory object is modified in place
+# Run the flow, passing the memory object.
+# The memory object is modified in place.
+# The run method returns an ExecutionTree.
 print("Flow finished. Final memory state:", memory)
+print('Execution Tree:', execution_result)
 ```
 
 ## Flow Execution Process
@@ -603,35 +698,36 @@ print("Flow finished. Final memory state:", memory)
 When you call `flow.run(memory)`, the flow executes the following steps internally:
 
 1.  It starts with the designated `start` node.
-2.  For the current node, it executes its lifecycle (`prep` -> `execRunner` -> `post`), passing a `Memory` instance that wraps the global store and manages local state.
+2.  For the current node, it executes its lifecycle (`prep` -> `execRunner` -> `post`), passing to the `prep` and `post` methods a `Memory` instance that wraps the global store and manages local state.
 3.  It looks for triggered action (specified by `trigger()` calls), then it finds the corresponding successor node(s) defined by `.on()` or `.next()`.
 4.  It recursively executes the successor node(s) with their respective cloned local memories.
 5.  This process repeats until it reaches nodes that trigger actions with no defined successors, or the flow completes.
-6.  The `run` method modifies the initial global store object in place and returns a nested structure representing the execution tree (often ignored if results are stored in memory).
+6.  The `run` method modifies the original `Memory` object's global store in place.
+7.  Upon completion, `flow.run()` returns an `ExecutionTree` object, which is a structured representation of the execution path, the actions triggered at each step, and the resulting sub-trees.
 
 ```mermaid
 sequenceDiagram
-    participant S as Shared Store
+    participant M as Memory Object (Global + Local)
     participant F as Flow
     participant N1 as Node A
     participant N2 as Node B
 
     F->>N1: Execute Node A
-    N1->>S: Read from shared store
+    N1->>M: prep() reads from M_A
     N1->>N1: Perform computation
-    N1->>S: Write to shared store
-    N1-->>F: Return action "default"
+    N1->>M: post() writes to M_A (local store)
+    N1-->>F: Node A finished, triggered "default"
 
-    F->>F: Find next node for action "default"
+    F->>F: Find successor for "default" (Node B)
     F->>N2: Execute Node B
-    N2->>S: Read from shared store
-    N2->>N1: Read from local store
+    N2->>M: prep() reads from M_B (local then global)
     N2->>N2: Perform computation
-    N2->>S: Write to shared store
-    N2-->>F: Return action "success"
+    N2->>M: post() writes to M_B (global store)
+    N2-->>F: Node B finished, triggered "success"
 
     F->>F: No transition defined for "success"
-    F-->>F: Flow execution complete
+    F-->>User: Flow execution complete, returns ExecutionTree
+    M-->>User: User reads memory changes
 ```
 
 ## Controlling Flow Execution
@@ -725,8 +821,7 @@ shipping_flow = Flow(start=create_label)
 # Connect the flows into a main order pipeline
 payment_flow >> inventory_flow >> shipping_flow
 
-# Create the master flow
-order_pipeline = Flow(start=payment_flow)
+order_pipeline = Flow(start=payment_flow) # Create the master flow
 
 # Run the entire pipeline
 memory = { orderId: 'XYZ789', customerId: 'CUST123' }
@@ -758,10 +853,10 @@ flowchart LR
 
 ### Cycle Detection
 
-Loops are created by connecting a node back to a previously executed node. To prevent infinite loops, `Flow` includes cycle detection controlled by the `maxVisits` option in its constructor (default is 5). If a node is visited more times than `maxVisits` during a single run, an error is thrown.
+Loops are created by connecting a node back to a previously executed node. To prevent infinite loops, `Flow` includes cycle detection controlled by the `maxVisits` option in its constructor (default is 15). If a node is visited more times than `maxVisits` during a single run, an error is thrown.
 
 {% hint style="success" %}
-This ensures that the flow does not get stuck in an infinite loop.
+This mechanism, combined with the `ExecutionTree` output, helps debug and manage complex looped behaviors.
 {% endhint %}
 
 ```typescript
@@ -769,11 +864,19 @@ This ensures that the flow does not get stuck in an infinite loop.
 const flow = new Flow(startNode, { maxVisits: 10 })
 ```
 
-- The default value for `maxVisits` is `5`.
+- The default value for `maxVisits` is `15`.
 - Set `maxVisits` to `Infinity` or a very large number for effectively no limit (use with caution!).
 
 ## Flow Parallelism
 
+When a node's `post` method calls `this.trigger()` multiple times (e.g., for different actions or for the same action with different `forkingData`), it effectively creates multiple branches of execution that will start from that node. How these branches are executed depends on the type of `Flow` being used.
+
+The `Flow` class manages the execution of these branches via its `runTasks` method. This method takes an array of task functions (each function representing the execution of one triggered branch) and determines how they are run.
+
+- In a standard `Flow`, `runTasks` executes them sequentially.
+- In a `ParallelFlow`, `runTasks` executes them concurrently.
+
+You can also create custom flow execution behaviors simply by subclassing `Flow` and overriding `runTasks`.
 BrainyFlow offers two built-in types - _and the possibility to create custom ones_ - of flows that provide different levels of parallelism when nodes trigger multiple successors:
 
 ### 1. `Flow` (Sequential Execution)
@@ -789,8 +892,7 @@ const sequentialFlow = new Flow(startNode)
 The `ParallelFlow` class executes the tasks generated by multiple triggers **concurrently** using `Promise.all()` (TypeScript) or `asyncio.gather()` (Python). This is useful for performance when branches are independent (e.g., batch processing items).
 
 ```typescript
-// Executes triggered branches in parallel
-const parallelFlow = new ParallelFlow(startNode)
+const parallelFlow = new ParallelFlow(startNode) // Executes triggered branches in parallel
 ```
 
 Use `ParallelFlow` when:
@@ -801,7 +903,7 @@ Use `ParallelFlow` when:
 
 {% hint style="danger" %}
 
-When using `ParallelFlow`, be mindful of potential race conditions if multiple parallel branches try to modify the same property in the global `Memory` simultaneously without proper synchronization. Often, it's safer for parallel branches to accumulate results locally or use unique keys in the global store, followed by a final sequential aggregation step.
+When using `ParallelFlow`, be mindful of potential race conditions if multiple parallel branches try to modify the same property in the global `Memory` object simultaneously without proper synchronization. Often, it's safer for parallel branches to accumulate results in their `local` store (via `forkingData` and internal processing) or use unique keys/indices when writing to the global store, potentially followed by a final sequential aggregation step if needed.
 
 {% endhint %}
 
@@ -830,7 +932,7 @@ class CustomExecutionFlow extends Flow {
 
 ## Batch Processing (Fan-Out Pattern)
 
-The standard way to process multiple items (sequentially or in parallel) is using the "fan-out" pattern with multiple triggers. All you need for that is a trigger node and a processor node:
+The standard way to process multiple items (sequentially or in parallel) in BrainyFlow is using the "fan-out" pattern. This involves a node that triggers multiple instances of processing for individual items. This pattern does **not** require specialized "BatchNode" or "BatchFlow" classes.
 
 1.  **Trigger Node**:
     - A standard `Node` whose `post` method iterates through your items (e.g., from `prepRes.items`).
@@ -840,7 +942,7 @@ The standard way to process multiple items (sequentially or in parallel) is usin
     - Another standard `Node` connected via the action triggered by the `TriggerNode`. E.g. `triggerNode.on("process_item", processorNode)`.
     - Its `prep` reads the forked data from its local memory.
     - Its `exec` performs the actual processing for that single item.
-    - Its `post` typically stores the result back into global memory (e.g., `memory.results[prepRes.index] = execRes.result`).
+    - Its `post` typically stores the result back into the global `Memory` object (e.g., `memory.results[prepRes.index] = execRes.result`).
 3.  **Flow Choice**:
     - Use `Flow(triggerNode)` for **sequential** batch processing (one item completes before the next starts).
     - Use `ParallelFlow(triggerNode)` for **concurrent** batch processing (all items are processed in parallel).
@@ -851,10 +953,10 @@ This pattern leverages the core `Flow` and `Node` abstractions to handle batchin
 
 ```python
 class TriggerBatchNode(Node):
-    async def prep(self, memory: Memory):
+    async def prep(self, memory):
         return memory.items_to_process or []
 
-    async def post(self, memory: Memory, prep_res: list, exec_res):
+    async def post(self, memory, prep_res: list, exec_res):
         items = prep_res
         memory.results = [None] * len(items) # Pre-allocate for parallel
         for index, item in enumerate(items):
@@ -862,14 +964,14 @@ class TriggerBatchNode(Node):
         # Optional: self.trigger("aggregate") if needed
 
 class ProcessOneItemNode(Node):
-    async def prep(self, memory: Memory):
+    async def prep(self, memory):
         return {"item": memory.item_data, "index": memory.result_index}
 
     async def exec(self, prep_res):
         result = f"Processed {prep_res['item']}" # Placeholder
         return {"result": result, "index": prep_res["index"]}
 
-    async def post(self, memory: Memory, prep_res, exec_res):
+    async def post(self, memory, prep_res, exec_res):
         memory.results[exec_res["index"]] = exec_res["result"]
 
 # Setup
@@ -888,13 +990,14 @@ parallel_batch_flow = ParallelFlow(trigger)
 ```
 
 In this example, `TriggerBatchNode` fans out the work. If run with `ParallelFlow`, each `ItemProcessorNode` instance would execute concurrently. If run with a standard `Flow`, they would execute sequentially.
+The results are written to `memory.results` using the index as a key, which is safer for parallel execution than assuming array indices will be filled in order.
 
 ## Best Practices
 
 - **Start Simple**: Begin with a linear flow and add branching/looping complexity gradually.
 - **Visualize First**: Sketch your flow diagram (using Mermaid or similar tools) before coding to clarify logic.
 - **Flow Modularity**: Design flows as reusable components. Break down complex processes into smaller, nested sub-flows.
-- **Memory Planning**: Define clear interfaces for your `GlobalStore` and `LocalStore` upfront. Decide what state needs to be global versus what can be passed locally via `forkingData`.
+- **Memory Planning**: Define clear interfaces for your `GlobalStore` and `LocalStore` types upfront. Decide what state needs to be global versus what can be passed locally via `forkingData`.
 - **Action Naming**: Use descriptive, meaningful action names (e.g., 'user_clarification_needed', 'data_validated') instead of generic names like 'next' or 'step2'.
 - **Explicit Transitions**: Clearly define transitions for all expected actions a node might trigger. Consider adding default `.next()` transitions for unexpected or completion actions.
 - **Cycle Management**: Be mindful of loops. Use the `maxVisits` option in the `Flow` constructor to prevent accidental infinite loops.
@@ -904,7 +1007,7 @@ In this example, `TriggerBatchNode` fans out the work. If run with `ParallelFlow
 - **Test Incrementally**: Test individual nodes using `node.run()` and test sub-flows before integrating them into larger pipelines.
 - **Avoid Deep Nesting**: While nesting flows is powerful, keep the hierarchy reasonably flat (e.g., 2-3 levels deep) for maintainability.
 
-Flows provide the orchestration layer that determines how your nodes interact, ensuring that data moves predictably through your application and that execution follows your intended paths.
+Flows provide the orchestration layer that determines how your nodes interact, ensuring that data moves predictably through your application (via the `Memory` object) and that execution follows your intended paths, ultimately returning an `ExecutionTree` for introspection.
 
 By following these principles, you can create complex, maintainable AI applications that are easy to reason about and extend.
 
@@ -916,26 +1019,40 @@ File: docs/core_abstraction/memory.md
 ================================================
 # Memory: Managing State Between Nodes
 
-BrainyFlow provides a streamlined approach for components to communicate with each other. This chapter explains how data is stored, accessed, and isolated.
+In BrainyFlow, the `Memory` object is the central mechanism for state management and communication between nodes in a flow. It's designed to be flexible yet robust, providing both shared global state and isolated local state for different execution paths.
+
+## Creating Memory
+
+The proxied memory instance is automatically created when you pass the initial memory object to a Flow. Alternatively, you can explicitly create it using the `createMemory` function (in TypeScript) or the standard constructor `Memory()` (in Python):
+
+```python
+from brainyflow import Memory
+
+global_store = {"initial_config": "abc"}
+local_store_for_start_node = {"start_node_specific": 123} # Optional
+
+memory_instance = Memory(global_store, local_store_for_start_node)
+# or just: memory_instance = Memory(global_store)
+```
 
 ## Memory Scopes: Global vs. Local
 
-Each `Memory` instance encapsulates two distinct scopes:
+BrainyFlow's `Memory` object manages two distinct scopes:
 
 1.  **Global Store (`memory`)**: A single object shared across _all_ nodes within a single `flow.run()` execution. Changes made here persist throughout the flow. Think of it as the main shared state.
 2.  **Local Store (`memory.local`)**: An object specific to a particular execution path within the flow. It's created when a node `trigger`s a successor. Changes here are isolated to that specific branch and its descendants.
+    Accessing `memory.local` directly (e.g., `memory.local.someKey`) allows you to read from or write to _only_ the local store of the current memory instance.
 
 This dual-scope system allows for both shared application state (global) and controlled, path-specific data propagation (local).
 
-{% hint style="success" %}
-**Real-World Analogies**:
+{% hint style="success" %} **Real-World Analogies**:
 
 Think of the memory system like **a river delta**:
 
-- **Global Store**: The main river water that flows everywhere
-- **Local Store**: Specific channels that might carry unique properties that only affect downstream areas fed by that channel
+- **Global Store**: The main river, carrying essential data that all branches need.
+- **Local Store**: The smaller streams and tributaries that branch off. They carry specific data relevant only to their path, but can still access the main river's water (global store).
 
-Alternatively, think of it like **nested scopes in programming**:
+Or, consider **programming scopes**:
 
 - **Global Store**: Like variables declared in the outermost scope of a program, accessible everywhere.
 - **Local Store**: Like variables declared inside a function or block. They are only accessible within that block and any nested blocks (downstream nodes in the flow). If a local variable has the same name as a global one, the local variable "shadows" the global one within its scope.
@@ -956,11 +1073,11 @@ import { Memory, Node } from 'brainyflow'
 interface MyGlobal {
   config?: object
   commonData?: string
-  pathSpecificData?: string
+  pathSpecificData?: string // Can be global or shadowed by local
 }
 interface MyLocal {
   pathSpecificData?: string
-} // Can shadow global
+} // Can shadow global properties
 
 class MyNode extends Node<MyGlobal, MyLocal> {
   async prep(memory: Memory<MyGlobal, MyLocal>): Promise<void> {
@@ -968,15 +1085,21 @@ class MyNode extends Node<MyGlobal, MyLocal> {
     const config = memory.config
     const common = memory.commonData
 
-    // Reads from local store if set via forkingData, otherwise reads from global
+    // Reads 'pathSpecificData' from local store if it exists there,
+    // otherwise falls back to reading from the global store.
     const specific = memory.pathSpecificData
+
+    // To read ONLY from the local store:
+    const onlyLocal = memory.local.pathSpecificData
   }
   // ... exec, post ...
 }
 ```
 
-When accessing memory, you should always use `memory.someValue` and let the `Memory` manager figure out where to fetch the value for you.
-You could also directly access the entire local store object using `memory.local` - or a value at `memory.local.someValue` - but that's an anti-pattern that should be avoided.
+As a rule of thumb, when accessing memory, you should always prefer using `memory.someValue` and let the `Memory` manager figure out where to fetch the value for you.
+Even though you could directly access the entire local store object using `memory.local` - or a value at `memory.local.someValue` - that approach adds little value and is pattern that can be safely avoided, unless you want to be very explicit about your design choice.
+
+As you will see in the next section, _it's at the writing time that you want to be more careful about where to place your data._
 
 ```typescript
 async post(memory: Memory<MyGlobal, MyLocal>, /*...*/) {
@@ -988,21 +1111,35 @@ async post(memory: Memory<MyGlobal, MyLocal>, /*...*/) {
 ## Writing to Memory
 
 - **Writing to Global Store**: Assigning a value directly to a property on the `memory` object (e.g., `memory.someValue = 'new data'`) writes to the **global store**. The proxy automatically removes the property from the local store first if it exists there.
-- **Writing to Local Store**: While possible via `memory.local.someValue = 'new data'`, the primary and recommended way to populate the local store for downstream nodes is using the `forkingData` argument in `this.trigger()`.
+- **Writing to Local Store**: You can write directly to the local store of the current memory instance using `memory.local.someValue = 'new data'`. This affects _only_ the current node's local context and any downstream nodes that inherit this specific memory clone.
+  However, the most convenient way to populate the local store for _newly created branches_ (i.e., for successor nodes) is by providing the `forkingData` argument in `this.trigger(action[, forkingData])`.
+
+## Deleting from Memory
+
+- **Deleting from Global/Local (via main proxy)**: Using `del memory.someKey` (Python) or `delete memory.someKey` (TypeScript) will attempt to delete the key from the global store and also from the current local store.
+- **Deleting from Local Only (via `memory.local`)**: Using `del memory.local.someKey` (Python) or `delete memory.local.someKey` (TypeScript) will delete the key _only_ from the current local store.
+
+## Checking for Existence (`in` operator)
+
+- **`'key' in memory`**: Checks if `'key'` exists in either the local store or the global store.
+- **`'key' in memory.local`**: Checks if `'key'` exists _only_ in the local store.
 
 Note that you can set types to the memory, like in TypeScript!
 That is optional, but helps you keep your code organized.
 
 ```python
-from brainyflow import Node, Memory
-from typing import TypedDict, Any, List
+from typing import List, TypedDict
+from brainyflow import Memory, Node
 
 class GlobalStore(TypedDict, total=False):
     fileList: List[str]
+    config: dict
+    results: dict
 
 class DataWriterLocalStore(TypedDict, total=False):
     processedCount: int
     file: str
+    branch_id: str
 
 # Assume exec returns a dict like {"files": [...], "count": ...}
 class DataWriterNode(Node[GlobalStore, DataWriterLocalStore]):
@@ -1025,7 +1162,7 @@ class DataWriterNode(Node[GlobalStore, DataWriterLocalStore]):
 
 # Example Processor Node (triggered by 'process_file')
 class FileProcessorNode(Node):
-     async def prep(self, memory: Memory):
+     async def prep(self, memory):
          # Reads 'file' from the local store first, then global
          file_to_process = memory.file
          print(f"Processing file (fetched from local memory): {file_to_process}")
@@ -1058,9 +1195,17 @@ The memory system in BrainyFlow implements several established computer science 
 ## Remember
 
 1.  **Reading**: Always read via the `memory` proxy (e.g., `memory.value`). It checks local then global.
-2.  **Writing**: Direct assignment `memory.property = value` writes to the **global** store.
-3.  **Local State Creation**: Use `trigger(action, forkingData)` in `post()` to populate the `local` store for the _next_ node(s) in a specific branch.
-4.  **Lifecycle**: Read from `memory` in `prep`, compute in `exec` (no memory access), write global state to `memory` and trigger successors (potentially with `forkingData` for local state) in `post`.
+2.  **Writing to Global**: Direct assignment `memory.property = value` writes to the **global** store (and removes `property` from local if it was there).
+3.  **Writing to Local (Current Node & Successors)**: Assignment `memory.local.property = value` writes _only_ to the current memory instance's local store. and its descendents.
+4.  **Creating Local State for Successors**: Use `trigger(action, forkingData)` in `post()` to populate the `local` store for the _next_ node(s) in a specific branch.
+5.  **Lifecycle**: Read from `memory` in `prep`, compute in `exec` (no memory access), write global state to `memory` and trigger successors (potentially with `forkingData` for local state) in `post`.
+6.  **Cloning**: When a flow proceeds to a new node, or when `memory.clone()` is called, the global store is shared by reference, while the local store is deeply cloned. `forkingData` provided to `clone` is also deeply cloned and merged into the new local store.
+
+## Advanced: `memory.clone()`
+
+The `memory.clone(forkingData?)` method is primarily used internally by the `Flow` execution logic when transitioning between nodes. However, you can also use it manually if you need to create a new `Memory` instance that shares the same global store but has an independent, optionally modified, local store.
+
+This cloning mechanism is fundamental to how BrainyFlow isolates state between different branches of execution within a flow.
 
 
 
@@ -1192,6 +1337,185 @@ By understanding and applying these design patterns, you can build sophisticated
 
 
 ================================================
+File: docs/design_pattern/agent.md
+================================================
+# Agent Design Pattern
+
+The Agent pattern provides a robust and flexible way to build autonomous AI systems that can reason, plan, and interact with their environment. It's particularly well-suited for tasks requiring multiple steps, tool use, and dynamic decision-making.
+
+<div align="center">
+  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/agent.png?raw=true" width="350"/>
+</div>
+
+## Nodes of an Agent
+
+An agent typically consists of the following components:
+
+1.  **Planner Node**:
+    - **Role**: Decides the next action based on the current state and the overall goal. This often involves an LLM call to generate a plan or select a tool.
+    - **Output**: Triggers an action corresponding to the chosen next step (e.g., `"use_tool"`, `"respond"`, `"replan"`).
+2.  **Tool Nodes**:
+    - **Role**: Implement specific functionalities (e.g., search, calculator, API calls, code execution).
+    - **Execution**: Called by the Planner Node.
+    - **Output**: Return results that the Planner Node can use for subsequent decisions.
+3.  **Responder Node**:
+    - **Role**: Formulates the final response to the user or takes a concluding action.
+    - **Execution**: Triggered when the Planner Node determines the task is complete.
+
+## Agent Flow
+
+The typical flow of an agent involves a loop:
+
+1.  **Observe**: The agent receives an input (e.g., user query).
+2.  **Plan**: The Planner Node analyzes the input and current memory to decide the next action.
+3.  **Act**: The agent executes the chosen action (e.g., calls a tool, generates a response).
+4.  **Reflect/Loop**: The result of the action is fed back into the memory, and the Planner Node re-evaluates the situation, potentially leading to further planning and action until the goal is achieved.
+
+```mermaid
+graph TD
+    A[Start] --> B{Planner Node};
+    B -- "use_tool" --> C[Tool Node];
+    C --> B;
+    B -- "respond" --> D[Responder Node];
+    D --> E[End];
+    B -- "replan" --> B;
+```
+
+The core of building **high-performance** and **reliable** agents boils down to:
+
+1. **Context Management:** Provide _relevant, minimal context._ For example, rather than including an entire chat history, retrieve the most relevant via [RAG](./rag.md). Even with larger context windows, LLMs might still fall victim to ["lost in the middle"](https://arxiv.org/abs/2307.03172), overlooking mid-prompt content.
+
+2. **Action Space:** Provide _a well-structured and unambiguous_ set of actions—avoiding overlap like separate `read_databases` or `read_csvs`. Instead, import CSVs into the database.
+
+## Best Practices
+
+- **Incremental:** Feed content in manageable chunks (500 lines or 1 page) instead of all at once.
+
+- **Overview-zoom-in:** First provide high-level structure (table of contents, summary), then allow drilling into details (raw texts).
+
+- **Parameterized/Programmable:** Instead of fixed actions, enable parameterized (columns to select) or programmable (SQL queries) actions, for example, to read CSV files.
+
+- **Backtracking:** Let the agent undo the last step instead of restarting entirely, preserving progress when encountering errors or dead ends.
+
+## Example: Search Agent (with Tool Use)
+
+Let's create a basic agent that can answer questions by either directly responding or using a "search" tool.
+
+This agent:
+
+1. Decides whether to search or answer
+2. If searches, loops back to decide if more search needed
+3. Answers when enough context gathered
+
+For simplicity, these will be overly-simplified mock tools/nodes. For a more in-depth implementation, check the implementations in our cookbook for [Python](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-agent) or [TypeScript](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/typescript-agent).
+
+### 1. Define Tool Nodes
+
+First, we define (mock) our tool nodes.
+
+```python
+from brainyflow import Node
+
+# Mock tool: Search
+class SearchTool(Node):
+    async def prep(self, memory):
+        return memory.search_term
+
+    async def exec(self, query: str):
+        print(f"Executing search for: {query}")
+        # Simulate a search API call
+        if "nobel prize" in query.lower():
+            return "The Nobel Prize in Physics 2024 was awarded to John Doe for his work on quantum entanglement."
+        return f"No specific information found for '{query}'."
+
+    async def post(self, memory, prep_res: str, exec_res: str):
+        prev_searches = memory.get("context", [])
+        memory["context"] = prev_searches + [
+            {"term": memory["search_term"], "result": exec_res}
+        ]
+```
+
+### 2. Define Agent Nodes and Flow
+
+````python
+from brainyflow import Node, Memory
+
+class DecideAction(Node):
+    async def prep(self, shared):
+        context = shared.get("context", "No previous search")
+        query = shared["query"]
+        return query, context
+
+    async def exec(self, inputs):
+        query, context = inputs
+        prompt = f"""
+Given input: {query}
+Previous search results: {context}
+Should I: 1) Search web for more info 2) Answer with current knowledge
+Output in yaml:
+```yaml
+action: search/answer
+reason: why this action
+search_term: search phrase if action is search
+```"""
+        resp = call_llm(prompt)
+        yaml_str = resp.split("```yaml")[1].split("```")[0].strip()
+        result = yaml.safe_load(yaml_str)
+
+        assert isinstance(result, dict)
+        assert "action" in result
+        assert "reason" in result
+        assert result["action"] in ["search", "answer"]
+        if result["action"] == "search":
+            assert "search_term" in result
+
+        return result
+
+    async def post(self, shared, prep_res, exec_res):
+        if exec_res["action"] == "search":
+            shared["search_term"] = exec_res["search_term"]
+        self.trigger(exec_res["action"])
+
+class DirectAnswer(Node):
+    def prep(self, shared):
+        return shared["query"], shared.get("context", "")
+
+    def exec(self, inputs):
+        query, context = inputs
+        return call_llm(f"Context: {context}\nAnswer: {query}")
+
+    def post(self, shared, prep_res, exec_res):
+       print(f"Answer: {exec_res}")
+       shared["answer"] = exec_res
+
+# Connect nodes
+decide = DecideAction()
+search = SearchTool()
+answer = DirectAnswer()
+
+decide - "search" >> search
+decide - "answer" >> answer
+search >> decide  # Loop back
+
+flow = Flow(start=decide)
+
+async def main():
+    memory_data = {"query": "Who won the Nobel Prize in Physics 2024?"}
+    await flow.run(memory_data) # Pass memory object
+    print("Final Memory State:", memory_data) # See final memory state
+
+if __name__ == "__main__":
+    import asyncio
+    asyncio.run(main())
+````
+
+This example demonstrates how BrainyFlow's core abstractions (Nodes, Flows, Memory) can be combined to build a simple agent that exhibits planning and tool-use capabilities. The `Memory` object is crucial for maintaining state across the different steps of the agent's execution.
+```````
+
+
+
+
+================================================
 File: docs/design_pattern/workflow.md
 ================================================
 # Workflow
@@ -1219,23 +1543,23 @@ from brainyflow import Node, Flow, Memory
 # async def call_llm(prompt: str) -> str: ...
 
 class GenerateOutline(Node):
-    async def prep(self, memory: Memory): return memory.topic
+    async def prep(self, memory): return memory.topic
     async def exec(self, topic): return await call_llm(f"Create a detailed outline for an article about {topic}")
-    async def post(self, memory: Memory, prep_res, exec_res):
+    async def post(self, memory, prep_res, exec_res):
         memory.outline = exec_res
         self.trigger('default')
 
 class WriteSection(Node):
-    async def prep(self, memory: Memory): return memory.outline
+    async def prep(self, memory): return memory.outline
     async def exec(self, outline): return await call_llm(f"Write content based on this outline: {outline}")
-    async def post(self, memory: Memory, prep_res, exec_res):
+    async def post(self, memory, prep_res, exec_res):
         memory.draft = exec_res
         self.trigger('default')
 
 class ReviewAndRefine(Node):
-    async def prep(self, memory: Memory): return memory.draft
+    async def prep(self, memory): return memory.draft
     async def exec(self, draft): return await call_llm(f"Review and improve this draft: {draft}")
-    async def post(self, memory: Memory, prep_res, exec_res):
+    async def post(self, memory, prep_res, exec_res):
         memory.final_article = exec_res
         # No trigger needed if this is the end of the flow
 
@@ -1259,6 +1583,238 @@ if __name__ == "__main__":
 ```
 
 For _dynamic cases_, consider using [Agents](./agent.md).
+
+
+
+
+================================================
+File: docs/design_pattern/mapreduce.md
+================================================
+# MapReduce Design Pattern
+
+The MapReduce pattern is a powerful way to process large datasets by breaking down a complex task into two main phases: **Map** (processing individual items) and **Reduce** (aggregating results). BrainyFlow provides the perfect abstractions to implement this pattern efficiently, especially with its `ParallelFlow` for concurrent mapping.
+
+<div align="center">
+  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/mapreduce.png?raw=true" width="400"/>
+</div>
+
+## Core Components
+
+1.  **Trigger Node**:
+    - **Role**: Triggers the fan-out to Mapper Nodes from a list of items.
+    - **Implementation**: A standard `Node` whose `post` method iterates through the input collection and calls `this.trigger()` for each item, passing item-specific data as `forkingData`.
+2.  **Mapper Node**:
+    - **Role**: Takes a single item from the input collection and transforms it.
+    - **Implementation**: A standard `Node` that receives an individual item (often via `forkingData` in its local memory) and performs a specific computation (e.g., summarizing a document, extracting key-value pairs).
+    - **Output**: Stores the processed result for that item in the global `Memory` object, typically using a unique key (e.g., `memory.results[item_id] = processed_data`).
+3.  **Reducer Node**:
+    - **Role**: Collects and aggregates the results from all Mapper Nodes.
+    - **Implementation**: A standard `Node` that reads all individual results from the global `Memory` and combines them into a final output. This node is usually triggered after all Mapper Nodes have completed.
+
+## MapReduce Flow
+
+```mermaid
+graph TD
+    A[Start] --> B{Trigger Node};
+    B -- "map_item 0" --> C[Mapper Node];
+    B -- "..." --> C;
+    B -- "map_item n" --> C;
+    C -- "all_mapped" --> D[Reducer Node];
+    D --> E[End];
+```
+
+## Pattern Implementation
+
+We use a `ParallelFlow` for the mapping phase for performance gain.
+
+{% tabs %}
+{% tab title="Python" %}
+
+```python
+from brainyflow import Node, Flow, ParallelFlow
+
+class MapReduceFlow(ParallelFlow):
+    async def post(self, memory, prep_res, exec_res):
+        self.trigger("default")
+
+class Trigger(Node):
+    async def prep(self, memory):
+        assert hasattr(memory, "items"), f"'items' must be set in memory"
+        return getattr(memory, "items")
+
+    async def post(self, memory, items, exec_res):
+        setattr(memory,"output", {} if isinstance(items, dict) else [None] * len(items))
+        for index, input in (enumerate(items) if isinstance(items, (list, tuple)) else items.items()):
+            self.trigger("default", {"index": index, "item": input})
+
+class Reduce(Node):
+    async def prep(self, memory):
+        assert hasattr(memory, "index"), "index of processed item must be set in memory"
+        assert hasattr(memory, "item"), "processed item must be set in memory"
+        return memory.index, memory.item
+
+    async def post(self, memory, prep_res, exec_res):
+        memory.output[prep_res[0]] = prep_res[1]
+        self.trigger(None)
+
+def mapreduce(iterate: Node | Flow):
+    trigger = Trigger()
+    reduce = Reduce()
+
+    trigger >> iterate >> reduce
+    return MapReduceFlow(start=trigger)
+```
+
+{% endtabs %}
+{% tab title="TypeScript" %}
+
+```typescript
+import {Node, Flow, ParallelFlow } from 'brainyflow'
+
+class MapReduceFlow extends ParallelFlow {
+  async post(memory, prepRes, execRes): Promise<void> {
+    this.trigger("default");
+  }
+}
+
+class Trigger extends Node {
+  async prep(memory): Promise<any[] | Record<string, any>> {
+    if (!memory.items) {
+      throw new Error("'items' must be set in memory");
+    }
+    return memory.items;
+  }
+
+  async post(memory, items, execRes): Promise<void> {
+    memory.output = Array.isArray(items) ? new Array(items.length).fill(null) : {};
+
+    if (Array.isArray(items)) {
+      items.forEach((item, index) => {
+        this.trigger("default", { index, item });
+      });
+    } else {
+      Object.entries(items).forEach(([key, value]) => {
+        this.trigger("default", { index: key, item: value });
+      });
+    }
+  }
+}
+
+class Reduce extends Node {
+  async prep(memory) {
+    return [memory.local.index, memory.local.item];
+  }
+
+  async post(memory, prepRes, execRes) {
+    const [index, itemResultFromIterate] = prepRes;
+
+    if (Array.isArray(memory.output)) {
+      (memory.output as any[])[index] = itemResultFromIterate;
+    } else {
+      (memory.output as Record<string, any>)[index.toString()] = itemResultFromIterate;
+    }
+
+    this.trigger(null as any)
+  }
+
+export function mapreduce(iterate: Node | Flow): MapReduceFlow {
+  const trigger = new Trigger();
+  const reduce = new Reduce();
+
+  trigger.next(iterate).next(reduce);
+
+  return new MapReduceFlow(trigger);
+}
+```
+
+{% endtab %}
+{% endtabs %}
+
+### Example: Document Summarization
+
+Let's create a flow to summarize multiple text files using the pattern we just created.
+
+For simplicity, these will be overly-simplified mock tools/nodes. For a more in-depth implementation, check the implementations in our cookbook for [Resume Qualification (Python)](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-map-reduce) - _more TypeScript examples coming soon ([PRs welcome](https://github.com/zvictor/BrainyFlow)!)_.
+
+### 1. Define Mapper Node (Summarizer)
+
+This node will summarize a single file.
+
+```python
+from brainyflow import Node
+
+# Assume call_llm is defined elsewhere
+class SummarizeFileNode(Node):
+    async def prep(self, memory):
+        # Item data comes from forkingData in local memory
+        return {"filename": memory.item.filename, "content": memory.item.content}
+
+    async def exec(self, prep_res: dict):
+        prompt = f"Summarize the following text from {prep_res['filename']}:\n{prep_res['content']}"
+        return await call_llm(prompt)
+
+    async def post(self, memory, prep_res: dict, exec_res: str):
+        # Store individual summary in local memory reusing the "item" key
+        memory.local.item.summary = exec_res
+```
+
+### 2. Define Reducer Node (Aggregator)
+
+This node will combine all individual summaries.
+
+```python
+from brainyflow import Node
+
+class AggregateSummariesNode(Node):
+    async def prep(self, memory):
+        # Collect all file summaries from global memory
+        return [item["summary"] for item in memory.output]
+
+    async def exec(self, summaries: list[str]):
+        combined_text = "\n\n".join(summaries)
+        prompt = f"Combine the following summaries into one cohesive summary:\n{combined_text}"
+        return await call_llm(prompt)
+
+    async def post(self, memory, prep_res: dict, exec_res: str):
+        memory.final_summary = exec_res # Store final aggregated summary
+```
+
+### 3. Assemble the Flow
+
+```python
+import asyncio
+from brainyflow import Flow
+
+# (mapreduce, SummarizeFileNode and AggregateSummariesNode definitions as above)
+
+# Instantiate nodes
+summarizer = SummarizeFileNode()
+aggregator = AggregateSummariesNode()
+
+mapreduce_flow = mapreduce(summarizer)
+mapreduce_flow >> aggregator
+
+main_flow = Flow(start=mapreduce_flow)
+
+# --- Execution ---
+async def main():
+    memory = {
+        "items": {
+            "file1.txt": "Alice was beginning to get very tired of sitting by her sister...",
+            "file2.txt": "The quick brown fox jumps over the lazy dog.",
+            "file3.txt": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+        }
+    }
+    await main_flow.run(memory) # Pass memory object
+    print('\n--- MapReduce Complete ---')
+    print("Individual Summaries:", memory.get("file_summaries"))
+    print("\nFinal Summary:\n", memory.get("final_summary"))
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+This example demonstrates how to implement a MapReduce pattern using BrainyFlow, leveraging `ParallelFlow` for concurrent processing of the map phase and the `Memory` object for collecting results before the reduce phase.
 
 
 
@@ -1319,31 +1875,41 @@ By following this approach, you can easily maintain and update your utility func
 ================================================
 File: docs/guides/best_practices.md
 ================================================
-# BrainyFlow Best Practices
+# Best Practices for BrainyFlow Development
 
-## Node Design
+Developing robust and maintainable applications with BrainyFlow involves adhering to certain best practices. These guidelines help ensure your flows are clear, efficient, and easy to debug and extend.
 
-1.  **Keep Nodes Focused**: Each node should perform a single, well-defined task.
-2.  **Idempotent Execution**: If using retries (`maxRetries > 1`), design the `exec()` method to be idempotent (produce the same result for the same input) as it might be called multiple times.
-3.  **Clear Lifecycle**: Use `prep` to read/prepare data, `exec` for computation (no memory access), and `post` to write results and trigger successors.
-4.  **Graceful Degradation**: Implement `execFallback` in `Node` subclasses to handle errors gracefully after all retries are exhausted, potentially returning a default value instead of throwing an error.
+## General Principles
 
-## Memory (State) Management
+- **Modularity**: Break down complex problems into smaller, manageable nodes and sub-flows.
+- **Explicitness**: Make data dependencies and flow transitions clear and easy to follow.
+- **Separation of Concerns**: Keep computation logic (in `exec`) separate from data handling (`prep`, `post`) and orchestration (`Flow`).
 
-1.  **Schema Design**: Define clear interfaces (in TypeScript) or conventions (in Python) for your `GlobalStore` and `LocalStore` structures.
-2.  **Global vs. Local**: Use the `GlobalStore` (accessed via `memory.prop = value`) for state shared across the entire flow. Use the `LocalStore` (populated via `forkingData` in `trigger`) for context specific to a particular execution branch.
-3.  **Minimize Global State**: Prefer passing data locally via `forkingData` when possible to keep the global state clean and reduce potential conflicts, especially in parallel flows.
-4.  **Read Transparently**: Always read via the `memory` proxy (e.g., `memory.value`); it handles the local-then-global lookup.
+## Design & Architecture
 
-## Flow Design
+- **Memory Planning**: Clearly define the structure of your global and local memory stores upfront (e.g., using `TypedDict` in Python or interfaces/types in TypeScript). Decide what state needs to be globally accessible versus what should be passed down specific branches via `forkingData` into the local store.
+- **Action Naming**: Use descriptive, meaningful action names (e.g., `'user_clarification_needed'`, `'data_validated'`) rather than generic names like `'next'` or `'step2'`. This improves the readability of your flow logic and the resulting `ExecutionTree`.
+- **Explicit Transitions**: Clearly define transitions for all expected actions a node might trigger using `.on()` or `>>`. Consider adding a default `.next()` transition for unexpected or general completion actions.
+- **Cycle Management**: Be mindful of loops. Use the `maxVisits` option in the `Flow` constructor (default is now 15, can be customized) to prevent accidental infinite loops. The `ExecutionTree` can also help visualize loops.
+- **Error Handling Strategy**:
+  - Use the built-in retry mechanism (`maxRetries`, `wait` in Node constructor) for transient errors in `exec()`.
+  - Implement `execFallback(prepRes, error: NodeError)` to provide a default result or perform cleanup if retries fail.
+  - Define specific error-handling nodes and transitions (e.g., `node.on('error', errorHandlerNode)`) for critical errors.
+- **Parallelism Choice**: Use `ParallelFlow` when a node fans out to multiple independent branches that can benefit from concurrent execution. Stick with the standard `Flow` (sequential branch execution) if branches have interdependencies or if concurrent modification of shared global memory state is a concern.
+- **Memory Isolation with `forkingData`**: When triggering successors, use the `forkingData` argument to pass data specifically to the `local` store of the next node(s) in a branch. This keeps the `global` store cleaner and is essential for correct state management in parallel branches.
+- **Test Incrementally**:
+  - Test individual nodes in isolation using `node.run(memory)`. Remember this only runs the single node and does not follow graph transitions.
+  - Test sub-flows before integrating them into larger pipelines.
+  - Write tests that verify the final state of the `Memory` object and, if important, the structure of the `ExecutionTree` returned by `flow.run()`.
+- **Avoid Deep Nesting of Flows**: While nesting flows is a powerful feature for modularity, keep the hierarchy reasonably flat (e.g., 2-3 levels deep) to maintain understandability and ease of debugging.
 
-1.  **Visualization First**: Sketch your flow diagram (e.g., using Mermaid) before coding to clarify logic and transitions.
-2.  **Modularity**: Break complex processes into smaller, potentially nested, sub-flows (`Flow` extends `BaseNode`).
-3.  **Explicit Transitions**: Clearly define transitions using descriptive action names (`node.on('action', nextNode)`). Consider default paths (`node.next(defaultNode)`).
-4.  **Error Paths**: Define explicit transitions for error conditions (e.g., `node.on('error', errorHandlerNode)`) or handle errors within `execFallback`.
-5.  **Cycle Management**: Use the `maxVisits` option in the `Flow` constructor to prevent infinite loops.
-6.  **Parallelism**: Choose `ParallelFlow` for independent branches that can run concurrently; use `Flow` (sequential) otherwise or if order matters.
-7.  **Test Incrementally**: Test individual nodes (`node.run()`) and sub-flows before integrating them.
+## Code Quality
+
+- **Type Hinting/Interfaces**: Use Python's type hints (`TypedDict`, `List`, `Dict`, `Optional`, `Union`) and TypeScript interfaces/types to clearly define the expected shapes of `Memory` stores, `prep_res`, `exec_res`, and `actions`. This improves readability, enables static analysis, and reduces runtime errors.
+- **Docstrings/Comments**: Document your nodes, their purpose, expected inputs/outputs, and any complex logic.
+- **Consistent Naming**: Follow consistent naming conventions for nodes, actions, and memory keys.
+- **Idempotent `exec`**: Strive to make your `exec` methods idempotent where possible, meaning running them multiple times with the same input produces the same result and no additional side effects. This simplifies retries and debugging.
+
 
 ## Project Structure
 
@@ -1804,7 +2370,7 @@ async def mock_llm_logic(prompt: str) -> str:
 async def test_node_with_mocked_llm():
     # Assume MyLlmNode calls utils.call_llm internally
     # node = MyLlmNode()
-    # memory = Memory.create({"input": "some text to summarize"})
+    # memory = Memory({"input": "some text to summarize"})
 
     # Use patch to replace the actual call_llm
     with patch('utils.call_llm', new=AsyncMock(side_effect=mock_llm_logic)) as mock_call:
@@ -1853,7 +2419,7 @@ async def test_retry_logic():
     global call_count_retry
     call_count_retry = 0 # Reset counter for test
     # node = NodeWithRetry()
-    # memory = Memory.create({})
+    # memory = Memory({})
 
     # Patch the external call made within node.exec
     # Also patch asyncio.sleep to avoid actual waiting
@@ -2011,4 +2577,219 @@ async def test_flow_follows_correct_path():
 
 By applying these testing techniques, you can ensure your BrainyFlow applications are reliable and maintainable.
 
+
+
+
+================================================
+File: docs/guides/migration.md
+================================================
+# Migrating Between BrainyFlow Versions
+
+This guide helps you update your BrainyFlow applications when migrating from older versions (pre-major refactor, roughly pre-v0.3 Python and equivalent TS) to newer ones. We strive for backward compatibility, but major refactors sometimes introduce breaking changes for significant improvements.
+
+## General Advice
+
+- **Start Small**: Migrate one part of your application at a time.
+- **Consult the Changelog**: Check the  release notes on the repository for the specific version you are upgrading to. It will list breaking changes, new features, and bug fixes.
+- **Review Core Abstraction Docs**: Changes often revolve around the core `Node`, `Flow`, or `Memory` components. Re-reading their documentation can clarify new behaviors or APIs.
+
+## Migrating to v2.0
+
+The most significant recent changes revolve around `Memory` management and `Flow` execution results.
+
+1.  **Memory Management (`Memory` object/`createMemory` factory):**
+
+    - **Explicit Creation**:
+      - Python: `Memory(global_store={...}, local_store={...})`
+      - TypeScript: `createMemory(globalStore, localStore)`
+
+2.  **Flow Execution (`Flow.run()`)**:
+
+    - **Return Value**: `Flow.run()` now returns a structured `ExecutionTree` object instead of a simple dictionary. This `ExecutionTree` provides a detailed trace of node execution order, triggered actions, and nested results.
+    - **`maxVisits` Default**: The default `maxVisits` for cycle detection in `Flow` has been increased (e.g., from 5 to 15).
+
+3.  **Error Handling (`NodeError`)**:
+    - Python: `NodeError` is now a `typing.Protocol`, promoting structural typing. You'd typically catch the specific underlying error and then check `isinstance(err, NodeError)` if you need to access `err.retry_count`.
+    - TypeScript: `NodeError` remains an `Error` subtype with an optional `retryCount`.
+
+## Migrating to v1.0
+
+Version 1.0 includes several major architectural improvements that require code updates:
+
+### Key Changes
+
+1. **Memory Management**: Changed from dictionary-based `shared` to object-based `memory`
+2. **Explicit Triggers**: Flow control now requires explicit `trigger()` calls
+3. **Node Lifecycle**: Minor adjustments to method signatures
+4. **Flow Configuration**: Added options for configuration
+5. **Removal of `params`**: The `setParams` approach has been removed
+6. **Batch Processing**: Batch node classes have been removed in favor of flow-based patterns
+
+### Memory Management Changes
+
+```python
+# Before (v0.2)
+class MyNode(Node):
+    async def prep(self, shared):
+        return shared["input_text"]
+
+    async def post(self, shared, prep_res, exec_res):
+        shared["result"] = exec_res
+        return "default"  # Action name as return value
+```
+
+```python
+# After (v1.0)
+class MyNode(Node):
+    async def prep(self, memory):
+        return memory.input_text  # Property access syntax
+
+    async def post(self, memory, prep_res, exec_res):
+        memory.result = exec_res  # Property assignment syntax
+        self.trigger("default")   # Explicit trigger call
+```
+
+### Explicit Triggers
+
+```python
+# Before (v0.2)
+async def post(self, shared, prep_res, exec_res):
+    if exec_res > 10:
+        shared["status"] = "high"
+        return "high_value"
+    else:
+        shared["status"] = "low"
+        return "low_value"
+```
+
+```python
+# After (v1.0)
+async def post(self, memory, prep_res, exec_res):
+    if exec_res > 10:
+        memory.status = "high"
+        self.trigger("high_value")
+    else:
+        memory.status = "low"
+        self.trigger("low_value")
+```
+
+### Flow Configuration
+
+```python
+# Before (v0.2)
+flow = Flow(start=start_node)
+
+# After (v1.0)
+# With default options
+flow = Flow(start=start_node)
+
+# With custom options
+flow = Flow(start=start_node, options={"max_visits": 10})
+```
+
+### Removal of `params` and `setParams`
+
+In v1.0, `setParams` has been removed in favor of direct property access through the streamlined memory management.
+Replace `params` with **local memory** and remove `setParams` from the code.
+
+### Batch Processing Changes (`*BatchNode` and `*BatchFlow` Removal)
+
+In v1.0, dedicated batch processing classes like `BatchNode`, `ParallelBatchNode`, `BatchFlow`, and `ParallelBatchFlow` have been **removed** from the core library.
+
+The core concept of batching (processing multiple items, often in parallel) is now achieved using a more fundamental pattern built on standard `Node`s and `Flow`s:
+
+1.  **Fan-Out Trigger Node**: A standard `Node` (let's call it `TriggerNode`) is responsible for initiating the processing for each item in a batch.
+    - In its `prep` method, it typically reads the list of items from memory.
+    - In its `post` method, it iterates through the items and calls `this.trigger("process_one", forkingData={...})` **for each item**.
+    - The `forkingData` argument is crucial: it passes the specific item (and potentially its index or other context) to the **local memory** of the successor node instance created for that trigger. This isolates the data for each parallel branch.
+2.  **Processor Node**: Another standard `Node` (let's call it `ProcessorNode`) handles the actual processing of a single item.
+    - It's connected to the `TriggerNode` via the `"process_one"` action (e.g., `triggerNode.on("process_one", processorNode)`).
+    - Its `prep` method reads the specific item data from its **local memory** (e.g., `memory.item`, `memory.index`), which was populated by the `forkingData` from the `TriggerNode`.
+    - Its `exec` method contains the logic previously found in `exec_one`. It performs the computation for the single item.
+    - Its `post` method takes the result and typically stores it back into the **global memory**, often in a list or dictionary indexed by the item's original index to handle potential out-of-order completion in parallel scenarios.
+3.  **Flow Orchestration**:
+    - To process items **sequentially**, use a standard `Flow` containing the `TriggerNode` and `ProcessorNode`. The flow will execute the branch triggered for item 1 completely before starting the branch for item 2, and so on.
+    - To process items **concurrently**, use a `ParallelFlow`. This flow will execute all the branches triggered by `TriggerNode` in parallel (using `Promise.all` or `asyncio.gather`).
+4.  **Aggregation (Optional)**: If you need to combine the results after all items are processed (like a Reduce step), the `TriggerNode` can fire an additional, final trigger (e.g., `this.trigger("aggregate")`) after the loop. Alternatively, the `ProcessorNode` can maintain a counter in global memory and trigger the aggregation step only when the counter reaches zero (see the [MapReduce pattern](../design_pattern/mapreduce.md)).
+
+This approach simplifies the core library by handling batching as an _orchestration pattern_ rather than requiring specialized node types.
+
+#### Example: Translating Text into Multiple Languages
+
+Let's adapt the `TranslateTextNode` example provided earlier. Before, it might have been a `BatchNode`. Now, we split it into a `TriggerTranslationsNode` and a `TranslateOneLanguageNode`.
+
+```python
+# Before (v0.2) - Conceptual BatchNode
+class TranslateTextBatchNode(BatchNode):
+    async def prep(self, shared):
+        text = shared.get("text", "(No text provided)")
+        languages = shared.get("languages", ["Chinese", "Spanish", "Japanese"])
+        # BatchNode prep would return items for exec
+        return [(text, lang) for lang in languages]
+
+    async def exec(self, item):
+        text, lang = item
+        # Assume translate_text exists
+        return await translate_text(text, lang)
+
+    async def post(self, shared, prep_res, exec_results):
+        # BatchNode post might aggregate results
+        shared["translations"] = exec_results
+        return "default"
+```
+
+```python
+# After (v1.0) - Using Flow Patterns with ParallelFlow
+
+from brainyflow import Node, Memory
+
+# 1. Trigger Node (Fans out work)
+class TriggerTranslationsNode(Node):
+    async def prep(self, memory: Memory):
+        text = memory.text if hasattr(memory, 'text') else "(No text provided)"
+        languages = memory.languages if hasattr(memory, 'languages') else ["Chinese", "Spanish", "Japanese"]
+
+        return [{"text": text, "language": lang} for lang in languages]
+
+    async def post(self, memory: Memory, prep_res, exec_res):
+        for index, input in enumerate(prep_res):
+            this.trigger("default", input | {"index": index})
+
+# 2. Processor Node (Handles one language)
+class TranslateOneLanguageNode(Node):
+    async def prep(self, memory: Memory):
+        # Read data passed via forkingData from local memory
+        return {
+            "text": memory.text,
+            "language": memory.language,
+            "index": memory.index
+        }
+
+    async def exec(self, item):
+        # Assume translate_text exists
+        return await translate_text(item.text, item.language)
+
+    async def post(self, memory: Memory, prep_res, exec_res):
+        # Store result in the global list at the correct index
+        memory.translations[exec_res["index"]] = exec_res
+        this.trigger("default")
+
+# 3. Flow Setup
+trigger_node = TriggerTranslationsNode()
+processor_node = TranslateOneLanguageNode()
+
+trigger_node >> processor_node
+```
+
+## Need Help?
+
+If you encounter issues during migration, you can:
+
+1. Check the [documentation](../index.md) for detailed explanations
+2. Look at the [examples](../examples/index.md) for reference implementations
+3. File an issue on [GitHub](https://github.com/zvictor/brainyflow/issues)
+
+Always consult the specific release notes for the version you are migrating to for the most accurate and detailed list of changes.
+
+Happy migrating!
 
