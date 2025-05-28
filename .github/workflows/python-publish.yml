@@ -21,7 +21,7 @@ jobs:
           fetch-depth: 0 # Needed for changeset changelog generation
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.x'
 
@@ -120,7 +120,7 @@ jobs:
 
       - name: Extract changelog text
         if: steps.version.outputs.has_changes == 'true'
-        id: changelog_text # Changed id for clarity
+        id: changelog_text
         run: |
           CHANGELOG_CONTENT=$(node .github/scripts/extract-changelog-text.js python ${{ steps.version.outputs.new_version }})
           echo "content<<EOF" >> $GITHUB_OUTPUT
@@ -138,7 +138,7 @@ jobs:
           body: |
             ## BrainyFlow Python Package v${{ steps.version.outputs.new_version }}
 
-            ${{ steps.changelog.outputs.changelog }}
+            ${{ steps.changelog_text.outputs.changelog }}
 
             ### Installation
 
@@ -159,5 +159,5 @@ jobs:
             "$DISCORD_WEBHOOK_URL" \
             "BrainyFlow Python" \
             "${{ steps.version.outputs.new_version }}" \
-            "${{ steps.changelog.outputs.changelog }}" \
+            "${{ steps.changelog_text.outputs.changelog }}" \
             "${{ github.server_url }}/${{ github.repository }}"

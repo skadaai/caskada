@@ -62,7 +62,7 @@ class Reduce(Node):
         return memory.index, memory.item
 
     async def post(self, memory, prep_res, exec_res):
-        memory["output"][prep_res[0]] = prep_res[1]
+        memory.output[prep_res[0]] = prep_res[1]
         self.trigger(None)
 
 def mapreduce(iterate: Node | Flow):

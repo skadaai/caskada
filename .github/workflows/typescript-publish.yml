@@ -58,10 +58,10 @@ jobs:
             exit 1
           fi
           pnpm dlx @changesets/cli version
-          
+
           NEW_VERSION=$(cat package.json | jq -r '.version')
           echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
-          
+
           if [ "${{ steps.current_version.outputs.current_version }}" == "$NEW_VERSION" ]; then
             echo "No version change detected."
             echo "has_changes=false" >> $GITHUB_OUTPUT
@@ -91,7 +91,7 @@ jobs:
 
       - name: Extract changelog text
         if: steps.version.outputs.has_changes == 'true'
-        id: changelog_text # Changed id for clarity
+        id: changelog_text
         run: |
           CHANGELOG_CONTENT=$(node .github/scripts/extract-changelog-text.js typescript ${{ steps.version.outputs.new_version }})
           echo "content<<EOF" >> $GITHUB_OUTPUT
@@ -108,18 +108,18 @@ jobs:
           release_name: TypeScript Package v${{ steps.version.outputs.new_version }}
           body: |
             ## BrainyFlow TypeScript Package v${{ steps.version.outputs.new_version }}
-            
-            ${{ steps.changelog.outputs.changelog }}
-            
+
+            ${{ steps.changelog_text.outputs.changelog }}
+
             ### Installation
-            
+
             npm install brainyflow
             # or
             pnpm add brainyflow
             # or
             yarn add brainyflow
-            
-            
+
+
             ### NPM Package
             📦 [View on NPM](https://www.npmjs.com/package/brainyflow/v/${{ steps.version.outputs.new_version }})
           draft: false
@@ -134,5 +134,5 @@ jobs:
             "$DISCORD_WEBHOOK_URL" \
             "BrainyFlow TypeScript" \
             "${{ steps.version.outputs.new_version }}" \
-            "${{ steps.changelog.outputs.changelog }}" \
+            "${{ steps.changelog_text.outputs.changelog }}" \
             "${{ github.server_url }}/${{ github.repository }}"
