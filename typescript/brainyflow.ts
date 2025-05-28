@@ -80,9 +80,9 @@ export function createMemory<GlobalStore extends SharedStore = SharedStore, Loca
 export abstract class BaseNode<
   GlobalStore extends SharedStore = SharedStore,
   LocalStore extends SharedStore = SharedStore,
-  AllowedActions extends Action[] = Action[],
   PrepResult = any,
   ExecResult = any,
+  AllowedActions extends Action[] = Action[],
 > {
   private successors: Map<Action, BaseNode<GlobalStore>[]> = new Map()
   protected triggers: Trigger<AllowedActions[number], SharedStore>[] = []
@@ -185,10 +185,10 @@ export abstract class BaseNode<
 class RetryNode<
   GlobalStore extends SharedStore = SharedStore,
   LocalStore extends SharedStore = SharedStore,
-  AllowedActions extends Action[] = Action[],
   PrepResult = any,
   ExecResult = any,
-> extends BaseNode<GlobalStore, LocalStore, AllowedActions, PrepResult, ExecResult> {
+  AllowedActions extends Action[] = Action[],
+> extends BaseNode<GlobalStore, LocalStore, PrepResult, ExecResult, AllowedActions> {
   private curRetry = 0
   private readonly maxRetries: number
   private readonly wait: number
@@ -226,9 +226,9 @@ export const Node = RetryNode
 export class Flow<GlobalStore extends SharedStore = SharedStore, AllowedActions extends Action[] = Action[]> extends BaseNode<
   GlobalStore,
   SharedStore,
-  AllowedActions,
   void,
-  ExecutionTree
+  ExecutionTree,
+  AllowedActions
 > {
   private visitCounts: Map<number, number> = new Map()
 
