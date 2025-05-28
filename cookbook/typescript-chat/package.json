@@ -2,6 +2,7 @@
   "name": "typescript-chat",
   "version": "1.0.0",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "chat": "tsx --env-file=.env chat.ts"
   },
@@ -10,6 +11,7 @@
   "description": "",
   "devDependencies": {
     "@types/node": "^22.15.21",
+    "brainyflow": "^1.0.0",
     "tsx": "^4.19.4",
     "typescript": "^5.8.3"
   },
