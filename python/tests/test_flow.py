@@ -1,6 +1,6 @@
 import pytest
-from unittest.mock import AsyncMock
-from brainyflow import Memory, Node, Flow, DEFAULT_ACTION, BaseNode
+from unittest.mock import AsyncMock, ANY
+from brainyflow import Memory, Node, Flow, ParallelFlow, DEFAULT_ACTION, BaseNode
 
 # --- Helper Node Implementations ---
 class BaseTestNode(Node):
@@ -54,6 +54,18 @@ class BranchingNode(BaseTestNode):
 class TestFlow:
     """Tests for the Flow class."""
     
+    @pytest.fixture(autouse=True)
+    def reset_node_ids(self):
+        """Reset BaseNode._next_id before each test in this class.
+                IMPORTANT: Reset BaseNode._next_id to ensure predictable orders for tests.
+        This should ideally be handled by a session-scoped or test-scoped fixture
+        if node creation order varies significantly across test files or setup.
+        For now, we assume it's reset or nodes are created fresh with predictable IDs.
+        """
+        BaseNode._next_id = 0
+        yield # Allow the test to run
+        BaseNode._next_id = 0 # Optionally reset after, though pre-test reset is key
+
     @pytest.fixture
     def memory(self):
         """Create a test memory instance."""
@@ -62,27 +74,19 @@ class TestFlow:
     
     @pytest.fixture
     def nodes(self):
-        """Create test nodes.
-        IMPORTANT: Reset BaseNode._next_id to ensure predictable orders for tests.
-        This should ideally be handled by a session-scoped or test-scoped fixture
-        if node creation order varies significantly across test files or setup.
-        For now, we assume it's reset or nodes are created fresh with predictable IDs.
-        """
-        # Resetting for test predictability. If BaseNode is imported by multiple test files,
-        # this might need a more robust solution (e.g. pytest_runtest_setup fixture).
-        BaseNode._next_id = 0 
+        """Create test nodes."""
+        # BaseNode._next_id is reset by reset_node_ids fixture
         return {
-            "A": BaseTestNode("A"),
-            "B": BaseTestNode("B"),
-            "C": BaseTestNode("C"),
-            "D": BaseTestNode("D")
+            "A": BaseTestNode("A"), # Order 0
+            "B": BaseTestNode("B"), # Order 1
+            "C": BaseTestNode("C"), # Order 2
+            "D": BaseTestNode("D")  # Order 3
         }
     
     @pytest.fixture
     def branching_node_fixture(self):
-        # Separate fixture for branching node to control its _node_order independently if needed
-        BaseNode._next_id = 0 # Example of resetting if it's the first node in a test
-        return BranchingNode("Branch")
+        # BaseNode._next_id is reset by reset_node_ids fixture
+        return BranchingNode("Branch") # Order 0 if created first in a test
 
 
     class TestInitialization:
@@ -112,15 +116,17 @@ class TestFlow:
             await flow.run(memory)
             
             # Verify execution order via mocks
-            assert nodes["A"].prep_mock.call_count == 1
-            assert nodes["A"].exec_mock.call_count == 1
-            assert nodes["A"].post_mock.call_count == 1
-            assert nodes["B"].prep_mock.call_count == 1
-            assert nodes["B"].exec_mock.call_count == 1
-            assert nodes["B"].post_mock.call_count == 1
-            assert nodes["C"].prep_mock.call_count == 1
-            assert nodes["C"].exec_mock.call_count == 1
-            assert nodes["C"].post_mock.call_count == 1
+            nodes["A"].prep_mock.assert_called_once()
+            nodes["B"].prep_mock.assert_called_once()
+            nodes["C"].prep_mock.assert_called_once()
+
+            nodes["A"].exec_mock.assert_called_once()
+            nodes["B"].exec_mock.assert_called_once()
+            nodes["C"].exec_mock.assert_called_once()
+
+            nodes["A"].post_mock.assert_called_once()
+            nodes["B"].post_mock.assert_called_once()
+            nodes["C"].post_mock.assert_called_once()
             
             # Verify memory changes
             assert memory.prep_A is True
@@ -137,9 +143,9 @@ class TestFlow:
             flow = Flow(nodes["A"])
             await flow.run(memory)
             
-            assert nodes["A"].post_mock.call_count == 1
-            assert nodes["B"].post_mock.call_count == 1
-            assert nodes["C"].prep_mock.call_count == 0  # C should not run
+            nodes["A"].post_mock.assert_called_once()
+            nodes["B"].post_mock.assert_called_once()
+            nodes["C"].prep_mock.assert_not_called()
     
     class TestConditionalBranching:
         """Tests for conditional branching."""
@@ -314,15 +320,15 @@ class TestFlow:
             main_flow = Flow(nodes["A"])
             await main_flow.run(memory)
             
-            assert nodes["A"].post_mock.call_count == 1
-            assert nodes["B"].post_mock.call_count == 1
-            assert nodes["C"].post_mock.call_count == 1
-            assert nodes["D"].post_mock.call_count == 1
+            nodes["A"].post_mock.assert_called_once()
+            nodes["B"].post_mock.assert_called_once() 
+            nodes["C"].post_mock.assert_called_once() 
+            nodes["D"].post_mock.assert_called_once() 
             
-            assert memory.post_A is True
-            assert memory.post_B is True
-            assert memory.post_C is True
-            assert memory.post_D is True
+            assert memory["post_A"] is True
+            assert memory["post_B"] is True
+            assert memory["post_C"] is True
+            assert memory["post_D"] is True
         
         async def test_nested_flow_prep_post_wrap_subflow_execution(self, nodes, memory):
             """Should run nested flow's prep/post methods around sub-flow execution."""
@@ -530,4 +536,58 @@ class TestFlow:
             assert set(result['triggered'].keys()) == {"out1", "out2"}
             assert result['triggered']["out1"] == expected_triggered["out1"]
             assert result['triggered']["out2"] == expected_triggered["out2"]
+
+    class TestTerminalTriggerPropagation:
+        """Tests for verifying terminal trigger propagation behavior in Flow and ParallelFlow."""
+
+        async def test_flow_terminal_trigger_propagation_from_nested_flow(self, memory):
+            """
+            Tests terminal trigger propagation: ParentFlow -> SubFlow (Flow) -> TriggeringNode.
+            The TriggeringNode issues a terminal trigger ("TERMINAL_ACTION") with forking_data.
+            This trigger is not handled by an edge in SubFlow, so it propagates to SubFlow._triggers.
+            This trigger is then not handled by an edge from SubFlow in ParentFlow, so it propagates to ParentFlow._triggers.
+            The ExecutionTree for SubFlow within ParentFlow should show triggered["TERMINAL_ACTION"] = [].
+            """
+            tnode = BranchingNode("TNode")  
+            tnode_forking_data = {"tnode_local_key": "tnode_local_val"}
+            tnode.set_trigger("TERMINAL_ACTION", tnode_forking_data)
+
+            sflow = Flow(start=tnode)  
+            pflow = Flow(start=sflow)  
+
+            parent_execution_tree_for_sflow = await pflow.run(memory, propagate=False)
+
+            assert len(pflow._triggers) == 1
+            parent_trigger_info = pflow._triggers[0]
+            assert parent_trigger_info["action"] == "TERMINAL_ACTION"
+            assert parent_trigger_info["forking_data"] == tnode_forking_data
+
+            assert parent_execution_tree_for_sflow['order'] == sflow._node_order 
+            assert parent_execution_tree_for_sflow['type'] == "Flow" 
+            assert "TERMINAL_ACTION" in parent_execution_tree_for_sflow['triggered']
+            assert parent_execution_tree_for_sflow['triggered']["TERMINAL_ACTION"] == []
+            
+        async def test_parallelflow_terminal_trigger_propagation_from_nested_parallelflow(self, memory):
+            """
+            Tests terminal trigger propagation with ParallelFlow: ParentFlow (Parallel) -> SubFlow (Parallel) -> TriggeringNode.
+            Similar logic to the Flow test, but using ParallelFlow for parent and sub-flow.
+            """
+            tnode = BranchingNode("TNode") 
+            tnode_forking_data = {"tnode_local_key": "tnode_local_val"}
+            tnode.set_trigger("TERMINAL_ACTION", tnode_forking_data)
+
+            sflow = ParallelFlow(start=tnode)  
+            pflow = ParallelFlow(start=sflow)  
+
+            parent_execution_tree_for_sflow = await pflow.run(memory, propagate=False)
+
+            assert len(pflow._triggers) == 1
+            parent_trigger_info = pflow._triggers[0]
+            assert parent_trigger_info["action"] == "TERMINAL_ACTION"
+            assert parent_trigger_info["forking_data"] == tnode_forking_data
+
+            assert parent_execution_tree_for_sflow['order'] == sflow._node_order
+            assert parent_execution_tree_for_sflow['type'] == "ParallelFlow" 
+            assert "TERMINAL_ACTION" in parent_execution_tree_for_sflow['triggered']
+            assert parent_execution_tree_for_sflow['triggered']["TERMINAL_ACTION"] == []
 
