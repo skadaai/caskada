@@ -40,14 +40,14 @@ from brainyflow import Node, Flow, Memory, ParallelFlow
 
 # 1a. Node to trigger chunking for each file
 class TriggerChunkingNode(Node):
-    async def prep(self, memory: Memory):
+    async def prep(self, memory):
         return memory.files or []
 
     async def exec(self, files: list):
          # Optional: could return file count or validate paths
          return len(files)
 
-    async def post(self, memory: Memory, files: list, file_count: int):
+    async def post(self, memory, files: list, file_count: int):
         print(f"Triggering chunking for {file_count} files.")
         memory.all_chunks = [] # Initialize chunk store
         memory.chunk_metadata = [] # Store metadata like source file
@@ -61,7 +61,7 @@ class TriggerChunkingNode(Node):
 
 # 1b. Node to chunk a single file
 class ChunkFileNode(Node):
-    async def prep(self, memory: Memory):
+    async def prep(self, memory):
         # Read filepath from local memory
         return memory.filepath, memory.file_index
 
@@ -81,7 +81,7 @@ class ChunkFileNode(Node):
             print(f"Error chunking {filepath}: {e}")
             return [], filepath # Return empty list on error
 
-    async def post(self, memory: Memory, prep_res, exec_res):
+    async def post(self, memory, prep_res, exec_res):
         chunks, filepath = exec_res
         file_index = prep_res[1]
         # Append chunks and their source metadata to global lists
@@ -95,14 +95,14 @@ class ChunkFileNode(Node):
 
 # 1c. Node to trigger embedding for each chunk
 class TriggerEmbeddingNode(Node):
-     async def prep(self, memory: Memory):
+     async def prep(self, memory):
          # This node runs after all 'chunk_file' triggers are processed by the Flow
          return memory.all_chunks or []
 
      async def exec(self, chunks: list):
          return len(chunks)
 
-     async def post(self, memory: Memory, chunks: list, chunk_count: int):
+     async def post(self, memory, chunks: list, chunk_count: int):
          print(f"Triggering embedding for {chunk_count} chunks.")
          memory.all_embeds = [None] * chunk_count # Pre-allocate list for parallel writes
          for index, chunk in enumerate(chunks):
@@ -113,7 +113,7 @@ class TriggerEmbeddingNode(Node):
 
 # 1d. Node to embed a single chunk
 class EmbedChunkNode(Node):
-     async def prep(self, memory: Memory):
+     async def prep(self, memory):
          # Read chunk and global index from local memory
          return memory.chunk, memory.global_index
 
@@ -122,7 +122,7 @@ class EmbedChunkNode(Node):
          # print(f"Embedding chunk {index}") # Can be noisy
          return await get_embedding(chunk), index # Pass index through
 
-     async def post(self, memory: Memory, prep_res, exec_res):
+     async def post(self, memory, prep_res, exec_res):
          embedding, index = exec_res
          # Store embedding at the correct index in the pre-allocated list
          memory.all_embeds[index] = embedding
@@ -140,23 +140,19 @@ import { Flow, Memory, Node, ParallelFlow } from 'brainyflow'
 // Assume getEmbedding and createIndex/searchIndex are defined elsewhere
 declare function getEmbedding(text: string): Promise<number[]>
 declare function createIndex(embeddings: number[][]): any // Returns index object
-declare function searchIndex(
-  index: any,
-  queryEmbedding: number[],
-  topK: number,
-): [number[][], number[][]] // Returns [[ids]], [[distances]]
+declare function searchIndex(index: any, queryEmbedding: number[], topK: number): [number[][], number[][]] // Returns [[ids]], [[distances]]
 
 // --- Stage 1: Offline Indexing Nodes ---
 
 // 1a. Node to trigger chunking for each file
 class TriggerChunkingNode extends Node {
-  async prep(memory: Memory): Promise<string[]> {
+  async prep(memory): Promise<string[]> {
     return memory.files ?? [] // Expects memory.files = ['doc1.txt', ...]
   }
   async exec(files: string[]): Promise<number> {
     return files.length
   }
-  async post(memory: Memory, prepRes: string[], fileCount: number): Promise<void> {
+  async post(memory, prepRes: string[], fileCount: number): Promise<void> {
     console.log(`Triggering chunking for ${fileCount} files.`)
     memory.all_chunks = [] // Initialize chunk store
     ;(prepRes as string[]).forEach((filepath, index) => {
@@ -168,7 +164,7 @@ class TriggerChunkingNode extends Node {
 
 // 1b. Node to chunk a single file
 class ChunkFileNode extends Node {
-  async prep(memory: Memory): Promise<{ filepath: string; index: number }> {
+  async prep(memory): Promise<{ filepath: string; index: number }> {
     return { filepath: memory.filepath, index: memory.index } // Read from local memory
   }
   async exec(prepRes: { filepath: string; index: number }): Promise<string[]> {
@@ -181,7 +177,7 @@ class ChunkFileNode extends Node {
     }
     return chunks
   }
-  async post(memory: Memory, prepRes: { index: number }, chunks: string[]): Promise<void> {
+  async post(memory, prepRes: { index: number }, chunks: string[]): Promise<void> {
     // Add chunks to the global list (careful with concurrency if using ParallelFlow)
     // A safer parallel approach might store chunks per file then combine later.
     memory.all_chunks.push(...chunks)
@@ -190,13 +186,13 @@ class ChunkFileNode extends Node {
 
 // 1c. Node to trigger embedding for each chunk
 class TriggerEmbeddingNode extends Node {
-  async prep(memory: Memory): Promise<string[]> {
+  async prep(memory): Promise<string[]> {
     return memory.all_chunks ?? []
   }
   async exec(chunks: string[]): Promise<number> {
     return chunks.length
   }
-  async post(memory: Memory, prepRes: string[], chunkCount: number): Promise<void> {
+  async post(memory, prepRes: string[], chunkCount: number): Promise<void> {
     console.log(`Triggering embedding for ${chunkCount} chunks.`)
     memory.all_embeds = [] // Initialize embedding store
     ;(prepRes as string[]).forEach((chunk, index) => {
@@ -208,14 +204,14 @@ class TriggerEmbeddingNode extends Node {
 
 // 1d. Node to embed a single chunk
 class EmbedChunkNode extends Node {
-  async prep(memory: Memory): Promise<{ chunk: string; index: number }> {
+  async prep(memory): Promise<{ chunk: string; index: number }> {
     return { chunk: memory.chunk, index: memory.index } // Read from local memory
   }
   async exec(prepRes: { chunk: string; index: number }): Promise<number[]> {
     console.log(`Embedding chunk ${prepRes.index}`)
     return await getEmbedding(prepRes.chunk)
   }
-  async post(memory: Memory, prepRes: { index: number }, embedding: number[]): Promise<void> {
+  async post(memory, prepRes: { index: number }, embedding: number[]): Promise<void> {
     // Store embedding in global list (careful with concurrency)
     memory.all_embeds[prepRes.index] = embedding
   }
@@ -231,7 +227,7 @@ class EmbedChunkNode extends Node {
 ```python
 # 1e. Node to store the final index
 class StoreIndexNode(Node):
-    async def prep(self, memory: Memory):
+    async def prep(self, memory):
         # Read all embeddings from global memory
         # Filter out potential None values if embedding failed for some chunks
         embeddings = [emb for emb in (memory.all_embeds or []) if emb is not None]
@@ -248,7 +244,7 @@ class StoreIndexNode(Node):
         index = create_index(all_embeds)
         return index
 
-    async def post(self, memory: Memory, prep_res, index):
+    async def post(self, memory, prep_res, index):
         # Store the created index in global memory
         memory.index = index
         if index:
@@ -265,7 +261,7 @@ class StoreIndexNode(Node):
 ```typescript
 // 1e. Node to store the final index
 class StoreIndexNode extends Node {
-  async prep(memory: Memory): Promise<number[][]> {
+  async prep(memory): Promise<number[][]> {
     // Read all embeddings from global memory
     return memory.all_embeds ?? []
   }
@@ -277,7 +273,7 @@ class StoreIndexNode extends Node {
     return index
   }
 
-  async post(memory: Memory, prepRes: any, index: any): Promise<void> {
+  async post(memory, prepRes: any, index: any): Promise<void> {
     // Store the created index in global memory
     memory.index = index
     console.log('Index created and stored.')
@@ -410,14 +406,14 @@ We have 3 nodes:
 
 # 2a. Embed Query Node
 class EmbedQueryNode(Node):
-    async def prep(self, memory: Memory):
+    async def prep(self, memory):
         return memory.question # Read from memory
 
     async def exec(self, question):
         print(f"Embedding query: \"{question}\"")
         return await get_embedding(question)
 
-    async def post(self, memory: Memory, prep_res, q_emb):
+    async def post(self, memory, prep_res, q_emb):
         memory.q_emb = q_emb # Write to memory
         self.trigger('retrieve_docs')
 ```
@@ -431,14 +427,14 @@ class EmbedQueryNode(Node):
 
 // 2a. Embed Query Node
 class EmbedQueryNode extends Node {
-  async prep(memory: Memory): Promise<string> {
+  async prep(memory): Promise<string> {
     return memory.question // Expects question in global memory
   }
   async exec(question: string): Promise<number[]> {
     console.log(`Embedding query: "${question}"`)
     return await getEmbedding(question)
   }
-  async post(memory: Memory, prepRes: any, qEmb: number[]): Promise<void> {
+  async post(memory, prepRes: any, qEmb: number[]): Promise<void> {
     memory.q_emb = qEmb // Store query embedding
     this.trigger('retrieve_docs')
   }
@@ -454,7 +450,7 @@ class EmbedQueryNode extends Node {
 ```python
 # 2b. Retrieve Docs Node
 class RetrieveDocsNode(Node):
-    async def prep(self, memory: Memory):
+    async def prep(self, memory):
         # Need query embedding, index, and original chunks
         # Also retrieve metadata to know the source
         return memory.q_emb, memory.index, memory.all_chunks, memory.chunk_metadata
@@ -476,7 +472,7 @@ class RetrieveDocsNode(Node):
         relevant_metadata = metadata[best_global_id] if metadata and best_global_id < len(metadata) else {}
         return relevant_chunk, relevant_metadata
 
-    async def post(self, memory: Memory, prep_res, exec_res):
+    async def post(self, memory, prep_res, exec_res):
         relevant_chunk, relevant_metadata = exec_res
         memory.retrieved_chunk = relevant_chunk # Write to memory
         memory.retrieved_metadata = relevant_metadata # Write metadata too
@@ -491,7 +487,7 @@ class RetrieveDocsNode(Node):
 ```typescript
 // 2b. Retrieve Docs Node
 class RetrieveDocsNode extends Node {
-  async prep(memory: Memory): Promise<{ qEmb: number[]; index: any; chunks: string[] }> {
+  async prep(memory): Promise<{ qEmb: number[]; index: any; chunks: string[] }> {
     // Need query embedding, index, and original chunks
     return { qEmb: memory.q_emb, index: memory.index, chunks: memory.all_chunks }
   }
@@ -509,7 +505,7 @@ class RetrieveDocsNode extends Node {
     const relevantChunk = chunks[bestId]
     return relevantChunk
   }
-  async post(memory: Memory, prepRes: any, relevantChunk: string): Promise<void> {
+  async post(memory, prepRes: any, relevantChunk: string): Promise<void> {
     memory.retrieved_chunk = relevantChunk
     console.log(`Retrieved chunk: ${relevantChunk.slice(0, 60)}...`)
     this.trigger('generate_answer')
@@ -526,7 +522,7 @@ class RetrieveDocsNode extends Node {
 ```python
 # 2c. Generate Answer Node
 class GenerateAnswerNode(Node):
-    async def prep(self, memory: Memory):
+    async def prep(self, memory):
         return memory.question, memory.retrieved_chunk # Read from memory
 
     async def exec(self, inputs):
@@ -537,7 +533,7 @@ class GenerateAnswerNode(Node):
         print("Generating final answer...")
         return await call_llm(prompt)
 
-    async def post(self, memory: Memory, prep_res, answer):
+    async def post(self, memory, prep_res, answer):
         memory.answer = answer # Write to memory
         print("Answer:", answer)
         # End of online flow
@@ -550,7 +546,7 @@ class GenerateAnswerNode(Node):
 ```typescript
 // 2c. Generate Answer Node
 class GenerateAnswerNode extends Node {
-  async prep(memory: Memory): Promise<{ question: string; chunk: string }> {
+  async prep(memory): Promise<{ question: string; chunk: string }> {
     return { question: memory.question, chunk: memory.retrieved_chunk }
   }
   async exec(prepRes: { question: string; chunk: string }): Promise<string> {
@@ -562,7 +558,7 @@ Answer:`
     console.log('Generating final answer...')
     return await callLLM(prompt)
   }
-  async post(memory: Memory, prepRes: any, answer: string): Promise<void> {
+  async post(memory, prepRes: any, answer: string): Promise<void> {
     memory.answer = answer // Store final answer
     console.log(`Answer: ${answer}`)
     // End of flow

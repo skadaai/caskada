@@ -2,7 +2,7 @@
 machine-display: false
 ---
 
-# Visualization and Logging
+# Visualization & Logging
 
 {% hint style="warning" %}
 
@@ -12,9 +12,85 @@ Instead, we offer examples that you can implement yourself. This approach gives 
 
 {% endhint %}
 
+Understanding the execution flow of your BrainyFlow application is crucial for debugging and optimization. The primary mechanism BrainyFlow provides for this is the `ExecutionTree` returned by `Flow.run()`.
+
 Similar to LLM wrappers, we **don't** provide built-in visualization and debugging. Here, we recommend some _minimal_ (and incomplete) implementations. These examples can serve as a starting point for your own tooling.
 
-## 1. Visualization with Mermaid
+## The `ExecutionTree`
+
+When you execute `await myFlow.run(memory)`, the method returns an `ExecutionTree`. This object provides a structured, hierarchical representation of the entire flow execution.
+
+**Structure of `ExecutionTree` (Conceptual):**
+
+```typescript
+type Action = string | 'default'
+
+interface ExecutionTree {
+  order: number // Unique order of this node's execution in the flow
+  type: string // Constructor name of the node (e.g., "MyCustomNode", "Flow")
+  triggered: Record<Action, ExecutionTree[]> | null
+  // An object where keys are action names triggered by this node.
+  // Values are arrays of ExecutionTree(s) for the successor node(s)
+  // that were executed due to that action.
+  // `null` if the node was terminal for its branch or did not trigger actions
+  // that led to further node executions visible in this tree.
+  // (Note: Even if a node doesn't explicitly trigger, a 'default' action might be
+  //  processed, leading to an empty array if no successor for 'default').
+}
+```
+
+In Python, it's a `TypedDict` with similar fields: `order: int`, `type: str`, `triggered: Optional[Dict[Action, List[ExecutionTree]]]`.
+
+**Benefits of `ExecutionTree`:**
+
+1.  **Debugging**: Trace exactly which nodes ran, in what order, and which actions were triggered. This is invaluable for understanding why a flow took a particular path.
+2.  **Visualization**: The tree structure can be directly used to generate visual diagrams of the execution path (see below).
+3.  **Auditing & Logging**: Store the `ExecutionTree` (e.g., as JSON) for auditing purposes or detailed logging of a specific flow run.
+4.  **Performance Analysis**: While not its primary purpose, you could augment nodes to record timing information and include it in a custom `ExecutionTree` or a parallel logging structure to identify bottlenecks.
+
+## Logging Best Practices
+
+While the `ExecutionTree` provides a structural log, you can complement it with traditional logging:
+
+- **Integrate Your Preferred Logger**: Use standard logging libraries (Python's `logging`, `pino`/`winston` in TS).
+- **Log in Node Lifecycle Methods**: Add log statements in `prep`, `exec`, and `post` to capture:
+  - Node entry/exit.
+  - Key data being read from or written to `Memory`.
+  - Important decisions made or results computed.
+  - Actions being triggered in `post`.
+- **Contextual Information**: Include node ID (`self._node_order` / `this.__nodeOrder`), node type, and relevant `Memory` keys in your log messages.
+- **Error Logging**: Ensure `execFallback` logs detailed error information before returning a fallback or re-throwing.
+
+### Example: Python Logging with `ExecutionTree`
+
+```python
+import logging
+import json
+from brainyflow import Node, Memory, Flow
+
+# ... (setup logger, define nodes as in previous Python logging example) ...
+
+async def main():
+    # ... (define node_a, node_b, connect them) ...
+    # node_a = LoggingNode()
+    # node_b = LoggingNode()
+    # node_a >> node_b
+
+    # flow = Flow(start=node_a)
+    # memory_obj = Memory(global_store={"initial": "data"})
+
+    # execution_result_tree = await flow.run(memory_obj)
+
+    # logger.info(f"Flow execution completed. Final Memory: {dict(memory_obj)}")
+    # logger.info(f"Execution Tree: {json.dumps(execution_result_tree, indent=2)}")
+    pass # Placeholder for actual setup
+```
+
+## Visualization
+
+The `ExecutionTree` is well-suited for generating visualizations of a _specific run_ of your flow.
+
+### 1. Visualizing the Static Flow Definition
 
 This code recursively traverses the nested graph, assigns unique IDs to each node, and treats Flow nodes as subgraphs to generate Mermaid syntax for a hierarchical visualization.
 
@@ -209,7 +285,42 @@ graph LR
     end
 ```
 
-## 2. Call Stack Debugging
+### 2. Visualizing Runtime Execution from `ExecutionTree`
+
+You can write a script to traverse the `ExecutionTree` and generate a graph definition for tools like Mermaid, Graphviz (DOT language), or JavaScript graph libraries (e.g., Vis.js, Cytoscape.js).
+
+**Example: Generating Mermaid from `ExecutionTree` (Conceptual Python)**
+
+```python
+def to_mermaid(tree_node, parent_id=None, edge_label=None):
+    mermaid_lines = []
+    node_id = f"{tree_node['type']}_{tree_node['order']}"
+    mermaid_lines.append(f"    {node_id}[\"{tree_node['type']} (#{tree_node['order']})\"]")
+
+    if parent_id and edge_label:
+        mermaid_lines.append(f"    {parent_id} -- {edge_label} --> {node_id}")
+
+    if tree_node['triggered']:
+        for action, next_trees in tree_node['triggered'].items():
+            for next_tree_node in next_trees:
+                mermaid_lines.extend(to_mermaid(next_tree_node, node_id, action))
+    return mermaid_lines
+
+# After a flow run:
+# execution_tree = await my_flow.run(memory)
+# print("flowchart TD")
+# for line in to_mermaid(execution_tree):
+#     print(line)
+```
+
+This script would output Mermaid syntax representing the actual path taken during that specific `flow.run()`.
+
+By combining structured logging (from your nodes) with the `ExecutionTree`, you gain powerful tools for understanding, debugging, and monitoring your BrainyFlow applications.
+
+
+
+
+### 3. Call Stack Debugging
 
 For debugging purposes, it's useful to inspect the runtime call stack to understand the execution path through your nodes. This implementation extracts the Node call stack by examining the current execution frames:
 
@@ -363,199 +474,3 @@ dataScienceFlow.run({}) // Pass an empty initial memory
 The output would be: `Call stack: ['EvaluateModelNode', 'ModelFlow', 'DataScienceFlow']`
 
 This shows the nested execution path, with the current node (`EvaluateModelNode`) at the top, followed by its parent flows.
-
-## 3. Logging and Tracing
-
-A simple logging utility can help track the flow of execution through your nodes:
-
-{% tabs %}
-{% tab title="Python" %}
-
-```python
-import logging
-import time
-from functools import wraps
-
-# Configure logging
-logging.basicConfig(level=logging.INFO,
-                   format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-logger = logging.getLogger('brainyflow')
-
-def trace_node(cls):
-    """Class decorator to trace node execution"""
-    # Ensure the methods exist before wrapping
-    original_prep = getattr(cls, 'prep', None)
-    original_exec = getattr(cls, 'exec', None)
-    original_post = getattr(cls, 'post', None)
-
-    @wraps(original_prep)
-    async def traced_prep(self, memory: Memory):
-        logger.info(f"ENTER prep: {type(self).__name__}")
-        start_time = time.time()
-        # Call original only if it exists
-        result = await original_prep(self, memory) if original_prep else None
-        elapsed = time.time() - start_time
-        logger.info(f"EXIT prep: {type(self).__name__} ({elapsed:.3f}s)")
-        return result
-
-    @wraps(original_exec)
-    async def traced_exec(self, prep_res):
-        logger.info(f"ENTER exec: {type(self).__name__}")
-        start_time = time.time()
-        # Call original only if it exists
-        result = await original_exec(self, prep_res) if original_exec else None
-        elapsed = time.time() - start_time
-        logger.info(f"EXIT exec: {type(self).__name__} ({elapsed:.3f}s)")
-        return result
-
-    @wraps(original_post)
-    async def traced_post(self, memory: Memory, prep_res, exec_res):
-        logger.info(f"ENTER post: {type(self).__name__}")
-        start_time = time.time()
-        # Call original only if it exists
-        # Note: Original post doesn't return the action anymore
-        if original_post:
-             await original_post(self, memory, prep_res, exec_res)
-        elapsed = time.time() - start_time
-        # Log triggers separately if needed, as post doesn't return them
-        logger.info(f"EXIT post: {type(self).__name__} ({elapsed:.3f}s)")
-        # The decorator doesn't need to return anything from post
-
-    # Assign wrapped methods back to the class
-    if original_prep: cls.prep = traced_prep
-    if original_exec: cls.exec = traced_exec
-    if original_post: cls.post = traced_post
-    return cls
-
-# Usage:
-@trace_node
-class MyNode(Node):
-    async def prep(self, memory: Memory):
-        # logger.info(f"Reading from memory: {memory.some_input}") # Example read
-        return "data"
-
-    async def exec(self, prep_res):
-        await asyncio.sleep(0.05) # Simulate work
-        return prep_res.upper()
-
-    async def post(self, memory: Memory, prep_res, exec_res):
-        memory.result = exec_res # Write to memory object
-        self.trigger("default")
-```
-
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-```typescript
-import { createLogger, format, transports } from 'winston' // Example logger
-
-// Configure logging (using Winston as an example)
-const logger = createLogger({
-  level: 'info',
-  format: format.combine(
-    format.timestamp({ format: 'HH:mm:ss.SSS' }),
-    format.printf(
-      ({ timestamp, level, message }) => `${timestamp} - ${level.toUpperCase()} - ${message}`,
-    ),
-  ),
-  transports: [new transports.Console()],
-})
-
-// --- Tracing Wrapper Function ---
-// This function takes a Node class and returns a new class with tracing added.
-// Note: This is a simplified example; real decorators might be more complex.
-function withTracing<T extends new (...args: any[]) => Node>(NodeClass: T): T {
-  return class TracedNode extends NodeClass {
-    async prep(memory: Memory): Promise<any> {
-      const nodeName = this.constructor.name
-      logger.info(`ENTER prep: ${nodeName}`)
-      const startTime = Date.now()
-      try {
-        // Call the original prep method
-        const result = await super.prep(memory)
-        const elapsed = (Date.now() - startTime) / 1000
-        logger.info(`EXIT prep: ${nodeName} (${elapsed.toFixed(3)}s)`)
-        return result
-      } catch (e: any) {
-        logger.error(`ERROR prep: ${nodeName} - ${e.message}`)
-        throw e // Re-throw error after logging
-      }
-    }
-
-    async exec(prepRes: any): Promise<any> {
-      const nodeName = this.constructor.name
-      logger.info(`ENTER exec: ${nodeName}`)
-      const startTime = Date.now()
-      try {
-        // Call the original exec method
-        const result = await super.exec(prepRes)
-        const elapsed = (Date.now() - startTime) / 1000
-        logger.info(`EXIT exec: ${nodeName} (${elapsed.toFixed(3)}s)`)
-        return result
-      } catch (e: any) {
-        logger.error(`ERROR exec: ${nodeName} - ${e.message}`)
-        throw e
-      }
-    }
-
-    async post(memory: Memory, prepRes: any, execRes: any): Promise<void> {
-      const nodeName = this.constructor.name
-      logger.info(`ENTER post: ${nodeName}`)
-      const startTime = Date.now()
-      try {
-        // Call the original post method
-        await super.post(memory, prepRes, execRes)
-        const elapsed = (Date.now() - startTime) / 1000
-        logger.info(`EXIT post: ${nodeName} (${elapsed.toFixed(3)}s)`)
-      } catch (e: any) {
-        logger.error(`ERROR post: ${nodeName} - ${e.message}`)
-        throw e
-      }
-    }
-  } as T // Cast back to the original type structure
-}
-
-// --- Usage Example ---
-
-// Define your original node
-class MyOriginalNode extends Node {
-  async prep(memory: Memory): Promise<string> {
-    await new Promise((res) => setTimeout(res, 50)) // Simulate work
-    return 'data'
-  }
-
-  async exec(prepRes: string): Promise<string> {
-    await new Promise((res) => setTimeout(res, 100)) // Simulate work
-    return prepRes.toUpperCase()
-  }
-
-  async post(memory: Memory, prepRes: string, execRes: string): Promise<void> {
-    await new Promise((res) => setTimeout(res, 30)) // Simulate work
-    memory.result = execRes
-  }
-}
-
-// Wrap the original node class with tracing
-const MyTracedNode = withTracing(MyOriginalNode)
-
-// Use the traced node in a flow
-// const tracedNodeInstance = new MyTracedNode();
-// const flow = new Flow(tracedNodeInstance);
-// flow.run({}).then(() => console.log("Flow finished"));
-
-/* Example Output:
-22:15:01.123 - INFO - ENTER prep: MyOriginalNode
-22:15:01.175 - INFO - EXIT prep: MyOriginalNode (0.052s)
-22:15:01.175 - INFO - ENTER exec: MyOriginalNode
-22:15:01.277 - INFO - EXIT exec: MyOriginalNode (0.102s)
-22:15:01.277 - INFO - ENTER post: MyOriginalNode
-22:15:01.309 - INFO - EXIT post: MyOriginalNode (0.032s)
-Flow finished
-*/
-```
-
-{% endtab %}
-{% endtabs %}
-
-This tracing utility provides detailed logs of node execution, including timing information, which can be invaluable for debugging and performance optimization.

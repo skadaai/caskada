@@ -5,6 +5,7 @@ This example demonstrates how to build a question-answering agent using TypeScri
 ## Overview
 
 This agent demonstrates the following capabilities:
+
 - Decision-making based on context
 - Web searching for information
 - Generating comprehensive answers
@@ -21,7 +22,7 @@ npm install
 npm run agent -- "this is your question"
 ```
 
-Default question is "who is the ceo of microsoft?" if you did not provide any argument after `npm run agent`
+Default question is "What is the latest Deepseek LLM model?" if you did not provide any argument after `npm run agent`
 
 ## Features
 

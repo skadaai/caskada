@@ -32,7 +32,7 @@ class LimitedParallelNode(Node):
         print(f"Node initialized with concurrency limit: {concurrency_limit}")
 
     # Prep is usually needed to get 'items' from memory
-    async def prep(self, memory: Memory):
+    async def prep(self, memory):
         # Example: Fetch items from memory
         items = memory.items_to_process or []
         print(f"Prep: Found {len(items)} items to process.")
@@ -65,7 +65,7 @@ class LimitedParallelNode(Node):
         # raise NotImplementedError("process_one_item must be implemented by subclasses")
 
     # Post is needed to store results and trigger next step
-    async def post(self, memory: Memory, prep_res: list, exec_res: list):
+    async def post(self, memory, prep_res: list, exec_res: list):
         print(f"Post: Storing {len(exec_res)} results.")
         memory.processed_results = exec_res # Store results
         self.trigger('default') # Trigger next node
@@ -93,7 +93,7 @@ class LimitedParallelNodeTs extends Node {
   }
 
   // Prep is usually needed to get 'items' from memory
-  async prep(memory: Memory): Promise<any[]> {
+  async prep(memory): Promise<any[]> {
     // Example: Fetch items from memory
     const items = memory.items_to_process || []
     console.log(`Prep: Found ${items.length} items to process.`)
@@ -132,7 +132,7 @@ class LimitedParallelNodeTs extends Node {
   }
 
   // Post is needed to store results and trigger next step
-  async post(memory: Memory, prepRes: any[], execRes: any[]): Promise<void> {
+  async post(memory, prepRes: any[], execRes: any[]): Promise<void> {
     console.log(`Post: Storing ${execRes.length} results.`)
     memory.processed_results = execRes // Store results
     this.trigger('default') // Trigger next node
@@ -349,7 +349,7 @@ class ThrottledLLMNode(Node):
         self.limiter = Limiter(Rate(calls_per_minute, Duration.MINUTE))
 
     # Prep is needed to get the prompt from memory
-    async def prep(self, memory: Memory):
+    async def prep(self, memory):
         return memory.prompt # Assuming prompt is in memory.prompt
 
     async def exec(self, prompt): # exec receives prompt from prep
@@ -376,7 +376,7 @@ class ThrottledLLMNode(Node):
         return f"I'm having trouble processing your request right now. Error: {error}"
 
     # Post is needed to store the result and trigger next step
-    async def post(self, memory: Memory, prep_res, exec_res):
+    async def post(self, memory, prep_res, exec_res):
         memory.llm_response = exec_res # Store the result
         self.trigger('default') # Trigger next node
 ```

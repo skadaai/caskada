@@ -46,11 +46,7 @@ def call_llm(prompt, model="gpt-4o", temperature=0.7):
 // utils/callLLM.ts
 import OpenAI from 'openai'
 
-export async function callLLM(
-  prompt: string,
-  model: string = 'gpt-4o',
-  temperature: number = 0.7,
-): Promise {
+export async function callLLM(prompt: string, model: string = 'gpt-4o', temperature: number = 0.7): Promise<string> {
   const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
   })
@@ -88,13 +84,13 @@ from brainyflow import Node
 from utils import call_llm
 
 class LLMNode(Node):
-    async def prep(self, memory: Memory):
+    async def prep(self, memory):
         return memory.prompt
 
     async def exec(self, prompt):
         return await call_llm(prompt)
 
-    async def post(self, memory: Memory, prep_res, exec_res):
+    async def post(self, memory, prep_res, exec_res):
         memory.response = exec_res
         self.trigger('default')
 ```
@@ -108,7 +104,7 @@ import { Memory, Node } from 'brainyflow'
 import { callLLM } from './utils/callLLM' // Your wrapper
 
 class LLMNode extends Node {
-  async prep(memory: Memory): Promise<string> {
+  async prep(memory): Promise<string> {
     // Read prompt from memory
     return memory.prompt ?? '' // Provide default if needed
   }
@@ -119,7 +115,7 @@ class LLMNode extends Node {
     return await callLLM(prompt)
   }
 
-  async post(memory: Memory, prepRes: string, llmResponse: string): Promise<void> {
+  async post(memory, prepRes: string, llmResponse: string): Promise<void> {
     // Store the response in memory
     memory.response = llmResponse
     this.trigger('default') // Or another action based on response

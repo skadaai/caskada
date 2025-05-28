@@ -21,7 +21,7 @@ BrainyFlow follows these fundamental principles:
 The fundamental pattern in BrainyFlow combines two key elements:
 
 - **Computation Graph**: A directed graph where nodes represent discrete units of work and edges represent the flow of control.
-- **Shared Store**: A state management system that enables communication between nodes, separating global and local state.
+- **Shared `Memory` Object**: A state management store that enables communication between nodes, separating `global` and `local` state.
 
 This pattern offers several advantages:
 
@@ -45,13 +45,13 @@ BrainyFlow's architecture is based on these fundamental building blocks:
 1. **Nodes** perform individual tasks with a clear lifecycle:
 
    - `prep`: Read from shared store and prepare data
-   - `exec`: Execute computation (often LLM calls)
+   - `exec`: Execute computation (often LLM calls), cannot access memory directly.
    - `post`: Process results, write to shared store, and trigger next actions
 
 2. **Flows** orchestrate nodes by:
 
    - Starting with a designated `start` node.
-   - Following action-based transitions (`trigger` calls in `post`) between nodes.
+   - Following action-based transitions (driven by `trigger` calls in `post`) between nodes.
    - Supporting branching, looping, and nested flows.
    - Executing triggered branches sequentially (`Flow`) or concurrently (`ParallelFlow`).
    - Supporting nested batch operations.
@@ -59,7 +59,7 @@ BrainyFlow's architecture is based on these fundamental building blocks:
 3. **Communication** happens through the `memory` instance provided to each node's lifecycle methods (in `prep` and `post` methods):
 
    - **Global Store**: A shared object accessible throughout the flow. Nodes typically write results here.
-   - **Local Store**: An isolated object specific to a node and its downstream path.
+   - **Local Store**: An isolated object specific to a node and its downstream path, typically populated via `forkingData` in `trigger` calls.
 
 ## Getting Started
 

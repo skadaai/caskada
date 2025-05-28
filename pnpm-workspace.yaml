@@ -1,6 +1,6 @@
 packages:
   - 'typescript'
   - 'python'
-  - 'cookbook/*'
+  - 'cookbook/typescript-*'
 
   - '!**/test/**'

@@ -1,124 +1,287 @@
----
-machine-display: false
----
+# MapReduce Design Pattern
 
-# Map Reduce
-
-MapReduce is a design pattern suitable when you need to process multiple pieces of data (e.g., files, records) independently and then combine the results.
+The MapReduce pattern is a powerful way to process large datasets by breaking down a complex task into two main phases: **Map** (processing individual items) and **Reduce** (aggregating results). BrainyFlow provides the perfect abstractions to implement this pattern efficiently, especially with its `ParallelFlow` for concurrent mapping.
 
 <div align="center">
   <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/mapreduce.png?raw=true" width="400"/>
 </div>
 
-In BrainyFlow, this pattern is typically implemented using:
+## Core Components
 
-1.  **Map Phase:** A "Mapper" node triggers multiple instances of a "Processor" node, one for each piece of data. It uses `trigger` with `forkingData` to pass the specific data item to each processor via its local memory. Using `ParallelFlow` here allows processors to run concurrently.
-2.  **Reduce Phase:** A "Reducer" node runs after the map phase. It reads the individual results (accumulated in the global memory by the processor nodes) and aggregates them into a final output.
+1.  **Trigger Node**:
+    - **Role**: Triggers the fan-out to Mapper Nodes from a list of items.
+    - **Implementation**: A standard `Node` whose `post` method iterates through the input collection and calls `this.trigger()` for each item, passing item-specific data as `forkingData`.
+2.  **Mapper Node**:
+    - **Role**: Takes a single item from the input collection and transforms it.
+    - **Implementation**: A standard `Node` that receives an individual item (often via `forkingData` in its local memory) and performs a specific computation (e.g., summarizing a document, extracting key-value pairs).
+    - **Output**: Stores the processed result for that item in the global `Memory` object, typically using a unique key (e.g., `memory.results[item_id] = processed_data`).
+3.  **Reducer Node**:
+    - **Role**: Collects and aggregates the results from all Mapper Nodes.
+    - **Implementation**: A standard `Node` that reads all individual results from the global `Memory` and combines them into a final output. This node is usually triggered after all Mapper Nodes have completed.
+
+## MapReduce Flow
+
+```mermaid
+graph TD
+    A[Start] --> B{Trigger Node};
+    B -- "map_item 0" --> C[Mapper Node];
+    B -- "..." --> C;
+    B -- "map_item n" --> C;
+    C -- "all_mapped" --> D[Reducer Node];
+    D --> E[End];
+```
+
+## Pattern Implementation
+
+We use a `ParallelFlow` for the mapping phase for performance gain.
+
+{% tabs %}
+{% tab title="Python" %}
+
+```python
+from brainyflow import Node, Flow, ParallelFlow
+
+class MapReduceFlow(ParallelFlow):
+    async def post(self, memory, prep_res, exec_res):
+        self.trigger("default")
+
+class Trigger(Node):
+    async def prep(self, memory):
+        assert hasattr(memory, "items"), f"'items' must be set in memory"
+        return getattr(memory, "items")
+
+    async def post(self, memory, items, exec_res):
+        setattr(memory,"output", {} if isinstance(items, dict) else [None] * len(items))
+        for index, input in (enumerate(items) if isinstance(items, (list, tuple)) else items.items()):
+            self.trigger("default", {"index": index, "item": input})
+
+class Reduce(Node):
+    async def prep(self, memory):
+        assert hasattr(memory, "index"), "index of processed item must be set in memory"
+        assert hasattr(memory, "item"), "processed item must be set in memory"
+        return memory.index, memory.item
+
+    async def post(self, memory, prep_res, exec_res):
+        memory.output[prep_res[0]] = prep_res[1]
+        self.trigger(None)
+
+def mapreduce(iterate: Node | Flow):
+    trigger = Trigger()
+    reduce = Reduce()
+
+    trigger >> iterate >> reduce
+    return MapReduceFlow(start=trigger)
+```
+
+{% endtabs %}
+{% tab title="TypeScript" %}
+
+```typescript
+import {Node, Flow, ParallelFlow } from 'brainyflow'
+
+class MapReduceFlow extends ParallelFlow {
+  async post(memory, prepRes, execRes): Promise<void> {
+    this.trigger("default");
+  }
+}
+
+class Trigger extends Node {
+  async prep(memory): Promise<any[] | Record<string, any>> {
+    if (!memory.items) {
+      throw new Error("'items' must be set in memory");
+    }
+    return memory.items;
+  }
+
+  async post(memory, items, execRes): Promise<void> {
+    memory.output = Array.isArray(items) ? new Array(items.length).fill(null) : {};
+
+    if (Array.isArray(items)) {
+      items.forEach((item, index) => {
+        this.trigger("default", { index, item });
+      });
+    } else {
+      Object.entries(items).forEach(([key, value]) => {
+        this.trigger("default", { index: key, item: value });
+      });
+    }
+  }
+}
+
+class Reduce extends Node {
+  async prep(memory) {
+    return [memory.local.index, memory.local.item];
+  }
+
+  async post(memory, prepRes, execRes) {
+    const [index, itemResultFromIterate] = prepRes;
+
+    if (Array.isArray(memory.output)) {
+      (memory.output as any[])[index] = itemResultFromIterate;
+    } else {
+      (memory.output as Record<string, any>)[index.toString()] = itemResultFromIterate;
+    }
+
+    this.trigger(null as any)
+  }
+
+export function mapreduce(iterate: Node | Flow): MapReduceFlow {
+  const trigger = new Trigger();
+  const reduce = new Reduce();
+
+  trigger.next(iterate).next(reduce);
+
+  return new MapReduceFlow(trigger);
+}
+```
+
+{% endtab %}
+{% endtabs %}
 
 ### Example: Document Summarization
+
+Let's create a flow to summarize multiple text files using the pattern we just created.
+
+For simplicity, these will be overly-simplified mock tools/nodes. For a more in-depth implementation, check the implementations in our cookbook for [Resume Qualification (Python)](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-map-reduce) - _more TypeScript examples coming soon ([PRs welcome](https://github.com/zvictor/BrainyFlow)!)_.
+
+### 1. Define Mapper Node (Summarizer)
+
+This node will summarize a single file.
+
+{% tabs %}
+{% tab title="Python" %}
+
+```python
+from brainyflow import Node
+
+# Assume call_llm is defined elsewhere
+class SummarizeFileNode(Node):
+    async def prep(self, memory):
+        # Item data comes from forkingData in local memory
+        return {"filename": memory.item.filename, "content": memory.item.content}
+
+    async def exec(self, prep_res: dict):
+        prompt = f"Summarize the following text from {prep_res['filename']}:\n{prep_res['content']}"
+        return await call_llm(prompt)
+
+    async def post(self, memory, prep_res: dict, exec_res: str):
+        # Store individual summary in local memory reusing the "item" key
+        memory.local.item.summary = exec_res
+```
+
+{% endtab %}
+
+{% tab title="TypeScript" %}
+
+```typescript
+import { Node } from 'brainyflow'
+
+// Assume callLLM is defined elsewhere
+declare function callLLM(prompt: string): Promise<string>
+
+class SummarizeFileNode extends Node {
+  async prep(memory): Promise<{ filename: string; content: string }> {
+    // Item data comes from forkingData in local memory
+    return { filename: memory.item.filename ?? '', content: memory.item.file_content ?? '' }
+  }
+
+  async exec(prepRes: { filename: string; content: string }): Promise<string> {
+    const prompt = `Summarize the following text from ${prepRes.filename}:\n${prepRes.content}`
+    return await callLLM(prompt)
+  }
+
+  async post(memory, prepRes: { filename: string; content: string }, execRes: string): Promise<void> {
+    // Store individual summary in local memory reusing the "item" key
+    memory.local.item.summary = execRes
+  }
+}
+```
+
+{% endtab %}
+{% endtabs %}
+
+### 2. Define Reducer Node (Aggregator)
+
+This node will combine all individual summaries.
+
+{% tabs %}
+{% tab title="Python" %}
+
+```python
+from brainyflow import Node
+
+class AggregateSummariesNode(Node):
+    async def prep(self, memory):
+        # Collect all file summaries from global memory
+        return [item["summary"] for item in memory.output]
+
+    async def exec(self, summaries: list[str]):
+        combined_text = "\n\n".join(summaries)
+        prompt = f"Combine the following summaries into one cohesive summary:\n{combined_text}"
+        return await call_llm(prompt)
+
+    async def post(self, memory, prep_res: dict, exec_res: str):
+        memory.final_summary = exec_res # Store final aggregated summary
+```
+
+{% endtab %}
+
+{% tab title="TypeScript" %}
+
+```typescript
+import { Node } from 'brainyflow'
+
+class AggregateSummariesNode extends Node {
+  async prep(memory): Promise<string[]> {
+    // Collect all summaries from global memory
+    return memory.output.map((item) => item.summary)
+  }
+
+  async exec(summaries: string[]): Promise<string> {
+    const combinedText = summaries.join('\n\n')
+    const prompt = `Combine the following summaries into one cohesive summary:\n${combinedText}`
+    return await callLLM(prompt)
+  }
+
+  async post(memory, prepRes: string[], execRes: string): Promise<void> {
+    memory.final_summary = execRes // Store final aggregated summary
+  }
+}
+```
+
+{% endtab %}
+{% endtabs %}
+
+### 3. Assemble the Flow
 
 {% tabs %}
 {% tab title="Python" %}
 
 ```python
 import asyncio
-from brainyflow import Node, Flow, Memory, ParallelFlow
+from brainyflow import Flow
 
-# Assume call_llm is defined elsewhere
-# async def call_llm(prompt: str) -> str: ...
+# (mapreduce, SummarizeFileNode and AggregateSummariesNode definitions as above)
 
-# 1. Mapper Node: Triggers processing for each file
-class TriggerSummariesNode(Node):
-    async def prep(self, memory: Memory):
-        # Get file data from global memory
-        files_dict = memory.files or {}
-        return list(files_dict.items()) # [("file1.txt", "content1"), ...]
+# Instantiate nodes
+summarizer = SummarizeFileNode()
+aggregator = AggregateSummariesNode()
 
-    async def exec(self, files: list):
-        # No main computation needed here, just return the count for info
-        return len(files)
+mapreduce_flow = mapreduce(summarizer)
+mapreduce_flow >> aggregator
 
-    async def post(self, memory: Memory, files_to_process: list, file_count: int):
-        print(f"Mapper: Triggering summary for {file_count} files.")
-        # Initialize results list and counter in global memory
-        memory.file_summaries = [None] * file_count
-        memory.remaining_summaries = file_count # Add counter
-        # Trigger a 'summarize_file' action for each file
-        for index, (filename, content) in enumerate(files_to_process):
-            self.trigger('summarize_file', { "filename": filename, "content": content, "index": index })
-        # NOTE: 'combine_summaries' is now triggered by SummarizeFileNode when the counter reaches zero.
-
-# 2. Processor Node: Summarizes a single file
-class SummarizeFileNode(Node):
-    async def prep(self, memory: Memory):
-        # Read specific file data from local memory (passed via forkingData)
-        return memory.filename, memory.content, memory.index
-
-    async def exec(self, prep_res):
-        filename, content, index = prep_res
-        # Summarize the content
-        print(f"Processor: Summarizing {filename} (Index {index})")
-        return await call_llm(f"Summarize this:\n{content}")
-
-    async def post(self, memory: Memory, prep_res, summary: str):
-        filename, content, index = prep_res
-        # Store individual summary in global memory at the correct index
-        memory.file_summaries[index] = { "filename": filename, "summary": summary }
-        print(f"Processor: Finished {filename} (Index {index})")
-        # Decrement counter and trigger combine if this is the last summary
-        memory.remaining_summaries -= 1
-        if memory.remaining_summaries == 0:
-            print("Processor: All summaries collected, triggering combine.")
-            self.trigger('combine_summaries')
-
-# 3. Reducer Node: Combines individual summaries
-class CombineSummariesNode(Node):
-    async def prep(self, memory: Memory):
-        # Read the array of individual summaries (filter out None if any failed)
-        summaries = [s for s in (memory.file_summaries or []) if s is not None]
-        return summaries
-
-    async def exec(self, summaries: list):
-        print(f"Reducer: Combining {len(summaries)} summaries.")
-        if not summaries:
-            return "No summaries to combine."
-        # Format summaries for the final prompt
-        combined_text = "\n\n---\n\n".join([f"{s['filename']}:\n{s['summary']}" for s in summaries])
-        return await call_llm(f"Combine these summaries into one final summary:\n{combined_text}")
-
-    async def post(self, memory: Memory, prep_res, final_summary: str):
-        # Store the final combined summary
-        memory.final_summary = final_summary
-        print("Reducer: Final summary generated.")
-        # No trigger needed if this is the end
-
-# --- Flow Definition ---
-trigger_node = TriggerSummariesNode()
-processor_node = SummarizeFileNode()
-reducer_node = CombineSummariesNode()
-
-# Define transitions
-trigger_node - 'summarize_file' >> processor_node # Map step
-trigger_node - 'combine_summaries' >> reducer_node # Reduce step
-
-# Use ParallelFlow for potentially faster summarization
-map_reduce_flow = ParallelFlow(start=trigger_node)
-# Alternatively, if strict sequential processing is acceptable or required (e.g., to avoid
-# the complexity of the counter mechanism), you can use a standard Flow:
-# map_reduce_flow = Flow(start=trigger_node)
-# This ensures the 'combine_summaries' step (triggered by the last processor)
-# only runs after all 'summarize_file' steps are complete.
+main_flow = Flow(start=mapreduce_flow)
 
 # --- Execution ---
 async def main():
     memory = {
-        "files": {
+        "items": {
             "file1.txt": "Alice was beginning to get very tired of sitting by her sister...",
             "file2.txt": "The quick brown fox jumps over the lazy dog.",
             "file3.txt": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
         }
     }
-    await map_reduce_flow.run(memory) # Pass memory object
+    await main_flow.run(memory) # Pass memory object
     print('\n--- MapReduce Complete ---')
     print("Individual Summaries:", memory.get("file_summaries"))
     print("\nFinal Summary:\n", memory.get("final_summary"))
@@ -132,122 +295,32 @@ if __name__ == "__main__":
 {% tab title="TypeScript" %}
 
 ```typescript
-import { Flow, Memory, Node, ParallelFlow } from 'brainyflow'
+import { Flow, Memory, Node } from 'brainyflow'
 
 // Assume callLLM is defined elsewhere
 declare function callLLM(prompt: string): Promise<string>
 
-// 1. Mapper Node: Triggers processing for each file
-class TriggerSummariesNode extends Node {
-  async prep(memory: Memory): Promise<[string, string][]> {
-    // Get file data from global memory
-    const filesDict = memory.files ?? {}
-    return Object.entries(filesDict) // [["file1.txt", "content1"], ...]
-  }
+// (mapreduce, SummarizeFileNode and AggregateSummariesNode definitions as above)
 
-  async exec(files: [string, string][]): Promise<number> {
-    // No main computation needed here, just return the count for info
-    return files.length
-  }
+// Instantiate nodes
+const summarizer = new SummarizeFileNode()
+const aggregator = new AggregateSummariesNode()
 
-  async post(memory: Memory, filesToProcess: [string, string][], fileCount: number): Promise<void> {
-    console.log(`Mapper: Triggering summary for ${fileCount} files.`)
-    // Initialize results array and counter in global memory
-    // Note: Using an array might still have race conditions if indices aren't guaranteed
-    // in ParallelFlow. An object map { index: summary } might be safer.
-    memory.file_summaries = new Array(fileCount).fill(null)
-    memory.remaining_summaries = fileCount // Add counter
-    // Trigger a 'summarize_file' action for each file
-    filesToProcess.forEach(([filename, content], index) => {
-      this.trigger('summarize_file', { filename, content, index })
-    })
-    // NOTE: 'combine_summaries' is now triggered by SummarizeFileNode when the counter reaches zero.
-  }
-}
+const mapreduce_flow = mapreduce(summarizer)
+mapreduce_flow.next(aggregator)
 
-// 2. Processor Node: Summarizes a single file
-class SummarizeFileNode extends Node {
-  async prep(memory: Memory): Promise<{ filename: string; content: string; index: number }> {
-    // Read specific file data from local memory (passed via forkingData)
-    return { filename: memory.filename, content: memory.content, index: memory.index }
-  }
-
-  async exec(fileData: { filename: string; content: string; index: number }): Promise<string> {
-    // Summarize the content
-    console.log(`Processor: Summarizing ${fileData.filename} (Index ${fileData.index})`)
-    return await callLLM(`Summarize this:\n${fileData.content}`)
-  }
-
-  async post(
-    memory: Memory,
-    prepRes: { index: number; filename: string },
-    summary: string,
-  ): Promise<void> {
-    // Store individual summary in global memory at the correct index
-    // Note: Direct array index assignment might cause issues with ParallelFlow if order matters
-    // A safer approach might be to push {filename, summary} and sort later, or use an object.
-    memory.file_summaries[prepRes.index] = { filename: prepRes.filename, summary }
-    console.log(`Processor: Finished ${prepRes.filename} (Index ${prepRes.index})`)
-    // Decrement counter and trigger combine if this is the last summary
-    memory.remaining_summaries--
-    if (memory.remaining_summaries === 0) {
-      console.log('Processor: All summaries collected, triggering combine.')
-      this.trigger('combine_summaries')
-    }
-  }
-}
-
-// 3. Reducer Node: Combines individual summaries
-class CombineSummariesNode extends Node {
-  async prep(memory: Memory): Promise<any[]> {
-    // Read the array of individual summaries
-    return memory.file_summaries ?? []
-  }
-
-  async exec(summaries: { filename: string; summary: string }[]): Promise<string> {
-    console.log(`Reducer: Combining ${summaries.length} summaries.`)
-    if (!summaries || summaries.length === 0) {
-      return 'No summaries to combine.'
-    }
-    // Format summaries for the final prompt
-    const combinedText = summaries.map((s) => `${s.filename}:\n${s.summary}`).join('\n\n---\n\n')
-    return await callLLM(`Combine these summaries into one final summary:\n${combinedText}`)
-  }
-
-  async post(memory: Memory, prepRes: any, finalSummary: string): Promise<void> {
-    // Store the final combined summary
-    memory.final_summary = finalSummary
-    console.log('Reducer: Final summary generated.')
-  }
-}
-
-// --- Flow Definition ---
-const triggerNode = new TriggerSummariesNode()
-const processorNode = new SummarizeFileNode()
-const reducerNode = new CombineSummariesNode()
-
-// Define transitions
-triggerNode.on('summarize_file', processorNode) // Map step
-triggerNode.on('combine_summaries', reducerNode) // Reduce step (runs after all triggers are processed by the flow runner)
-
-// Use ParallelFlow for potentially faster summarization
-const mapReduceFlow = new ParallelFlow(triggerNode)
-// Alternatively, if strict sequential processing is acceptable or required (e.g., to avoid
-// the complexity of the counter mechanism), you can use a standard Flow:
-// const mapReduceFlow = new Flow(triggerNode);
-// This ensures the 'combine_summaries' step (triggered by the last processor)
-// only runs after all 'summarize_file' steps are complete.
+const main_flow = Flow(mapreduce_flow)
 
 // --- Execution ---
 async function main() {
   const memory = {
-    files: {
+    items: {
       'file1.txt': 'Alice was beginning to get very tired of sitting by her sister...',
       'file2.txt': 'The quick brown fox jumps over the lazy dog.',
       'file3.txt': 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
     },
   }
-  await mapReduceFlow.run(memory)
+  await main_flow.run(memory)
   console.log('\n--- MapReduce Complete ---')
   console.log('Individual Summaries:', memory.file_summaries)
   console.log('\nFinal Summary:\n', memory.final_summary)
@@ -258,3 +331,5 @@ main().catch(console.error)
 
 {% endtab %}
 {% endtabs %}
+
+This example demonstrates how to implement a MapReduce pattern using BrainyFlow, leveraging `ParallelFlow` for concurrent processing of the map phase and the `Memory` object for collecting results before the reduce phase.

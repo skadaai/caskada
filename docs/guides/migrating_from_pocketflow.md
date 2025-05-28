@@ -2,29 +2,20 @@
 machine-display: false
 ---
 
-# Migrating from PocketFlow to BrainyFlow (Python)
+# Migrating from PocketFlow to BrainyFlow
 
-{% hint style="info" %}
-This guide specifically addresses migrating from the older synchronous Python library `PocketFlow` to the asynchronous Python version of `BrainyFlow`. While the core concepts of apply broadly, the specific approaches mentioned here may slightly differ from the TypeScript implementation.
-{% endhint %}
+BrainyFlow originated as a fork of PocketFlow, aiming to refine its core concepts, enhance type safety (in both language ports), and improve the developer experience for building agentic systems. If you have an existing PocketFlow application, migrating to BrainyFlow involves several key changes.
+This guide focuses on migrating from typical PocketFlow patterns to the modern BrainyFlow (v2.0+).
 
-BrainyFlow is an asynchronous successor to PocketFlow, designed for enhanced performance and concurrency. Migrating your Python codebase is straightforward:
+## Key Conceptual Differences & Changes
 
-## Key Changes
-
-1. **All core methods are now async**
-
-   - `prep()`, `exec()`, `post()`, `_exec()`, `_run()`, and `run()` methods now use `async/await` syntax
-   - All method calls to these functions must now be awaited
-
-2. **Simplified class hierarchy**
-
-   - Removed separate async classes (`AsyncNode`, `AsyncFlow`, etc.)
-   - All classes now use async methods by default
-
-3. **Batch Processing Patterns**:
-   - The way batch processing is handled has evolved. Instead of specific `BatchNode`/`BatchFlow` classes, BrainyFlow encourages using standard `Node`s with fan-out patterns (i.e. `trigger`/`forkingData` within a `Flow`).
-   - Use `Flow` for sequential batch steps or `ParallelFlow` for concurrent batch steps. See the [MapReduce design pattern](../design_pattern/mapreduce.md) for examples.
+- **`Async*` Classes Removed**: BrainyFlow's `Node` and `Flow` are inherently async-capable in both Python and TypeScript. All `AsyncNode`, `AsyncFlow`, etc., from PocketFlow are removed. Simply make your `prep`, `exec`, `post` methods `async` and use `await` where appropriate.
+- **`Memory` Object**:
+  - BrainyFlow's `Memory` object is more central and refined.
+  - PocketFlow's `Params` concept is absorbed into the `Memory` object's local store, typically populated via `forkingData`.
+- **Triggering Actions**: In `post`, instead of `return "action_name"`, you **must** use `self.trigger("action_name", forking_data={...})` (Python) or `this.trigger("action_name", { ... })` (TypeScript).
+- **Batch Processing (`*BatchNode` / `*BatchFlow` Removal)**: PocketFlow's specialized batch classes are **removed**. BrainyFlow handles batching via a "fan-out" pattern: a standard `Node` calls `trigger` multiple times in its `post` method, each call typically including item-specific `forkingData`. This is then orchestrated by a `Flow` (for sequential batching) or `ParallelFlow` (for concurrent batching).
+- **`Flow.run()` Result**: Returns a structured `ExecutionTree` detailing the execution path, rather than a simple dictionary of results.
 
 ## Why Async?
 
@@ -37,22 +28,23 @@ The move to async brings several benefits:
 
 ## Migration Steps
 
-### Step 1: Update Imports
+### Step 1: Update Imports and Dependencies
 
-Replace `pocketflow` imports with `brainyflow` and add `import asyncio`.
-
+- Replace all `from pocketflow import ...` with `from brainyflow import ...` (Python) or `import { ... } from 'brainyflow'` (TypeScript).
 ```python
 # Before
 from pocketflow import Node, Flow, BatchNode # ... etc
 
 # After
 import asyncio
-from brainyflow import Node, Flow, SequentialBatchNode # ... etc
+from brainyflow import Node, Flow # ... etc
 ```
+- Update your `requirements.txt` or `package.json` to use `brainyflow`.
 
-### Step 2: Add `async` / `await`:
+### Step 2: Convert to Async and Update Method Signatures
 
 - Add `async` before `def` for your `prep`, `exec`, `post`, and `exec_fallback` methods in Nodes and Flows.
+- Remove any `_async` suffix from the method names.
 - Add `await` before any calls to these methods, `run()` methods, `asyncio.sleep()`, or other async library functions.
 
 #### Node Example (Before):
@@ -104,235 +96,56 @@ class MyNode(Node):
         return fallback_result
 ```
 
-_(Flow methods follow the same pattern)_
+### Step 3: Use `.trigger()` for next actions
 
-### Step 3: Update Batch Processing Implementation (`*BatchNode` / `*BatchFlow` Removal)
+In all `Node` subclasses, within the `post` method:
 
-PocketFlow had dedicated classes like `BatchNode`, `ParallelBatchNode`, `BatchFlow`, and `ParallelBatchFlow`. BrainyFlow v0.3+ **removes these specialized classes**.
+- Replace any `return "action_name"` statements with `self.trigger("action_name")` (Python) or `this.trigger("action_name")` (TypeScript).
+- If you were passing data to the next node's local context (PocketFlow's `params`), pass this data as the second argument to `trigger` (the `forkingData` object).
+  Example: `self.trigger("process_item", {"item": current_item})`
+- If `post` simply completed without returning an action (implying default), you can either explicitly call `self.trigger("default)` or rely on the implicit default trigger if no `trigger` calls are made.
 
-The functionality is now achieved using standard `Node`s and `Flow`s combined with a specific pattern:
+### Step 4: Update Batch Processing Implementation (`*BatchNode` / `*BatchFlow` Removal)
 
-1.  **Rename Classes**:
+BrainyFlow **removes all specialized `BatchNode` and `BatchFlow` classes**. Batch functionality is achieved using standard `Node`s and `Flow`s combined with the "fan-out/fan-in" trigger pattern.
 
-    - Replace `BatchNode`, `AsyncBatchNode`, `ParallelBatchNode`, `AsyncParallelBatchNode` with the standard `brainyflow.Node`.
-    - Replace `BatchFlow`, `AsyncBatchFlow` with `brainyflow.Flow`.
-    - Replace `AsyncParallelBatchFlow` with `brainyflow.ParallelFlow`.
+The batch functionality is now achieved using standard `Node`s and `Flow`s combined with a specific pattern:
+
+1.  **Fan-Out (Map) Phase**:
+
+    All `BatchNode` need to be replaced by a fan-out flow. You can either implement a [MapReduce pattern](../design_pattern/mapreduce.md) for it, or split the node into two, a **Trigger Node** and a **Processor Node**:
+
+    The **Prepare/Trigger Node** (replaces the `prep` part of a `BatchNode`):
+      - Use the `prep` method to fetch the list of items to process, as usual.
+      - Use the `post` method to iterate through these items. For **each item**, calls `self.trigger(action, forkingData={"item": current_item, "index": i, ...})`. The `forkingData` dictionary passes item-specific data into the **local memory** of the triggered successor. (the `action` name can be any of your choice as long as you connect the nodes in the flow; e.g. `process_one`, `default`)
+      - This node might also initialize an aggregate result structure in the global memory (e.g., `memory.batch_results = {}`).
+
+    The **Item Processor Node** (replaces the `exec_one` part of a `BatchNode`):
+      - Its `prep` method reads the specific item data (e.g., `memory.item`, `memory.index`) from its **local memory** (which was populated by `forkingData` from the trigger node).
+      - The logic previously in the `exec_one` method of the `BatchNode` should now be in this node's `exec` method.
+      - Its `post` method typically writes the individual item's result back to the **global memory**, often using an index or unique key (e.g., `memory.batch_results[prep_res.index] = exec_res.item_result`).
+
+    **Aggregation (Optional Fan-In Node)**: If you need to aggregate results after all items are processed (you probably should implement mapreduce), you might have the _Item Processor Node_ also trigger an "aggregation_pending" action, and another (final) node conditionalized on all items being done (e.g., via a counter in global memory or by checking the length of results). Or, the Prepare/Trigger node itself might have a separate trigger for an aggregation step after it has fanned out all items.
+
+2.  **Choose the Right Flow**:
+
+    - Wrap the `TriggerNode` and `ProcessorNode` in a standard `brainyflow.Flow` if you need items processed **sequentially**.
+    - Wrap them in a `ParallelFlow` if you need items processed **concurrently**.
+
+3.  **Rename All Classes**:
+
+    - Replace `AsyncParallelBatchFlow` with `ParallelFlow`.
+    - Replace `AsyncParallelBatchNode`, `ParallelBatchNode`, `AsyncBatchNode`, `BatchNode` with the standard `Node`.
+    - Replace `AsyncBatchFlow`, `BatchFlow` with `brainyflow.Flow`.
     - Remember to make `prep`, `exec`, `post` methods `async` as per Step 2.
 
-2.  **Adopt the Fan-Out Trigger Pattern**:
+### Step 6: Python `NodeError` Protocol
 
-    - The node that previously acted as the `BatchNode` (or the starting node of a `BatchFlow`) needs to be refactored into a **Trigger Node**.
-      - Its `prep` method usually fetches the list of items to process.
-      - Its `post` method iterates through these items. For **each item**, it calls `self.trigger("process_one", forkingData={"item": current_item, "index": i, ...})`. The `forkingData` dictionary passes item-specific data into the **local memory** of the triggered successor.
-    - The logic previously in the `exec_one` method of the `BatchNode` must be moved into the `exec` method of a new **Processor Node**.
-      - This `ProcessorNode` is connected to the `TriggerNode` via the `"process_one"` action (e.g., `trigger_node.on("process_one", processor_node)`).
-      - The `ProcessorNode`'s `prep` method reads the specific item data (e.g., `memory.item`, `memory.index`) from its **local memory**, which was populated by the `forkingData`.
-      - Its `post` method typically writes the result back to the **global memory**, often using the index to place it correctly in a shared list or dictionary.
+If you were catching `NodeError` exceptions, note that in Python it's now a `typing.Protocol`. This means you'd typically catch the underlying error (e.g., `ValueError`) and then check if it conforms to `NodeError` via `isinstance(error, NodeError)` if you need to access `error.retry_count`. For TypeScript, it remains an `Error` subtype.
 
-3.  **Choose the Right Flow**:
-    - Wrap the `TriggerNode` and `ProcessorNode` in a standard `brainyflow.Flow` if you need items processed **sequentially**.
-    - Wrap them in a `brainyflow.ParallelFlow` if items can be processed **concurrently**.
+### Step 6: Run with `asyncio`:
 
-#### Example: Translating Text into Multiple Languages
-
-Let's adapt the `TranslateTextNode` example provided earlier. Before, it might have been a `BatchNode`. Now, we split it into a `TriggerTranslationsNode` and a `TranslateOneLanguageNode`.
-
-{% tabs %}
-{% tab title="Python" %}
-
-```python
-# Before (PocketFlow) - Conceptual BatchNode
-class TranslateTextBatchNode(BatchNode):
-    def prep(self, shared):
-        text = shared.get("text", "(No text provided)")
-        languages = shared.get("languages", ["Chinese", "Spanish", "Japanese"])
-        # BatchNode prep would return items for exec
-        return [(text, lang) for lang in languages]
-
-    def exec(self, item):
-        text, lang = item
-        # Assume translate_text exists
-        return await translate_text(text, lang)
-
-    def post(self, shared, prep_res, exec_results):
-        # BatchNode post might aggregate results
-        shared["translations"] = exec_results
-        return "default"
-```
-
-```python
-# After (BrainyFlow) - Using Flow Patterns
-
-from brainyflow import Node, Memory
-
-# 1. Trigger Node (Fans out work)
-class TriggerTranslationsNode(Node):
-    async def prep(self, memory: Memory):
-        text = memory.text if hasattr(memory, 'text') else "(No text provided)"
-        languages = memory.languages if hasattr(memory, 'languages') else ["Chinese", "Spanish", "Japanese"]
-
-        return [{"text": text, "language": lang} for lang in languages]
-
-    async def post(self, memory: Memory, prep_res, exec_res):
-        for index, input in enumerate(prep_res):
-            self.trigger("default", input | {"index": index})
-
-# 2. Processor Node (Handles one language)
-class TranslateOneLanguageNode(Node):
-    async def prep(self, memory: Memory):
-        # Read data passed via forkingData from local memory
-        return {
-            "text": memory.text,
-            "language": memory.language,
-            "index": memory.index
-        }
-
-    async def exec(self, item):
-        # Assume translate_text exists
-        return await translate_text(item["text"], item["language"])
-
-    async def post(self, memory: Memory, prep_res, exec_res):
-        # Store result in the global list at the correct index
-        memory.translations[exec_res["index"]] = exec_res
-        this.trigger("default")
-
-# 3. Flow Setup
-trigger_node = TriggerTranslationsNode()
-processor_node = TranslateOneLanguageNode()
-
-trigger_node >> processor_node
-```
-
-{% endtab %}
-
-{% tab title="TypeScript" %}
-
-```typescript
-// Before (PocketFlow) - Conceptual BatchNode
-class TranslateTextBatchNode extends BatchNode<any, any, any, [string, string], string> {
-  async prep(shared: Record<string, any>): Promise<[string, string][]> {
-    const text = shared['text'] ?? '(No text provided)'
-    const languages = shared['languages'] ?? ['Chinese', 'Spanish', 'Japanese']
-    return languages.map((lang: string) => [text, lang])
-  }
-
-  async exec(item: [string, string]): Promise<string> {
-    const [text, lang] = item
-    // Assume translateText exists
-    return await translateText(text, lang)
-  }
-
-  async post(shared: Record<string, any>, prepRes: any, execResults: string[]): Promise<string> {
-    shared['translations'] = execResults
-    return 'default'
-  }
-}
-```
-
-```typescript
-// After (BrainyFlow) - Using Flow Patterns with ParallelFlow
-
-import { Memory, Node } from 'brainyflow'
-
-// Define Memory structure (optional but recommended)
-interface TranslationGlobalStore {
-  text?: string
-  languages?: string[]
-  translations?: ({ language: string; translation: string } | null)[]
-}
-interface TranslationLocalStore {
-  text?: string
-  language?: string
-  index?: number
-}
-type TranslationActions = 'translate_one' | 'aggregate_results'
-
-// 1. Trigger Node (Fans out work)
-class TriggerTranslationsNode extends Node<
-  TranslationGlobalStore,
-  TranslationLocalStore,
-  TranslationActions[]
-> {
-  async prep(
-    memory: Memory<TranslationGlobalStore, TranslationLocalStore>,
-  ): Promise<{ text: string; languages: string[] }> {
-    const text = memory.text ?? '(No text provided)'
-    const languages = memory.languages ?? getLanguages()
-    return { text, languages }
-  }
-
-  // No exec needed for this trigger node
-
-  async post(
-    memory: Memory<TranslationGlobalStore, TranslationLocalStore>,
-    prepRes: { text: string; languages: string[] },
-    execRes: void, // No exec result
-  ): Promise<void> {
-    const { text, languages } = prepRes
-    // Initialize results array in global memory
-    memory.translations = new Array(languages.length).fill(null)
-
-    // Trigger processing for each language
-    languages.forEach((lang, index) => {
-      this.trigger('default', {
-        text: text,
-        language: lang,
-        index: index,
-      })
-    })
-  }
-}
-
-// 2. Processor Node (Handles one language)
-class TranslateOneLanguageNode extends Node<TranslationGlobalStore, TranslationLocalStore> {
-  async prep(
-    memory: Memory<TranslationGlobalStore, TranslationLocalStore>,
-  ): Promise<{ text: string; lang: string; index: number }> {
-    // Read data passed via forkingData from local memory
-    const text = memory.text ?? ''
-    const lang = memory.language ?? 'unknown'
-    const index = memory.index ?? -1
-    return { text, lang, index }
-  }
-
-  async exec(prepRes: {
-    text: string
-    lang: string
-    index: number
-  }): Promise<{ translated: string; index: number; lang: string }> {
-    // Assume translateText exists
-    return await translateText(prepRes.text, prepRes.lang)
-  }
-
-  async post(
-    memory: Memory<TranslationGlobalStore, TranslationLocalStore>,
-    prepRes: { text: string; lang: string; index: number }, // prepRes is passed through
-    execRes: { translated: string; index: number; lang: string },
-  ): Promise<void> {
-    const { index, lang, translated } = execRes
-    // Store result in the global list at the correct index
-    // Ensure the global array exists and is long enough (important for parallel)
-    if (!memory.translations) memory.translations = []
-    while (memory.translations.length <= index) {
-      memory.translations.push(null)
-    }
-    memory.translations[execRes.index] = execRes
-    this.trigger('default')
-  }
-}
-
-// 3. Flow Setup (Using ParallelFlow for concurrency)
-const triggerNode = new TriggerTranslationsNode()
-const processorNode = new TranslateOneLanguageNode()
-
-triggerNode.next(processorNode)
-```
-
-_(See the [MapReduce design pattern](../design_pattern/mapreduce.md) for more detailed examples of fan-out/aggregate patterns)._
-
-### Step 4: Run with `asyncio`:
-
-BrainyFlow code must be run within an async event loop. The standard way is using `asyncio.run()`:
+Ensure your main application entry point uses `asyncio.run()` (Python) or `Promise.all()`/`async` functions (TypeScript) to execute your flows.
 
 ```python
 import asyncio
@@ -348,14 +161,13 @@ if __name__ == "__main__":
     asyncio.run(main())
 ```
 
-## Conclusion
-
-Migrating from PocketFlow to BrainyFlow primarily involves:
+**Summary of Key Migration Points:**
 
 1.  Updating imports to `brainyflow` and adding `import asyncio`.
-2.  Adding `async` to your Node/Flow method definitions (`prep`, `exec`, `post`, `exec_fallback`).
-3.  Using `await` when calling `run()` methods and any other asynchronous operations within your methods.
-4.  Replacing `BatchNode`/`BatchFlow` with the appropriate `Sequential*` or `Parallel*` BrainyFlow classes.
+2.  Adding `async` to your Node/Flow method definitions (`prep`, `exec`, `post`, `exec_fallback`) and removing any `_async` suffix from the method names.
+3.  Replacing any `return action` in `post()` with `self.trigger(action, forking_data={...})` (Python) or `this.trigger(action, { ... })` (TypeScript).
+4.  Using `await` when calling `run()` methods and any other asynchronous operations within your methods.
+5.  Refactoring `BatchNode`/`BatchFlow` usage to the fan-out pattern using standard `Node`s orchestrated by `Flow` or `ParallelFlow`.
 5.  Running your main execution logic within an `async def main()` function called by `asyncio.run()`.
 
 This transition enables you to leverage the performance and concurrency benefits of asynchronous programming in your workflows.

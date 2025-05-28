@@ -4,7 +4,7 @@ class MapReduceFlow(ParallelFlow):
     async def post(self, memory, prep_res, exec_res):
         self.trigger("default")
 
-class Map(Node):
+class Trigger(Node):
     def __init__(self, options: dict = {}, **kwargs):
         super().__init__(**kwargs)
         self.input_key = options.get("input_key", "items")
@@ -16,7 +16,7 @@ class Map(Node):
     
     async def post(self, memory, items, exec_res):
         setattr(memory, self.output_key, {} if isinstance(items, dict) else [None] * len(items))
-        for index, input in enumerate(items):
+        for index, input in (enumerate(items) if isinstance(items, (list, tuple)) else items.items()):
             self.trigger("default", {"index": index, "item": input})
 
 class Reduce(Node):
@@ -35,8 +35,8 @@ class Reduce(Node):
 
 
 def mapreduce(iterate: Node | Flow, options: dict = {}):
-    map = Map(options)
+    trigger = Trigger(options)
     reduce = Reduce(options)
 
-    map >> iterate >> reduce
-    return MapReduceFlow(start=map)
+    trigger >> iterate >> reduce
+    return MapReduceFlow(start=trigger)
