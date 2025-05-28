@@ -11,7 +11,7 @@ machine-display: false
 <p>
 
 <p align="center">
-  A radically minimalist AI framework (just <a href="https://github.com/zvictor/BrainyFlow/blob/main/python/brainyflow.py">300 lines in Python</a>! 🤯)
+  A radically minimalist AI framework (just <a href="https://github.com/zvictor/BrainyFlow/blob/main/python/brainyflow.py">300 lines</a>! 🤯)
 
   <br />
   Build Powerful AI Agents with Minimal Code, Maximum Freedom.
@@ -160,6 +160,12 @@ Check out [Agentic Coding Guidance](./guides/agentic_coding.md), the fastest way
 ## Acknowledgement
 
 We would like to extend our deepest gratitude to the creators and contributors of the PocketFlow framework, from which brainyFlow originated as a fork.
+
+## Contributors Wanted!
+
+We're looking for contributors for all aspects of the project. Whether you're interested in documentation, testing, or implementing features, we'd love your help!
+
+Get involved by joining our [Discord server](https://discord.gg/N9mVvxRXyH).
 
 ## Liability Disclaimer
 
