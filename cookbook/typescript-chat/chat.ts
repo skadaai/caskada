@@ -1,5 +1,5 @@
 import readline from 'node:readline'
-import { Flow, Memory, Node } from 'brainyflow' // Import Memory
+import { Flow, Memory, Node } from 'brainyflow'
 import { callLLM, Message } from './utils'
 
 function promptUser(): Promise<string> {
@@ -16,29 +16,25 @@ function promptUser(): Promise<string> {
   })
 }
 
-interface ChatGlobalStore {
-  // Rename shared context to GlobalStore
+type ChatGlobalStore = {
   messages?: Message[]
 }
 
 class ChatNode extends Node<ChatGlobalStore> {
-  // Use GlobalStore type hint
+  // Use memory and add type hint
   async prep(memory: Memory<ChatGlobalStore>) {
-    // Use memory and add type hint
     if (!memory.messages) {
-      // Use property access
-      memory.messages = [] // Use property access
+      memory.messages = []
       console.log("Welcome to the chat! Type 'exit' to end the conversation.")
     }
 
     const input = await promptUser()
-
     if (input === 'exit') {
       return
     }
 
-    memory.messages.push({ role: 'user', content: input }) // Use property access
-    return memory.messages // Use property access
+    memory.messages.push({ role: 'user', content: input })
+    return memory.messages
   }
 
   async exec(messages?: Message[]) {
@@ -50,23 +46,23 @@ class ChatNode extends Node<ChatGlobalStore> {
     return response
   }
 
+  // Use memory and add type hint
   async post(memory: Memory<ChatGlobalStore>, prepRes?: Message[], execRes?: string) {
-    // Use memory and add type hint
     if (!prepRes) {
       console.log('Goodbye!')
-      this.trigger('end') // Use trigger to end the flow
+      this.trigger('end')
       return
     }
 
     if (!execRes) {
       console.log('Goodbye!')
-      this.trigger('end') // Use trigger to end the flow
+      this.trigger('end')
       return
     }
 
     console.log(`Assistant: ${execRes}`)
-    memory.messages?.push({ role: 'assistant', content: execRes }) // Use property access
-    this.trigger('continue') // Use trigger
+    memory.messages?.push({ role: 'assistant', content: execRes })
+    this.trigger('continue')
   }
 }
 

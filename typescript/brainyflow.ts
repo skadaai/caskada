@@ -4,10 +4,11 @@ export type SharedStore = Record<string, unknown>
 type Action = string | typeof DEFAULT_ACTION
 type NestedActions<T extends Action[]> = Record<T[number], ExecutionTree[]>
 
-export type Memory<GlobalStore extends SharedStore = SharedStore, LocalStore extends SharedStore = SharedStore> = GlobalStore &
-  LocalStore & {
-    local: LocalStore
-    clone<T extends SharedStore = SharedStore>(forkingData?: T): Memory<GlobalStore, LocalStore & T>
+export type InferLocal<GS extends SharedStore> = GS extends { local: infer L } ? (L extends SharedStore ? L : {}) : {}
+export type Memory<GS extends SharedStore = SharedStore, LS extends SharedStore = InferLocal<GS>> = GS &
+  LS & {
+    local: LS
+    clone<T extends SharedStore = SharedStore>(forkingData?: T): Memory<GS, LS & T>
     _isMemoryObject: true
   }
 
@@ -66,33 +67,32 @@ function createProxyHandler<T extends SharedStore>(closer: T, further?: SharedSt
   }
 }
 
-export function createMemory<GlobalStore extends SharedStore = SharedStore, LocalStore extends SharedStore = SharedStore>(
-  global: GlobalStore,
-  local: LocalStore = {} as LocalStore,
-): Memory<GlobalStore, LocalStore> {
+export function createMemory<GS extends SharedStore, LS extends SharedStore = InferLocal<GS>>(
+  global: GS,
+  local: LS = (typeof global.local === 'object' && global.local !== null ? { ...global.local } : {}) as LS,
+): Memory<GS, LS> {
   const localProxy = new Proxy(local, createProxyHandler(local))
   return new Proxy(
     {
       _isMemoryObject: true,
       local: localProxy,
-      clone: <T extends SharedStore = SharedStore>(forkingData: T = {} as T): Memory<GlobalStore, LocalStore & T> =>
-        createMemory<GlobalStore, LocalStore & T>(global, {
+      clone: <T extends SharedStore = SharedStore>(forkingData: T = {} as T): Memory<GS, LS & T> =>
+        createMemory<GS, LS & T>(global, {
           ...structuredClone({ ...local } /* de-proxy it first */),
           ...structuredClone({ ...forkingData } /* de-proxyfy it first */),
         }),
     },
     createProxyHandler(localProxy, global),
-  ) as Memory<GlobalStore, LocalStore>
+  ) as Memory<GS, LS>
 }
 
 export abstract class BaseNode<
-  GlobalStore extends SharedStore = SharedStore,
-  LocalStore extends SharedStore = SharedStore,
+  GS extends SharedStore = SharedStore,
   PrepResult = any,
   ExecResult = any,
   AllowedActions extends Action[] = Action[],
 > {
-  private successors: Map<Action, BaseNode<GlobalStore>[]> = new Map()
+  private successors: Map<Action, BaseNode<GS>[]> = new Map()
   protected triggers: Trigger<AllowedActions[number], SharedStore>[] = []
   private locked = true
   private static __nextId = 0
@@ -118,7 +118,7 @@ export abstract class BaseNode<
     return cloned
   }
 
-  on<N extends BaseNode<GlobalStore>>(action: Action, node: N): N {
+  on<N extends BaseNode<GS>>(action: Action, node: N): N {
     if (!this.successors.has(action)) {
       this.successors.set(action, [])
     }
@@ -126,11 +126,11 @@ export abstract class BaseNode<
     return node
   }
 
-  next<N extends BaseNode<GlobalStore>>(node: N, action: Action = DEFAULT_ACTION): N {
+  next<N extends BaseNode<GS>>(node: N, action: Action = DEFAULT_ACTION): N {
     return this.on(action, node)
   }
 
-  getNextNodes(action: Action = DEFAULT_ACTION): BaseNode<GlobalStore>[] {
+  getNextNodes(action: Action = DEFAULT_ACTION): BaseNode<GS>[] {
     const next = this.successors.get(action) || []
     if (!next.length && this.successors.size > 0 && action !== DEFAULT_ACTION) {
       console.warn(
@@ -141,15 +141,10 @@ export abstract class BaseNode<
     return next
   }
 
-  async prep(memory: Memory<GlobalStore, LocalStore>): Promise<PrepResult | void> {}
+  async prep(memory: Memory<GS, InferLocal<GS>>): Promise<PrepResult | void> {}
   async exec(prepRes: PrepResult | void): Promise<ExecResult | void> {}
-  async post(memory: Memory<GlobalStore, LocalStore>, prepRes: PrepResult | void, execRes: ExecResult | void): Promise<void> {}
+  async post(memory: Memory<GS, InferLocal<GS>>, prepRes: PrepResult | void, execRes: ExecResult | void): Promise<void> {}
 
-  /**
-   * Trigger a child node with optional local memory
-   * @param action Action identifier
-   * @param forkingData Memory to fork to the triggered node
-   */
   trigger(action: AllowedActions[number], forkingData: SharedStore = {}): void {
     if (this.locked) {
       throw new Error(`An action can only be triggered inside post()`)
@@ -157,24 +152,24 @@ export abstract class BaseNode<
     this.triggers.push({ action, forkingData })
   }
 
-  private listTriggers(memory: Memory<GlobalStore, LocalStore>): [AllowedActions[number], Memory<GlobalStore>][] {
+  private listTriggers(memory: Memory<GS, InferLocal<GS>>): [AllowedActions[number], Memory<GS, InferLocal<GS> & SharedStore>][] {
     if (!this.triggers.length) {
-      return [[DEFAULT_ACTION, memory.clone()]]
+      return [[DEFAULT_ACTION, memory.clone() as Memory<GS, InferLocal<GS> & SharedStore>]]
     }
     return this.triggers.map((t) => [t.action, memory.clone(t.forkingData)])
   }
 
-  protected abstract execRunner(memory: Memory<GlobalStore, LocalStore>, prepRes: PrepResult | void): Promise<ExecResult | void>
+  protected abstract execRunner(memory: Memory<GS, InferLocal<GS>>, prepRes: PrepResult | void): Promise<ExecResult | void>
 
-  async run(memory: Memory<GlobalStore, LocalStore> | GlobalStore, propagate: true): Promise<ReturnType<typeof this.listTriggers>>
-  async run(memory: Memory<GlobalStore, LocalStore> | GlobalStore, propagate?: false): Promise<ReturnType<typeof this.execRunner>>
+  async run(memory: Memory<GS, InferLocal<GS>> | GS, propagate: true): Promise<ReturnType<typeof this.listTriggers>>
+  async run(memory: Memory<GS, InferLocal<GS>> | GS, propagate?: false): Promise<ReturnType<typeof this.execRunner>>
   async run(
-    memory: Memory<GlobalStore, LocalStore> | GlobalStore,
+    memory: Memory<GS, InferLocal<GS>> | GS,
     propagate?: boolean,
   ): Promise<ReturnType<typeof this.execRunner> | ReturnType<typeof this.listTriggers>> {
-    const _memory: Memory<GlobalStore, LocalStore> = memory._isMemoryObject
-      ? (memory as Memory<GlobalStore, LocalStore>)
-      : createMemory<GlobalStore, LocalStore>(memory as GlobalStore)
+    const _memory: Memory<GS, InferLocal<GS>> = memory._isMemoryObject
+      ? (memory as Memory<GS, InferLocal<GS>>)
+      : createMemory<GS, InferLocal<GS>>(memory)
 
     this.triggers = []
     const prepRes = await this.prep(_memory)
@@ -191,12 +186,11 @@ export abstract class BaseNode<
 }
 
 class RetryNode<
-  GlobalStore extends SharedStore = SharedStore,
-  LocalStore extends SharedStore = SharedStore,
+  GS extends SharedStore = SharedStore,
   PrepResult = any,
   ExecResult = any,
   AllowedActions extends Action[] = Action[],
-> extends BaseNode<GlobalStore, LocalStore, PrepResult, ExecResult, AllowedActions> {
+> extends BaseNode<GS, PrepResult, ExecResult, AllowedActions> {
   private curRetry = 0
   private readonly maxRetries: number
   private readonly wait: number
@@ -211,7 +205,7 @@ class RetryNode<
     throw error
   }
 
-  protected async execRunner(memory: Memory<GlobalStore, LocalStore>, prepRes: PrepResult | void): Promise<ExecResult | void> {
+  protected async execRunner(memory: Memory<GS, InferLocal<GS>>, prepRes: PrepResult | void): Promise<ExecResult | void> {
     for (this.curRetry = 0; this.curRetry < this.maxRetries; this.curRetry++) {
       try {
         return await this.exec(prepRes)
@@ -232,9 +226,8 @@ class RetryNode<
 
 export const Node = RetryNode
 
-export class Flow<GlobalStore extends SharedStore = SharedStore, AllowedActions extends Action[] = Action[]> extends BaseNode<
-  GlobalStore,
-  SharedStore,
+export class Flow<GS extends SharedStore = SharedStore, AllowedActions extends Action[] = Action[]> extends BaseNode<
+  GS,
   void,
   ExecutionTree,
   AllowedActions
@@ -242,7 +235,7 @@ export class Flow<GlobalStore extends SharedStore = SharedStore, AllowedActions 
   private visitCounts: Map<number, number> = new Map()
 
   constructor(
-    public readonly start: BaseNode<GlobalStore>,
+    public readonly start: BaseNode<GS>,
     private readonly options: { maxVisits?: number } = {},
   ) {
     super()
@@ -253,7 +246,7 @@ export class Flow<GlobalStore extends SharedStore = SharedStore, AllowedActions 
     throw new Error('Flow.exec() must never be called directly.')
   }
 
-  protected async execRunner(memory: Memory<GlobalStore, SharedStore>, prepRes: void): Promise<ExecutionTree> {
+  protected async execRunner(memory: Memory<GS, InferLocal<GS>>, prepRes: void): Promise<ExecutionTree> {
     this.visitCounts.clear()
     return await this.runNode(this.start, memory)
   }
@@ -266,11 +259,14 @@ export class Flow<GlobalStore extends SharedStore = SharedStore, AllowedActions 
     return results
   }
 
-  private async runNodes(nodes: BaseNode<GlobalStore>[], memory: Memory<GlobalStore>): Promise<ExecutionTree[]> {
+  private async runNodes<CurrentLS extends SharedStore>(
+    nodes: BaseNode<GS>[],
+    memory: Memory<GS, CurrentLS>,
+  ): Promise<ExecutionTree[]> {
     return await this.runTasks(nodes.map((node) => () => this.runNode(node, memory)))
   }
 
-  private async runNode(node: BaseNode<GlobalStore>, memory: Memory<GlobalStore, SharedStore>): Promise<ExecutionTree> {
+  private async runNode<CurrentLS extends SharedStore>(node: BaseNode<GS>, memory: Memory<GS, CurrentLS>): Promise<ExecutionTree> {
     const nodeOrder = node.__nodeOrder
     const currentVisitCount = (this.visitCounts.get(nodeOrder) || 0) + 1
     if (currentVisitCount > this.options.maxVisits!) {
@@ -303,8 +299,8 @@ export class Flow<GlobalStore extends SharedStore = SharedStore, AllowedActions 
   }
 }
 
-export class ParallelFlow<GlobalStore extends SharedStore = SharedStore, AllowedActions extends Action[] = Action[]> extends Flow<
-  GlobalStore,
+export class ParallelFlow<GS extends SharedStore = SharedStore, AllowedActions extends Action[] = Action[]> extends Flow<
+  GS,
   AllowedActions
 > {
   protected async runTasks<TaskResult>(tasks: (() => Promise<TaskResult>)[]): Promise<TaskResult[]> {
@@ -312,7 +308,7 @@ export class ParallelFlow<GlobalStore extends SharedStore = SharedStore, Allowed
   }
 }
 
-// @ts-ignore - Make classes available globally in the browser for UMD bundle
-if (typeof window !== 'undefined' && !globalThis.brainyflow) {
+// @ts-ignore Make classes available globally in the browser for UMD bundle
+if (typeof window !== 'undefined' && !(globalThis as any).brainyflow) {
   ;(globalThis as any).brainyflow = { createMemory, BaseNode, Node, Flow, ParallelFlow, DEFAULT_ACTION }
 }

@@ -9,6 +9,7 @@ This release introduces significant improvements to `Memory` management, `Flow` 
 ## Breaking Changes
 
 - **Flow as Node - Trigger Propagation**: When a sub-flow (acting as a node) has an internal node triggering an action for which the sub-flow has no defined successor, this action now correctly propagates as a trigger from the sub-flow node itself in the parent flow's `ExecutionTree`.
+- **Simplified Generic Types**: The generic type hints for `Flow` and `Node` have been simplified, removing the `L` (i.e. `LocalMemory`) type parameter and moving the `ActionT` to the end of the list as it is rarely used. The local memory type can be defined inside the Global by using the property `.local`. Before: `Node[G, L, ActionT, PrepResultT, ExecResultT]`; Now: `Node[G, PrepResultT, ExecResultT, ActionT]`.
 
 Rarely used other than internally, but still breaking changes:
 
