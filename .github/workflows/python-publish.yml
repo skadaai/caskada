@@ -116,7 +116,6 @@ jobs:
         with:
           commit_message: 'chore: update PY version and publish'
           file_pattern: 'python/setup.py python/.changeset/* python/package.json python/CHANGELOG.md'
-          pull_strategy: 'rebase'
           # The action defaults to pushing to the branch that triggered the workflow (main)
           # It also uses the github-actions[bot] user by default
 
@@ -125,9 +124,11 @@ jobs:
         id: changelog_text
         run: |
           CHANGELOG_CONTENT=$(node .github/scripts/extract-changelog-text.js python ${{ steps.version.outputs.new_version }})
+          echo "$CHANGELOG_CONTENT"
           echo "content<<EOF" >> $GITHUB_OUTPUT
           echo "$CHANGELOG_CONTENT" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
+          echo $GITHUB_OUTPUT
 
       - name: Create GitHub Release
         if: steps.version.outputs.has_changes == 'true'
@@ -144,8 +145,7 @@ jobs:
 
             ### Installation
 
-            pip install brainyflow
-
+            pip install brainyflow==${{ steps.version.outputs.new_version }}
 
             ### PyPI Package
             🐍 [View on PyPI](https://pypi.org/project/brainyflow/${{ steps.version.outputs.new_version }}/)
@@ -159,7 +159,7 @@ jobs:
         run: |
           node .github/scripts/discord-notify.js \
             "$DISCORD_WEBHOOK_URL" \
-            "BrainyFlow Python" \
+            "python" \
             "${{ steps.version.outputs.new_version }}" \
             "${{ steps.changelog_text.outputs.changelog }}" \
             "${{ github.server_url }}/${{ github.repository }}"

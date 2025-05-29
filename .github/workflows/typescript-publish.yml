@@ -88,7 +88,6 @@ jobs:
         with:
           commit_message: 'chore: update TS version and publish'
           file_pattern: 'typescript/package.json typescript/.changeset/* typescript/CHANGELOG.md'
-          pull_strategy: 'rebase'
           # The action defaults to pushing to the branch that triggered the workflow (main)
           # It also uses the github-actions[bot] user by default
 
@@ -97,9 +96,11 @@ jobs:
         id: changelog_text
         run: |
           CHANGELOG_CONTENT=$(node .github/scripts/extract-changelog-text.js typescript ${{ steps.version.outputs.new_version }})
+          echo "$CHANGELOG_CONTENT"
           echo "content<<EOF" >> $GITHUB_OUTPUT
           echo "$CHANGELOG_CONTENT" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
+          echo $GITHUB_OUTPUT
 
       - name: Create GitHub Release
         if: steps.version.outputs.has_changes == 'true'
@@ -116,12 +117,9 @@ jobs:
 
             ### Installation
 
-            npm install brainyflow
-            # or
-            pnpm add brainyflow
-            # or
-            yarn add brainyflow
-
+            npm install brainyflow@${{ steps.version.outputs.new_version }}
+            pnpm add brainyflow@${{ steps.version.outputs.new_version }}
+            yarn add brainyflow@${{ steps.version.outputs.new_version }}
 
             ### NPM Package
             📦 [View on NPM](https://www.npmjs.com/package/brainyflow/v/${{ steps.version.outputs.new_version }})
@@ -135,7 +133,7 @@ jobs:
         run: |
           node .github/scripts/discord-notify.js \
             "$DISCORD_WEBHOOK_URL" \
-            "BrainyFlow TypeScript" \
+            "typescript" \
             "${{ steps.version.outputs.new_version }}" \
             "${{ steps.changelog_text.outputs.changelog }}" \
             "${{ github.server_url }}/${{ github.repository }}"
