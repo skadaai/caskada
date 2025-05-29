@@ -672,10 +672,14 @@ They manage the execution order, handle data flow between nodes, and provide err
 A Flow begins with a **start node**, a memory state, and follows the [action-based transitions defined by the nodes](./nodes.md) until it reaches a node with no matching transition for its returned action.
 
 ```typescript
-import { Flow, Node } from 'brainyflow'
+import { Flow, Memory, Node } from 'brainyflow'
 
-// Define nodes and transitions
-// const node_a = new Node(); ... etc.
+// Define nodes and transitions (placeholders for actual node classes)
+// const node_a = new YourActualNode();
+// const node_b = new YourActualNode();
+// const node_c = new YourActualNode();
+// const node_d = new YourActualNode();
+
 node_a.next(node_b) // Default transition
 node_b.on('success', node_c) // Named transition
 node_b.on('error', node_d) // Named transition
@@ -687,8 +691,8 @@ interface MyGlobalStore {
   error?: any
 }
 
-// Start with an empty memory object
-const memory = { input: 'some data' }
+// Start with an initial memory object
+const memory: MyGlobalStore = { input: 'some data' }
 
 // Create flow starting with node_a
 const flow = new Flow<MyGlobalStore>(node_a)
@@ -707,43 +711,6 @@ console.log('Execution Tree:', executionResult)
 // { input: 'some data', error: 'error details from node_d' }
 ```
 
-## Flow Execution Process
-
-When you call `flow.run(memory)`, the flow executes the following steps internally:
-
-1.  It starts with the designated `start` node.
-2.  For the current node, it executes its lifecycle (`prep` -> `execRunner` -> `post`), passing to the `prep` and `post` methods a `Memory` instance that wraps the global store and manages local state.
-3.  It looks for triggered action (specified by `trigger()` calls), then it finds the corresponding successor node(s) defined by `.on()` or `.next()`.
-4.  It recursively executes the successor node(s) with their respective cloned local memories.
-5.  This process repeats until it reaches nodes that trigger actions with no defined successors, or the flow completes.
-6.  The `run` method modifies the original `Memory` object's global store in place.
-7.  Upon completion, `flow.run()` returns an `ExecutionTree` object, which is a structured representation of the execution path, the actions triggered at each step, and the resulting sub-trees.
-
-```mermaid
-sequenceDiagram
-    participant M as Memory Object (Global + Local)
-    participant F as Flow
-    participant N1 as Node A
-    participant N2 as Node B
-
-    F->>N1: Execute Node A
-    N1->>M: prep() reads from M_A
-    N1->>N1: Perform computation
-    N1->>M: post() writes to M_A (local store)
-    N1-->>F: Node A finished, triggered "default"
-
-    F->>F: Find successor for "default" (Node B)
-    F->>N2: Execute Node B
-    N2->>M: prep() reads from M_B (local then global)
-    N2->>N2: Perform computation
-    N2->>M: post() writes to M_B (global store)
-    N2-->>F: Node B finished, triggered "success"
-
-    F->>F: No transition defined for "success"
-    F-->>User: Flow execution complete, returns ExecutionTree
-    M-->>User: User reads memory changes
-```
-
 ## Controlling Flow Execution
 
 ### Branching and Looping
@@ -757,7 +724,7 @@ Here's a simple expense approval flow that demonstrates branching and looping:
 ```typescript
 import { Flow, Node } from 'brainyflow'
 
-// Define the nodes first
+// Define the nodes first (placeholders for actual node classes)
 // const review = new ReviewExpenseNode()
 // const revise = new ReviseReportNode()
 // const payment = new ProcessPaymentNode()
@@ -777,9 +744,9 @@ const expenseFlow = new Flow(review)
 
 This flow creates the following execution paths:
 
-1. If `review` triggers `"approved"`, the expense moves to the `payment` node
-2. If `review` triggers `"needs_revision"`, it goes to the `revise` node, which then loops back to `review`
-3. If `review` triggers `"rejected"`, it moves to the `finish` node and stops
+1.  If `review` triggers `"approved"`, the expense moves to the `payment` node.
+2.  If `review` triggers `"needs_revision"`, it goes to the `revise` node, which then loops back to `review`.
+3.  If `review` triggers `"rejected"`, it moves to the `finish` node and stops.
 
 ```mermaid
 flowchart TD
@@ -796,23 +763,25 @@ flowchart TD
 Every `Flow` is in fact a specialized type of `Node`. This means a `Flow` itself can be used as a node within another, larger `Flow`, enabling powerful composition and nesting patterns.
 
 {% hint style="info" %}
-The difference from Node is that `Flow` has a specialized `execRunner()` method - _the internal caller of `exec()`_ - that orchestrates its internal nodes and which cannot be overridden.
-As such:
+The difference from a standard `Node` is that `Flow` overrides `execRunner()` - a method called inside `run()` - to make it a specialized method tasked with orchestrating internal nodes.
 
-- A `Flow`'s primary role is orchestration, not direct computation like a standard `Node`.
-- You cannot override `exec` or `execRunner` in a `Flow`.
+<details>
+  <summary>What sets Flow apart from a standard Node</summary>
+  
+- A `Flow`'s primary role is orchestration, not direct computation like a standard `Node`'s `exec()` method.
+- It ignores `exec`, so you should not define it (nor `execRunner`) in a `Flow`.
 - It still has the `prep` and `post` lifecycle methods, which you _can_ override if you need to perform setup before the sub-flow runs or cleanup/processing after it completes.
-- When a `Flow` used as a node finishes its internal execution, it triggers its _own_ successors in the parent flow based on its `post` method's `trigger` calls (or the default action).
-
+- When a `Flow` (acting as a node) finishes its internal execution, what action it triggers for its parent flow is determined by a combination of its own `post()` method and any **explicitly propagated actions** from its internal nodes (see "Action Propagation" below).
+</details>
 {% endhint %}
 
 This allows you to:
 
-1. Break down complex applications into manageable sub-flows
-2. Reuse flows across different applications
-3. Create hierarchical workflows with clear separation of concerns
+1.  Break down complex applications into manageable sub-flows.
+2.  Reuse flows across different applications.
+3.  Create hierarchical workflows with clear separation of concerns.
 
-#### Example: Order Processing Pipeline
+#### Example: Order Processing Pipeline (Illustrating Nesting)
 
 Here's a practical example that breaks down order processing into nested flows:
 
@@ -838,9 +807,9 @@ inventoryFlow.next(shippingFlow) // Default transition after inventoryFlow compl
 const orderPipeline = new Flow(paymentFlow)
 
 // --- Run the entire pipeline ---
-// const globalStore = { orderId: 'XYZ789', customerId: 'CUST123' }
-// await orderPipeline.run(globalStore);
-// console.log('Order pipeline completed. Final state:', globalStore)
+const globalStore = { orderId: 'XYZ789', customerId: 'CUST123' }
+await orderPipeline.run(globalStore)
+console.log('Order pipeline completed. Final state:', globalStore)
 ```
 
 This creates a clean separation of concerns while maintaining a clear execution path:
@@ -867,35 +836,80 @@ flowchart LR
 
 ### Cycle Detection
 
-Loops are created by connecting a node back to a previously executed node. To prevent infinite loops, `Flow` includes cycle detection controlled by the `maxVisits` option in its constructor (default is 15). If a node is visited more times than `maxVisits` during a single run, an error is thrown.
+Loops are created by connecting a node back to a previously executed node. To prevent infinite loops, `Flow` includes cycle detection controlled by the `maxVisits` option in its constructor (default is 15). If a node is visited more times than `maxVisits` during a single `flow.run()` execution, an error is thrown.
 
 {% hint style="success" %}
 This mechanism, combined with the `ExecutionTree` output, helps debug and manage complex looped behaviors.
 {% endhint %}
 
 ```typescript
-// Limit the number of times a node can be visited within this flow
+// Limit the number of times any node can be visited within this flow execution
 const flow = new Flow(startNode, { maxVisits: 10 })
 ```
 
 - The default value for `maxVisits` is `15`.
 - Set `maxVisits` to `Infinity` or a very large number for effectively no limit (use with caution!).
 
+### Propagation of Terminal Actions
+
+Besides being capable of triggering actions like any other `Node`, a `Flow` also propagates actions triggered by internal _terminal nodes_. This allows for more dynamic and interconnected workflows, where an action deep within a sub-flow can influence the parent flow's path without needing explicit re-triggering at every level.
+
+Think about it as a pratical way to "_hand over unfinished tasks in a flow directly to the next flow_".
+
+{% hint style="info" %}
+These terms can often be used interchangeably, with a subtle distinction:
+
+- **Leaf Node (Graph Theory Term):** A leaf node is a node with no children (no outgoing edges).
+- **Terminal Node (in BrainyFlow context):** A node that, for a _specific triggered action_, has no defined successor _within the current Flow_.
+
+Thus,
+
+- **"Leaf node"** often implies a node that is structurally at the end of all possible paths within its local graph (the `SubFlow`).
+- **"Terminal node"** is a node that might have successors for _some_ actions but not for the one it currently triggers.
+  {% endhint %}
+
+Here's how it works:
+
+1.  **Explicit Triggers:**
+
+    - If a node **explicitly triggers** an action (e.g. `"some_action"`), and **no direct successor** is defined for this `"some_action"`, then `"some_action"` is collected by the running Flow and trickled up to its own successors.
+
+2.  **Implicit default action:**
+
+    - If a node finishes **without** an explicit `.trigger()` call, it does **not** automatically collect or propagate any default action outside of the running Flow.
+
+3.  **Flow's own `post()` Method and Final Action:**
+
+    - After a Flow's execution completes, its own `post()` method is called. Any `.trigger()` calls made within `.post()` are effectively combined with the explicitly propagated actions collected from the internal terminal nodes (as described in point 1).
+    - If no explicit actions were propagated from internal leaf nodes and `Flow.post()` also doesn't trigger anything, `Flow` will then implicitly trigger the default action.
+
+**In essence:**
+
+- **Explicit Triggers Bubble Up:** Actions explicitly triggered by terminal nodes deep within a sub-flow will "bubble up" to the sub-flow itself. The sub-flow then uses these actions to determine its path in the parent flow.
+
+This mechanism allows for:
+
+- **Permeable Sub-Flows:** Design sub-flows that can signal specific, unhandled outcomes to their parent.
+- **Reduced Boilerplate:** Avoid manually re-triggering actions at the end of every sub-flow just to pass a signal upwards.
+- **Context Preservation:** `forkingData` associated with an explicitly propagated trigger is carried along.
+- **Concurrency Preservation:** The execution doesn’t end at the leaf node, it continues as you navigate into the next flow.
+
+For example, an `"error_needs_escalation"` action explicitly triggered deep within a payment sub-flow can propagate out to be handled by a dedicated error-handling branch in the main order pipeline, even if the payment sub-flow itself doesn't define a handler for `"error_needs_escalation"`.
+
 ## Flow Parallelism
 
-When a node's `post` method calls `this.trigger()` multiple times (e.g., for different actions or for the same action with different `forkingData`), it effectively creates multiple branches of execution that will start from that node. How these branches are executed depends on the type of `Flow` being used.
+When a node's `post` method calls `this.trigger()` multiple times (e.g., for different actions, or for the same action with different `forkingData`), it effectively creates multiple branches of execution that will start from that node. How these branches are executed depends on the type of `Flow` being used.
 
-The `Flow` class manages the execution of these branches via its `runTasks` method. This method takes an array of task functions (each function representing the execution of one triggered branch) and determines how they are run.
+The `Flow` class manages the execution of these branches via its `runTasks` method. This method takes a list of task functions (each function representing the execution of one triggered branch) and determines how they are run.
 
-- In a standard `Flow`, `runTasks` executes them sequentially.
-- In a `ParallelFlow`, `runTasks` executes them concurrently.
+- In a standard `Flow`, `runTasks` executes them **sequentially**.
+- In a `ParallelFlow`, `runTasks` executes them **concurrently**.
 
-You can also create custom flow execution behaviors simply by subclassing `Flow` and overriding `runTasks`.
-BrainyFlow offers two built-in types - _and the possibility to create custom ones_ - of flows that provide different levels of parallelism when nodes trigger multiple successors:
+You can also create custom flow execution behaviors by subclassing `Flow` and overriding `runTasks`.
 
 ### 1. `Flow` (Sequential Execution)
 
-The default `Flow` class executes the tasks generated by multiple triggers **sequentially**. It waits for the entire branch initiated by the first trigger to complete before starting the branch for the second trigger, and so on.
+The default `Flow` class executes the tasks generated by multiple triggers from a single node **sequentially**. It waits for the entire branch initiated by the first trigger to complete before starting the branch for the second trigger, and so on.
 
 ```typescript
 const sequentialFlow = new Flow(startNode)
@@ -903,7 +917,7 @@ const sequentialFlow = new Flow(startNode)
 
 ### 2. `ParallelFlow` (Concurrent Execution)
 
-The `ParallelFlow` class executes the tasks generated by multiple triggers **concurrently** using `Promise.all()` (TypeScript) or `asyncio.gather()` (Python). This is useful for performance when branches are independent (e.g., batch processing items).
+The `ParallelFlow` class executes the tasks generated by multiple triggers from a single node **concurrently** (e.g., using `Promise.all()` in TypeScript or `asyncio.gather()` in Python). This is useful for performance when branches are independent.
 
 ```typescript
 const parallelFlow = new ParallelFlow(startNode) // Executes triggered branches in parallel
@@ -912,26 +926,30 @@ const parallelFlow = new ParallelFlow(startNode) // Executes triggered branches 
 Use `ParallelFlow` when:
 
 1.  A node needs to "fan-out" work into multiple independent branches (e.g., processing items in a batch).
-2.  These branches do not have dependencies on each other's immediate results (though they might all write back to the shared global memory).
+2.  These branches do not have strict sequential dependencies on each other's immediate results (though they might all write back to the shared global memory).
 3.  You want to potentially speed up execution by running these independent branches concurrently.
 
 {% hint style="danger" %}
+**Concurrency Considerations with `ParallelFlow`**:
 
-When using `ParallelFlow`, be mindful of potential race conditions if multiple parallel branches try to modify the same property in the global `Memory` object simultaneously without proper synchronization. Often, it's safer for parallel branches to accumulate results in their `local` store (via `forkingData` and internal processing) or use unique keys/indices when writing to the global store, potentially followed by a final sequential aggregation step if needed.
+When using `ParallelFlow`, be mindful of potential race conditions if multiple parallel branches attempt to modify the same property in the global `Memory` object simultaneously without proper synchronization. It's often safer for parallel branches to:
 
-{% endhint %}
+- Accumulate results in their `local` store (via `forkingData` and internal processing).
+- Use unique keys or indices when writing to the global store.
+- Potentially be followed by a final sequential aggregation step if needed.
+  {% endhint %}
 
 ### Custom Execution Logic (Overriding `runTasks`)
 
-For more advanced control over how triggered branches are executed, you can extend `Flow` (or `ParallelFlow`) and override the `runTasks` method. This method receives an array of functions, where each function represents the execution of one triggered branch.
+For more advanced control over how triggered branches are executed, you can extend `Flow` (or `ParallelFlow`) and override the `runTasks` method. This method receives a list of functions, where each function, when called, will execute one triggered branch.
 
 ```typescript
 import { Flow, Memory } from 'brainyflow'
 
-declare function sleep(ms: number): Promise<void> // Assuming sleep is available
+declare function sleep(ms: number): Promise<void>
 
-class CustomExecutionFlow extends Flow {
-  async runTasks<T>(tasks: (() => Promise<T>)[]): Promise<Awaited<T>[]> {
+class CustomExecutionFlow<GS extends Record<string, any>> extends Flow<GS> {
+  protected async runTasks<T>(tasks: (() => Promise<T>)[]): Promise<Awaited<T>[]> {
     // Example: Run tasks sequentially with a delay between each
     const results: Awaited<T>[] = []
     for (const task of tasks) {
@@ -946,82 +964,72 @@ class CustomExecutionFlow extends Flow {
 
 ## Batch Processing (Fan-Out Pattern)
 
-The standard way to process multiple items (sequentially or in parallel) in BrainyFlow is using the "fan-out" pattern. This involves a node that triggers multiple instances of processing for individual items. This pattern does **not** require specialized "BatchNode" or "BatchFlow" classes.
+The standard way to process multiple items (sequentially or in parallel) in BrainyFlow is using the "fan-out" pattern. This involves a node that triggers multiple instances of processing for individual items.
 
 1.  **Trigger Node**:
-    - A standard `Node` whose `post` method iterates through your items (e.g., from `prepRes.items`).
-    - For each item, it calls `this.trigger` with forking data. E.g., `this.trigger("process_item", { item: current_item, index: i })`.
-    - The forked data is crucial for passing item-specific data to the local memory of the next node.
+    - A standard `Node` whose `post` method iterates through your items.
+    - For each item, it forks the execution by triggering a chosen action with the data of that one item - e.g. `this.trigger("process_item", { item: current_item, index: i })`.
 2.  **Processor Node**:
-    - Another standard `Node` connected via the action triggered by the `TriggerNode`. E.g. `triggerNode.on("process_item", processorNode)`.
-    - Its `prep` reads the forked data from its local memory.
-    - Its `exec` performs the actual processing for that single item.
-    - Its `post` typically stores the result back into the global `Memory` object (e.g., `memory.results[prepRes.index] = execRes.result`).
+    - Another standard `Node` connected via the action triggered by the `TriggerNode` (e.g., `triggerNode.on("process_item", processorNode)`).
+    - Its `prep` method typically reads the item-specific data from its `memory.local` store (which received the `forkingData`).
+    - Its `exec` method performs the actual processing for that single item.
+    - Its `post` method often stores the result back into the global `Memory` object, using the `index` to place it correctly (e.g., `memory.results[prepRes.index] = execRes.result`).
 3.  **Flow Choice**:
-    - Use `Flow(triggerNode)` for **sequential** batch processing (one item completes before the next starts).
-    - Use `ParallelFlow(triggerNode)` for **concurrent** batch processing (all items are processed in parallel).
+    - Use `Flow(triggerNode)` for **sequential** batch processing (one item's processing branch completes before the next starts).
+    - Use `ParallelFlow(triggerNode)` for **concurrent** batch processing (all items' processing branches are initiated concurrently).
 
-This pattern leverages the core `Flow` and `Node` abstractions to handle batching effectively.
+In this setup, `Trigger Node` fans out the work.
 
-#### Example: Simple Batch Processing
+If run with `ParallelFlow`, each `Processor Node` instance would execute concurrently. If run with a standard `Flow`, they would execute sequentially.
 
-```typescript
-interface BatchGlobalStore {
-  items_to_process?: any[]
-  results?: Record<string, any>
-}
-interface BatchLocalStore {
-  item_data?: any
-  result_index?: number
-}
+The results are written to `memory.results` using the index, which should be pre-allocated to be safe for parallel execution.
 
-class TriggerBatchNode extends Node<BatchGlobalStore, BatchLocalStore, ['process_one', 'aggregate']> {
-  async prep(memory: Memory<BatchGlobalStore>): Promise<any[]> {
-    return memory.items_to_process ?? []
-  }
-  async post(memory: Memory<BatchGlobalStore>, items: any[], execRes: void): Promise<void> {
-    memory.results = new Array(items.length).fill(null) // Pre-allocate
-    items.forEach((item, index) => {
-      this.trigger('process_one', { item_data: item, result_index: index })
-    })
-    // Optional: this.trigger("aggregate");
-  }
-}
+This pattern leverages the core `Flow` and `Node` abstractions to handle batching effectively, and is the base for more complex patterns such as MapReduce.
 
-class ProcessOneItemNode extends Node<BatchGlobalStore, BatchLocalStore> {
-  async prep(memory: Memory<BatchGlobalStore, BatchLocalStore>): Promise<{ item: any; index: number }> {
-    return { item: memory.item_data, index: memory.result_index ?? -1 }
-  }
-  async exec(prepRes: { item: any; index: number }): Promise<{ result: any; index: number }> {
-    const result = `Processed ${prepRes.item}` // Placeholder
-    return { result, index: prepRes.index }
-  }
-  async post(memory: Memory<BatchGlobalStore>, prepRes: any, execRes: { result: any; index: number }): Promise<void> {
-    if (!memory.results) memory.results = {}
-    memory.results[String(execRes.index)] = execRes.result
-  }
-}
+For a more detailed exploration, including implementation examples, refer to the [MapReduce pattern](../design_pattern/mapreduce.md).
 
-// Setup
-const trigger = new TriggerBatchNode()
-const processor = new ProcessOneItemNode()
-trigger.on('process_one', processor)
+## Flow In-Depth Execution Process
 
-// Choose Flow type
-// const sequentialBatchFlow = new Flow<BatchGlobalStore>(trigger);
-const parallelBatchFlow = new ParallelFlow<BatchGlobalStore>(trigger)
+When you call `flow.run(memory)`, the flow executes the following steps internally:
 
-// Run
-// async function run() {
-//   const memory: BatchGlobalStore = { items_to_process: ["A", "B", "C"] };
-//   await parallelBatchFlow.run(memory);
-//   console.log(memory.results); // Output: ['Processed A', 'Processed B', 'Processed C']
-// }
-// run();
+1.  It starts with the designated `start` node.
+2.  For the current node, it executes its lifecycle (`prep → exec → pos`), passing to the `prep` and `post` methods a `Memory` instance that wraps the global store and manages local state for that specific execution path.
+3.  After the node's `post()` method, the flow determines the action(s) triggered by that node (via `this.trigger()` calls in `post()`)
+    3.a. If no call is made during the execution of the node, an implicit `DEFAULT_ACTION` (i.e. an action called `"default"`) is triggered.
+4.  For each triggered action, it finds the corresponding successor node(s) defined by `.on()` or `.next()`.
+5.  It recursively executes the successor node(s). If `forkingData` was provided, a new local memory scope is created for that branch, inheriting the global store but with the `forkingData` merged into its local state.
+6.  This process repeats until it reaches all terminal nodes (i.e. nodes with no defined successors within the current flow), or the flow completes.
+7.  The flow finish its execution by running its own `post` method, where it can trigger any final action, together with the explicitly triggered actions of all terminal nodes.
+8.  Upon completion, `flow.run()` returns an `ExecutionTree` object, which is a structured representation of the execution path, the actions triggered at each step, and the resulting sub-trees.
+
+```mermaid
+sequenceDiagram
+    participant Memory
+    participant Flow
+    participant NodeA as Node A
+    participant NodeB as Node B
+
+    Note over Memory, Flow: Flow reads & write memory
+    Flow->>NodeA: node_a.run(memory)
+    NodeA->>NodeA: prep()
+    NodeA->>NodeA: exec()
+    NodeA->>NodeA: post() (may call this.trigger())
+    Note right of NodeA: Node A triggers "default"
+    NodeA-->>Flow: Finished, triggered "default"
+
+    Flow->>Flow: Find successor for "default" (Node B)
+    Flow->>NodeB: node_b.run(memory)
+    NodeB->>NodeB: prep()
+    NodeB->>NodeB: exec()
+    NodeB->>NodeB: post() (may call this.trigger())
+    Note right of NodeB: Node B triggers "success_action"
+    NodeB-->>Flow: Finished, triggered "success_action"
+
+    Flow->>Flow: No successor for "success_action"
+    Note right of Flow: Flow triggers "success_action"
+    Note right of Flow: Returns ExecutionTree
+
 ```
-
-In this example, `TriggerBatchNode` fans out the work. If run with `ParallelFlow`, each `ItemProcessorNode` instance would execute concurrently. If run with a standard `Flow`, they would execute sequentially.
-The results are written to `memory.results` using the index as a key, which is safer for parallel execution than assuming array indices will be filled in order.
 
 ## Best Practices
 
@@ -1031,12 +1039,13 @@ The results are written to `memory.results` using the index as a key, which is s
 - **Memory Planning**: Define clear interfaces for your `GlobalStore` and `LocalStore` types upfront. Decide what state needs to be global versus what can be passed locally via `forkingData`.
 - **Action Naming**: Use descriptive, meaningful action names (e.g., 'user_clarification_needed', 'data_validated') instead of generic names like 'next' or 'step2'.
 - **Explicit Transitions**: Clearly define transitions for all expected actions a node might trigger. Consider adding default `.next()` transitions for unexpected or completion actions.
+- **Understand Action Propagation**: Be aware of how explicit triggers from within sub-flows can propagate outwards. Use this to your advantage for signaling complex outcomes, but also ensure that sub-flows correctly handle actions internally if they are not meant to propagate (by defining successors for them within the sub-flow).
 - **Cycle Management**: Be mindful of loops. Use the `maxVisits` option in the `Flow` constructor to prevent accidental infinite loops.
 - **Error Strategy**: Decide how errors should propagate. Should a node's `execFallback` handle errors and allow the flow to continue, or should errors terminate the flow? Define specific error actions (`node.on('error', errorHandlerNode)`) if needed.
-- **Parallelism Choice**: Use `ParallelFlow` when branches are independent and can benefit from concurrent execution. Stick with `Flow` (sequential) if branches have dependencies or shared resource contention.
-- **Memory Isolation**: Leverage `forkingData` in `trigger` calls to pass data down specific branches via the `local` store, keeping the `global` store cleaner. This is crucial for parallel execution.
+- **Parallelism Choice**: Use `ParallelFlow` when branches are independent and can benefit from concurrent execution. Stick with `Flow` (sequential) if branches have dependencies or shared resource contention that isn't managed.
+- **Memory Isolation**: Leverage `forkingData` in `trigger` calls to pass data down specific branches via the `local` store, keeping the `global` store cleaner. This is crucial for parallel execution and maintaining branch-specific context.
 - **Test Incrementally**: Test individual nodes using `node.run()` and test sub-flows before integrating them into larger pipelines.
-- **Avoid Deep Nesting**: While nesting flows is powerful, keep the hierarchy reasonably flat (e.g., 2-3 levels deep) for maintainability.
+- **Avoid Deep Nesting**: While nesting flows is powerful, keep the hierarchy reasonably flat (e.g., 2-3 levels deep) for maintainability and ease of understanding.
 
 Flows provide the orchestration layer that determines how your nodes interact, ensuring that data moves predictably through your application (via the `Memory` object) and that execution follows your intended paths, ultimately returning an `ExecutionTree` for introspection.
 
@@ -1719,10 +1728,6 @@ We use a `ParallelFlow` for the mapping phase for performance gain.
 ```python
 from brainyflow import Node, Flow, ParallelFlow
 
-class MapReduceFlow(ParallelFlow):
-    async def post(self, memory, prep_res, exec_res):
-        self.trigger("default")
-
 class Trigger(Node):
     async def prep(self, memory):
         assert hasattr(memory, "items"), f"'items' must be set in memory"
@@ -1733,7 +1738,7 @@ class Trigger(Node):
         for index, input in (enumerate(items) if isinstance(items, (list, tuple)) else items.items()):
             self.trigger("default", {"index": index, "item": input})
 
-class Reduce(Node):
+class Reducer(Node):
     async def prep(self, memory):
         assert hasattr(memory, "index"), "index of processed item must be set in memory"
         assert hasattr(memory, "item"), "processed item must be set in memory"
@@ -1741,75 +1746,67 @@ class Reduce(Node):
 
     async def post(self, memory, prep_res, exec_res):
         memory.output[prep_res[0]] = prep_res[1]
-        self.trigger(None)
 
 def mapreduce(iterate: Node | Flow):
     trigger = Trigger()
-    reduce = Reduce()
+    reduce = Reducer()
 
     trigger >> iterate >> reduce
-    return MapReduceFlow(start=trigger)
+    return ParallelFlow(start=trigger)
 ```
 
 {% endtabs %}
 {% tab title="TypeScript" %}
 
 ```typescript
-import {Node, Flow, ParallelFlow } from 'brainyflow'
-
-class MapReduceFlow extends ParallelFlow {
-  async post(memory, prepRes, execRes): Promise<void> {
-    this.trigger("default");
-  }
-}
+import { Flow, Node, ParallelFlow } from 'brainyflow'
 
 class Trigger extends Node {
   async prep(memory): Promise<any[] | Record<string, any>> {
     if (!memory.items) {
-      throw new Error("'items' must be set in memory");
+      throw new Error("'items' must be set in memory")
     }
-    return memory.items;
+    return memory.items
   }
 
   async post(memory, items, execRes): Promise<void> {
-    memory.output = Array.isArray(items) ? new Array(items.length).fill(null) : {};
+    memory.output = Array.isArray(items) ? new Array(items.length).fill(null) : {}
 
     if (Array.isArray(items)) {
       items.forEach((item, index) => {
-        this.trigger("default", { index, item });
-      });
+        this.trigger('default', { index, item })
+      })
     } else {
       Object.entries(items).forEach(([key, value]) => {
-        this.trigger("default", { index: key, item: value });
-      });
+        this.trigger('default', { index: key, item: value })
+      })
     }
   }
 }
 
-class Reduce extends Node {
+class Reducer extends Node {
   async prep(memory) {
-    return [memory.local.index, memory.local.item];
+    return [memory.local.index, memory.local.item]
   }
 
   async post(memory, prepRes, execRes) {
-    const [index, itemResultFromIterate] = prepRes;
+    const [index, itemResultFromIterate] = prepRes
 
     if (Array.isArray(memory.output)) {
-      (memory.output as any[])[index] = itemResultFromIterate;
+      ;(memory.output as any[])[index] = itemResultFromIterate
     } else {
-      (memory.output as Record<string, any>)[index.toString()] = itemResultFromIterate;
+      ;(memory.output as Record<string, any>)[index.toString()] = itemResultFromIterate
     }
-
-    this.trigger(null as any)
   }
+}
 
-export function mapreduce(iterate: Node | Flow): MapReduceFlow {
-  const trigger = new Trigger();
-  const reduce = new Reduce();
+export function mapreduce(iterate: Node | Flow): ParallelFlow {
+  const trigger = new Trigger()
+  const reduce = new Reducer()
 
-  trigger.next(iterate).next(reduce);
+  trigger.next(iterate).next(reduce)
 
-  return new MapReduceFlow(trigger);
+  return new ParallelFlow(trigger)
 }
 ```
 
@@ -2388,7 +2385,7 @@ describe('SummarizeNode', () => {
     // Create initial global memory state
     const memory = { text: 'This is a long text that needs to be summarized.' }
 
-    // Run the node's lifecycle (prep -> exec -> post)
+    // Run the node's lifecycle (prep → exec → post)
     await summarizeNode.run(memory) // Pass memory object
 
     // Verify the LLM call
@@ -2676,10 +2673,7 @@ export function createDefaultTestMemory(): TestMemory {
   return { input: 'test data', config: { setting: 'value' } }
 }
 
-export async function runNodeWithMemory(
-  node: Node,
-  initialMemory?: TestMemory,
-): Promise<TestMemory> {
+export async function runNodeWithMemory(node: Node, initialMemory?: TestMemory): Promise<TestMemory> {
   /** Runs a node with provided or default initial memory. */
   const memory = initialMemory ?? createDefaultTestMemory()
   // Assumes node.run modifies the object in place
