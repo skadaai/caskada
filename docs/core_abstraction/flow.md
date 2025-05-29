@@ -33,7 +33,7 @@ flow = Flow(start=node_a)
 # Run the flow, passing the memory object.
 # The memory object is modified in place.
 # The run method returns an ExecutionTree.
-execution_result = await flow.run(memory_instance)
+execution_result = await flow.run(memory)
 
 print("Flow finished. Final memory state:", memory)
 print('Execution Tree:', execution_result)
