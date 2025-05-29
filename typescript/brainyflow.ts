@@ -285,8 +285,8 @@ export class Flow<GS extends SharedStore = SharedStore, AllowedActions extends A
       let nextNodes = clonedNode.getNextNodes(action)
       if (nextNodes.length > 0) {
         tasks.push(async () => [action, await this.runNodes(nextNodes, nodeMemory)])
-      } else {
-        // If the sub-node triggered an action that has no successors, that action becomes a terminal trigger for this Flow itself (if Flow is nested).
+      } else if ((clonedNode as any).triggers.length) {
+        // If the sub-node explicitly triggered an action that has no successors, that action becomes a terminal trigger for this Flow itself (if Flow is nested).
         this.triggers.push({ action, forkingData: nodeMemory.local || {} })
         triggered[action] = [] // Log that this action was triggered but led to no further nodes within this Flow.
       }
