@@ -69,7 +69,7 @@ describe('SummarizeNode', () => {
     // Create initial global memory state
     const memory = { text: 'This is a long text that needs to be summarized.' }
 
-    // Run the node's lifecycle (prep -> exec -> post)
+    // Run the node's lifecycle (prep → exec → post)
     await summarizeNode.run(memory) // Pass memory object
 
     // Verify the LLM call
@@ -543,10 +543,7 @@ export function createDefaultTestMemory(): TestMemory {
   return { input: 'test data', config: { setting: 'value' } }
 }
 
-export async function runNodeWithMemory(
-  node: Node,
-  initialMemory?: TestMemory,
-): Promise<TestMemory> {
+export async function runNodeWithMemory(node: Node, initialMemory?: TestMemory): Promise<TestMemory> {
   /** Runs a node with provided or default initial memory. */
   const memory = initialMemory ?? createDefaultTestMemory()
   // Assumes node.run modifies the object in place
