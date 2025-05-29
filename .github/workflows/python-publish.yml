@@ -115,7 +115,7 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: 'chore: update PY version and publish'
-          file_pattern: 'python/setup.py python/.changeset/* python/package.json python/CHANGELOG.md'
+          file_pattern: 'python/setup.py python/.changeset/* python/CHANGELOG.md'
           # The action defaults to pushing to the branch that triggered the workflow (main)
           # It also uses the github-actions[bot] user by default
 
