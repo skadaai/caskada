@@ -7,7 +7,7 @@ export async function notifyDiscord(webhookUrl, releaseInfo) {
   const { packageName, version, changelog, repositoryUrl } = releaseInfo
 
   const embed = {
-    title: `🚀 ${packageName} v${version} Released!`,
+    title: `🚀 Brainyflow ${packageName} v${version} Released!`,
     description: changelog.substring(0, 2000), // Discord embed description limit
     color: packageName.toLowerCase() === 'typescript' ? 0x3178c6 : 0x3776ab, // TS blue or Python blue
     fields: [
@@ -29,7 +29,7 @@ export async function notifyDiscord(webhookUrl, releaseInfo) {
   }
 
   if (repositoryUrl) {
-    embed.url = `${repositoryUrl}/releases/tag/v${version}`
+    embed.url = `${repositoryUrl}/releases/tag/${packageName.toLowerCase()}-v${version}`
   }
 
   const payload = {
