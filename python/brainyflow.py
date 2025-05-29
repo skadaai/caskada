@@ -285,8 +285,8 @@ class Flow(BaseNode[M, PrepResultT, ExecutionTree, ActionT]):
             if next_nodes:
                 tasks.append((lambda act=action, nn_list=next_nodes, nm_mem=node_memory: # type: ignore
                                  lambda: self._process_trigger(act, nn_list, nm_mem))())
-            else:
-                # If the sub-node triggered an action that has no successors, that action becomes a terminal trigger for this Flow itself
+            elif len(cloned_node._triggers) > 0:
+                # If the sub-node explicitly triggered an action that has no successors, that action becomes a terminal trigger for this Flow itself
                 self._triggers.append({ "action": action, "forking_data": node_memory._local })
                 triggered[action] = [] # Log that this action was triggered but led to no further nodes within this Flow.
 

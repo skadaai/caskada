@@ -41,10 +41,6 @@ We use a `ParallelFlow` for the mapping phase for performance gain.
 ```python
 from brainyflow import Node, Flow, ParallelFlow
 
-class MapReduceFlow(ParallelFlow):
-    async def post(self, memory, prep_res, exec_res):
-        self.trigger("default")
-
 class Trigger(Node):
     async def prep(self, memory):
         assert hasattr(memory, "items"), f"'items' must be set in memory"
@@ -55,7 +51,7 @@ class Trigger(Node):
         for index, input in (enumerate(items) if isinstance(items, (list, tuple)) else items.items()):
             self.trigger("default", {"index": index, "item": input})
 
-class Reduce(Node):
+class Reducer(Node):
     async def prep(self, memory):
         assert hasattr(memory, "index"), "index of processed item must be set in memory"
         assert hasattr(memory, "item"), "processed item must be set in memory"
@@ -63,75 +59,67 @@ class Reduce(Node):
 
     async def post(self, memory, prep_res, exec_res):
         memory.output[prep_res[0]] = prep_res[1]
-        self.trigger(None)
 
 def mapreduce(iterate: Node | Flow):
     trigger = Trigger()
-    reduce = Reduce()
+    reduce = Reducer()
 
     trigger >> iterate >> reduce
-    return MapReduceFlow(start=trigger)
+    return ParallelFlow(start=trigger)
 ```
 
 {% endtabs %}
 {% tab title="TypeScript" %}
 
 ```typescript
-import {Node, Flow, ParallelFlow } from 'brainyflow'
-
-class MapReduceFlow extends ParallelFlow {
-  async post(memory, prepRes, execRes): Promise<void> {
-    this.trigger("default");
-  }
-}
+import { Flow, Node, ParallelFlow } from 'brainyflow'
 
 class Trigger extends Node {
   async prep(memory): Promise<any[] | Record<string, any>> {
     if (!memory.items) {
-      throw new Error("'items' must be set in memory");
+      throw new Error("'items' must be set in memory")
     }
-    return memory.items;
+    return memory.items
   }
 
   async post(memory, items, execRes): Promise<void> {
-    memory.output = Array.isArray(items) ? new Array(items.length).fill(null) : {};
+    memory.output = Array.isArray(items) ? new Array(items.length).fill(null) : {}
 
     if (Array.isArray(items)) {
       items.forEach((item, index) => {
-        this.trigger("default", { index, item });
-      });
+        this.trigger('default', { index, item })
+      })
     } else {
       Object.entries(items).forEach(([key, value]) => {
-        this.trigger("default", { index: key, item: value });
-      });
+        this.trigger('default', { index: key, item: value })
+      })
     }
   }
 }
 
-class Reduce extends Node {
+class Reducer extends Node {
   async prep(memory) {
-    return [memory.local.index, memory.local.item];
+    return [memory.local.index, memory.local.item]
   }
 
   async post(memory, prepRes, execRes) {
-    const [index, itemResultFromIterate] = prepRes;
+    const [index, itemResultFromIterate] = prepRes
 
     if (Array.isArray(memory.output)) {
-      (memory.output as any[])[index] = itemResultFromIterate;
+      ;(memory.output as any[])[index] = itemResultFromIterate
     } else {
-      (memory.output as Record<string, any>)[index.toString()] = itemResultFromIterate;
+      ;(memory.output as Record<string, any>)[index.toString()] = itemResultFromIterate
     }
-
-    this.trigger(null as any)
   }
+}
 
-export function mapreduce(iterate: Node | Flow): MapReduceFlow {
-  const trigger = new Trigger();
-  const reduce = new Reduce();
+export function mapreduce(iterate: Node | Flow): ParallelFlow {
+  const trigger = new Trigger()
+  const reduce = new Reducer()
 
-  trigger.next(iterate).next(reduce);
+  trigger.next(iterate).next(reduce)
 
-  return new MapReduceFlow(trigger);
+  return new ParallelFlow(trigger)
 }
 ```
 

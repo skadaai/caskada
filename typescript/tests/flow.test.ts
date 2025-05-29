@@ -5,15 +5,15 @@ import { BaseNode, createMemory, DEFAULT_ACTION, ExecutionTree, Flow, Memory, No
 // --- Helper Nodes ---
 class TestNode<
   G extends SharedStore = SharedStore,
-  L extends SharedStore = SharedStore,
-  AllowedA extends string[] = string[],
+  AllowedA extends string[] = string[], // Mapped to Action[] in BaseNode
   P = any,
   E = any,
-> extends Node<G, L, AllowedA, P, E> {
+> extends Node<G, P, E, AllowedA> {
+  // Adjusted generic parameters to match Node
   id: string
-  defaultPrepMockImpl = async (memory: Memory<G, L>): Promise<void> => {}
+  defaultPrepMockImpl = async (memory: Memory<G>): Promise<void> => {} // Memory uses GS, LS (InferLocal<GS>)
   defaultExecMockImpl = async (prepRes: P): Promise<E> => `exec_${this.id}` as any
-  defaultPostMockImpl = async (memory: Memory<G, L>, prepRes: P, execRes: E): Promise<void> => {}
+  defaultPostMockImpl = async (memory: Memory<G>, prepRes: P, execRes: E): Promise<void> => {}
 
   prepMock = mock.fn(this.defaultPrepMockImpl)
   execMock = mock.fn(this.defaultExecMockImpl)
@@ -24,7 +24,7 @@ class TestNode<
     this.id = id
   }
 
-  async prep(memory: Memory<G, L>): Promise<P> {
+  async prep(memory: Memory<G>): Promise<P> {
     memory[`prep_${this.id}`] = true
     await this.prepMock(memory)
     return `prep_${this.id}` as any
@@ -35,16 +35,16 @@ class TestNode<
     return await this.execMock(prepRes)
   }
 
-  async post(memory: Memory<G, L>, prepRes: P, execRes: E): Promise<void> {
+  async post(memory: Memory<G>, prepRes: P, execRes: E): Promise<void> {
     assert.equal(prepRes, `prep_${this.id}`)
-    assert.equal(execRes, `exec_${this.id}` as any)
+    // Ensure execRes can be undefined if exec returns void
+    if (execRes !== undefined || `exec_${this.id}` !== undefined) {
+      assert.equal(execRes, `exec_${this.id}` as any)
+    }
     memory[`post_${this.id}`] = true
     await this.postMock(memory, prepRes, execRes)
-    // If no explicit trigger is called by a subclass's post or postMock,
-    // the default trigger mechanism in BaseNode.listTriggers will take effect.
   }
 
-  // Helper to reset mocks for this instance
   resetMocks() {
     this.prepMock = mock.fn(this.defaultPrepMockImpl)
     this.execMock = mock.fn(this.defaultExecMockImpl)
@@ -52,44 +52,49 @@ class TestNode<
   }
 }
 
-class BranchingNode<
-  G extends SharedStore = SharedStore,
-  L extends SharedStore = SharedStore,
-  AllowedA extends string[] = string[],
-  P = any,
-  E = any,
-> extends TestNode<G, L, AllowedA, P, E> {
+class BranchingNode<G extends SharedStore = SharedStore, AllowedA extends string[] = string[], P = any, E = any> extends TestNode<
+  G,
+  AllowedA,
+  P,
+  E
+> {
   actionToTrigger: AllowedA[number] | typeof DEFAULT_ACTION = DEFAULT_ACTION
   forkDataForTrigger: SharedStore | null = null
+  private clearTriggersFirstInPost = false
 
   constructor(id: string) {
     super(id)
   }
 
-  setTrigger(action: AllowedA[number] | typeof DEFAULT_ACTION, forkData: SharedStore | null = null) {
+  setTrigger(action: AllowedA[number] | typeof DEFAULT_ACTION, forkData: SharedStore | null = null, clearPrevious: boolean = false) {
     this.actionToTrigger = action
     this.forkDataForTrigger = forkData
+    this.clearTriggersFirstInPost = clearPrevious
   }
 
-  async post(memory: Memory<G, L>, prepRes: P, execRes: E): Promise<void> {
-    await super.post(memory, prepRes, execRes)
+  async post(memory: Memory<G>, prepRes: P, execRes: E): Promise<void> {
+    await super.post(memory, prepRes, execRes) // Calls TestNode.post, which calls this.postMock
+    if (this.clearTriggersFirstInPost) {
+      this.triggers = [] // Clear any triggers set by super.post or its mock
+    }
     if (this.actionToTrigger) {
-      this.trigger(this.actionToTrigger as AllowedA[number], this.forkDataForTrigger ?? {})
+      // Cast is necessary because AllowedA[number] might not be assignable to Action if AllowedA is too narrow
+      this.trigger(this.actionToTrigger as any, this.forkDataForTrigger ?? {})
     }
   }
 }
 
 describe('Flow Class', () => {
   let globalStore: SharedStore
-  let memory: Memory<SharedStore, SharedStore> // This memory is for general use if a test doesn't create its own specific one
+  let memory: Memory<SharedStore>
   let nodeA: TestNode, nodeB: TestNode, nodeC: TestNode, nodeD: TestNode
   let branchingNodeInstance: BranchingNode
 
   beforeEach(() => {
+    ;(BaseNode as any).__nextId = 0 // Reset node order for deterministic tests
     globalStore = { initial: 'global' }
-    memory = createMemory(globalStore) // General memory for tests
+    memory = createMemory(globalStore)
 
-    // Instantiate all nodes that will be used across different test groups or need consistent reset
     nodeA = new TestNode('A')
     nodeB = new TestNode('B')
     nodeC = new TestNode('C')
@@ -99,7 +104,6 @@ describe('Flow Class', () => {
     const nodesToResetMocks = [nodeA, nodeB, nodeC, nodeD, branchingNodeInstance]
     nodesToResetMocks.forEach((node) => {
       if (node instanceof TestNode) {
-        // Ensures node is not undefined and is of TestNode type
         node.resetMocks()
       }
     })
@@ -121,10 +125,11 @@ describe('Flow Class', () => {
 
   describe('Sequential Execution', () => {
     it('should execute nodes sequentially following default actions', async () => {
+      // A=0, B=1, C=2
       nodeA.next(nodeB)
       nodeB.next(nodeC) // A -> B -> C
-      const flow = new Flow(nodeA)
-      const currentMemory = createMemory({ test_case: 'sequential' }) // Use a fresh memory
+      const flow = new Flow(nodeA) // flow=3
+      const currentMemory = createMemory({ test_case: 'sequential' })
       await flow.run(currentMemory)
 
       assert.equal(nodeA.prepMock.mock.calls.length, 1, 'A prep')
@@ -146,8 +151,9 @@ describe('Flow Class', () => {
     })
 
     it('should stop execution if a node has no successor for the triggered action', async () => {
+      // A=0, B=1, C=2 (unused)
       nodeA.next(nodeB) // A -> B (B has no successor for default)
-      const flow = new Flow(nodeA)
+      const flow = new Flow(nodeA) // flow=3
       const currentMemory = createMemory({ test_case: 'stop_no_successor' })
       await flow.run(currentMemory)
 
@@ -159,12 +165,13 @@ describe('Flow Class', () => {
 
   describe('Conditional Branching', () => {
     it('should follow the correct path based on triggered action', async () => {
+      // Branch=0, B=1, C=2
       branchingNodeInstance.on('path_B' as any, nodeB)
       branchingNodeInstance.on('path_C' as any, nodeC)
 
       // Test path B
       branchingNodeInstance.setTrigger('path_B' as any)
-      let flowB = new Flow(branchingNodeInstance)
+      let flowB = new Flow(branchingNodeInstance) // flowB=3
       let memoryB = createMemory({})
       await flowB.run(memoryB)
 
@@ -174,25 +181,35 @@ describe('Flow Class', () => {
       assert.equal(nodeB.postMock.mock.calls.length, 1, 'NodeB postMock for path_B')
       assert.equal(nodeC.postMock.mock.calls.length, 0, 'NodeC postMock for path_B')
 
+      // Reset for next part of the test: Branch=0, B=1, C=2. Node orders are global to the test suite due to beforeEach reset.
+      // We need new instances or careful mock resets if __nodeOrder matters deeply for sub-assertions.
+      // For this test, we reset mocks.
       nodeB.resetMocks()
       nodeC.resetMocks()
 
+      const localBranchingNode = new BranchingNode('BranchLocal1') //0
+      const localNodeB = new TestNode('BLocal1') //1
+      const localNodeC = new TestNode('CLocal1') //2
+      localBranchingNode.on('path_B' as any, localNodeB)
+      localBranchingNode.on('path_C' as any, localNodeC)
+
       // Test path C
-      branchingNodeInstance.setTrigger('path_C' as any)
-      let flowC = new Flow(branchingNodeInstance)
+      localBranchingNode.setTrigger('path_C' as any)
+      let flowC = new Flow(localBranchingNode) // flowC=3
       let memoryC = createMemory({})
       await flowC.run(memoryC)
 
-      assert.equal(memoryC.post_Branch, true, 'Branch node post flag for path_C')
-      assert.strictEqual((memoryC as any).post_B, undefined, 'Node B should not have post_B flag for path_C')
-      assert.equal(memoryC.post_C, true, 'Node C post flag for path_C')
-      assert.equal(nodeB.postMock.mock.calls.length, 0, 'NodeB postMock for path_C')
-      assert.equal(nodeC.postMock.mock.calls.length, 1, 'NodeC postMock for path_C')
+      assert.equal(memoryC.post_BranchLocal1, true, 'Branch node post flag for path_C')
+      assert.strictEqual((memoryC as any).post_BLocal1, undefined, 'Node B should not have post_B flag for path_C')
+      assert.equal(memoryC.post_CLocal1, true, 'Node C post flag for path_C')
+      assert.equal(localNodeB.postMock.mock.calls.length, 0, 'NodeB postMock for path_C')
+      assert.equal(localNodeC.postMock.mock.calls.length, 1, 'NodeC postMock for path_C')
     })
   })
 
   describe('Memory Handling', () => {
     it('should propagate global memory changes', async () => {
+      // A=0, B=1
       nodeA.postMock.mock.mockImplementation(async (mem: Memory) => {
         mem.global_A = 'set_by_A'
       })
@@ -200,7 +217,7 @@ describe('Flow Class', () => {
         assert.equal(mem.global_A, 'set_by_A', 'Node B should see global_A from Node A')
       })
       nodeA.next(nodeB)
-      const flow = new Flow(nodeA)
+      const flow = new Flow(nodeA) // flow=2
       const currentGlobalStore = { test_case: 'global_propagate' }
       const currentMemory = createMemory(currentGlobalStore)
       await flow.run(currentMemory)
@@ -211,6 +228,7 @@ describe('Flow Class', () => {
     })
 
     it('should isolate local memory using forkingData', async () => {
+      // Branch=0, B=1, C=2
       branchingNodeInstance.on('path_B' as any, nodeB)
       branchingNodeInstance.on('path_C' as any, nodeC)
 
@@ -229,26 +247,26 @@ describe('Flow Class', () => {
 
       // Trigger B
       branchingNodeInstance.setTrigger('path_B' as any, { local_data: 'for_B', common_local: 'common' })
-      let flowB = new Flow(branchingNodeInstance)
-      let memoryB = createMemory({ global_val: 1 })
-      await flowB.run(memoryB)
+      let flowB_mem = new Flow(branchingNodeInstance) // flowB_mem=3
+      let memoryB_mem = createMemory({ global_val: 1 })
+      await flowB_mem.run(memoryB_mem)
       assert.equal(nodeB.prepMock.mock.calls.length, 1, 'Node B prepMock calls for path_B')
       assert.equal(nodeC.prepMock.mock.calls.length, 0, 'Node C prepMock calls for path_B')
-      assert.strictEqual((memoryB as any).local_data, undefined, 'memoryB should not have local_data')
-      assert.strictEqual((memoryB as any).common_local, undefined, 'memoryB should not have common_local')
+      assert.strictEqual((memoryB_mem as any).local_data, undefined, 'memoryB_mem should not have local_data')
+      assert.strictEqual((memoryB_mem as any).common_local, undefined, 'memoryC_mem should not have common_local')
 
       nodeB.resetMocks()
       nodeC.resetMocks()
 
       // Trigger C
       branchingNodeInstance.setTrigger('path_C' as any, { local_data: 'for_C', common_local: 'common' })
-      let flowC = new Flow(branchingNodeInstance)
-      let memoryC = createMemory({ global_val: 1 })
-      await flowC.run(memoryC)
+      let flowC_mem = new Flow(branchingNodeInstance) // flowC_mem gets new order if __nextId not reset before its creation
+      let memoryC_mem = createMemory({ global_val: 1 })
+      await flowC_mem.run(memoryC_mem)
       assert.equal(nodeB.prepMock.mock.calls.length, 0, 'Node B prepMock calls for path_C')
       assert.equal(nodeC.prepMock.mock.calls.length, 1, 'Node C prepMock calls for path_C')
-      assert.strictEqual((memoryC as any).local_data, undefined, 'memoryC should not have local_data')
-      assert.strictEqual((memoryC as any).common_local, undefined, 'memoryC should not have common_local')
+      assert.strictEqual((memoryC_mem as any).local_data, undefined, 'memoryC_mem should not have local_data')
+      assert.strictEqual((memoryC_mem as any).common_local, undefined, 'memoryC_mem should not have common_local')
     })
   })
 
@@ -256,12 +274,13 @@ describe('Flow Class', () => {
     it('should execute a loop exactly maxVisits times before throwing error', async () => {
       let loopCount = 0
       const maxVisitsAllowed = 3
-      nodeA.prepMock.mock.mockImplementation(async (mem: Memory) => {
+      const loopingNode = new TestNode('LoopNode') // 0
+      loopingNode.prepMock.mock.mockImplementation(async (mem: Memory) => {
         loopCount++
         mem.count = loopCount
       })
-      nodeA.next(nodeA)
-      const flow = new Flow(nodeA, { maxVisits: maxVisitsAllowed })
+      loopingNode.next(loopingNode) // Points to itself
+      const flow = new Flow(loopingNode, { maxVisits: maxVisitsAllowed }) // flow=1
       const loopMemory = createMemory<{ count?: number }>({})
 
       await assert.rejects(
@@ -278,7 +297,7 @@ describe('Flow Class', () => {
         (err: Error) => {
           assert.match(
             err.message,
-            new RegExp(`Maximum cycle count \\(${maxVisitsAllowed}\\) reached for TestNode#${nodeA.__nodeOrder}`),
+            new RegExp(`Maximum cycle count \\(${maxVisitsAllowed}\\) reached for TestNode#${loopingNode.__nodeOrder}`),
           )
           return true
         },
@@ -288,73 +307,56 @@ describe('Flow Class', () => {
     })
   })
 
-  describe('ExecutionTree Result Structure', () => {
-    it('should return triggered: { default: [] } if a node is terminal and has no explicit trigger', async () => {
-      const terminalNode = new TestNode('Terminal') // Terminal by default
-      // Ensure its post method does NOT call this.trigger explicitly
-      terminalNode.postMock = mock.fn(async (mem, prepRes, execRes) => {
-        // No explicit this.trigger(...) call here.
-        // The TestNode.post will call this mock, but won't call this.trigger itself.
-        // BaseNode.run will clear this.triggers, then call post.
-        // If this.triggers is still empty, BaseNode.listTriggers returns default.
-      })
-
-      const flow = new Flow(terminalNode)
-      const result = (await flow.run(createMemory({}))) as ExecutionTree
-
-      const expected: ExecutionTree = {
-        order: terminalNode.__nodeOrder,
-        type: 'TestNode',
-        // According to BaseNode.listTriggers, if this.triggers is empty,
-        // it defaults to [[DEFAULT_ACTION, memory.clone()]].
-        // Flow.runNode then processes this, and if no successor for DEFAULT_ACTION,
-        // it results in { [DEFAULT_ACTION]: [] } for triggered.
-        triggered: { [DEFAULT_ACTION]: [] },
-      }
-      assert.deepStrictEqual(result, expected)
-    })
-  })
-
-  // For "Flow as Node" tests that fail with {}, it usually means an unhandled promise rejection
-  // or an error swallowed somewhere. We'd need to carefully trace their execution.
-  // A common cause is if a sub-flow's run method itself throws an error, or if
-  // assertions are made on undefined properties.
   describe('Flow as Node (Nesting)', () => {
     it('should execute a nested flow as a single node step', async () => {
+      // OuterA=0, (SubFlow's B=1, C=2), OuterD=3
       nodeB.next(nodeC)
       const subFlow = new Flow(nodeB)
-      nodeA.next(subFlow as BaseNode)
-      subFlow.next(nodeD as BaseNode)
+      const outerA = new TestNode('OuterA') // 0
+      const subNodeB = new TestNode('SubNodeB') // 1
+      const subNodeC = new TestNode('SubNodeC') // 2
+      const outerD = new TestNode('OuterD') // 3
 
-      const mainFlow = new Flow(nodeA)
+      subNodeB.next(subNodeC)
+      const nestedFlow = new Flow(subNodeB) // nestedFlow=4
+      outerA.next(nestedFlow as BaseNode)
+      nestedFlow.next(outerD as BaseNode)
+
+      const mainFlow = new Flow(outerA) // mainFlow=5
       const mainMemory = createMemory({ flow: 'main' })
       const result = (await mainFlow.run(mainMemory)) as ExecutionTree
 
-      assert.equal(nodeA.postMock.mock.calls.length, 1, 'Node A post')
-      assert.equal(nodeB.postMock.mock.calls.length, 1, 'Node B post (in subFlow)')
-      assert.equal(nodeC.postMock.mock.calls.length, 1, 'Node C post (in subFlow)')
-      assert.equal(nodeD.postMock.mock.calls.length, 1, 'Node D post (after subFlow)')
+      assert.equal(outerA.postMock.mock.calls.length, 1, 'OuterA post')
+      assert.equal(subNodeB.postMock.mock.calls.length, 1, 'SubNodeB post (in nestedFlow)')
+      assert.equal(subNodeC.postMock.mock.calls.length, 1, 'SubNodeC post (in nestedFlow)')
+      assert.equal(outerD.postMock.mock.calls.length, 1, 'OuterD post (after nestedFlow)')
 
-      assert.equal(mainMemory.post_A, true)
-      assert.equal(mainMemory.post_B, true)
-      assert.equal(mainMemory.post_C, true)
-      assert.equal(mainMemory.post_D, true)
+      assert.equal(mainMemory.post_OuterA, true)
+      assert.equal(mainMemory.post_SubNodeB, true)
+      assert.equal(mainMemory.post_SubNodeC, true)
+      assert.equal(mainMemory.post_OuterD, true)
 
-      assert.equal(result.order, nodeA.__nodeOrder)
+      assert.equal(result.order, outerA.__nodeOrder) // 0
       assert.equal(result.type, 'TestNode')
-      assert.ok(result.triggered?.[DEFAULT_ACTION]?.[0], 'SubFlow not triggered correctly from A')
+      assert.ok(result.triggered?.[DEFAULT_ACTION]?.[0], 'NestedFlow not triggered correctly from OuterA')
       const subFlowResultInTree = result.triggered![DEFAULT_ACTION][0]
-      assert.equal(subFlowResultInTree.order, subFlow.__nodeOrder)
+      assert.equal(subFlowResultInTree.order, nestedFlow.__nodeOrder) // 4
       assert.equal(subFlowResultInTree.type, 'Flow')
-      assert.ok(subFlowResultInTree.triggered?.[DEFAULT_ACTION]?.[0], 'Node D not triggered by SubFlow')
+      assert.ok(subFlowResultInTree.triggered?.[DEFAULT_ACTION]?.[0], 'OuterD not triggered by NestedFlow')
       const nodeDfromSubFlowTrigger = subFlowResultInTree.triggered![DEFAULT_ACTION][0]
-      assert.equal(nodeDfromSubFlowTrigger.order, nodeD.__nodeOrder)
+      assert.equal(nodeDfromSubFlowTrigger.order, outerD.__nodeOrder) // 3
       assert.equal(nodeDfromSubFlowTrigger.type, 'TestNode')
     })
 
     it('nested flow prep/post should wrap sub-flow execution', async () => {
-      nodeB.next(nodeC)
-      const subFlow = new Flow(nodeB)
+      ;(BaseNode as any).__nextId = 0
+      const outerA = new TestNode('OuterA') // 0
+      const subNodeB = new TestNode('SubNodeB') // 1
+      const subNodeC = new TestNode('SubNodeC') // 2
+      const outerD = new TestNode('OuterD') // 3
+
+      subNodeB.next(subNodeC)
+      const nestedFlow = new Flow(subNodeB) // nestedFlow=4
 
       const subFlowPrepMockImpl = async (mem: Memory) => {
         mem.subflow_prep_flag = true
@@ -363,40 +365,43 @@ describe('Flow Class', () => {
         mem.subflow_post_flag = true
       }
 
-      subFlow.prep = mock.fn(subFlowPrepMockImpl)
-      subFlow.post = mock.fn(subFlowPostMockImpl)
+      nestedFlow.prep = mock.fn(subFlowPrepMockImpl)
+      nestedFlow.post = mock.fn(subFlowPostMockImpl) // This is Flow's own post
 
-      nodeA.next(subFlow as BaseNode).next(nodeD as BaseNode)
-      const mainFlow = new Flow(nodeA)
+      outerA.next(nestedFlow as BaseNode).next(outerD as BaseNode) // Link OuterA -> nestedFlow -> OuterD
+      const mainFlow = new Flow(outerA) // mainFlow=5
       const mainMemory = createMemory({ flow: 'main_prep_post' })
       await mainFlow.run(mainMemory)
 
-      assert.equal((subFlow.prep as any).mock.calls.length, 1, 'SubFlow prep mock')
-      assert.equal(mainMemory.subflow_prep_flag, true, 'SubFlow prep flag in memory')
-      assert.equal(nodeB.postMock.mock.calls.length, 1, 'Node B (in subFlow) post mock')
-      assert.equal(nodeC.postMock.mock.calls.length, 1, 'Node C (in subFlow) post mock')
-      assert.equal((subFlow.post as any).mock.calls.length, 1, 'SubFlow post mock')
-      assert.equal(mainMemory.subflow_post_flag, true, 'SubFlow post flag in memory')
-      assert.equal(nodeD.postMock.mock.calls.length, 1, 'Node D (after subFlow) post mock')
+      assert.equal((nestedFlow.prep as any).mock.calls.length, 1, 'NestedFlow prep mock')
+      assert.equal(mainMemory.subflow_prep_flag, true, 'NestedFlow prep flag in memory')
+      assert.equal(subNodeB.postMock.mock.calls.length, 1, 'SubNodeB (in nestedFlow) post mock')
+      assert.equal(subNodeC.postMock.mock.calls.length, 1, 'SubNodeC (in nestedFlow) post mock')
+      assert.equal((nestedFlow.post as any).mock.calls.length, 1, 'NestedFlow post mock')
+      assert.equal(mainMemory.subflow_post_flag, true, 'NestedFlow post flag in memory')
+      assert.equal(outerD.postMock.mock.calls.length, 1, 'OuterD (after nestedFlow) post mock')
     })
   })
 
   describe('ExecutionTree Result Structure', () => {
     it('should return the correct ExecutionTree for a simple flow A -> B', async () => {
-      nodeA.next(nodeB)
-      const flow = new Flow(nodeA)
+      ;(BaseNode as any).__nextId = 0
+      const nodeA_tree = new TestNode('A_tree') // 0
+      const nodeB_tree = new TestNode('B_tree') // 1
+      nodeA_tree.next(nodeB_tree)
+      const flow = new Flow(nodeA_tree) // 2
       const currentMemory = createMemory({ test_case: 'exec_tree_simple' })
       const result = (await flow.run(currentMemory)) as ExecutionTree
 
       const expected: ExecutionTree = {
-        order: nodeA.__nodeOrder,
+        order: nodeA_tree.__nodeOrder, // 0
         type: 'TestNode',
         triggered: {
           [DEFAULT_ACTION]: [
             {
-              order: nodeB.__nodeOrder,
+              order: nodeB_tree.__nodeOrder, // 1
               type: 'TestNode',
-              triggered: { [DEFAULT_ACTION]: [] },
+              triggered: null, // B is terminal, its own default action leads to nothing
             },
           ],
         },
@@ -404,84 +409,55 @@ describe('Flow Class', () => {
       assert.deepStrictEqual(result, expected)
     })
 
-    it('should return triggered: { default: [] } if a node is terminal and its post does not explicitly trigger', async () => {
-      const terminalNode = new TestNode('TerminalOnly')
-      terminalNode.postMock = mock.fn(async (mem, prepRes, execRes) => {
-        // This mock for postMock is called by TestNode.post.
-        // TestNode.post itself does not call this.trigger().
-        // So, this.triggers in BaseNode remains empty after post() finishes.
-      })
+    it('ExecutionTree: terminal node (no explicit trigger) shows its own implicit DEFAULT_ACTION', async () => {
+      ;(BaseNode as any).__nextId = 0
+      const terminalNode = new TestNode('TerminalOnly') // 0
+      // TestNode's default postMock does not call this.trigger()
+      terminalNode.postMock = mock.fn(async () => {})
 
-      const flow = new Flow(terminalNode)
-      const currentMemory = createMemory({ test_case: 'exec_tree_terminal_implicit_default' })
-      const result = (await flow.run(currentMemory)) as ExecutionTree
-
-      const expected: ExecutionTree = {
-        order: terminalNode.__nodeOrder,
-        type: 'TestNode',
-        triggered: { [DEFAULT_ACTION]: [] }, // BaseNode.listTriggers provides default
-      }
-      assert.deepStrictEqual(result, expected)
-    })
-
-    it('should return triggered: null if post explicitly clears triggers and calls no new trigger (advanced case)', async () => {
-      // This tests a scenario where a node's post method actively manipulates this.triggers to be empty
-      // AND prevents the default mechanism if the Flow logic were to allow `null` for non-triggering terminals.
-      // However, with current brainyflow.ts, Flow.runNode populates triggered based on listTriggers.
-      // If listTriggers returns default, triggered will show default.
-      // To get `null`, `listTriggers` would have to return empty, or `Flow.runNode` would need to interpret empty `listTriggers` as `null`.
-      // The current test for "terminal and no explicit trigger" already covers the standard behavior.
-      // This test case demonstrates how one might *try* to get null, and why it results in default.
-      const specialTerminalNode = new TestNode('SpecialTerminal')
-      specialTerminalNode.post = mock.fn(async function (this: BaseNode, mem, prepRes, execRes) {
-        // Call the original TestNode post logic if needed for flags, but not its mock that might trigger.
-        // Or just set the flag directly.
-        mem[`post_${(this as TestNode).id}`] = true
-        // Explicitly ensure triggers array is empty. BaseNode.run already does this before calling post.
-        this.triggers = []
-        // Crucially, do NOT call this.trigger()
-      })
-
-      const flow = new Flow(specialTerminalNode)
+      const flow = new Flow(terminalNode) // 1
       const result = (await flow.run(createMemory({}))) as ExecutionTree
+      // The result here is the ExecutionTree of the *Flow's start node* (terminalNode)
+      // This describes what terminalNode did *inside* the flow.
 
-      // Based on current brainyflow.ts:
-      // 1. BaseNode.run clears this.triggers.
-      // 2. specialTerminalNode.post (mocked) runs, doesn't call this.trigger(). this.triggers remains [].
-      // 3. BaseNode.listTriggers sees empty this.triggers, returns [[DEFAULT_ACTION, ...]].
-      // 4. Flow.runNode processes this, finds no successor for DEFAULT_ACTION.
-      // Result is { ..., triggered: { [DEFAULT_ACTION]: [] } }
       const expected: ExecutionTree = {
-        order: specialTerminalNode.__nodeOrder,
+        order: terminalNode.__nodeOrder, // 0
         type: 'TestNode',
-        triggered: { [DEFAULT_ACTION]: [] },
+        triggered: null, // terminalNode itself triggers default, leads to no successors for it
       }
       assert.deepStrictEqual(result, expected)
     })
 
     it('should return correct structure for branching flow', async () => {
+      // This test uses branchingNodeInstance (order 4), nodeB (order 1),
+      // nodeC (order 2), and nodeD (order 3) from the main beforeEach.
+      // We are NOT resetting (BaseNode as any).__nextId here, to align with the
+      // node orders (like order: 4) observed in your error message for branchingNodeInstance.
+
+      // 1. Setup successors for the 'branchingNodeInstance' FOR THIS TEST
       branchingNodeInstance.on('path_B' as any, nodeB)
       branchingNodeInstance.on('path_C' as any, nodeC)
-      nodeB.next(nodeD)
+      nodeB.next(nodeD) // nodeB (successor of path_B) itself has a successor
 
-      branchingNodeInstance.setTrigger('path_B' as any)
+      // Test path B
+      branchingNodeInstance.setTrigger('path_B' as any, null, true) // clearPrevious = true for safety
       let flowB_exec = new Flow(branchingNodeInstance)
       let resultB = (await flowB_exec.run(createMemory({}))) as ExecutionTree
 
       const expectedB: ExecutionTree = {
-        order: branchingNodeInstance.__nodeOrder,
+        order: branchingNodeInstance.__nodeOrder, // Should be 4
         type: 'BranchingNode',
         triggered: {
           path_B: [
             {
-              order: nodeB.__nodeOrder,
+              order: nodeB.__nodeOrder, // Should be 1
               type: 'TestNode',
               triggered: {
                 [DEFAULT_ACTION]: [
                   {
-                    order: nodeD.__nodeOrder,
+                    order: nodeD.__nodeOrder, // Should be 3
                     type: 'TestNode',
-                    triggered: { [DEFAULT_ACTION]: [] },
+                    triggered: null, // nodeD is terminal
                   },
                 ],
               },
@@ -491,31 +467,40 @@ describe('Flow Class', () => {
       }
       assert.deepStrictEqual(resultB, expectedB)
 
+      // Reset mocks for the global nodes before testing the next path
       nodeB.resetMocks()
       nodeC.resetMocks()
-      nodeD.resetMocks() // Reset for next part
+      nodeD.resetMocks()
+      branchingNodeInstance.resetMocks() // Also reset the branching node's mocks
 
-      branchingNodeInstance.setTrigger('path_C' as any)
+      // Test path C using the SAME branchingNodeInstance (order 4)
+      // Its successors were set at the beginning of this 'it' block and are still valid.
+      branchingNodeInstance.setTrigger('path_C' as any, null, true) // clearPrevious = true
+
       let flowC_exec = new Flow(branchingNodeInstance)
       let resultC = (await flowC_exec.run(createMemory({}))) as ExecutionTree
-      const expectedC: ExecutionTree = {
-        order: branchingNodeInstance.__nodeOrder,
+
+      // 2. Corrected expectation for the terminal nodeC
+      const expectedC_corrected: ExecutionTree = {
+        order: branchingNodeInstance.__nodeOrder, // Should be 4
         type: 'BranchingNode',
         triggered: {
           path_C: [
+            // Expecting array because 'path_C' leads to nodeC
             {
-              order: nodeC.__nodeOrder,
+              order: nodeC.__nodeOrder, // Should be 2
               type: 'TestNode',
-              triggered: { [DEFAULT_ACTION]: [] },
+              triggered: null, // nodeC is terminal
             },
           ],
         },
       }
-      assert.deepStrictEqual(resultC, expectedC)
+      assert.deepStrictEqual(resultC, expectedC_corrected)
     })
 
     it('should return correct structure for multi-trigger (fan-out)', async () => {
-      class MultiTriggerNode extends TestNode<SharedStore, SharedStore, ['out1', 'out2']> {
+      ;(BaseNode as any).__nextId = 0
+      class MultiTriggerNode extends TestNode<SharedStore, ['out1', 'out2']> {
         constructor(id: string) {
           super(id)
         }
@@ -525,81 +510,200 @@ describe('Flow Class', () => {
           this.trigger('out2', { data: 'for_out2' })
         }
       }
-      const multiNode = new MultiTriggerNode('Multi')
-      multiNode.on('out1', nodeB)
-      multiNode.on('out2', nodeC)
+      const multiNode = new MultiTriggerNode('Multi') //0
+      const mt_nodeB = new TestNode('mtB') //1
+      const mt_nodeC = new TestNode('mtC') //2
 
-      const flow = new Flow(multiNode)
-      const currentMemory = createMemory({ test_case: 'exec_tree_multi_trigger' })
-      const result = (await flow.run(currentMemory)) as ExecutionTree
+      multiNode.on('out1', mt_nodeB)
+      multiNode.on('out2', mt_nodeC)
+
+      const flow = new Flow(multiNode) //3
+      const result = (await flow.run(createMemory({}))) as ExecutionTree
 
       const expected: ExecutionTree = {
-        order: multiNode.__nodeOrder,
+        order: multiNode.__nodeOrder, //0
         type: 'MultiTriggerNode',
         triggered: {
-          out1: [{ order: nodeB.__nodeOrder, type: 'TestNode', triggered: { [DEFAULT_ACTION]: [] } }],
-          out2: [{ order: nodeC.__nodeOrder, type: 'TestNode', triggered: { [DEFAULT_ACTION]: [] } }],
+          out1: [{ order: mt_nodeB.__nodeOrder, type: 'TestNode', triggered: null }], //1
+          out2: [{ order: mt_nodeC.__nodeOrder, type: 'TestNode', triggered: null }], //2
         },
       }
-      assert.ok(result.triggered, 'Result should have a triggered field')
-      const resultKeys = Object.keys(result.triggered!).sort()
-      const expectedKeys = Object.keys(expected.triggered!).sort()
-      assert.deepStrictEqual(resultKeys, expectedKeys, 'Keys of triggered object mismatch')
-      assert.deepStrictEqual(result.triggered!['out1'], expected.triggered!['out1'])
-      assert.deepStrictEqual(result.triggered!['out2'], expected.triggered!['out2'])
-      assert.strictEqual(result.order, expected.order)
-      assert.strictEqual(result.type, expected.type)
+      assert.deepStrictEqual(result, expected)
     })
   })
 
   describe('ParallelFlow', () => {
     it('should execute parallel branches concurrently', async () => {
-      const parallelStartNode = new BranchingNode('ParallelStartNode') // Use a distinct instance
-      const nodeP1 = new TestNode('P1')
-      const nodeP2 = new TestNode('P2')
+      ;(BaseNode as any).__nextId = 0
+      const parallelStartNode = new BranchingNode('PStart') //0
+      const nodeP1 = new TestNode('P1') //1
+      const nodeP2 = new TestNode('P2') //2
 
-      // Reset mocks for P1 and P2 specifically for this test
-      nodeP1.resetMocks()
-      nodeP2.resetMocks()
-      parallelStartNode.resetMocks()
-
-      let p1DoneTime = 0
-      let p2DoneTime = 0
+      let p1DoneTime = 0,
+        p2DoneTime = 0
 
       nodeP1.execMock.mock.mockImplementation(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 50)) // P1 is slower
+        await new Promise((resolve) => setTimeout(resolve, 50))
         p1DoneTime = Date.now()
         return 'exec_P1'
       })
       nodeP2.execMock.mock.mockImplementation(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 10)) // P2 is faster
+        await new Promise((resolve) => setTimeout(resolve, 10))
         p2DoneTime = Date.now()
         return 'exec_P2'
       })
 
       parallelStartNode.on('branch1', nodeP1)
       parallelStartNode.on('branch2', nodeP2)
-
+      // BranchingNode's post needs to trigger both.
+      // We use setTrigger with clearPrevious=true to ensure only these two are set.
       parallelStartNode.post = async function (this: BranchingNode, memory, prepRes, execRes) {
-        // Call TestNode's post for flags etc.
-        await TestNode.prototype.post.call(this, memory, prepRes, execRes)
-        // Explicitly clear and set triggers for this test
-        this.triggers = []
+        await TestNode.prototype.post.call(this, memory, prepRes, execRes) // Call original TestNode post for flags
+        this.triggers = [] // Clear any default triggers from super.post
         this.trigger('branch1' as any, { data: 'for_p1' })
         this.trigger('branch2' as any, { data: 'for_p2' })
       }
 
-      const flow = new ParallelFlow(parallelStartNode)
-      await flow.run(createMemory({ test_case: 'parallel_flow_concurrent' }))
+      const flow = new ParallelFlow(parallelStartNode) //3
+      await flow.run(createMemory({}))
 
       assert.ok(p1DoneTime > 0, 'P1 should have completed')
       assert.ok(p2DoneTime > 0, 'P2 should have completed')
       assert.ok(
         p2DoneTime < p1DoneTime,
-        `P2 (ended at ${p2DoneTime}) should finish before P1 (ended at ${p1DoneTime}) if truly parallel`,
+        `P2 (ended at ${p2DoneTime}) should finish before P1 (ended at ${p1DoneTime}) if truly parallel. Diff: ${p1DoneTime - p2DoneTime}`,
       )
-      assert.equal(nodeP1.execMock.mock.calls.length, 1, 'P1 exec should be called once')
-      assert.equal(nodeP2.execMock.mock.calls.length, 1, 'P2 exec should be called once')
+      assert.equal(nodeP1.execMock.mock.calls.length, 1, 'P1 exec')
+      assert.equal(nodeP2.execMock.mock.calls.length, 1, 'P2 exec')
+    })
+  })
+
+  describe('Action Propagation from Flow (when Flow.run called with propagate=true)', () => {
+    let currentMemory: Memory
+
+    beforeEach(() => {
+      currentMemory = createMemory({ test_case_prop: 'action_prop' })
+    })
+
+    it('Flow with silently terminating sub-node: propagates its own implicit DEFAULT_ACTION', async () => {
+      ;(BaseNode as any).__nextId = 0
+      const silentSubNode = new TestNode('SilentSub') // 0
+      // silentSubNode.postMock does nothing, so it won't call this.trigger()
+
+      const flow = new Flow(silentSubNode) // 1
+      const propagatedTriggers = await flow.run(currentMemory, true)
+
+      assert.strictEqual(propagatedTriggers.length, 1, 'Flow should propagate one action')
+      assert.strictEqual(propagatedTriggers[0][0], DEFAULT_ACTION, 'Flow should propagate DEFAULT_ACTION')
+      assert.ok(propagatedTriggers[0][1]._isMemoryObject, 'Propagated action should include memory')
+      // Check that flow.triggers (internal list) was NOT populated by the sub-node's implicit default
+      assert.strictEqual(flow.triggers.length, 0, "Flow's internal triggers should be empty")
+    })
+
+    it('Flow with sub-node explicitly triggering DEFAULT_ACTION (terminal in flow): propagates DEFAULT_ACTION', async () => {
+      ;(BaseNode as any).__nextId = 0
+      const explicitDefaultSubNode = new BranchingNode('ExplicitDefaultSub') // 0
+      explicitDefaultSubNode.setTrigger(DEFAULT_ACTION, null, true) // clearPrevious=true
+
+      const flow = new Flow(explicitDefaultSubNode) // 1
+      const propagatedTriggers = await flow.run(currentMemory, true)
+
+      assert.strictEqual(propagatedTriggers.length, 1)
+      assert.strictEqual(propagatedTriggers[0][0], DEFAULT_ACTION)
+      // Check that flow.triggers (internal list) WAS populated
+      assert.strictEqual(flow.triggers.length, 1, "Flow's internal triggers should contain the explicit default")
+      assert.strictEqual(flow.triggers[0].action, DEFAULT_ACTION)
+    })
+
+    it('Flow with sub-node explicitly triggering CUSTOM_ACTION (terminal in flow): propagates CUSTOM_ACTION', async () => {
+      ;(BaseNode as any).__nextId = 0
+      const explicitCustomSubNode = new BranchingNode('ExplicitCustomSub') // 0
+      explicitCustomSubNode.setTrigger('MY_CUSTOM' as any, { customData: true }, true)
+
+      const flow = new Flow(explicitCustomSubNode) // 1
+      const propagatedTriggers = await flow.run(currentMemory, true)
+
+      assert.strictEqual(propagatedTriggers.length, 1)
+      assert.strictEqual(propagatedTriggers[0][0], 'MY_CUSTOM')
+      assert.deepStrictEqual(propagatedTriggers[0][1].local.customData, true)
+      assert.strictEqual(flow.triggers.length, 1)
+      assert.strictEqual(flow.triggers[0].action, 'MY_CUSTOM')
+    })
+
+    it('Nested Flow: Outer propagates its own implicit DEFAULT if sub-flow terminates silently', async () => {
+      ;(BaseNode as any).__nextId = 0
+      const silentInNested = new TestNode('SilentInNested') // 0
+      const subFlow = new Flow(silentInNested) // 1 (subFlow itself)
+      // subFlow.post is default, so it will trigger its own DEFAULT_ACTION if its internal .triggers is empty
+
+      const outerA = new TestNode('OuterA') // 2
+      outerA.next(subFlow as BaseNode) // OuterA -> subFlow (subFlow is terminal for OuterA's path)
+
+      const outerFlow = new Flow(outerA) // 3
+      const propagatedTriggers = await outerFlow.run(currentMemory, true)
+
+      // outerA runs, triggers DEFAULT_ACTION, leading to subFlow.
+      // subFlow runs. Its internal node silentInNested is silent.
+      // So, subFlow.runNode for silentInNested does NOT push to subFlow.triggers.
+      // subFlow.triggers remains empty.
+      // When subFlow.run(..., true) is called by outerFlow, subFlow.listTriggers() returns [[DEFAULT_ACTION, ...]] (subFlow's own implicit default).
+      //
+      // Now, outerFlow.runNode for subFlow:
+      //   `action` is DEFAULT_ACTION (from subFlow's propagation).
+      //   `clonedNode` is subFlow. `clonedNode.triggers` (subFlow's own explicit triggers) is empty.
+      //   So, `isImplicitDefaultAction` is true.
+      //   `outerFlow.triggers.push` is SKIPPED.
+      //
+      // outerFlow.triggers remains empty.
+      // outerFlow.listTriggers() (called by outerFlow.run(..., true)) returns [[DEFAULT_ACTION, ...]] (outerFlow's own implicit default).
+      assert.strictEqual(propagatedTriggers.length, 1, 'OuterFlow should propagate one action')
+      assert.strictEqual(propagatedTriggers[0][0], DEFAULT_ACTION, 'OuterFlow should propagate DEFAULT_ACTION')
+      assert.strictEqual(outerFlow.triggers.length, 0, "OuterFlow's internal triggers should be empty")
+    })
+
+    it('Nested Flow: Outer propagates explicit DEFAULT_ACTION from sub-flow', async () => {
+      ;(BaseNode as any).__nextId = 0
+      const explicitDefaultInNested = new BranchingNode('ExplicitDefaultInNested') // 0
+      explicitDefaultInNested.setTrigger(DEFAULT_ACTION, null, true)
+      const subFlow = new Flow(explicitDefaultInNested) // 1
+      // subFlow.post is default. explicitDefaultInNested makes subFlow.triggers contain DEFAULT_ACTION.
+      // So subFlow.listTriggers() will return [[DEFAULT_ACTION, ...]] based on its content.
+
+      const outerA = new TestNode('OuterA') // 2
+      outerA.next(subFlow as BaseNode)
+      const outerFlow = new Flow(outerA) // 3
+      const propagatedTriggers = await outerFlow.run(currentMemory, true)
+
+      // outerFlow.runNode for subFlow:
+      //   `action` is DEFAULT_ACTION (from subFlow's propagation).
+      //   `clonedNode` is subFlow. `clonedNode.triggers` (subFlow's own explicit triggers) is NOT empty.
+      //   So, `isImplicitDefaultAction` is false.
+      //   `outerFlow.triggers.push({ action: DEFAULT_ACTION, ... })` IS called.
+      //
+      // outerFlow.triggers contains DEFAULT_ACTION.
+      // outerFlow.listTriggers() returns [[DEFAULT_ACTION, ...]].
+      assert.strictEqual(propagatedTriggers.length, 1)
+      assert.strictEqual(propagatedTriggers[0][0], DEFAULT_ACTION)
+      assert.strictEqual(outerFlow.triggers.length, 1, "OuterFlow's internal triggers should contain DEFAULT_ACTION")
+      assert.strictEqual(outerFlow.triggers[0].action, DEFAULT_ACTION)
+    })
+
+    it('Nested Flow: Outer propagates explicit CUSTOM_ACTION from sub-flow', async () => {
+      ;(BaseNode as any).__nextId = 0
+      const explicitCustomInNested = new BranchingNode('ExplicitCustomInNested') // 0
+      explicitCustomInNested.setTrigger('NESTED_CUSTOM' as any, { val: 123 }, true)
+      const subFlow = new Flow(explicitCustomInNested) // 1
+
+      const outerA = new TestNode('OuterA') // 2
+      outerA.next(subFlow as BaseNode)
+      const outerFlow = new Flow(outerA) // 3
+      const propagatedTriggers = await outerFlow.run(currentMemory, true)
+
+      assert.strictEqual(propagatedTriggers.length, 1)
+      assert.strictEqual(propagatedTriggers[0][0], 'NESTED_CUSTOM')
+      assert.deepStrictEqual(propagatedTriggers[0][1].local.val, 123)
+      assert.strictEqual(outerFlow.triggers.length, 1)
+      assert.strictEqual(outerFlow.triggers[0].action, 'NESTED_CUSTOM')
     })
   })
 })

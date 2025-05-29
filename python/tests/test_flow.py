@@ -38,13 +38,17 @@ class BranchingNode(BaseTestNode):
         self.action = DEFAULT_ACTION
         self.fork_data = None
     
-    def set_trigger(self, action, fork_data=None):
+    def set_trigger(self, action, fork_data=None, clear_existing_in_post=False): # Added clear_existing
         """Configure which action this node will trigger."""
         self.action = action
         self.fork_data = fork_data
+        self._clear_triggers_in_post = clear_existing_in_post
     
     async def post(self, memory, prep_res, exec_res):
         await super().post(memory, prep_res, exec_res)  # Call base post
+        if self._clear_triggers_in_post:
+            self._triggers = [] # Explicitly clear if flag is set
+
         if self.fork_data is not None:
             self.trigger(self.action, self.fork_data)
         else:
@@ -415,7 +419,7 @@ class TestFlow:
                         {
                             'order': node_b._node_order,
                             'type': node_b.__class__.__name__,
-                            'triggered': {DEFAULT_ACTION: []} # Node B is terminal
+                            'triggered': None # Node B is terminal
                         }
                     ]
                 }
@@ -453,7 +457,7 @@ class TestFlow:
                                     {
                                         'order': node_d._node_order,
                                         'type': node_d.__class__.__name__,
-                                        'triggered': {DEFAULT_ACTION: []} # Node D is terminal
+                                        'triggered': None # Node D is terminal
                                     }
                                 ]
                             }
@@ -487,7 +491,7 @@ class TestFlow:
                         {
                             'order': node_c_c_path._node_order,
                             'type': node_c_c_path.__class__.__name__,
-                            'triggered': {DEFAULT_ACTION: []} # Node C is terminal
+                            'triggered': None # Node C is terminal
                         }
                     ]
                 }
@@ -518,14 +522,14 @@ class TestFlow:
                     {
                         'order': node_b._node_order,
                         'type': node_b.__class__.__name__,
-                        'triggered': {DEFAULT_ACTION: []} # Node B is terminal
+                        'triggered': None # Node B is terminal
                     }
                 ],
                 "out2": [
                     {
                         'order': node_c._node_order,
                         'type': node_c.__class__.__name__,
-                        'triggered': {DEFAULT_ACTION: []} # Node C is terminal
+                        'triggered': None # Node C is terminal
                     }
                 ]
             }
@@ -591,3 +595,139 @@ class TestFlow:
             assert "TERMINAL_ACTION" in parent_execution_tree_for_sflow['triggered']
             assert parent_execution_tree_for_sflow['triggered']["TERMINAL_ACTION"] == []
 
+
+class TestFlowActionPropagation:
+    """
+    Tests how a Flow propagates actions when it's run as a node itself
+    (i.e., using flow.run(memory, propagate=True)).
+    Focuses on the *observable output* of flow.run(propagate=True).
+    """
+
+    @pytest.fixture(autouse=True)
+    def reset_ids_fixture(self):
+        """Ensures predictable node ordering for each test."""
+        BaseNode._next_id = 0
+        yield
+        BaseNode._next_id = 0 # Optional: reset after, pre-test is key
+
+    @pytest.fixture
+    def mem(self):
+        """Provides a fresh Memory instance for each test."""
+        return Memory({})
+
+    async def test_flow_with_silently_terminating_sub_node_propagates_implicit_default(self, mem):
+        """
+        Scenario: Flow contains one sub-node that finishes without any explicit trigger.
+        Expected: The Flow itself, when run with propagate=True, should yield its own
+                  implicit DEFAULT_ACTION (because its internal _triggers list will be empty).
+        """
+        silent_sub_node = BaseTestNode("SilentSub") # Order 0
+        # silent_sub_node.post_mock is not configured to call self.trigger()
+
+        flow = Flow(silent_sub_node) # Order 1
+        propagated_triggers = await flow.run(mem, propagate=True)
+
+        assert len(propagated_triggers) == 1, "Flow should propagate one action"
+        action, p_mem = propagated_triggers[0]
+        assert action == DEFAULT_ACTION, "Flow should propagate DEFAULT_ACTION"
+        assert isinstance(p_mem, Memory), "Propagated action should include a Memory object"
+        # No direct check on flow._triggers - its state is implied by propagated_triggers
+
+    async def test_flow_with_sub_node_explicitly_triggering_default_propagates_default(self, mem):
+        """
+        Scenario: Flow's sub-node explicitly triggers DEFAULT_ACTION, which is terminal within the Flow.
+        Expected: The Flow should add this explicit DEFAULT_ACTION to its own _triggers list
+                  and subsequently propagate it.
+        """
+        explicit_default_sub_node = BranchingNode("ExplicitDefaultSub") # Order 0
+        explicit_default_sub_node.set_trigger(DEFAULT_ACTION, clear_existing_in_post=True)
+
+        flow = Flow(explicit_default_sub_node) # Order 1
+        propagated_triggers = await flow.run(mem, propagate=True)
+        
+        assert len(propagated_triggers) == 1, "Flow should propagate one action"
+        action, p_mem = propagated_triggers[0]
+        assert action == DEFAULT_ACTION, "Flow should propagate the explicit DEFAULT_ACTION"
+        assert isinstance(p_mem, Memory)
+
+    async def test_flow_with_sub_node_explicitly_triggering_custom_action_propagates_custom(self, mem):
+        """
+        Scenario: Flow's sub-node explicitly triggers a CUSTOM_ACTION, terminal within the Flow.
+        Expected: The Flow should add this CUSTOM_ACTION to its _triggers and propagate it.
+        """
+        explicit_custom_sub_node = BranchingNode("ExplicitCustomSub") # Order 0
+        fork_data = {"key": "value"}
+        explicit_custom_sub_node.set_trigger("MY_CUSTOM", fork_data=fork_data, clear_existing_in_post=True)
+
+        flow = Flow(explicit_custom_sub_node) # Order 1
+        propagated_triggers = await flow.run(mem, propagate=True)
+
+        assert len(propagated_triggers) == 1, "Flow should propagate one action"
+        action, p_mem = propagated_triggers[0]
+        assert action == "MY_CUSTOM", "Flow should propagate the CUSTOM_ACTION"
+        assert isinstance(p_mem, Memory)
+        assert p_mem.local["key"] == "value", "Forking data should be in the propagated memory's local store"
+        
+    async def test_nested_flow_outer_propagates_implicit_default_if_sub_flow_silent(self, mem):
+        """
+        Scenario: OuterFlow -> SubFlow -> SilentTerminalNode.
+                  SubFlow will propagate its own implicit DEFAULT_ACTION (its _triggers will be empty).
+        Expected: OuterFlow should NOT add SubFlow's implicit DEFAULT_ACTION to its own _triggers.
+                  Thus, OuterFlow will propagate its own implicit DEFAULT_ACTION.
+        """
+        silent_in_nested = BaseTestNode("SilentInNested") # Order 0
+        sub_flow = Flow(silent_in_nested) # Order 1
+        
+        outer_a = BaseTestNode("OuterA") # Order 2
+        outer_a.next(sub_flow) # OuterA -> SubFlow (default action)
+        
+        outer_flow = Flow(outer_a) # Order 3
+        propagated_triggers = await outer_flow.run(mem, propagate=True)
+
+        assert len(propagated_triggers) == 1, "OuterFlow should propagate one action"
+        action, _ = propagated_triggers[0]
+        assert action == DEFAULT_ACTION, "OuterFlow should propagate its own implicit DEFAULT_ACTION"
+
+    async def test_nested_flow_outer_propagates_explicit_default_from_sub_flow(self, mem):
+        """
+        Scenario: OuterFlow -> SubFlow -> NodeExplicitlyTriggeringDEFAULT.
+                  SubFlow will explicitly collect and propagate DEFAULT_ACTION (its _triggers will contain it).
+        Expected: OuterFlow SHOULD add SubFlow's explicit DEFAULT_ACTION to its own _triggers
+                  and then propagate it.
+        """
+        explicit_default_in_nested = BranchingNode("ExplicitDefaultInNested") # Order 0
+        explicit_default_in_nested.set_trigger(DEFAULT_ACTION, clear_existing_in_post=True)
+        sub_flow = Flow(explicit_default_in_nested) # Order 1
+        
+        outer_a = BaseTestNode("OuterA") # Order 2
+        outer_a.next(sub_flow)
+        
+        outer_flow = Flow(outer_a) # Order 3
+        propagated_triggers = await outer_flow.run(mem, propagate=True)
+
+        assert len(propagated_triggers) == 1, "OuterFlow should propagate one action"
+        action, _ = propagated_triggers[0]
+        assert action == DEFAULT_ACTION, "OuterFlow should propagate the explicit DEFAULT_ACTION from SubFlow"
+
+    async def test_nested_flow_outer_propagates_explicit_custom_action_from_sub_flow(self, mem):
+        """
+        Scenario: OuterFlow -> SubFlow -> NodeExplicitlyTriggeringCUSTOM.
+                  SubFlow will explicitly collect and propagate CUSTOM_ACTION.
+        Expected: OuterFlow SHOULD add SubFlow's CUSTOM_ACTION to its _triggers and propagate it.
+        """
+        explicit_custom_in_nested = BranchingNode("ExplicitCustomInNested") # Order 0
+        custom_fork_data = {"sub_val": "sub_data_value"}
+        explicit_custom_in_nested.set_trigger("NESTED_CUSTOM", fork_data=custom_fork_data, clear_existing_in_post=True)
+        sub_flow = Flow(explicit_custom_in_nested) # Order 1
+        
+        outer_a = BaseTestNode("OuterA") # Order 2
+        outer_a.next(sub_flow)
+        
+        outer_flow = Flow(outer_a) # Order 3
+        propagated_triggers = await outer_flow.run(mem, propagate=True)
+
+        assert len(propagated_triggers) == 1, "OuterFlow should propagate one action"
+        action, p_mem = propagated_triggers[0]
+        assert action == "NESTED_CUSTOM", "OuterFlow should propagate the CUSTOM_ACTION from SubFlow"
+        assert isinstance(p_mem, Memory)
+        assert p_mem.local["sub_val"] == "sub_data_value", "Forking data should be present"

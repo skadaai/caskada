@@ -1,8 +1,7 @@
 from brainyflow import Node, Flow, ParallelFlow
 
 class MapReduceFlow(ParallelFlow):
-    async def post(self, memory, prep_res, exec_res):
-        self.trigger("default")
+    pass
 
 class Trigger(Node):
     def __init__(self, options: dict = {}, **kwargs):
@@ -31,8 +30,6 @@ class Reduce(Node):
     
     async def post(self, memory, prep_res, exec_res):
         memory[self.output_key][prep_res[0]] = prep_res[1]
-        self.trigger(None)
-
 
 def mapreduce(iterate: Node | Flow, options: dict = {}):
     trigger = Trigger(options)
