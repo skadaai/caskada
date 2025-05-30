@@ -15,7 +15,7 @@ const TYPESCRIPT_EXAMPLES_FILE = path.join(OUTPUT_DIR, 'typescript.md')
  */
 function extractProjectDetails(readmeContent, defaultProjectName) {
   let projectName = defaultProjectName
-  let shortDescription = `Details are no available for ${defaultProjectName}.` // Default description
+  let shortDescription = `Details are not available for ${defaultProjectName}.` // Default description
 
   const lines = readmeContent.split('\n')
 
@@ -24,7 +24,7 @@ function extractProjectDetails(readmeContent, defaultProjectName) {
   if (firstH1Index !== -1) {
     projectName = lines[firstH1Index].substring(2).trim()
     // Update default description if project name is found
-    shortDescription = `Details are no available for ${projectName}.`
+    shortDescription = `Details are not available for ${projectName}.`
 
     // Extract Short Description (first paragraph of text after H1)
     let descriptionLines = []

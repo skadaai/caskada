@@ -442,7 +442,7 @@ When you call `flow.run(memory)`, the flow executes the following steps internal
 4.  For each triggered action, it finds the corresponding successor node(s) defined by `.on()` or `.next()`.
 5.  It recursively executes the successor node(s). If `forkingData` was provided, a new local memory scope is created for that branch, inheriting the global store but with the `forkingData` merged into its local state.
 6.  This process repeats until it reaches all terminal nodes (i.e. nodes with no defined successors within the current flow), or the flow completes.
-7.  The flow finish its execution by running its own `post` method, where it can trigger any final action, together with the explicitly triggered actions of all terminal nodes.
+7.  The flow finishes its execution by running its own `post` method, where it can trigger any final action, together with the explicitly triggered actions of all terminal nodes.
 8.  Upon completion, `flow.run()` returns an `ExecutionTree` object, which is a structured representation of the execution path, the actions triggered at each step, and the resulting sub-trees.
 
 ```mermaid
