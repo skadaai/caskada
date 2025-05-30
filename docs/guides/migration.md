@@ -1,11 +1,11 @@
 # Migrating Between BrainyFlow Versions
 
-This guide helps you update your BrainyFlow applications when migrating from older versions (pre-major refactor, roughly pre-v0.3 Python and equivalent TS) to newer ones. We strive for backward compatibility, but major refactors sometimes introduce breaking changes for significant improvements.
+This guide helps you update your BrainyFlow applications when migrating from older versions to newer ones. We strive for backward compatibility, but major refactors sometimes introduce breaking changes for significant improvements.
 
 ## General Advice
 
 - **Start Small**: Migrate one part of your application at a time.
-- **Consult the Changelog**: Check the  release notes on the repository for the specific version you are upgrading to. It will list breaking changes, new features, and bug fixes.
+- **Consult the Changelog**: Check the release notes on the repository for the specific version you are upgrading to. It will list breaking changes, new features, and bug fixes.
 - **Review Core Abstraction Docs**: Changes often revolve around the core `Node`, `Flow`, or `Memory` components. Re-reading their documentation can clarify new behaviors or APIs.
 
 ## Migrating to v2.0
@@ -340,14 +340,8 @@ interface TranslationLocalStore {
 type TranslationActions = 'translate_one' | 'aggregate_results'
 
 // 1. Trigger Node (Fans out work)
-class TriggerTranslationsNode extends Node<
-  TranslationGlobalStore,
-  TranslationLocalStore,
-  TranslationActions[]
-> {
-  async prep(
-    memory: Memory<TranslationGlobalStore, TranslationLocalStore>,
-  ): Promise<{ text: string; languages: string[] }> {
+class TriggerTranslationsNode extends Node<TranslationGlobalStore, TranslationLocalStore, TranslationActions[]> {
+  async prep(memory: Memory<TranslationGlobalStore, TranslationLocalStore>): Promise<{ text: string; languages: string[] }> {
     const text = memory.text ?? '(No text provided)'
     const languages = memory.languages ?? getLanguages()
     return { text, languages }
@@ -377,9 +371,7 @@ class TriggerTranslationsNode extends Node<
 
 // 2. Processor Node (Handles one language)
 class TranslateOneLanguageNode extends Node<TranslationGlobalStore, TranslationLocalStore> {
-  async prep(
-    memory: Memory<TranslationGlobalStore, TranslationLocalStore>,
-  ): Promise<{ text: string; lang: string; index: number }> {
+  async prep(memory: Memory<TranslationGlobalStore, TranslationLocalStore>): Promise<{ text: string; lang: string; index: number }> {
     // Read data passed via forkingData from local memory
     const text = memory.text ?? ''
     const lang = memory.language ?? 'unknown'

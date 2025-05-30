@@ -297,8 +297,6 @@ const flow = new Flow(startNode, { maxVisits: 10 })
 
 Besides being capable of triggering actions like any other `Node`, a `Flow` also propagates actions triggered by internal _terminal nodes_. This allows for more dynamic and interconnected workflows, where an action deep within a sub-flow can influence the parent flow's path without needing explicit re-triggering at every level.
 
-Think about it as a pratical way to "_hand over unfinished tasks in a flow directly to the next flow_".
-
 {% hint style="info" %}
 These terms can often be used interchangeably, with a subtle distinction:
 
@@ -307,9 +305,11 @@ These terms can often be used interchangeably, with a subtle distinction:
 
 Thus,
 
-- **"Leaf node"** often implies a node that is structurally at the end of all possible paths within its local graph (the `SubFlow`).
+- **"Leaf node"** often implies a node that is structurally at the end of all possible paths within its local graph.
 - **"Terminal node"** is a node that might have successors for _some_ actions but not for the one it currently triggers.
   {% endhint %}
+
+Think about it as a pratical way to "_hand over unfinished tasks in a flow directly to the next flow_".
 
 Here's how it works:
 

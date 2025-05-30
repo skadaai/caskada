@@ -22,28 +22,17 @@ Before diving into deeper comparisons, let's reiterate BrainyFlow's core tenets:
 - **Agentic Coding Friendly:** Designed to be intuitive for both human developers and AI assistants collaborating on code.
 - **Composability:** Flows can be nested within other flows, enabling modular design.
 
-## Comparison Points
+## Feature Comparison Matrix
 
-We'll compare BrainyFlow against competitors based on:
-
-- **Core Abstraction:** The fundamental building blocks and mental model.
-- **Dependencies & Size:** The footprint and external requirements.
-- **Flexibility vs. Opinionation:** How much structure the framework imposes versus how much freedom the developer has.
-- **Vendor Integrations:** Built-in support for specific LLMs, databases, etc.
-- **Learning Curve:** Perceived difficulty in getting started and mastering the framework.
-
-## Relationship to PocketFlow
-
-BrainyFlow originated as a fork of PocketFlow, inheriting its core philosophy of minimalism and a graph-based abstraction. However, BrainyFlow has evolved with some key differences:
-
-- **Core Abstraction & Batching**: PocketFlow included many specialized classes for async operations and batching (e.g., `AsyncNode`, `BatchNode`, `AsyncBatchNode`, `AsyncParallelBatchNode`, `AsyncFlow`, `BatchFlow`, `AsyncBatchFlow`, `AsyncParallelBatchFlow`). BrainyFlow simplifies this by removing all of these specialized classes from its core. Instead, it relies on standard `Node` lifecycle methods (which are inherently `async`-capable) combined with `Flow` (or `ParallelFlow`). Batch-like fan-out operations are achieved using multiple `trigger` calls within a single node's `post` method.
-- **State Management (`Memory`)**: While both use a shared store, BrainyFlow's `Memory` object now has a more refined distinction between `global` and `local` stores. The `local` store is primarily populated via `forkingData` during `trigger` calls, crucial for managing branch-specific context. This eliminates the need for PocketFlow's separate `Params` concept and simplifies the `Memory` model, removing the complexities that `Batch*` classes in PocketFlow tried to solve. BrainyFlow's `Memory` is created with enhanced proxy mechanisms for attribute access and isolation.
-- **Focus:** BrainyFlow sharpens the focus on the fundamental `Node`, `Flow`, and `Memory` abstractions as the absolute core, reinforcing the idea that patterns like batching or parallelism are handled by how flows orchestrate standard nodes rather than requiring specialized node types.
-
-Essentially, BrainyFlow refines PocketFlow's minimalist approach, aiming for an even leaner core by handling execution patterns like batching and parallelism primarily at the `Flow` orchestration level.
-BrainyFlow also emphasizes a more consistent and refined API across its Python and TypeScript implementations, particularly for state management and flow execution.
-
-On top of that, BrainyFlow has been designed to be more agentic-friendly, with a focus on building flows that can be used by both humans and AI assistants. Its code is more readable and maintainable, prioritizing developer experience over an arbitrarily defined amount of lines of code.
+| Feature                   | BrainyFlow        | LangChain         | LangGraph            | CrewAI                    | AutoGen               | PocketFlow       |
+| ------------------------- | ----------------- | ----------------- | -------------------- | ------------------------- | --------------------- | ---------------- |
+| **Core Abstraction**      | Nodes & Flows     | Chains & Agents   | State Graphs         | Agents & Crews            | Conversational Agents | Nodes & Flows    |
+| **Dependencies**          | None              | Many              | Many (via LangChain) | Several                   | Several               | None             |
+| **Codebase Size**         | Tiny (~300 lines) | Large             | Medium               | Medium                    | Medium                | Tiny (100 lines) |
+| **Flexibility**           | High              | Medium            | Medium               | Low                       | Medium                | High             |
+| **Built-in Integrations** | None              | Extensive         | Via LangChain        | Several                   | Several               | None             |
+| **Learning Curve**        | Moderate          | Steep             | Very Steep           | Moderate                  | Moderate              | Moderate         |
+| **Primary Focus**         | Graph Execution   | Component Library | State Machines       | Multi-Agent Collaboration | Conversational Agents | Graph Execution  |
 
 ## BrainyFlow vs. LangChain
 
@@ -77,17 +66,18 @@ On top of that, BrainyFlow has been designed to be more agentic-friendly, with a
 - **Vendor Integrations:** AutoGen offers integrations, particularly for LLMs. BrainyFlow avoids them.
 - **Learning Curve:** AutoGen's conversational focus might be specific. BrainyFlow's graph is general but requires explicit construction.
 
-## Feature Comparison Matrix
+## Relationship to PocketFlow
 
-| Feature                   | BrainyFlow        | LangChain         | LangGraph            | CrewAI                    | AutoGen               | PocketFlow       |
-| ------------------------- | ----------------- | ----------------- | -------------------- | ------------------------- | --------------------- | ---------------- |
-| **Core Abstraction**      | Nodes & Flows     | Chains & Agents   | State Graphs         | Agents & Crews            | Conversational Agents | Nodes & Flows    |
-| **Dependencies**          | None              | Many              | Many (via LangChain) | Several                   | Several               | None             |
-| **Codebase Size**         | Tiny (~300 lines) | Large             | Medium               | Medium                    | Medium                | Tiny (100 lines) |
-| **Flexibility**           | High              | Medium            | Medium               | Low                       | Medium                | High             |
-| **Built-in Integrations** | None              | Extensive         | Via LangChain        | Several                   | Several               | None             |
-| **Learning Curve**        | Moderate          | Steep             | Very Steep           | Moderate                  | Moderate              | Moderate         |
-| **Primary Focus**         | Graph Execution   | Component Library | State Machines       | Multi-Agent Collaboration | Conversational Agents | Graph Execution  |
+BrainyFlow originated as a fork of [PocketFlow](https://arxiv.org/abs/2504.03771), inheriting its core philosophy of minimalism and a graph-based abstraction. However, BrainyFlow has evolved with some key differences:
+
+- **Core Abstraction & Batching**: [PocketFlow](https://arxiv.org/abs/2504.03771) included many specialized classes for async operations and batching (e.g., `AsyncNode`, `BatchNode`, `AsyncBatchNode`, `AsyncParallelBatchNode`, `AsyncFlow`, `BatchFlow`, `AsyncBatchFlow`, `AsyncParallelBatchFlow`). BrainyFlow simplifies this by removing all of these specialized classes from its core. Instead, it relies on standard `Node` lifecycle methods (which are inherently `async`-capable) combined with `Flow` (or `ParallelFlow`). Batch-like fan-out operations are achieved using multiple `trigger` calls within a single node's `post` method.
+- **State Management (`Memory`)**: While both use a shared store, BrainyFlow's `Memory` object now has a more refined distinction between `global` and `local` stores. The `local` store is primarily populated via `forkingData` during `trigger` calls, crucial for managing branch-specific context. This eliminates the need for [PocketFlow](https://arxiv.org/abs/2504.03771)'s separate `Params` concept and simplifies the `Memory` model, removing the complexities that `Batch*` classes in [PocketFlow](https://arxiv.org/abs/2504.03771) tried to solve. BrainyFlow's `Memory` is created with enhanced proxy mechanisms for attribute access and isolation.
+- **Focus:** BrainyFlow sharpens the focus on the fundamental `Node`, `Flow`, and `Memory` abstractions as the absolute core, reinforcing the idea that patterns like batching or parallelism are handled by how flows orchestrate standard nodes rather than requiring specialized node types.
+
+Essentially, BrainyFlow refines [PocketFlow](https://arxiv.org/abs/2504.03771)'s minimalist approach, aiming for an even leaner core by handling execution patterns like batching and parallelism primarily at the `Flow` orchestration level.
+BrainyFlow also emphasizes a more consistent and refined API across its Python and TypeScript implementations, particularly for state management and flow execution.
+
+On top of that, BrainyFlow has been designed to be more agentic-friendly, with a focus on building flows that can be used by both humans and AI assistants. Its code is more readable and maintainable, prioritizing developer experience over an arbitrarily defined amount of lines of code.
 
 ## Conclusion: When to Choose BrainyFlow?
 
