@@ -68,7 +68,7 @@ def mapreduce(iterate: Node | Flow):
     return ParallelFlow(start=trigger)
 ```
 
-{% endtabs %}
+{% endtab %}
 {% tab title="TypeScript" %}
 
 ```typescript

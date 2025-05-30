@@ -396,7 +396,7 @@ interface RouterGlobalStore {
 }
 type RouterActions = 'english' | 'spanish' | 'unknown' // Add unknown action
 
-class RouterNode extends Node<RouterGlobalStore, any, RouterActions[]> {
+class RouterNode extends Node<RouterGlobalStore, any, any, RouterActions[]> {
   async prep(memory: Memory<RouterGlobalStore, any>): Promise<string> {
     return memory.content
   }
@@ -462,7 +462,7 @@ For a detailed explanation and examples of implementing batch processing using t
 
 ## Running Individual Nodes
 
-Nodes have a `run(memory, propagate?)` method, which executes its full lifecycle (`prep` -> `execRunner` (which handles `exec` and `execFallback`) -> `post`). This method is primarily intended for **testing or debugging individual nodes in isolation**.
+Nodes have a `run(memory, propagate?)` method, which executes its full lifecycle (`prep` -> `execRunner` (which handles `exec` and `execFallback`) -> `post`). This method is primarily intended for **testing or debugging individual nodes in isolation**, and in production code you should always use `Flow.run(memory)` instead.
 
 {% hint style="danger" %}
 **Do NOT use `node.run()` to execute a workflow.**

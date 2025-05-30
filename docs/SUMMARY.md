@@ -7,6 +7,11 @@
 - [Getting Started](getting_started.md)
 - [Comparison](comparison.md)
 
+## Cookbook
+
+- [Python Examples](cookbook/python.md)
+- [Typescript Examples](cookbook/typescript.md)
+
 ## Core Abstraction
 
 - [Overview](core_abstraction/index.md)

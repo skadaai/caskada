@@ -1,0 +1,40 @@
+name: Generate Examples Pages
+
+on:
+  push:
+    branches:
+      - main # Or your default branch
+    paths:
+      - 'cookbook/**/README.md' # Trigger if any README.md in cookbook subdirectories changes
+      - '.github/scripts/generate-examples.js' # Trigger if the script itself changes
+      - '.github/workflows/generate-examples-pages.yml' # Trigger if this workflow file changes
+
+permissions:
+  contents: write # Required to commit changes back to the repository
+
+jobs:
+  build-and-commit-examples:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '23'
+
+      - name: Generate example pages
+        id: generate
+        run: |
+          node .github/scripts/generate-examples.js
+
+      - name: Commit and push example pages
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: 'docs: update example pages from cookbook [skip ci]'
+          # Specify the directory and files to check for changes and commit
+          file_pattern: 'docs/cookbook/*.md'
+          # The action pushes to the branch that triggered the workflow (main in this case)
+          # It uses github-actions[bot] as the committer by default
+          # The action will only commit if there are actual changes to the specified files.
