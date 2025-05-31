@@ -1,3 +1,10 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ *
+ * Copyright (c) 2025, Victor Duarte (zvictor)
+ */
 import fs from 'fs/promises'
 import path from 'path'
 
@@ -25,9 +32,9 @@ function parseFrontmatter(readmeContent) {
     contentWithoutFrontmatter = readmeContent.substring(fmMatch[0].length) // Store content after frontmatter
 
     // Simple parsing for 'complexity'
-    const complexityMatch = fmContent.match(/^\s*complexity:\s*(\d+)\s*$/m)
+    const complexityMatch = fmContent.match(/^\s*complexity:\s*([\d.]+)\s*$/m)
     if (complexityMatch && complexityMatch[1]) {
-      const parsedComplexity = parseInt(complexityMatch[1], 10)
+      const parsedComplexity = parseFloat(complexityMatch[1])
       if (!isNaN(parsedComplexity)) {
         complexity = parsedComplexity
       }
@@ -128,6 +135,9 @@ function extractProjectDetails(readmeContent, defaultProjectName) {
  * @returns {string} - The generated Markdown content.
  */
 function generateMarkdown(pageTitle, projects) {
+  const maxComplexity = Math.max(...projects.map((x) => x.complexity))
+  const minComplexity = Math.min(...projects.map((x) => x.complexity))
+
   let markdown = `---\ntitle: '${pageTitle.replace(/'/g, "\\'")}'\nmachine-display: false\n---\n\n`
   markdown += `# ${pageTitle}\n\n`
   markdown += `All projects listed below can be found in our [cookbook directory](${path.join(REPOSITORY, 'tree/main', COOKBOOK_DIR)}).\n\n`
@@ -140,11 +150,13 @@ function generateMarkdown(pageTitle, projects) {
     // Escape HTML special characters in project name and description for the summary
     const escapedName = project.name.replace(/</g, '&lt;').replace(/>/g, '&gt;')
     const escapedDescription = project.description.replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    const ratio = (project.complexity - minComplexity) / (maxComplexity - minComplexity)
+    let normalizedIndex = Math.round(ratio * (COMPLEXITY_SCALE.length - 1))
+    // Clamp the index to be safe
+    normalizedIndex = Math.max(0, Math.min(normalizedIndex, Math.min(projects.length, COMPLEXITY_SCALE.length - 1)))
 
     markdown += `## ${escapedName} ([${project.dirName}](${path.join(REPOSITORY, 'tree/main', COOKBOOK_DIR, project.dirName)}))\n`
-    if (project.complexity !== null) {
-      markdown += `Complexity: ${COMPLEXITY_SCALE[project.complexity].repeat(project.complexity + 1)}\n\n`
-    }
+    markdown += `Complexity Points: ${project.complexity}\n[${COMPLEXITY_SCALE[normalizedIndex].repeat(normalizedIndex + 1)}]\n\n`
     markdown += escapedDescription
     markdown += `<details>\n`
     markdown += `<summary><strong>Details</strong></summary>\n\n`
@@ -229,7 +241,7 @@ async function main() {
 
     const pythonMarkdown = generateMarkdown('Python Examples', pythonProjects)
     const typescriptMarkdown = generateMarkdown('TypeScript Examples', typescriptProjects)
-    const cookbookMarkdown = generateMarkdown('Cookbook', [...typescriptProjects, ...pythonProjects])
+    const cookbookMarkdown = generateMarkdown('Cookbook', [...typescriptProjects, ...pythonProjects].sort(compareProjects))
 
     await fs.writeFile(PYTHON_EXAMPLES_FILE, pythonMarkdown)
     console.log(`\n\nSuccessfully generated ${PYTHON_EXAMPLES_FILE}`)
