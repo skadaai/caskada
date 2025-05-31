@@ -192,12 +192,12 @@
 <div class="glass">
   <p style="font-size: 1.2em; font-weight: bolder; margin: 10px 0">What is <em>BrainyFlow</em>?</p>
   <p>
-    BrainyFlow is a <strong>radically minimalist AI framework</strong> (just 200 lines in Python!) enabling <em>Agentic Coding</em> through powerful, intuitive graph abstractions.<br />Build complex AI systems with unparalleled simplicity and freedom.
+    BrainyFlow is a <strong>radically minimalist AI framework</strong> (just 300 lines in Python!) enabling <em>Agentic Coding</em> through powerful, intuitive graph abstractions.<br />Build complex AI systems with unparalleled simplicity and freedom.
   </p>
   <strong>Key Features:</strong>
   <ul>
     <li><strong>Brain-Easy 🧠</strong>: Intuitive for humans and AI assistants.</li>
-    <li><strong>Minimalist ✨</strong>: Core logic in just 200 lines.</li>
+    <li><strong>Minimalist ✨</strong>: Core logic in just 300 lines.</li>
     <li><strong>Freedom 🔓</strong>: Zero bloat, dependencies, or vendor lock-in.</li>
     <li><strong>Composable 🧩</strong>: Build complex systems from simple parts.</li>
     <li><strong>Powerful 🦾</strong>: Supports Agents, Workflows, RAG, and more.</li>

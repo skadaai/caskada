@@ -48,7 +48,7 @@
   <a style="color: inherit" href="https://github.com/sponsors/zvictor?utm_source=brainyflow&utm_medium=sponsorship&utm_campaign=brainyflow&utm_id=brainyflow">
     <img width="150px" src="https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/brain.png" alt="Brainyflow's logo" />
   </a><br /><br />
-  BrainyFlow runs on 200 lines of code and your generosity! 💰<br />
+  BrainyFlow runs on 300 lines of code and your generosity! 💰<br />
     <a style="color: inherit" href="https://github.com/sponsors/zvictor?utm_source=brainyflow&utm_medium=sponsorship&utm_campaign=brainyflow&utm_id=brainyflow">
       Help us deliver more AI with less code (but maybe more coffee)
     </a> ☕<br /><br />
