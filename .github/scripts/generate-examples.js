@@ -6,6 +6,41 @@ const COOKBOOK_DIR = 'cookbook'
 const OUTPUT_DIR = 'docs/cookbook' // Directory where generated files will be saved
 const PYTHON_EXAMPLES_FILE = path.join(OUTPUT_DIR, 'python.md')
 const TYPESCRIPT_EXAMPLES_FILE = path.join(OUTPUT_DIR, 'typescript.md')
+const COMPLEXITY_SCALE = ['🥚', '🐣', '🐥', '🐓', '🦕', '🦖', '☄️', '🐭', '🐒', '🧠', '⚙️', '🤖', '👾', '🛸', '🌌']
+const POINTS_SYSTEM = await fs.readFile(path.join(OUTPUT_DIR, 'points.md'), 'utf-8')
+
+/**
+ * Parses basic frontmatter to extract complexity and title.
+ * @param {string} readmeContent - The full content of the README.md file.
+ * @returns {{complexity: number|null, title: string|null, contentWithoutFrontmatter: string}}
+ */
+function parseFrontmatter(readmeContent) {
+  let complexity = null
+  let title = null
+  let contentWithoutFrontmatter = readmeContent
+
+  const fmMatch = readmeContent.match(/^---\s*\n([\s\S]*?)\n---\s*\n/)
+  if (fmMatch && fmMatch[1]) {
+    const fmContent = fmMatch[1]
+    contentWithoutFrontmatter = readmeContent.substring(fmMatch[0].length) // Store content after frontmatter
+
+    // Simple parsing for 'complexity'
+    const complexityMatch = fmContent.match(/^\s*complexity:\s*(\d+)\s*$/m)
+    if (complexityMatch && complexityMatch[1]) {
+      const parsedComplexity = parseInt(complexityMatch[1], 10)
+      if (!isNaN(parsedComplexity)) {
+        complexity = parsedComplexity
+      }
+    }
+
+    // Simple parsing for 'title' (optional, not used for project name in this version)
+    const titleMatch = fmContent.match(/^\s*title:\s*(.+?)\s*$/m)
+    if (titleMatch && titleMatch[1]) {
+      title = titleMatch[1].trim()
+    }
+  }
+  return { complexity, title, contentWithoutFrontmatter }
+}
 
 /**
  * Extracts project name and short description from README content.
@@ -88,13 +123,13 @@ function extractProjectDetails(readmeContent, defaultProjectName) {
 
 /**
  * Generates the Markdown content for a list of projects.
- * @param {string} title - The title for the Markdown page (e.g., "Python Examples").
- * @param {Array<{name: string, description: string, readmeContent: string, dirName: string}>} projects - Array of project objects.
+ * @param {string} pageTitle - The title for the Markdown page (e.g., "Python Examples").
+ * @param {Array<{name: string, description: string, readmeContent: string, dirName: string, complexity: number|null}>} projects - Array of project objects.
  * @returns {string} - The generated Markdown content.
  */
-function generateMarkdown(title, projects) {
-  let markdown = `---\ntitle: ${title}\nmachine-display: false\n---\n\n`
-  markdown += `# ${title}\n\n`
+function generateMarkdown(pageTitle, projects) {
+  let markdown = `---\ntitle: '${pageTitle.replace(/'/g, "\\'")}'\nmachine-display: false\n---\n\n`
+  markdown += `# ${pageTitle}\n\n`
   markdown += `All projects listed below can be found in our [cookbook directory](${path.join(REPOSITORY, 'tree/main', COOKBOOK_DIR)}).\n\n`
   if (projects.length === 0) {
     markdown += 'No examples found for this category yet.\n'
@@ -107,6 +142,9 @@ function generateMarkdown(title, projects) {
     const escapedDescription = project.description.replace(/</g, '&lt;').replace(/>/g, '&gt;')
 
     markdown += `## ${escapedName} ([${project.dirName}](${path.join(REPOSITORY, 'tree/main', COOKBOOK_DIR, project.dirName)}))\n`
+    if (project.complexity !== null) {
+      markdown += `Complexity: ${COMPLEXITY_SCALE[project.complexity].repeat(project.complexity + 1)}\n\n`
+    }
     markdown += escapedDescription
     markdown += `<details>\n`
     markdown += `<summary><strong>Details</strong></summary>\n\n`
@@ -114,6 +152,12 @@ function generateMarkdown(title, projects) {
     markdown += `${project.readmeContent}\n\n`
     markdown += `</details>\n\n`
   })
+
+  markdown += `<hr /><details>\n`
+  markdown += `<summary><strong>The Complexity Points System</strong></summary>\n\n`
+  markdown += `\n`
+  markdown += POINTS_SYSTEM
+  markdown += `</details>\n\n`
   return markdown
 }
 
@@ -122,7 +166,7 @@ function generateMarkdown(title, projects) {
  */
 async function main() {
   try {
-    await fs.mkdir(OUTPUT_DIR, { recursive: true }) // Ensure output directory exists
+    await fs.mkdir(OUTPUT_DIR, { recursive: true })
 
     const pythonProjects = []
     const typescriptProjects = []
@@ -137,17 +181,19 @@ async function main() {
         try {
           // Check if README.md exists and is readable
           await fs.access(readmePath, fs.constants.R_OK)
-          const readmeContent = await fs.readFile(readmePath, 'utf-8')
+          const fullReadmeContent = await fs.readFile(readmePath, 'utf-8')
 
-          const { projectName, shortDescription } = extractProjectDetails(readmeContent, entry.name)
-          console.log(`\t${projectName}`)
+          const { complexity, contentWithoutFrontmatter } = parseFrontmatter(fullReadmeContent)
+          const { projectName, shortDescription } = extractProjectDetails(contentWithoutFrontmatter, entry.name)
+          console.log(`\t${projectName}`, complexity ? `[complexity:${complexity}]` : '')
           console.log(`\t>> ${shortDescription}`)
 
           const projectData = {
             name: projectName,
             description: shortDescription,
-            readmeContent: readmeContent,
-            dirName: entry.name, // Original directory name for context
+            readmeContent: contentWithoutFrontmatter, // Store the "clean" README for the details view
+            dirName: entry.name,
+            complexity,
           }
 
           if (entry.name.startsWith('python-')) {
@@ -167,20 +213,33 @@ async function main() {
       }
     }
 
-    // Sort projects alphabetically by dirName for consistent ordering
-    pythonProjects.sort((a, b) => a.dirName.localeCompare(b.dirName))
-    typescriptProjects.sort((a, b) => a.dirName.localeCompare(b.dirName))
+    // Sort projects: first by complexity (nulls/undefined last), then by dirName
+    const compareProjects = (a, b) => {
+      const complexityA = a.complexity === null ? Number.MAX_SAFE_INTEGER : a.complexity
+      const complexityB = b.complexity === null ? Number.MAX_SAFE_INTEGER : b.complexity
+
+      if (complexityA !== complexityB) {
+        return complexityA - complexityB
+      }
+      return a.dirName.localeCompare(b.dirName)
+    }
+
+    pythonProjects.sort(compareProjects)
+    typescriptProjects.sort(compareProjects)
 
     const pythonMarkdown = generateMarkdown('Python Examples', pythonProjects)
     const typescriptMarkdown = generateMarkdown('TypeScript Examples', typescriptProjects)
+    const cookbookMarkdown = generateMarkdown('Cookbook', [...typescriptProjects, ...pythonProjects])
 
     await fs.writeFile(PYTHON_EXAMPLES_FILE, pythonMarkdown)
-    console.log(`Successfully generated ${PYTHON_EXAMPLES_FILE}`)
+    console.log(`\n\nSuccessfully generated ${PYTHON_EXAMPLES_FILE}`)
     await fs.writeFile(TYPESCRIPT_EXAMPLES_FILE, typescriptMarkdown)
     console.log(`Successfully generated ${TYPESCRIPT_EXAMPLES_FILE}`)
+    await fs.writeFile(path.join(COOKBOOK_DIR, 'README.md'), cookbookMarkdown)
+    console.log(`Successfully generated ${path.join(COOKBOOK_DIR, 'README.md')}`)
   } catch (error) {
     console.error('Error generating example pages:', error)
-    process.exit(1) // Exit with error code
+    process.exit(1)
   }
 }
 
