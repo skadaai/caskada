@@ -5,9 +5,9 @@ machine-display: false
 
 # TypeScript Examples
 
-All projects listed below can be found in our [cookbook directory](https:/github.com/zvictor/brainyflow/tree/main/cookbook).
+All projects listed below can be found in our [cookbook directory](https://github.com/zvictor/brainyflow/tree/main/cookbook).
 
-## Terminal Chat Interface Example ([typescript-chat](https:/github.com/zvictor/brainyflow/tree/main/cookbook/typescript-chat))
+## Terminal Chat Interface Example ([typescript-chat](https://github.com/zvictor/brainyflow/tree/main/cookbook/typescript-chat))
 Complexity Points: 3.5
 [🥚]
 
@@ -51,7 +51,7 @@ flowchart LR
 
 </details>
 
-## Agent Example ([typescript-agent](https:/github.com/zvictor/brainyflow/tree/main/cookbook/typescript-agent))
+## Agent Example ([typescript-agent](https://github.com/zvictor/brainyflow/tree/main/cookbook/typescript-agent))
 Complexity Points: 11
 [🐥🐥🐥]
 

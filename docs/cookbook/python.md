@@ -5,9 +5,9 @@ machine-display: false
 
 # Python Examples
 
-All projects listed below can be found in our [cookbook directory](https:/github.com/zvictor/brainyflow/tree/main/cookbook).
+All projects listed below can be found in our [cookbook directory](https://github.com/zvictor/brainyflow/tree/main/cookbook).
 
-## BrainyFlow Hello World ([python-hello-world](https:/github.com/zvictor/brainyflow/tree/main/cookbook/python-hello-world))
+## BrainyFlow Hello World ([python-hello-world](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-hello-world))
 Complexity Points: 2.5
 [🥚]
 
@@ -64,7 +64,7 @@ python main.py
 
 </details>
 
-## Text Summarization ([python-node](https:/github.com/zvictor/brainyflow/tree/main/cookbook/python-node))
+## Text Summarization ([python-node](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-node))
 Complexity Points: 3
 [🥚]
 
@@ -163,7 +163,7 @@ This example demonstrates several key BrainyFlow concepts:
 
 </details>
 
-## Structured Output Demo ([python-structured-output](https:/github.com/zvictor/brainyflow/tree/main/cookbook/python-structured-output))
+## Structured Output Demo ([python-structured-output](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-structured-output))
 Complexity Points: 3
 [🥚]
 
@@ -264,7 +264,7 @@ skill_indexes: [0, 1, 2, 3, 4]
 
 </details>
 
-## OpenAI Embeddings with BrainyFlow ([python-tool-embeddings](https:/github.com/zvictor/brainyflow/tree/main/cookbook/python-tool-embeddings))
+## OpenAI Embeddings with BrainyFlow ([python-tool-embeddings](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-tool-embeddings))
 Complexity Points: 3
 [🥚]
 
@@ -372,7 +372,7 @@ This will:
 
 </details>
 
-## Simple Chat ([python-chat](https:/github.com/zvictor/brainyflow/tree/main/cookbook/python-chat))
+## Simple Chat ([python-chat](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-chat))
 Complexity Points: 3.5
 [🐣🐣]
 
@@ -429,7 +429,7 @@ The chat application uses:
 
 </details>
 
-## Text Converter Flow ([python-flow](https:/github.com/zvictor/brainyflow/tree/main/cookbook/python-flow))
+## Text Converter Flow ([python-flow](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-flow))
 Complexity Points: 4
 [🐣🐣]
 
@@ -514,7 +514,7 @@ Thank you for using Text Converter!
 
 </details>
 
-## Batch Translation Process ([python-batch](https:/github.com/zvictor/brainyflow/tree/main/cookbook/python-batch))
+## Batch Translation Process ([python-batch](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-batch))
 Complexity Points: 4.5
 [🐥🐥🐥]
 
@@ -593,7 +593,7 @@ The translations are saved to the `translations` directory, with each file named
 
 </details>
 
-## Batch Node Example ([python-batch-node](https:/github.com/zvictor/brainyflow/tree/main/cookbook/python-batch-node))
+## Batch Node Example ([python-batch-node](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-batch-node))
 Complexity Points: 4.5
 [🐥🐥🐥]
 
@@ -669,7 +669,7 @@ Final Statistics:
 
 </details>
 
-## LLM Streaming and Interruption ([python-llm-streaming](https:/github.com/zvictor/brainyflow/tree/main/cookbook/python-llm-streaming))
+## LLM Streaming and Interruption ([python-llm-streaming](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-llm-streaming))
 Complexity Points: 4.5
 [🐥🐥🐥]
 
@@ -729,7 +729,7 @@ export OPENAI_API_KEY="your-api-key-here"
 
 </details>
 
-## Shared Store Communication ([python-communication](https:/github.com/zvictor/brainyflow/tree/main/cookbook/python-communication))
+## Shared Store Communication ([python-communication](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-communication))
 Complexity Points: 5
 [🐥🐥🐥]
 
@@ -794,7 +794,7 @@ This demonstrates how nodes can share and maintain state using the shared store 
 
 </details>
 
-## Web Search with Analysis ([python-tool-search](https:/github.com/zvictor/brainyflow/tree/main/cookbook/python-tool-search))
+## Web Search with Analysis ([python-tool-search](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-tool-search))
 Complexity Points: 6
 [🐓🐓🐓🐓]
 
@@ -880,7 +880,7 @@ brainyflow-tool-search/
 
 </details>
 
-## Majority Vote Reasoning ([python-majority-vote](https:/github.com/zvictor/brainyflow/tree/main/cookbook/python-majority-vote))
+## Majority Vote Reasoning ([python-majority-vote](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-majority-vote))
 Complexity Points: 6.5
 [🐓🐓🐓🐓]
 
@@ -976,7 +976,7 @@ This shows that 4 out of 5 attempts yielded the same answer (0.333), which is ch
 
 </details>
 
-## Streamlit Human-in-the-Loop (HITL) Application ([python-streamlit-hitl](https:/github.com/zvictor/brainyflow/tree/main/cookbook/python-streamlit-hitl))
+## Streamlit Human-in-the-Loop (HITL) Application ([python-streamlit-hitl](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-streamlit-hitl))
 Complexity Points: 6.5
 [🐓🐓🐓🐓]
 
@@ -1024,7 +1024,7 @@ Minimal Human-in-the-Loop (HITL) web application using BrainyFlow and Streamlit.
 
 </details>
 
-## SQLite Database with BrainyFlow ([python-tool-database](https:/github.com/zvictor/brainyflow/tree/main/cookbook/python-tool-database))
+## SQLite Database with BrainyFlow ([python-tool-database](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-tool-database))
 Complexity Points: 6.5
 [🐓🐓🐓🐓]
 
@@ -1133,7 +1133,7 @@ All Tasks:
 
 </details>
 
-## Article Writing Workflow ([python-workflow](https:/github.com/zvictor/brainyflow/tree/main/cookbook/python-workflow))
+## Article Writing Workflow ([python-workflow](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-workflow))
 Complexity Points: 6.5
 [🐓🐓🐓🐓]
 
@@ -1270,7 +1270,7 @@ Final Article Length: 2266 characters
 
 </details>
 
-## Batch Flow Example ([python-batch-flow](https:/github.com/zvictor/brainyflow/tree/main/cookbook/python-batch-flow))
+## Batch Flow Example ([python-batch-flow](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-batch-flow))
 Complexity Points: 7
 [🦕🦕🦕🦕🦕]
 
@@ -1356,7 +1356,7 @@ Check the 'output' directory for results.
 
 </details>
 
-## Travel Advisor Chat with Guardrails ([python-chat-guardrail](https:/github.com/zvictor/brainyflow/tree/main/cookbook/python-chat-guardrail))
+## Travel Advisor Chat with Guardrails ([python-chat-guardrail](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-chat-guardrail))
 Complexity Points: 7
 [🦕🦕🦕🦕🦕]
 
@@ -1442,7 +1442,7 @@ Goodbye! Safe travels!
 
 </details>
 
-## Chain-of-Thought ([python-thinking](https:/github.com/zvictor/brainyflow/tree/main/cookbook/python-thinking))
+## Chain-of-Thought ([python-thinking](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-thinking))
 Complexity Points: 7
 [🦕🦕🦕🦕🦕]
 
@@ -2116,7 +2116,7 @@ This probability is slightly greater than 1/2, meaning it's slightly more likely
 
 </details>
 
-## BrainyFlow Visualization ([python-visualization](https:/github.com/zvictor/brainyflow/tree/main/cookbook/python-visualization))
+## BrainyFlow Visualization ([python-visualization](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-visualization))
 Complexity Points: 7
 [🦕🦕🦕🦕🦕]
 
@@ -2267,7 +2267,7 @@ The visualization displays:
 
 </details>
 
-## Multi-Agent Taboo Game ([python-multi-agent](https:/github.com/zvictor/brainyflow/tree/main/cookbook/python-multi-agent))
+## Multi-Agent Taboo Game ([python-multi-agent](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-multi-agent))
 Complexity Points: 8
 [🦕🦕🦕🦕🦕]
 
@@ -2362,7 +2362,7 @@ Game Over - Correct guess!
 
 </details>
 
-## Parallel Batch Translation Process ([python-parallel-batch](https:/github.com/zvictor/brainyflow/tree/main/cookbook/python-parallel-batch))
+## Parallel Batch Translation Process ([python-parallel-batch](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-parallel-batch))
 Complexity Points: 8
 [🦕🦕🦕🦕🦕]
 
@@ -2474,7 +2474,7 @@ _(Actual times will vary based on API response speed and system.)_
 
 </details>
 
-## Web Human-in-the-Loop (HITL) Feedback Service ([python-fastapi-hitl](https:/github.com/zvictor/brainyflow/tree/main/cookbook/python-fastapi-hitl))
+## Web Human-in-the-Loop (HITL) Feedback Service ([python-fastapi-hitl](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-fastapi-hitl))
 Complexity Points: 9
 [🦖🦖🦖🦖🦖🦖]
 
@@ -2571,7 +2571,7 @@ This setup allows for a decoupled workflow logic (BrainyFlow) and web interactio
 
 </details>
 
-## Tool Calling: PDF Vision ([python-tool-pdf-vision](https:/github.com/zvictor/brainyflow/tree/main/cookbook/python-tool-pdf-vision))
+## Tool Calling: PDF Vision ([python-tool-pdf-vision](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-tool-pdf-vision))
 Complexity Points: 9
 [🦖🦖🦖🦖🦖🦖]
 
@@ -2657,7 +2657,7 @@ MIT
 
 </details>
 
-## Nested Batch Flow Example ([python-nested-batch](https:/github.com/zvictor/brainyflow/tree/main/cookbook/python-nested-batch))
+## Nested Batch Flow Example ([python-nested-batch](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-nested-batch))
 Complexity Points: 9.5
 [🦖🦖🦖🦖🦖🦖]
 
@@ -2714,7 +2714,7 @@ School Average: 8.15
 
 </details>
 
-## Web Crawler with Content Analysis ([python-tool-crawler](https:/github.com/zvictor/brainyflow/tree/main/cookbook/python-tool-crawler))
+## Web Crawler with Content Analysis ([python-tool-crawler](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-tool-crawler))
 Complexity Points: 9.5
 [🦖🦖🦖🦖🦖🦖]
 
@@ -2800,7 +2800,7 @@ brainyflow-tool-crawler/
 
 </details>
 
-## Resume Qualification - Map Reduce Example ([python-map-reduce](https:/github.com/zvictor/brainyflow/tree/main/cookbook/python-map-reduce))
+## Resume Qualification - Map Reduce Example ([python-map-reduce](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-map-reduce))
 Complexity Points: 10
 [☄️☄️☄️☄️☄️☄️☄️]
 
@@ -2878,7 +2878,7 @@ Resume processing complete!
 
 </details>
 
-## Async Recipe Finder ([python-async-basic](https:/github.com/zvictor/brainyflow/tree/main/cookbook/python-async-basic))
+## Async Recipe Finder ([python-async-basic](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-async-basic))
 Complexity Points: 10.5
 [☄️☄️☄️☄️☄️☄️☄️]
 
@@ -2986,7 +2986,7 @@ Great choice! Here's your recipe...
 
 </details>
 
-## Chat with Memory Retrieval ([python-chat-memory](https:/github.com/zvictor/brainyflow/tree/main/cookbook/python-chat-memory))
+## Chat with Memory Retrieval ([python-chat-memory](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-chat-memory))
 Complexity Points: 10.5
 [☄️☄️☄️☄️☄️☄️☄️]
 
@@ -3104,7 +3104,7 @@ Assistant: Your cat's name is Whiskers.
 
 </details>
 
-## Parallel Image Processor ([python-parallel-batch-flow](https:/github.com/zvictor/brainyflow/tree/main/cookbook/python-parallel-batch-flow))
+## Parallel Image Processor ([python-parallel-batch-flow](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-parallel-batch-flow))
 Complexity Points: 10.5
 [☄️☄️☄️☄️☄️☄️☄️]
 
@@ -3178,7 +3178,7 @@ Processing complete! Check the output/ directory for results.
 
 </details>
 
-## Research Agent ([python-agent](https:/github.com/zvictor/brainyflow/tree/main/cookbook/python-agent))
+## Research Agent ([python-agent](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-agent))
 Complexity Points: 11.5
 [🐭🐭🐭🐭🐭🐭🐭🐭]
 
@@ -3259,7 +3259,7 @@ Here's what's in each file:
 
 </details>
 
-## MCP Demo ([python-mcp](https:/github.com/zvictor/brainyflow/tree/main/cookbook/python-mcp))
+## MCP Demo ([python-mcp](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-mcp))
 Complexity Points: 11.5
 [🐭🐭🐭🐭🐭🐭🐭🐭]
 
@@ -3343,7 +3343,7 @@ The agent uses BrainyFlow to create a workflow where:
 
 </details>
 
-## Voice Chat ([python-voice-chat](https:/github.com/zvictor/brainyflow/tree/main/cookbook/python-voice-chat))
+## Voice Chat ([python-voice-chat](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-voice-chat))
 Complexity Points: 11.5
 [🐭🐭🐭🐭🐭🐭🐭🐭]
 
@@ -3445,7 +3445,7 @@ The conversation continues in this manner. To stop the application, you typicall
 
 </details>
 
-## Text-to-SQL Workflow ([python-text2sql](https:/github.com/zvictor/brainyflow/tree/main/cookbook/python-text2sql))
+## Text-to-SQL Workflow ([python-text2sql](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-text2sql))
 Complexity Points: 12
 [🐭🐭🐭🐭🐭🐭🐭🐭]
 
@@ -3628,7 +3628,7 @@ Sports | 1
 
 </details>
 
-## Research Supervisor ([python-supervisor](https:/github.com/zvictor/brainyflow/tree/main/cookbook/python-supervisor))
+## Research Supervisor ([python-supervisor](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-supervisor))
 Complexity Points: 13
 [🐒🐒🐒🐒🐒🐒🐒🐒🐒]
 
@@ -3738,7 +3738,7 @@ The Nobel Prize in Physics for 2024 was awarded jointly to John J. Hopfield and 
 
 </details>
 
-## Retrieval Augmented Generation (RAG) ([python-rag](https:/github.com/zvictor/brainyflow/tree/main/cookbook/python-rag))
+## Retrieval Augmented Generation (RAG) ([python-rag](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-rag))
 Complexity Points: 16
 [🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖]
 
@@ -3832,7 +3832,7 @@ To install BrainyFlow, use the command `pip install brainyflow` or simply copy i
 
 </details>
 
-## Agent-to-Agent with A2A Protocol ([python-a2a](https:/github.com/zvictor/brainyflow/tree/main/cookbook/python-a2a))
+## Agent-to-Agent with A2A Protocol ([python-a2a](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-a2a))
 Complexity Points: 20.5
 [🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌]
 
