@@ -1,3 +1,7 @@
+---
+complexity: 4
+---
+
 # Text Converter Flow
 
 This project demonstrates an interactive text transformation tool built with BrainyFlow.
@@ -38,6 +42,7 @@ graph TD
 ```
 
 Here's what each part does:
+
 1. **TextInput Node**: Collects text input and handles menu choices
 2. **TextTransform Node**: Applies the selected transformation to the text
 

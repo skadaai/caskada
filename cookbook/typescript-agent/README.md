@@ -1,4 +1,8 @@
-# TypeScript Agent Example
+---
+complexity: 11
+---
+
+# Agent Example
 
 This example demonstrates how to build a question-answering agent using TypeScript and BrainyFlow. The agent can search the web for information and provide answers based on the search results.
 

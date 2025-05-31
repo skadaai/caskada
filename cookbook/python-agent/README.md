@@ -1,9 +1,12 @@
+---
+complexity: 11.5
+---
+
 # Research Agent
 
 This project demonstrates a simple yet powerful LLM-powered research agent.
 
-👉 Run the tutorial in your browser: [Try Google Colab Notebook](
-https://colab.research.google.com/github/zvictor/BrainyFlow/blob/main/cookbook/python-agent/demo.ipynb)
+👉 Run the tutorial in your browser: [Try Google Colab Notebook](https://colab.research.google.com/github/zvictor/BrainyFlow/blob/main/cookbook/python-agent/demo.ipynb)
 
 ## Features
 
@@ -14,6 +17,7 @@ https://colab.research.google.com/github/zvictor/BrainyFlow/blob/main/cookbook/p
 ## Getting Started
 
 1. Install the packages you need with this simple command:
+
 ```bash
 pip install -r requirements.txt
 ```
@@ -56,11 +60,13 @@ graph TD
 ```
 
 Here's what each part does:
+
 1. **DecideAction**: The brain that figures out whether to search or answer
 2. **SearchWeb**: The researcher that goes out and finds information
 3. **AnswerQuestion**: The writer that crafts the final answer
 
 Here's what's in each file:
+
 - [`main.py`](./main.py): The starting point - runs the whole show!
 - [`flow.py`](./flow.py): Connects everything together into a smart agent
 - [`nodes.py`](./nodes.py): The building blocks that make decisions and take actions

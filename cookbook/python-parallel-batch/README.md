@@ -1,3 +1,7 @@
+---
+complexity: 8
+---
+
 # Parallel Batch Translation Process
 
 This project demonstrates using BrainyFlow's async and parallel features (`ParallelFlow`, `Node`) to translate a document into multiple languages concurrently.
@@ -11,24 +15,29 @@ Translate `../../README.md` into multiple languages (Chinese, Spanish, etc.) in 
 ## Getting Started
 
 1. Install requirements:
+
 ```bash
 pip install -r requirements.txt
 ```
 
 2. Set API Key:
    Set the environment variable for your Anthropic API key.
+
    ```bash
    export ANTHROPIC_API_KEY="your-api-key-here"
    ```
-   *(Replace `"your-api-key-here"` with your actual key)*
-   *(Alternatively, place `ANTHROPIC_API_KEY=your-api-key-here` in a `.env` file)*
+
+   _(Replace `"your-api-key-here"` with your actual key)_
+   _(Alternatively, place `ANTHROPIC_API_KEY=your-api-key-here` in a `.env` file)_
 
 3. Verify API Key (Optional):
    Run a quick check using the utility script.
+
    ```bash
    python utils.py
    ```
-   *(Note: This requires a valid API key to be set.)*
+
+   _(Note: This requires a valid API key to be set.)_
 
 4. Run the translation process:
    ```bash
@@ -84,11 +93,12 @@ Total parallel translation time: ~209 seconds
 Translations saved to: translations
 ============================
 ```
-*(Actual times will vary based on API response speed and system.)*
+
+_(Actual times will vary based on API response speed and system.)_
 
 ## Files
 
 - [`main.py`](./main.py): Implements the parallel batch translation node and flow.
 - [`utils.py`](./utils.py): Async wrapper for calling the Anthropic model.
 - [`requirements.txt`](./requirements.txt): Project dependencies (includes `aiofiles`).
-- [`translations/`](./translations/): Output directory (created automatically). 
+- [`translations/`](./translations/): Output directory (created automatically).

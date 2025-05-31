@@ -1,4 +1,8 @@
-# TypeScript Terminal Chat Interface Example
+---
+complexity: 3.5
+---
+
+# Terminal Chat Interface Example
 
 A simple command-line chat interface for interacting with OpenAI models using Node.js and TypeScript.
 

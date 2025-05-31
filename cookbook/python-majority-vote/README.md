@@ -1,3 +1,7 @@
+---
+complexity: 6.5
+---
+
 # Majority Vote Reasoning
 
 This project demonstrates a majority vote implementation that enables LLMs to solve complex reasoning problems by aggregating multiple independent attempts. It's designed to improve problem-solving accuracy through consensus-based reasoning.
@@ -13,21 +17,25 @@ This project demonstrates a majority vote implementation that enables LLMs to so
 ## Getting Started
 
 1. Install the required packages:
+
 ```bash
 pip install -r requirements.txt
 ```
 
 2. Set up your API key:
+
 ```bash
 export ANTHROPIC_API_KEY="your-api-key-here"
 ```
 
 3. Run a test problem to see majority voting in action:
+
 ```bash
 python main.py
 ```
 
 4. Try your own reasoning problem:
+
 ```bash
 python main.py --problem "Your complex reasoning problem here" --tries 5
 ```
@@ -38,10 +46,11 @@ The implementation uses a MajorityVoteNode that processes multiple attempts and 
 
 ```mermaid
 flowchart LR
-    mv[MajorityVoteNode] 
+    mv[MajorityVoteNode]
 ```
 
 The MajorityVoteNode:
+
 1. Makes multiple independent attempts to solve the same problem
 2. Collects structured answers from each attempt
 3. Determines the most frequent answer as the final solution

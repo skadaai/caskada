@@ -1,3 +1,7 @@
+---
+complexity: 7
+---
+
 # BrainyFlow Visualization
 
 This directory contains tools for visualizing BrainyFlow workflow graphs using interactive D3.js visualizations.
@@ -37,6 +41,7 @@ visualize_flow(your_flow, "Your Flow Name")
 ```
 
 This will:
+
 1. Print a Mermaid diagram to the console
 2. Generate a D3.js visualization in the `./viz` directory
 
@@ -55,7 +60,8 @@ This will generate visualization files in the `./viz` directory.
 
 After running the script:
 
-1. Host with 
+1. Host with
+
    ```
    cd ./viz/
    ```
@@ -73,15 +79,22 @@ You can adjust the force simulation parameters in `visualize.py` to change how n
 
 ```javascript
 // Create a force simulation
-const simulation = d3.forceSimulation(data.nodes)
-    // Controls the distance between connected nodes
-    .force("link", d3.forceLink(data.links).id(d => d.id).distance(100))
-    // Controls how nodes repel each other - lower values bring nodes closer
-    .force("charge", d3.forceManyBody().strength(-30))
-    // Centers the entire graph in the SVG
-    .force("center", d3.forceCenter(width / 2, height / 2))
-    // Prevents nodes from overlapping - acts like a minimum distance
-    .force("collide", d3.forceCollide().radius(50));
+const simulation = d3
+  .forceSimulation(data.nodes)
+  // Controls the distance between connected nodes
+  .force(
+    'link',
+    d3
+      .forceLink(data.links)
+      .id((d) => d.id)
+      .distance(100),
+  )
+  // Controls how nodes repel each other - lower values bring nodes closer
+  .force('charge', d3.forceManyBody().strength(-30))
+  // Centers the entire graph in the SVG
+  .force('center', d3.forceCenter(width / 2, height / 2))
+  // Prevents nodes from overlapping - acts like a minimum distance
+  .force('collide', d3.forceCollide().radius(50))
 ```
 
 ### Styling
@@ -95,6 +108,7 @@ The visualization process consists of three main steps:
 1. **Flow to JSON Conversion**: The `flow_to_json` function traverses the BrainyFlow graph and converts it to a structure with nodes, links, and group information.
 
 2. **D3.js Visualization**: The JSON data is used to create an interactive D3.js visualization with:
+
    - Nodes represented as circles
    - Flows represented as dashed rectangles containing nodes
    - Links showing connections within and between flows
@@ -121,6 +135,7 @@ If you encounter any issues:
 ## Example Output
 
 The visualization displays:
+
 - Payment processing flow nodes
 - Inventory management flow nodes
 - Shipping flow nodes

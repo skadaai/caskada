@@ -1,3 +1,7 @@
+---
+complexity: 10
+---
+
 # Resume Qualification - Map Reduce Example
 
 A BrainyFlow example that demonstrates how to implement a Map-Reduce pattern for processing and evaluating resumes.

@@ -1,4 +1,8 @@
-#  Travel Advisor Chat with Guardrails
+---
+complexity: 7
+---
+
+# Travel Advisor Chat with Guardrails
 
 A travel-focused chat application using BrainyFlow with OpenAI's GPT-4o model, enhanced with input validation to ensure only travel-related queries are processed.
 
@@ -10,16 +14,18 @@ A travel-focused chat application using BrainyFlow with OpenAI's GPT-4o model, e
 ## Run It
 
 1. Make sure your OpenAI API key is set:
-    ```bash
-    export OPENAI_API_KEY="your-api-key-here"
-    ```
-    Alternatively, you can edit the `utils.py` file to include your API key directly.
+
+   ```bash
+   export OPENAI_API_KEY="your-api-key-here"
+   ```
+
+   Alternatively, you can edit the `utils.py` file to include your API key directly.
 
 2. Install requirements and run the application:
-    ```bash
-    pip install -r requirements.txt
-    python main.py
-    ```
+   ```bash
+   pip install -r requirements.txt
+   python main.py
+   ```
 
 ## How It Works
 
@@ -32,6 +38,7 @@ flowchart LR
 ```
 
 The chat application uses:
+
 - A `UserInputNode` that collects user input in its `exec` method
 - A `GuardrailNode` that validates if the query is travel-related using:
   - Basic validation checks (empty input, too short)
@@ -46,7 +53,7 @@ The chat application uses:
 
 ## Example Outputs
 
-``` 
+```
 Welcome to the Travel Advisor Chat! Type 'exit' to end the conversation.
 
 You: Plan my trip to Thailand

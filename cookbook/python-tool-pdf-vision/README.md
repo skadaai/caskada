@@ -1,4 +1,8 @@
-# BrainyFlow Tool: PDF Vision
+---
+complexity: 9
+---
+
+# Tool Calling: PDF Vision
 
 A BrainyFlow example project demonstrating PDF processing with OpenAI's Vision API for OCR and text extraction.
 

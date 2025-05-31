@@ -1,3 +1,7 @@
+---
+complexity: 8
+---
+
 # Multi-Agent Taboo Game
 
 A BrainyFlow example that demonstrates how to implement asynchronous multi-agent communication using the Taboo word guessing game.
@@ -80,3 +84,4 @@ Guesser: I guess it's - Longing
 Hinter: Here's your hint - Sentiment for earlier times.
 Guesser: I guess it's - Nostalgic
 Game Over - Correct guess!
+```

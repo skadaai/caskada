@@ -1,7 +1,7 @@
 import time
 import threading
 from brainyflow import Node, Flow
-from utils import fake_stream_llm, stream_llm
+from utils import stream_llm
 
 class StreamNode(Node):
     async def prep(self, shared):

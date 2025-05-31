@@ -1,3 +1,7 @@
+---
+complexity: 3
+---
+
 # Structured Output Demo
 
 A minimal demo application showing how to use BrainyFlow to extract structured data from a resume using direct prompting and YAML formatting. Why YAML? Check out the [doc](https://brainy.gitbook.io/flow/design-patterns/structure) or [Why JSON Costs More Than TSV](https://david-gilbertson.medium.com/llm-output-formats-why-json-costs-more-than-tsv-ebaf590bd541).
@@ -12,28 +16,31 @@ This implementation is based on this tutorial (for Pocketflow): [Structured Outp
 ## Run It
 
 1. Install the packages you need with this simple command:
-    ```bash
-    pip install -r requirements.txt
-    ```
+
+   ```bash
+   pip install -r requirements.txt
+   ```
 
 2. Make sure your OpenAI API key is set:
-    ```bash
-    export OPENAI_API_KEY="your-api-key-here"
-    ```
-    Alternatively, you can edit the [`utils.py`](./utils.py) file to include your API key directly.
 
-    Let's do a quick check to make sure your API key is working properly:
+   ```bash
+   export OPENAI_API_KEY="your-api-key-here"
+   ```
 
-    ```bash
-    python utils.py
-    ```
+   Alternatively, you can edit the [`utils.py`](./utils.py) file to include your API key directly.
+
+   Let's do a quick check to make sure your API key is working properly:
+
+   ```bash
+   python utils.py
+   ```
 
 3. Edit [data.txt](./data.txt) with the resume you want to parse (a sample resume is already included)
 
 4. Run the application:
-    ```bash
-    python main.py
-    ```
+   ```bash
+   python main.py
+   ```
 
 ## How It Works
 
@@ -43,6 +50,7 @@ flowchart LR
 ```
 
 The Resume Parser application uses a single node that:
+
 1. Takes resume text from the shared state (loaded from data.txt)
 2. Sends the resume to an LLM with a prompt that requests YAML formatted output
 3. Extracts and validates the structured YAML data
@@ -53,7 +61,7 @@ The Resume Parser application uses a single node that:
 - [`main.py`](./main.py): Implementation of the ResumeParserNode
 - [`utils.py`](./utils.py): LLM utilities
 - [`data.txt`](./data.txt): Sample resume text file
- 
+
 ## Example Output
 
 ```

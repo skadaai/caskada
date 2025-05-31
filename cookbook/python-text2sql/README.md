@@ -1,3 +1,7 @@
+---
+complexity: 12
+---
+
 # Text-to-SQL Workflow
 
 A BrainyFlow example demonstrating a text-to-SQL workflow that converts natural language questions into executable SQL queries for an SQLite database, including an LLM-powered debugging loop for failed queries.
@@ -6,36 +10,45 @@ A BrainyFlow example demonstrating a text-to-SQL workflow that converts natural 
 
 ## Features
 
--   **Schema Awareness**: Automatically retrieves the database schema to provide context to the LLM.
--   **LLM-Powered SQL Generation**: Uses an LLM (GPT-4o) to translate natural language questions into SQLite queries (using YAML structured output).
--   **Automated Debugging Loop**: If SQL execution fails, an LLM attempts to correct the query based on the error message. This process repeats up to a configurable number of times.
+- **Schema Awareness**: Automatically retrieves the database schema to provide context to the LLM.
+- **LLM-Powered SQL Generation**: Uses an LLM (GPT-4o) to translate natural language questions into SQLite queries (using YAML structured output).
+- **Automated Debugging Loop**: If SQL execution fails, an LLM attempts to correct the query based on the error message. This process repeats up to a configurable number of times.
+
 ## Getting Started
 
 1.  **Install Packages:**
+
     ```bash
     pip install -r requirements.txt
     ```
 
 2.  **Set API Key:**
     Set the environment variable for your OpenAI API key.
+
     ```bash
     export OPENAI_API_KEY="your-api-key-here"
     ```
-    *(Replace `"your-api-key-here"` with your actual key)*
+
+    _(Replace `"your-api-key-here"` with your actual key)_
 
 3.  **Verify API Key (Optional):**
     Run a quick check using the utility script. If successful, it will print a short joke.
+
     ```bash
     python utils.py
     ```
-    *(Note: This requires a valid API key to be set.)*
+
+    _(Note: This requires a valid API key to be set.)_
 
 4.  **Run Default Example:**
     Execute the main script. This will create the sample `ecommerce.db` if it doesn't exist and run the workflow with a default query.
+
     ```bash
     python main.py
     ```
+
     The default query is:
+
     > Show me the names and email addresses of customers from New York
 
 5.  **Run Custom Query:**
@@ -71,21 +84,21 @@ graph LR
 1.  **`GetSchema`**: Connects to the SQLite database (`ecommerce.db` by default) and extracts the schema (table names and columns).
 2.  **`GenerateSQL`**: Takes the natural language query and the database schema, prompts the LLM to generate an SQLite query (expecting YAML output with the SQL), and parses the result.
 3.  **`ExecuteSQL`**: Attempts to run the generated SQL against the database.
-    *   If successful, the results are stored, and the flow ends successfully.
-    *   If an `sqlite3.Error` occurs (e.g., syntax error), it captures the error message and triggers the debug loop.
-4.  **`DebugSQL`**: If `ExecuteSQL` failed, this node takes the original query, schema, failed SQL, and error message, prompts the LLM to generate a *corrected* SQL query (again, expecting YAML).
+    - If successful, the results are stored, and the flow ends successfully.
+    - If an `sqlite3.Error` occurs (e.g., syntax error), it captures the error message and triggers the debug loop.
+4.  **`DebugSQL`**: If `ExecuteSQL` failed, this node takes the original query, schema, failed SQL, and error message, prompts the LLM to generate a _corrected_ SQL query (again, expecting YAML).
 5.  **(Loop)**: The corrected SQL from `DebugSQL` is passed back to `ExecuteSQL` for another attempt.
 6.  **(End Conditions)**: The loop continues until `ExecuteSQL` succeeds or the maximum number of debug attempts (default: 3) is reached.
 
 ## Files
 
--   [`main.py`](./main.py): Main entry point to run the workflow. Handles command-line arguments for the query.
--   [`flow.py`](./flow.py): Defines the BrainyFlow `Flow` connecting the different nodes, including the debug loop logic.
--   [`nodes.py`](./nodes.py): Contains the `Node` classes for each step (`GetSchema`, `GenerateSQL`, `ExecuteSQL`, `DebugSQL`).
--   [`utils.py`](./utils.py): Contains the minimal `call_llm` utility function.
--   [`populate_db.py`](./populate_db.py): Script to create and populate the sample `ecommerce.db` SQLite database.
--   [`requirements.txt`](./requirements.txt): Lists Python package dependencies.
--   [`README.md`](./README.md): This file.
+- [`main.py`](./main.py): Main entry point to run the workflow. Handles command-line arguments for the query.
+- [`flow.py`](./flow.py): Defines the BrainyFlow `Flow` connecting the different nodes, including the debug loop logic.
+- [`nodes.py`](./nodes.py): Contains the `Node` classes for each step (`GetSchema`, `GenerateSQL`, `ExecuteSQL`, `DebugSQL`).
+- [`utils.py`](./utils.py): Contains the minimal `call_llm` utility function.
+- [`populate_db.py`](./populate_db.py): Script to create and populate the sample `ecommerce.db` SQLite database.
+- [`requirements.txt`](./requirements.txt): Lists Python package dependencies.
+- [`README.md`](./README.md): This file.
 
 ## Example Output (Successful Run)
 

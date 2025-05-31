@@ -1,14 +1,20 @@
-# BrainyFlow Nested Batch Flow Example
+---
+complexity: 9.5
+---
+
+# Nested Batch Flow Example
 
 This example demonstrates Nested batch Flow using a simple school grades calculator.
 
 ## What this Example Does
 
 Calculates average grades for:
+
 1. Each student in a class
 2. Each class in the school
 
 ## Structure
+
 ```
 school/
 ├── class_a/

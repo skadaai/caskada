@@ -1,4 +1,8 @@
-# BrainyFlow batch Node Example
+---
+complexity: 4.5
+---
+
+# Batch Node Example
 
 This example demonstrates the batch Node concept in BrainyFlow by implementing a CSV processor that handles large files by processing them in chunks.
 
@@ -11,6 +15,7 @@ This example demonstrates the batch Node concept in BrainyFlow by implementing a
   3. `post`: Combines results from all chunks
 
 ## Project Structure
+
 ```
 python-batch-node/
 ├── README.md
@@ -60,4 +65,4 @@ Final Statistics:
 
 1. **Chunk-based Processing**: Shows how batch Node handles large inputs by breaking them into manageable pieces
 2. **Independent Processing**: Demonstrates how each chunk is processed separately
-3. **Result Aggregation**: Shows how individual results are combined into a final output 
+3. **Result Aggregation**: Shows how individual results are combined into a final output

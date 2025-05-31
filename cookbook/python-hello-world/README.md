@@ -1,3 +1,7 @@
+---
+complexity: 2.5
+---
+
 # BrainyFlow Hello World
 
 Your first BrainyFlow application! This simple example demonstrates how to create a basic BrainyFlow app from scratch.
@@ -16,17 +20,20 @@ Your first BrainyFlow application! This simple example demonstrates how to creat
 ## Setup
 
 1. Create a virtual environment:
+
 ```bash
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
 2. Install dependencies:
+
 ```bash
 pip install -r requirements.txt
 ```
 
 3. Run the example:
+
 ```bash
 python main.py
 ```
@@ -39,4 +46,4 @@ python main.py
 
 ## Additional Resources
 
-- [BrainyFlow Documentation](https://brainy.gitbook.io/flow/) 
+- [BrainyFlow Documentation](https://brainy.gitbook.io/flow/)

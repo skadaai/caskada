@@ -1,4 +1,8 @@
-# BrainyFlow Summarize
+---
+complexity: 3
+---
+
+# Text Summarization
 
 A practical example demonstrating how to use BrainyFlow to build a robust text summarization tool with error handling and retries. This example showcases core BrainyFlow concepts in a real-world application.
 
@@ -25,6 +29,7 @@ A practical example demonstrating how to use BrainyFlow to build a robust text s
 The example implements a simple but robust text summarization workflow:
 
 1. **Summarize Node** (`flow.py`):
+
    - `prep()`: Retrieves text from the shared store
    - `exec()`: Calls LLM to summarize text in 10 words
    - `exec_fallback()`: Provides graceful error handling
@@ -38,20 +43,24 @@ The example implements a simple but robust text summarization workflow:
 ## Setup
 
 1. Create a virtual environment:
+
 ```bash
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
 2. Install dependencies:
+
 ```bash
 pip install -r requirements.txt
 ```
 
 3. Configure your environment:
+
    - Set up your LLM API key (check utils/call_llm.py for configuration)
 
 4. Run the example:
+
 ```bash
 python main.py
 ```
@@ -79,4 +88,4 @@ This example demonstrates several key BrainyFlow concepts:
 
 - [BrainyFlow Documentation](https://brainy.gitbook.io/flow/)
 - [Node Concept Guide](https://brainy.gitbook.io/flow/core-abstraction/node)
-- [Flow Design Patterns](https://brainy.gitbook.io/flow/core-abstraction/flow) 
+- [Flow Design Patterns](https://brainy.gitbook.io/flow/core-abstraction/flow)

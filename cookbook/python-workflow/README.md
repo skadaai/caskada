@@ -1,3 +1,7 @@
+---
+complexity: 6.5
+---
+
 # Article Writing Workflow
 
 A BrainyFlow example that demonstrates an article writing workflow using a sequence of LLM calls.

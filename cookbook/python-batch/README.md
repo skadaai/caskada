@@ -1,3 +1,7 @@
+---
+complexity: 4.5
+---
+
 # Batch Translation Process
 
 This project demonstrates a batch processing implementation that enables LLMs to translate documents into multiple languages simultaneously. It's designed to efficiently handle the translation of markdown files while preserving formatting.
@@ -10,16 +14,19 @@ This project demonstrates a batch processing implementation that enables LLMs to
 ## Getting Started
 
 1. Install the required packages:
+
 ```bash
 pip install -r requirements.txt
 ```
 
 2. Set up your API key:
+
 ```bash
 export ANTHROPIC_API_KEY="your-api-key-here"
 ```
 
 3. Run the translation process:
+
 ```bash
 python main.py
 ```

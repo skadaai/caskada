@@ -1,3 +1,7 @@
+---
+complexity: 7
+---
+
 # Chain-of-Thought
 
 This project demonstrates an implementation that orchestrates a Chain-of-Thought process, enabling LLMs to solve complex reasoning problems by thinking step-by-step. It's designed to improve problem-solving accuracy through deliberate, structured reasoning managed externally.
@@ -14,27 +18,33 @@ This implementation is based on this tutorial (for Pocketflow): [Build Chain-of-
 ## Getting Started
 
 1.  **Install Packages:**
+
     ```bash
     pip install -r requirements.txt
     ```
 
 2.  **Set API Key:**
+
     ```bash
     export ANTHROPIC_API_KEY="your-api-key-here"
     ```
 
 3.  **Verify API Key (Optional):**
     Run a quick check to ensure your key and environment are set up correctly.
+
     ```bash
     python utils.py
     ```
 
 4.  **Run Default Example:**
     Execute the main script to see the process in action with the default Jane Street problem.
+
     ```bash
     python main.py
     ```
+
     The default question is:
+
     > You keep rolling a fair die until you roll three, four, five in that order consecutively on three rolls. What is the probability that you roll the die an odd number of times?
 
 5.  **Run Custom Problem:**
@@ -53,6 +63,7 @@ flowchart LR
 ```
 
 In each loop (thought step), the node directs the LLM to:
+
 1.  Evaluate the previous thought's reasoning and results.
 2.  Execute the next pending step according to a maintained plan.
 3.  Update the plan, marking the step done (with results) or noting issues.
@@ -63,9 +74,9 @@ This external orchestration enforces a systematic approach, helping models tackl
 
 ## Comparison with Different Approaches
 
--   **Standard Prompting**: Techniques like asking the model to "think step by step" within a single prompt can help, but the reasoning might lack depth or structure, and the model can easily lose track or make unrecoverable errors.
--   **Native Extended Thinking Modes**: Some models (like Claude 3.7, GPT-o1, etc.) offer dedicated modes or features explicitly for extended reasoning, often yielding strong results directly via API calls.
--   **This Implementation**: Demonstrates how to orchestrate a structured Chain-of-Thought process using standard LLMs (even those without a specific native 'extended thinking' mode), managing the steps, planning, and evaluation externally via prompt engineering and flow control.
+- **Standard Prompting**: Techniques like asking the model to "think step by step" within a single prompt can help, but the reasoning might lack depth or structure, and the model can easily lose track or make unrecoverable errors.
+- **Native Extended Thinking Modes**: Some models (like Claude 3.7, GPT-o1, etc.) offer dedicated modes or features explicitly for extended reasoning, often yielding strong results directly via API calls.
+- **This Implementation**: Demonstrates how to orchestrate a structured Chain-of-Thought process using standard LLMs (even those without a specific native 'extended thinking' mode), managing the steps, planning, and evaluation externally via prompt engineering and flow control.
 
 ## Example Thinking Process
 
@@ -75,15 +86,16 @@ Let's try out this challenging [Jane Street Quant Trading Interview Question](ht
 
 This problem demonstrates why structured Chain-of-Thought is valuable:
 
--   **Standard models (single prompt)**: Often get the wrong answer or provide flawed reasoning.
--   **Models using native thinking modes**: Can find the correct answer (216/431 ≈ 0.5012), though performance and reasoning clarity may vary.
--   **This implementation (orchestrating a capable LLM)**: Can guide the model towards the correct answer by enforcing a step-by-step plan, evaluation, and refinement loop.
+- **Standard models (single prompt)**: Often get the wrong answer or provide flawed reasoning.
+- **Models using native thinking modes**: Can find the correct answer (216/431 ≈ 0.5012), though performance and reasoning clarity may vary.
+- **This implementation (orchestrating a capable LLM)**: Can guide the model towards the correct answer by enforcing a step-by-step plan, evaluation, and refinement loop.
 
 For comparison:
--   [Claude 3.7 Sonnet (single prompt)](https://claude.ai/share/da139326-42fe-42d9-9d7b-35870daa5c1b): Wrong answer
--   [Claude 3.7 Sonnet (using built-in thinking)](https://claude.ai/share/6f4140ed-f33c-4949-8778-a57719498e40): Correct answer after 3m, 45s
--   [GPT-o1 (using built-in thinking)](https://chatgpt.com/share/67fee0fd-2600-8000-bcdf-76e40a986ee4): Correct answer after 2m, 0s
--   [GPT-o1 pro (using built-in thinking)](https://chatgpt.com/share/67fee11b-530c-8000-92d1-609b6ca49c9c): Correct answer after 4m, 24s
+
+- [Claude 3.7 Sonnet (single prompt)](https://claude.ai/share/da139326-42fe-42d9-9d7b-35870daa5c1b): Wrong answer
+- [Claude 3.7 Sonnet (using built-in thinking)](https://claude.ai/share/6f4140ed-f33c-4949-8778-a57719498e40): Correct answer after 3m, 45s
+- [GPT-o1 (using built-in thinking)](https://chatgpt.com/share/67fee0fd-2600-8000-bcdf-76e40a986ee4): Correct answer after 2m, 0s
+- [GPT-o1 pro (using built-in thinking)](https://chatgpt.com/share/67fee11b-530c-8000-92d1-609b6ca49c9c): Correct answer after 4m, 24s
 
 Below is an example output trace showing how **this implementation guides Claude 3.7 Sonnet** through the problem-solving process:
 
@@ -243,7 +255,7 @@ Thought 4:
   Using first-step analysis, we can write equations for each state:
 
   For State 0:
-  - If we roll a 3 (prob 1/6), we go to State 1 with 1 roll used (odd). The total number of rolls will be odd if the remaining rolls from State 1 are even. 
+  - If we roll a 3 (prob 1/6), we go to State 1 with 1 roll used (odd). The total number of rolls will be odd if the remaining rolls from State 1 are even.
   - If we roll anything else (prob 5/6), we stay in State 0 with 1 roll used (odd). The total will be odd if the remaining rolls from State 0 are even.
 
   Therefore: P₀ = (1/6)*(1-P₁) + (5/6)*(1-P₀) = 5/6 - 5P₀/6 + 1/6 - P₁/6
@@ -351,7 +363,7 @@ Thought 5:
   And P₀:
   P₀ = 3/2 - 41P₂/24 = 3/2 - 41(54/431)/24 = 3/2 - 2214/10344 = 3/2 - 1107/5172
 
-  Let's calculate: 
+  Let's calculate:
   P₀ = 3/2 - 1107/5172 = 7758/5172 - 1107/5172 = 6651/5172 = 2217/1724
 
   Now we have:
@@ -599,7 +611,7 @@ Thought 7 (Conclusion):
   P₁ = 210/431 ≈ 0.4872
   P₂ = 252/431 ≈ 0.5847
 
-  Since we start from State 0 (no part of the sequence rolled yet), the answer to our original question is P₀ = 216/431. 
+  Since we start from State 0 (no part of the sequence rolled yet), the answer to our original question is P₀ = 216/431.
 
   To verify this result, we solved the system multiple times and checked that our values satisfied the original equations.
 
@@ -643,7 +655,7 @@ P₀ = 216/431 ≈ 0.5012
 P₁ = 210/431 ≈ 0.4872
 P₂ = 252/431 ≈ 0.5847
 
-Since we start from State 0 (no part of the sequence rolled yet), the answer to our original question is P₀ = 216/431. 
+Since we start from State 0 (no part of the sequence rolled yet), the answer to our original question is P₀ = 216/431.
 
 To verify this result, we solved the system multiple times and checked that our values satisfied the original equations.
 

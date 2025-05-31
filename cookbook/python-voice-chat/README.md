@@ -1,35 +1,43 @@
-# BrainyFlow Voice Chat
+---
+complexity: 11.5
+---
+
+# Voice Chat
 
 This project demonstrates a voice-based interactive chat application built with BrainyFlow. Users can speak their queries, and the system will respond with spoken answers from an LLM, maintaining conversation history.
 
 - Check out the [Substack Post Tutorial](https://brainyflow.substack.com/p/build-your-own-voice-chatbot-from) for more!
 
-
 ## Features
 
--   **Voice Activity Detection (VAD)**: Automatically detects when the user starts and stops speaking.
--   **Speech-to-Text (STT)**: Converts spoken audio into text using OpenAI.
--   **LLM Interaction**: Processes the transcribed text with an LLM (e.g., GPT-4o), maintaining conversation history.
--   **Text-to-Speech (TTS)**: Converts the LLM's text response back into audible speech using OpenAI.
--   **Continuous Conversation**: Loops back to listen for the next user query after responding, allowing for an ongoing dialogue.
+- **Voice Activity Detection (VAD)**: Automatically detects when the user starts and stops speaking.
+- **Speech-to-Text (STT)**: Converts spoken audio into text using OpenAI.
+- **LLM Interaction**: Processes the transcribed text with an LLM (e.g., GPT-4o), maintaining conversation history.
+- **Text-to-Speech (TTS)**: Converts the LLM's text response back into audible speech using OpenAI.
+- **Continuous Conversation**: Loops back to listen for the next user query after responding, allowing for an ongoing dialogue.
 
 ## How to Run
 
 1.  **Set your OpenAI API key**:
+
     ```bash
     export OPENAI_API_KEY="your-api-key-here"
     ```
+
     Ensure this environment variable is set, as the utility scripts for STT, LLM, and TTS rely on it.
     You can test individual utility functions (e.g., `python utils/call_llm.py`, `python utils/text_to_speech.py`) to help verify your API key and setup.
 
 2.  **Install dependencies**:
     Make sure you have Python installed. Then, install the required libraries using pip:
+
     ```bash
     pip install -r requirements.txt
     ```
+
     This will install libraries such as `openai`, `brainyflow`, `sounddevice`, `numpy`, `scipy`, and `soundfile`.
 
     **Note for Linux users**: `sounddevice` may require PortAudio. If you encounter issues, you might need to install it first:
+
     ```bash
     sudo apt-get update && sudo apt-get install -y portaudio19-dev
     ```
