@@ -304,28 +304,17 @@ Before diving into deeper comparisons, let's reiterate BrainyFlow's core tenets:
 - **Agentic Coding Friendly:** Designed to be intuitive for both human developers and AI assistants collaborating on code.
 - **Composability:** Flows can be nested within other flows, enabling modular design.
 
-## Comparison Points
+## Feature Comparison Matrix
 
-We'll compare BrainyFlow against competitors based on:
-
-- **Core Abstraction:** The fundamental building blocks and mental model.
-- **Dependencies & Size:** The footprint and external requirements.
-- **Flexibility vs. Opinionation:** How much structure the framework imposes versus how much freedom the developer has.
-- **Vendor Integrations:** Built-in support for specific LLMs, databases, etc.
-- **Learning Curve:** Perceived difficulty in getting started and mastering the framework.
-
-## Relationship to PocketFlow
-
-BrainyFlow originated as a fork of PocketFlow, inheriting its core philosophy of minimalism and a graph-based abstraction. However, BrainyFlow has evolved with some key differences:
-
-- **Core Abstraction & Batching**: PocketFlow included many specialized classes for async operations and batching (e.g., `AsyncNode`, `BatchNode`, `AsyncBatchNode`, `AsyncParallelBatchNode`, `AsyncFlow`, `BatchFlow`, `AsyncBatchFlow`, `AsyncParallelBatchFlow`). BrainyFlow simplifies this by removing all of these specialized classes from its core. Instead, it relies on standard `Node` lifecycle methods (which are inherently `async`-capable) combined with `Flow` (or `ParallelFlow`). Batch-like fan-out operations are achieved using multiple `trigger` calls within a single node's `post` method.
-- **State Management (`Memory`)**: While both use a shared store, BrainyFlow's `Memory` object now has a more refined distinction between `global` and `local` stores. The `local` store is primarily populated via `forkingData` during `trigger` calls, crucial for managing branch-specific context. This eliminates the need for PocketFlow's separate `Params` concept and simplifies the `Memory` model, removing the complexities that `Batch*` classes in PocketFlow tried to solve. BrainyFlow's `Memory` is created with enhanced proxy mechanisms for attribute access and isolation.
-- **Focus:** BrainyFlow sharpens the focus on the fundamental `Node`, `Flow`, and `Memory` abstractions as the absolute core, reinforcing the idea that patterns like batching or parallelism are handled by how flows orchestrate standard nodes rather than requiring specialized node types.
-
-Essentially, BrainyFlow refines PocketFlow's minimalist approach, aiming for an even leaner core by handling execution patterns like batching and parallelism primarily at the `Flow` orchestration level.
-BrainyFlow also emphasizes a more consistent and refined API across its Python and TypeScript implementations, particularly for state management and flow execution.
-
-On top of that, BrainyFlow has been designed to be more agentic-friendly, with a focus on building flows that can be used by both humans and AI assistants. Its code is more readable and maintainable, prioritizing developer experience over an arbitrarily defined amount of lines of code.
+| Feature                   | BrainyFlow        | LangChain         | LangGraph            | CrewAI                    | AutoGen               | PocketFlow       |
+| ------------------------- | ----------------- | ----------------- | -------------------- | ------------------------- | --------------------- | ---------------- |
+| **Core Abstraction**      | Nodes & Flows     | Chains & Agents   | State Graphs         | Agents & Crews            | Conversational Agents | Nodes & Flows    |
+| **Dependencies**          | None              | Many              | Many (via LangChain) | Several                   | Several               | None             |
+| **Codebase Size**         | Tiny (~300 lines) | Large             | Medium               | Medium                    | Medium                | Tiny (100 lines) |
+| **Flexibility**           | High              | Medium            | Medium               | Low                       | Medium                | High             |
+| **Built-in Integrations** | None              | Extensive         | Via LangChain        | Several                   | Several               | None             |
+| **Learning Curve**        | Moderate          | Steep             | Very Steep           | Moderate                  | Moderate              | Moderate         |
+| **Primary Focus**         | Graph Execution   | Component Library | State Machines       | Multi-Agent Collaboration | Conversational Agents | Graph Execution  |
 
 ## BrainyFlow vs. LangChain
 
@@ -359,17 +348,18 @@ On top of that, BrainyFlow has been designed to be more agentic-friendly, with a
 - **Vendor Integrations:** AutoGen offers integrations, particularly for LLMs. BrainyFlow avoids them.
 - **Learning Curve:** AutoGen's conversational focus might be specific. BrainyFlow's graph is general but requires explicit construction.
 
-## Feature Comparison Matrix
+## Relationship to PocketFlow
 
-| Feature                   | BrainyFlow        | LangChain         | LangGraph            | CrewAI                    | AutoGen               | PocketFlow       |
-| ------------------------- | ----------------- | ----------------- | -------------------- | ------------------------- | --------------------- | ---------------- |
-| **Core Abstraction**      | Nodes & Flows     | Chains & Agents   | State Graphs         | Agents & Crews            | Conversational Agents | Nodes & Flows    |
-| **Dependencies**          | None              | Many              | Many (via LangChain) | Several                   | Several               | None             |
-| **Codebase Size**         | Tiny (~300 lines) | Large             | Medium               | Medium                    | Medium                | Tiny (100 lines) |
-| **Flexibility**           | High              | Medium            | Medium               | Low                       | Medium                | High             |
-| **Built-in Integrations** | None              | Extensive         | Via LangChain        | Several                   | Several               | None             |
-| **Learning Curve**        | Moderate          | Steep             | Very Steep           | Moderate                  | Moderate              | Moderate         |
-| **Primary Focus**         | Graph Execution   | Component Library | State Machines       | Multi-Agent Collaboration | Conversational Agents | Graph Execution  |
+BrainyFlow originated as a fork of [PocketFlow](https://arxiv.org/abs/2504.03771), inheriting its core philosophy of minimalism and a graph-based abstraction. However, BrainyFlow has evolved with some key differences:
+
+- **Core Abstraction & Batching**: [PocketFlow](https://arxiv.org/abs/2504.03771) included many specialized classes for async operations and batching (e.g., `AsyncNode`, `BatchNode`, `AsyncBatchNode`, `AsyncParallelBatchNode`, `AsyncFlow`, `BatchFlow`, `AsyncBatchFlow`, `AsyncParallelBatchFlow`). BrainyFlow simplifies this by removing all of these specialized classes from its core. Instead, it relies on standard `Node` lifecycle methods (which are inherently `async`-capable) combined with `Flow` (or `ParallelFlow`). Batch-like fan-out operations are achieved using multiple `trigger` calls within a single node's `post` method.
+- **State Management (`Memory`)**: While both use a shared store, BrainyFlow's `Memory` object now has a more refined distinction between `global` and `local` stores. The `local` store is primarily populated via `forkingData` during `trigger` calls, crucial for managing branch-specific context. This eliminates the need for [PocketFlow](https://arxiv.org/abs/2504.03771)'s separate `Params` concept and simplifies the `Memory` model, removing the complexities that `Batch*` classes in [PocketFlow](https://arxiv.org/abs/2504.03771) tried to solve. BrainyFlow's `Memory` is created with enhanced proxy mechanisms for attribute access and isolation.
+- **Focus:** BrainyFlow sharpens the focus on the fundamental `Node`, `Flow`, and `Memory` abstractions as the absolute core, reinforcing the idea that patterns like batching or parallelism are handled by how flows orchestrate standard nodes rather than requiring specialized node types.
+
+Essentially, BrainyFlow refines [PocketFlow](https://arxiv.org/abs/2504.03771)'s minimalist approach, aiming for an even leaner core by handling execution patterns like batching and parallelism primarily at the `Flow` orchestration level.
+BrainyFlow also emphasizes a more consistent and refined API across its Python and TypeScript implementations, particularly for state management and flow execution.
+
+On top of that, BrainyFlow has been designed to be more agentic-friendly, with a focus on building flows that can be used by both humans and AI assistants. Its code is more readable and maintainable, prioritizing developer experience over an arbitrarily defined amount of lines of code.
 
 ## Conclusion: When to Choose BrainyFlow?
 
@@ -866,7 +856,7 @@ interface RouterGlobalStore {
 }
 type RouterActions = 'english' | 'spanish' | 'unknown' // Add unknown action
 
-class RouterNode extends Node<RouterGlobalStore, any, RouterActions[]> {
+class RouterNode extends Node<RouterGlobalStore, any, any, RouterActions[]> {
   async prep(memory: Memory<RouterGlobalStore, any>): Promise<string> {
     return memory.content
   }
@@ -932,7 +922,7 @@ For a detailed explanation and examples of implementing batch processing using t
 
 ## Running Individual Nodes
 
-Nodes have a `run(memory, propagate?)` method, which executes its full lifecycle (`prep` -> `execRunner` (which handles `exec` and `execFallback`) -> `post`). This method is primarily intended for **testing or debugging individual nodes in isolation**.
+Nodes have a `run(memory, propagate?)` method, which executes its full lifecycle (`prep` -> `execRunner` (which handles `exec` and `execFallback`) -> `post`). This method is primarily intended for **testing or debugging individual nodes in isolation**, and in production code you should always use `Flow.run(memory)` instead.
 
 {% hint style="danger" %}
 **Do NOT use `node.run()` to execute a workflow.**
@@ -1288,8 +1278,6 @@ const flow = new Flow(startNode, { maxVisits: 10 })
 
 Besides being capable of triggering actions like any other `Node`, a `Flow` also propagates actions triggered by internal _terminal nodes_. This allows for more dynamic and interconnected workflows, where an action deep within a sub-flow can influence the parent flow's path without needing explicit re-triggering at every level.
 
-Think about it as a pratical way to "_hand over unfinished tasks in a flow directly to the next flow_".
-
 {% hint style="info" %}
 These terms can often be used interchangeably, with a subtle distinction:
 
@@ -1298,9 +1286,11 @@ These terms can often be used interchangeably, with a subtle distinction:
 
 Thus,
 
-- **"Leaf node"** often implies a node that is structurally at the end of all possible paths within its local graph (the `SubFlow`).
+- **"Leaf node"** often implies a node that is structurally at the end of all possible paths within its local graph.
 - **"Terminal node"** is a node that might have successors for _some_ actions but not for the one it currently triggers.
   {% endhint %}
+
+Think about it as a pratical way to "_hand over unfinished tasks in a flow directly to the next flow_".
 
 Here's how it works:
 
@@ -1433,7 +1423,7 @@ When you call `flow.run(memory)`, the flow executes the following steps internal
 4.  For each triggered action, it finds the corresponding successor node(s) defined by `.on()` or `.next()`.
 5.  It recursively executes the successor node(s). If `forkingData` was provided, a new local memory scope is created for that branch, inheriting the global store but with the `forkingData` merged into its local state.
 6.  This process repeats until it reaches all terminal nodes (i.e. nodes with no defined successors within the current flow), or the flow completes.
-7.  The flow finish its execution by running its own `post` method, where it can trigger any final action, together with the explicitly triggered actions of all terminal nodes.
+7.  The flow finishes its execution by running its own `post` method, where it can trigger any final action, together with the explicitly triggered actions of all terminal nodes.
 8.  Upon completion, `flow.run()` returns an `ExecutionTree` object, which is a structured representation of the execution path, the actions triggered at each step, and the resulting sub-trees.
 
 ```mermaid
@@ -2459,7 +2449,7 @@ def mapreduce(iterate: Node | Flow):
     return ParallelFlow(start=trigger)
 ```
 
-{% endtabs %}
+{% endtab %}
 {% tab title="TypeScript" %}
 
 ```typescript
@@ -4064,12 +4054,12 @@ File: docs/guides/migration.md
 ================================================
 # Migrating Between BrainyFlow Versions
 
-This guide helps you update your BrainyFlow applications when migrating from older versions (pre-major refactor, roughly pre-v0.3 Python and equivalent TS) to newer ones. We strive for backward compatibility, but major refactors sometimes introduce breaking changes for significant improvements.
+This guide helps you update your BrainyFlow applications when migrating from older versions to newer ones. We strive for backward compatibility, but major refactors sometimes introduce breaking changes for significant improvements.
 
 ## General Advice
 
 - **Start Small**: Migrate one part of your application at a time.
-- **Consult the Changelog**: Check the  release notes on the repository for the specific version you are upgrading to. It will list breaking changes, new features, and bug fixes.
+- **Consult the Changelog**: Check the release notes on the repository for the specific version you are upgrading to. It will list breaking changes, new features, and bug fixes.
 - **Review Core Abstraction Docs**: Changes often revolve around the core `Node`, `Flow`, or `Memory` components. Re-reading their documentation can clarify new behaviors or APIs.
 
 ## Migrating to v2.0
@@ -4404,14 +4394,8 @@ interface TranslationLocalStore {
 type TranslationActions = 'translate_one' | 'aggregate_results'
 
 // 1. Trigger Node (Fans out work)
-class TriggerTranslationsNode extends Node<
-  TranslationGlobalStore,
-  TranslationLocalStore,
-  TranslationActions[]
-> {
-  async prep(
-    memory: Memory<TranslationGlobalStore, TranslationLocalStore>,
-  ): Promise<{ text: string; languages: string[] }> {
+class TriggerTranslationsNode extends Node<TranslationGlobalStore, TranslationLocalStore, TranslationActions[]> {
+  async prep(memory: Memory<TranslationGlobalStore, TranslationLocalStore>): Promise<{ text: string; languages: string[] }> {
     const text = memory.text ?? '(No text provided)'
     const languages = memory.languages ?? getLanguages()
     return { text, languages }
@@ -4441,9 +4425,7 @@ class TriggerTranslationsNode extends Node<
 
 // 2. Processor Node (Handles one language)
 class TranslateOneLanguageNode extends Node<TranslationGlobalStore, TranslationLocalStore> {
-  async prep(
-    memory: Memory<TranslationGlobalStore, TranslationLocalStore>,
-  ): Promise<{ text: string; lang: string; index: number }> {
+  async prep(memory: Memory<TranslationGlobalStore, TranslationLocalStore>): Promise<{ text: string; lang: string; index: number }> {
     // Read data passed via forkingData from local memory
     const text = memory.text ?? ''
     const lang = memory.language ?? 'unknown'
@@ -4498,4 +4480,5 @@ If you encounter issues during migration, you can:
 Always consult the specific release notes for the version you are migrating to for the most accurate and detailed list of changes.
 
 Happy migrating!
+
 
