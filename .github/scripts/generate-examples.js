@@ -140,7 +140,8 @@ function generateMarkdown(pageTitle, projects) {
 
   let markdown = `---\ntitle: '${pageTitle.replace(/'/g, "\\'")}'\nmachine-display: false\n---\n\n`
   markdown += `# ${pageTitle}\n\n`
-  markdown += `All projects listed below can be found in our [cookbook directory](${REPOSITORY}/${path.join('tree/main', COOKBOOK_DIR)}).\n\n`
+  markdown += `All projects listed below can be found in our [cookbook directory](${REPOSITORY}/${path.join('tree/main', COOKBOOK_DIR)}).\n`
+  markdown += `They have been sorted by [complexity points](#the-complexity-points-system) (${COMPLEXITY_SCALE.join(' → ')}) to help you easily find projects that suit your skills.\n\n`
   if (projects.length === 0) {
     markdown += 'No examples found for this category yet.\n'
     return markdown
@@ -156,7 +157,7 @@ function generateMarkdown(pageTitle, projects) {
     normalizedIndex = Math.max(0, Math.min(normalizedIndex, Math.min(projects.length, COMPLEXITY_SCALE.length - 1)))
 
     markdown += `## ${escapedName} ([${project.dirName}](${REPOSITORY}/${path.join('tree/main', COOKBOOK_DIR, project.dirName)}))\n`
-    markdown += `Complexity Points: ${project.complexity}\n[${COMPLEXITY_SCALE[normalizedIndex].repeat(normalizedIndex + 1)}]\n\n`
+    markdown += `Complexity Points: ${project.complexity}\n├${COMPLEXITY_SCALE[normalizedIndex].repeat(normalizedIndex + 1)}\n\n`
     markdown += escapedDescription
     markdown += `<details>\n`
     markdown += `<summary><strong>Details</strong></summary>\n\n`
@@ -165,8 +166,10 @@ function generateMarkdown(pageTitle, projects) {
     markdown += `</details>\n\n`
   })
 
-  markdown += `<hr /><details>\n`
-  markdown += `<summary><strong>The Complexity Points System</strong></summary>\n\n`
+  markdown += `![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)\n`
+  markdown += `# The Complexity Points System\n`
+  markdown += `All listed projects had their calculation automatically calculated.\nClick \`Details\` below for more information in the points system.\n`
+  markdown += `<details>\n<summary><strong>Details</strong></summary>\n\n`
   markdown += `\n`
   markdown += POINTS_SYSTEM
   markdown += `</details>\n\n`

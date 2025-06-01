@@ -6,10 +6,11 @@ machine-display: false
 # TypeScript Examples
 
 All projects listed below can be found in our [cookbook directory](https://github.com/zvictor/brainyflow/tree/main/cookbook).
+They have been sorted by [complexity points](#the-complexity-points-system) (🥚 → 🐣 → 🐥 → 🐓 → 🦕 → 🦖 → ☄️ → 🐭 → 🐒 → 🧠 → ⚙️ → 🤖 → 👾 → 🛸 → 🌌) to help you easily find projects that suit your skills.
 
 ## Terminal Chat Interface Example ([typescript-chat](https://github.com/zvictor/brainyflow/tree/main/cookbook/typescript-chat))
 Complexity Points: 3.5
-[🥚]
+├🥚
 
 A simple command-line chat interface for interacting with OpenAI models using Node.js and TypeScript.<details>
 <summary><strong>Details</strong></summary>
@@ -53,7 +54,7 @@ flowchart LR
 
 ## Agent Example ([typescript-agent](https://github.com/zvictor/brainyflow/tree/main/cookbook/typescript-agent))
 Complexity Points: 11
-[🐥🐥🐥]
+├🐥🐥🐥
 
 This example demonstrates how to build a question-answering agent using TypeScript and BrainyFlow. The agent can search the web for information and provide answers based on the search results.<details>
 <summary><strong>Details</strong></summary>
@@ -113,8 +114,12 @@ graph TD
 
 </details>
 
-<hr /><details>
-<summary><strong>The Complexity Points System</strong></summary>
+![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
+# The Complexity Points System
+All listed projects had their calculation automatically calculated.
+Click `Details` below for more information in the points system.
+<details>
+<summary><strong>Details</strong></summary>
 
 
 ## Brainyflow Cookbook: Project Complexity Point System

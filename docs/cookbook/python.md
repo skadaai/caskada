@@ -6,10 +6,11 @@ machine-display: false
 # Python Examples
 
 All projects listed below can be found in our [cookbook directory](https://github.com/zvictor/brainyflow/tree/main/cookbook).
+They have been sorted by [complexity points](#the-complexity-points-system) (🥚 → 🐣 → 🐥 → 🐓 → 🦕 → 🦖 → ☄️ → 🐭 → 🐒 → 🧠 → ⚙️ → 🤖 → 👾 → 🛸 → 🌌) to help you easily find projects that suit your skills.
 
 ## BrainyFlow Hello World ([python-hello-world](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-hello-world))
 Complexity Points: 2.5
-[🥚]
+├🥚
 
 Your first BrainyFlow application! This simple example demonstrates how to create a basic BrainyFlow app from scratch.<details>
 <summary><strong>Details</strong></summary>
@@ -66,7 +67,7 @@ python main.py
 
 ## Text Summarization ([python-node](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-node))
 Complexity Points: 3
-[🥚]
+├🥚
 
 A practical example demonstrating how to use BrainyFlow to build a robust text summarization tool with error handling and retries. This example showcases core BrainyFlow concepts in a real-world application.<details>
 <summary><strong>Details</strong></summary>
@@ -165,7 +166,7 @@ This example demonstrates several key BrainyFlow concepts:
 
 ## Structured Output Demo ([python-structured-output](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-structured-output))
 Complexity Points: 3
-[🥚]
+├🥚
 
 A minimal demo application showing how to use BrainyFlow to extract structured data from a resume using direct prompting and YAML formatting. Why YAML? Check out the [doc](https://brainy.gitbook.io/flow/design-patterns/structure) or [Why JSON Costs More Than TSV](https://david-gilbertson.medium.com/llm-output-formats-why-json-costs-more-than-tsv-ebaf590bd541).<details>
 <summary><strong>Details</strong></summary>
@@ -266,7 +267,7 @@ skill_indexes: [0, 1, 2, 3, 4]
 
 ## OpenAI Embeddings with BrainyFlow ([python-tool-embeddings](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-tool-embeddings))
 Complexity Points: 3
-[🥚]
+├🥚
 
 This example demonstrates how to properly integrate OpenAI's text embeddings API with BrainyFlow, focusing on:<details>
 <summary><strong>Details</strong></summary>
@@ -374,7 +375,7 @@ This will:
 
 ## Simple Chat ([python-chat](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-chat))
 Complexity Points: 3.5
-[🐣🐣]
+├🐣🐣
 
 A basic chat application using BrainyFlow with OpenAI's GPT-4o model.<details>
 <summary><strong>Details</strong></summary>
@@ -431,7 +432,7 @@ The chat application uses:
 
 ## Text Converter Flow ([python-flow](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-flow))
 Complexity Points: 4
-[🐣🐣]
+├🐣🐣
 
 This project demonstrates an interactive text transformation tool built with BrainyFlow.<details>
 <summary><strong>Details</strong></summary>
@@ -516,7 +517,7 @@ Thank you for using Text Converter!
 
 ## Batch Translation Process ([python-batch](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-batch))
 Complexity Points: 4.5
-[🐥🐥🐥]
+├🐥🐥🐥
 
 This project demonstrates a batch processing implementation that enables LLMs to translate documents into multiple languages simultaneously. It's designed to efficiently handle the translation of markdown files while preserving formatting.<details>
 <summary><strong>Details</strong></summary>
@@ -595,7 +596,7 @@ The translations are saved to the `translations` directory, with each file named
 
 ## Batch Node Example ([python-batch-node](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-batch-node))
 Complexity Points: 4.5
-[🐥🐥🐥]
+├🐥🐥🐥
 
 This example demonstrates the batch Node concept in BrainyFlow by implementing a CSV processor that handles large files by processing them in chunks.<details>
 <summary><strong>Details</strong></summary>
@@ -671,7 +672,7 @@ Final Statistics:
 
 ## LLM Streaming and Interruption ([python-llm-streaming](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-llm-streaming))
 Complexity Points: 4.5
-[🐥🐥🐥]
+├🐥🐥🐥
 
 Demonstrates real-time LLM response streaming with user interrupt capability.<details>
 <summary><strong>Details</strong></summary>
@@ -731,7 +732,7 @@ export OPENAI_API_KEY="your-api-key-here"
 
 ## Shared Store Communication ([python-communication](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-communication))
 Complexity Points: 5
-[🐥🐥🐥]
+├🐥🐥🐥
 
 This example demonstrates the [Memory](https://brainy.gitbook.io/flow/core-abstraction/memory) concept in BrainyFlow, specifically focusing on the Shared Store pattern.<details>
 <summary><strong>Details</strong></summary>
@@ -796,7 +797,7 @@ This demonstrates how nodes can share and maintain state using the shared store 
 
 ## Web Search with Analysis ([python-tool-search](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-tool-search))
 Complexity Points: 6
-[🐓🐓🐓🐓]
+├🐓🐓🐓🐓
 
 A web search tool built with BrainyFlow that performs searches using SerpAPI and analyzes results using LLM.<details>
 <summary><strong>Details</strong></summary>
@@ -882,7 +883,7 @@ brainyflow-tool-search/
 
 ## Majority Vote Reasoning ([python-majority-vote](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-majority-vote))
 Complexity Points: 6.5
-[🐓🐓🐓🐓]
+├🐓🐓🐓🐓
 
 This project demonstrates a majority vote implementation that enables LLMs to solve complex reasoning problems by aggregating multiple independent attempts. It's designed to improve problem-solving accuracy through consensus-based reasoning.<details>
 <summary><strong>Details</strong></summary>
@@ -978,7 +979,7 @@ This shows that 4 out of 5 attempts yielded the same answer (0.333), which is ch
 
 ## Streamlit Human-in-the-Loop (HITL) Application ([python-streamlit-hitl](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-streamlit-hitl))
 Complexity Points: 6.5
-[🐓🐓🐓🐓]
+├🐓🐓🐓🐓
 
 Minimal Human-in-the-Loop (HITL) web application using BrainyFlow and Streamlit. Submit text, review processed output, and approve/reject.<details>
 <summary><strong>Details</strong></summary>
@@ -1026,7 +1027,7 @@ Minimal Human-in-the-Loop (HITL) web application using BrainyFlow and Streamlit.
 
 ## SQLite Database with BrainyFlow ([python-tool-database](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-tool-database))
 Complexity Points: 6.5
-[🐓🐓🐓🐓]
+├🐓🐓🐓🐓
 
 This example demonstrates how to properly integrate SQLite database operations with BrainyFlow, focusing on:<details>
 <summary><strong>Details</strong></summary>
@@ -1135,7 +1136,7 @@ All Tasks:
 
 ## Article Writing Workflow ([python-workflow](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-workflow))
 Complexity Points: 6.5
-[🐓🐓🐓🐓]
+├🐓🐓🐓🐓
 
 A BrainyFlow example that demonstrates an article writing workflow using a sequence of LLM calls.<details>
 <summary><strong>Details</strong></summary>
@@ -1272,7 +1273,7 @@ Final Article Length: 2266 characters
 
 ## Batch Flow Example ([python-batch-flow](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-batch-flow))
 Complexity Points: 7
-[🦕🦕🦕🦕🦕]
+├🦕🦕🦕🦕🦕
 
 This example demonstrates the batch Flow concept in BrainyFlow by implementing an image processor that applies different filters to multiple images.<details>
 <summary><strong>Details</strong></summary>
@@ -1358,7 +1359,7 @@ Check the 'output' directory for results.
 
 ## Travel Advisor Chat with Guardrails ([python-chat-guardrail](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-chat-guardrail))
 Complexity Points: 7
-[🦕🦕🦕🦕🦕]
+├🦕🦕🦕🦕🦕
 
 A travel-focused chat application using BrainyFlow with OpenAI's GPT-4o model, enhanced with input validation to ensure only travel-related queries are processed.<details>
 <summary><strong>Details</strong></summary>
@@ -1444,7 +1445,7 @@ Goodbye! Safe travels!
 
 ## Chain-of-Thought ([python-thinking](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-thinking))
 Complexity Points: 7
-[🦕🦕🦕🦕🦕]
+├🦕🦕🦕🦕🦕
 
 This project demonstrates an implementation that orchestrates a Chain-of-Thought process, enabling LLMs to solve complex reasoning problems by thinking step-by-step. It's designed to improve problem-solving accuracy through deliberate, structured reasoning managed externally.<details>
 <summary><strong>Details</strong></summary>
@@ -2118,7 +2119,7 @@ This probability is slightly greater than 1/2, meaning it's slightly more likely
 
 ## BrainyFlow Visualization ([python-visualization](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-visualization))
 Complexity Points: 7
-[🦕🦕🦕🦕🦕]
+├🦕🦕🦕🦕🦕
 
 This directory contains tools for visualizing BrainyFlow workflow graphs using interactive D3.js visualizations.<details>
 <summary><strong>Details</strong></summary>
@@ -2269,7 +2270,7 @@ The visualization displays:
 
 ## Multi-Agent Taboo Game ([python-multi-agent](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-multi-agent))
 Complexity Points: 8
-[🦕🦕🦕🦕🦕]
+├🦕🦕🦕🦕🦕
 
 A BrainyFlow example that demonstrates how to implement asynchronous multi-agent communication using the Taboo word guessing game.<details>
 <summary><strong>Details</strong></summary>
@@ -2364,7 +2365,7 @@ Game Over - Correct guess!
 
 ## Parallel Batch Translation Process ([python-parallel-batch](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-parallel-batch))
 Complexity Points: 8
-[🦕🦕🦕🦕🦕]
+├🦕🦕🦕🦕🦕
 
 This project demonstrates using BrainyFlow's async and parallel features (`ParallelFlow`, `Node`) to translate a document into multiple languages concurrently.<details>
 <summary><strong>Details</strong></summary>
@@ -2476,7 +2477,7 @@ _(Actual times will vary based on API response speed and system.)_
 
 ## Web Human-in-the-Loop (HITL) Feedback Service ([python-fastapi-hitl](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-fastapi-hitl))
 Complexity Points: 9
-[🦖🦖🦖🦖🦖🦖]
+├🦖🦖🦖🦖🦖🦖
 
 This project demonstrates a minimal web application for human-in-the-loop workflows using BrainyFlow, FastAPI, and Server-Sent Events (SSE). Users can submit text, have it processed (simulated), review the output, and approve or reject it, potentially triggering reprocessing until approved.<details>
 <summary><strong>Details</strong></summary>
@@ -2573,7 +2574,7 @@ This setup allows for a decoupled workflow logic (BrainyFlow) and web interactio
 
 ## Tool Calling: PDF Vision ([python-tool-pdf-vision](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-tool-pdf-vision))
 Complexity Points: 9
-[🦖🦖🦖🦖🦖🦖]
+├🦖🦖🦖🦖🦖🦖
 
 A BrainyFlow example project demonstrating PDF processing with OpenAI's Vision API for OCR and text extraction.<details>
 <summary><strong>Details</strong></summary>
@@ -2659,7 +2660,7 @@ MIT
 
 ## Nested Batch Flow Example ([python-nested-batch](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-nested-batch))
 Complexity Points: 9.5
-[🦖🦖🦖🦖🦖🦖]
+├🦖🦖🦖🦖🦖🦖
 
 This example demonstrates Nested batch Flow using a simple school grades calculator.<details>
 <summary><strong>Details</strong></summary>
@@ -2716,7 +2717,7 @@ School Average: 8.15
 
 ## Web Crawler with Content Analysis ([python-tool-crawler](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-tool-crawler))
 Complexity Points: 9.5
-[🦖🦖🦖🦖🦖🦖]
+├🦖🦖🦖🦖🦖🦖
 
 A web crawler tool built with BrainyFlow that crawls websites and analyzes content using LLM.<details>
 <summary><strong>Details</strong></summary>
@@ -2802,7 +2803,7 @@ brainyflow-tool-crawler/
 
 ## Resume Qualification - Map Reduce Example ([python-map-reduce](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-map-reduce))
 Complexity Points: 10
-[☄️☄️☄️☄️☄️☄️☄️]
+├☄️☄️☄️☄️☄️☄️☄️
 
 A BrainyFlow example that demonstrates how to implement a Map-Reduce pattern for processing and evaluating resumes.<details>
 <summary><strong>Details</strong></summary>
@@ -2880,7 +2881,7 @@ Resume processing complete!
 
 ## Async Recipe Finder ([python-async-basic](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-async-basic))
 Complexity Points: 10.5
-[☄️☄️☄️☄️☄️☄️☄️]
+├☄️☄️☄️☄️☄️☄️☄️
 
 This example demonstrates async operations using a simple Recipe Finder that:<details>
 <summary><strong>Details</strong></summary>
@@ -2988,7 +2989,7 @@ Great choice! Here's your recipe...
 
 ## Chat with Memory Retrieval ([python-chat-memory](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-chat-memory))
 Complexity Points: 10.5
-[☄️☄️☄️☄️☄️☄️☄️]
+├☄️☄️☄️☄️☄️☄️☄️
 
 A chat application with memory retrieval using BrainyFlow. This example maintains a sliding window of recent conversations while retrieving relevant past conversations based on context.<details>
 <summary><strong>Details</strong></summary>
@@ -3106,7 +3107,7 @@ Assistant: Your cat's name is Whiskers.
 
 ## Parallel Image Processor ([python-parallel-batch-flow](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-parallel-batch-flow))
 Complexity Points: 10.5
-[☄️☄️☄️☄️☄️☄️☄️]
+├☄️☄️☄️☄️☄️☄️☄️
 
 Demonstrates how a batch ParallelFlow processes multiple images with multiple filters &gt;8x faster than sequential processing.<details>
 <summary><strong>Details</strong></summary>
@@ -3180,7 +3181,7 @@ Processing complete! Check the output/ directory for results.
 
 ## Research Agent ([python-agent](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-agent))
 Complexity Points: 11.5
-[🐭🐭🐭🐭🐭🐭🐭🐭]
+├🐭🐭🐭🐭🐭🐭🐭🐭
 
 This project demonstrates a simple yet powerful LLM-powered research agent.<details>
 <summary><strong>Details</strong></summary>
@@ -3261,7 +3262,7 @@ Here's what's in each file:
 
 ## MCP Demo ([python-mcp](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-mcp))
 Complexity Points: 11.5
-[🐭🐭🐭🐭🐭🐭🐭🐭]
+├🐭🐭🐭🐭🐭🐭🐭🐭
 
 This project shows how to build an agent that performs addition using BrainyFlow and Model Context Protocol (MCP). It presents a comparison between using MCP and basic function calling approaches.<details>
 <summary><strong>Details</strong></summary>
@@ -3345,7 +3346,7 @@ The agent uses BrainyFlow to create a workflow where:
 
 ## Voice Chat ([python-voice-chat](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-voice-chat))
 Complexity Points: 11.5
-[🐭🐭🐭🐭🐭🐭🐭🐭]
+├🐭🐭🐭🐭🐭🐭🐭🐭
 
 This project demonstrates a voice-based interactive chat application built with BrainyFlow. Users can speak their queries, and the system will respond with spoken answers from an LLM, maintaining conversation history.<details>
 <summary><strong>Details</strong></summary>
@@ -3447,7 +3448,7 @@ The conversation continues in this manner. To stop the application, you typicall
 
 ## Text-to-SQL Workflow ([python-text2sql](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-text2sql))
 Complexity Points: 12
-[🐭🐭🐭🐭🐭🐭🐭🐭]
+├🐭🐭🐭🐭🐭🐭🐭🐭
 
 A BrainyFlow example demonstrating a text-to-SQL workflow that converts natural language questions into executable SQL queries for an SQLite database, including an LLM-powered debugging loop for failed queries.<details>
 <summary><strong>Details</strong></summary>
@@ -3630,7 +3631,7 @@ Sports | 1
 
 ## Research Supervisor ([python-supervisor](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-supervisor))
 Complexity Points: 13
-[🐒🐒🐒🐒🐒🐒🐒🐒🐒]
+├🐒🐒🐒🐒🐒🐒🐒🐒🐒
 
 This project demonstrates a supervisor that oversees an unreliable [research agent](../brainyflow-agent) to ensure high-quality answers.<details>
 <summary><strong>Details</strong></summary>
@@ -3740,7 +3741,7 @@ The Nobel Prize in Physics for 2024 was awarded jointly to John J. Hopfield and 
 
 ## Retrieval Augmented Generation (RAG) ([python-rag](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-rag))
 Complexity Points: 16
-[🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖]
+├🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖
 
 This project demonstrates a simplified RAG system that retrieves relevant documents based on user queries and generates answers using an LLM. This implementation is based directly on this tutorial (for Pocketflow): [Retrieval Augmented Generation (RAG) from Scratch — Tutorial For Dummies](https://zacharyhuang.substack.com/p/retrieval-augmented-generation-rag).<details>
 <summary><strong>Details</strong></summary>
@@ -3834,7 +3835,7 @@ To install BrainyFlow, use the command `pip install brainyflow` or simply copy i
 
 ## Agent-to-Agent with A2A Protocol ([python-a2a](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-a2a))
 Complexity Points: 20.5
-[🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌]
+├🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌
 
 This project demonstrates how to take an existing agent built with the BrainyFlow library and make it accessible to other agents using the **Agent-to-Agent (A2A) communication protocol**.<details>
 <summary><strong>Details</strong></summary>
@@ -4074,8 +4075,12 @@ To make the BrainyFlow agent A2A-compatible, the following were essential:
 
 </details>
 
-<hr /><details>
-<summary><strong>The Complexity Points System</strong></summary>
+![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
+# The Complexity Points System
+All listed projects had their calculation automatically calculated.
+Click `Details` below for more information in the points system.
+<details>
+<summary><strong>Details</strong></summary>
 
 
 ## Brainyflow Cookbook: Project Complexity Point System
