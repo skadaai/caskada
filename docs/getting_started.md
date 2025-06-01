@@ -267,4 +267,8 @@ Now that you understand the basics, explore these resources to build sophisticat
 - [Core Abstractions](./core_abstraction/index.md): Dive deeper into nodes, flows, and communication
 - [Design Patterns](./design_pattern/index.md): Learn more complex patterns like Agents, RAG, and MapReduce
 - [Agentic Coding Guide](./guides/agentic_coding.md): Best practices for human-AI collaborative development
-- [Best Practices](./guides/best_practices.md): Tips for building robust, maintainable applications
+
+If you prefer, jump straight into our example projects:
+
+- [Python Cookbook](./cookbook/python.md)
+- [TypeScript Cookbook](./cookbook/typescript.md)

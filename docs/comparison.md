@@ -1,3 +1,7 @@
+---
+machine-display: false
+---
+
 # Comparison with Other Frameworks
 
 BrainyFlow stands out in the AI framework landscape by prioritizing simplicity, modularity, and developer experience over feature bloat.

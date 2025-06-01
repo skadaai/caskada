@@ -1,3 +1,7 @@
+---
+machine-display: false
+---
+
 # Migrating Between BrainyFlow Versions
 
 This guide helps you update your BrainyFlow applications when migrating from older versions to newer ones. We strive for backward compatibility, but major refactors sometimes introduce breaking changes for significant improvements.
