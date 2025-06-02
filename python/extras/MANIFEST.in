@@ -1,0 +1,3 @@
+global-exclude *.py[cod]
+prune tests
+include README.md
