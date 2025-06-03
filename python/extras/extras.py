@@ -27,7 +27,7 @@ class VerboseMemoryRunnerMixin:
         super()._set_value(key, value)
         if key.startswith("__") and key.endswith("__"):
             return        
-        smart_print(self._refer.attr(key), "=", value, max_length=160)
+        smart_print(self._refer.attr(key), "=", value, single_line=True)
 
 class Memory(VerboseMemoryRunnerMixin, bf.Memory[bf.M]):
     pass
@@ -49,16 +49,16 @@ class VerboseNodeRunnerMixin:
         )
 
     async def exec_runner(self, *args, **kwargs) -> Any:
-        smart_print(f"{self._refer.me}.prep() →", args[1], max_length=160)
+        smart_print(f"{self._refer.me}.prep() →", args[1], single_line=True)
         exec_res = await super().exec_runner(*args, **kwargs)
-        smart_print(f"{self._refer.me}.exec() →", exec_res, max_length=160)
+        smart_print(f"{self._refer.me}.exec() →", exec_res, single_line=True)
         return exec_res
 
     async def run(self, *args, **kwargs):
         result = await super().run(*args, **kwargs)
         propagate: bool = kwargs.get('propagate', args[1] if len(args) > 1 and isinstance(args[1], bool) else False)
         if not propagate:
-            smart_print(f"{self._refer.me}.run() → {result}", max_length=160)
+            smart_print(f"{self._refer.me}.run() → {result}", single_line=True)
             return result
     
         smart_print(f"{self._refer.me}.post():")
