@@ -7,8 +7,12 @@ long_description = (this_directory / "README.md").read_text(encoding="utf-8")
 
 setup(
     name='brainyflow-extras',
-    version='0.0.1',
-    py_modules=['extras'],
+    version='0.0.2',
+    package_dir={'': '.'},
+    packages=['brainyflow_extras'],
+     install_requires=[
+        'brainyflow>=2.1.0',
+    ],
     author="Victor Duarte",
     description="Minimalist AI framework in 300 Lines. Enable LLMs to Program Themselves.",
     long_description=long_description,

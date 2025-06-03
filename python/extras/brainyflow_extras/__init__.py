@@ -3,8 +3,10 @@ from types import SimpleNamespace
 from typing import List, Tuple, cast, Any, Dict
 
 import threading
-import brainyflow as bf
-from .custom_logger import smart_print, setup, _config, _ensure_rich_traceback_installed, Console
+from .brainyflow import bf
+from .utils.logger import smart_print, setup, _config, _ensure_rich_traceback_installed, Console
+
+NodeError = bf.NodeError
 
 #############################################################################################################
 # Memory
@@ -198,7 +200,7 @@ class Flow(ExecutionLogTreePrinterMixin, bf.Flow[bf.M, bf.PrepResultT, bf.Action
 if __name__ == "__main__":
     import sys
     import logging
-    from custom_logger import Text, Console, ReprHighlighter
+    from .utils.logger import Text, Console, ReprHighlighter
 
 
     # 1. Default Rich Console behavior
