@@ -91,12 +91,6 @@ jobs:
           echo "has_changes=true" >> $GITHUB_OUTPUT
           echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
 
-      - name: Prepare README
-        if: steps.version.outputs.has_changes == 'true'
-        working-directory: python
-        run: |
-          cp ../README.md .
-
       - name: Build Python package
         if: steps.version.outputs.has_changes == 'true'
         working-directory: python

@@ -3,7 +3,7 @@ from setuptools import setup
 
 # Read the README.md for the long description
 this_directory = Path(__file__).parent
-long_description = (this_directory / "README.md").read_text(encoding="utf-8")
+long_description = (this_directory / "../../README.md").read_text(encoding="utf-8")
 
 setup(
     name='brainyflow-extras',
@@ -21,5 +21,7 @@ setup(
     license='MPL-2.0',
     classifiers=[
         'License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)',
+        'Development Status :: 3 - Alpha',
+        'Framework :: BrainyFlow',
     ],
 )
