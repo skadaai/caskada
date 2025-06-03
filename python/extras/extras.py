@@ -1,89 +1,10 @@
 from __future__ import annotations
 from types import SimpleNamespace
-from typing import List, Tuple, Optional, cast, Any
+from typing import List, Tuple, cast, Any, Dict
 
 import threading
 import brainyflow as bf
-from rich.text import Text
-from rich.console import Console
-from rich.highlighter import ReprHighlighter
-from rich import traceback as rich_traceback
-
-# Configure rich traceback
-rich_traceback.install()
-
-console = Console()
-highlighter = ReprHighlighter()
-
-# @functools.wraps(func) TODO
-
-def smart_print(
-    *objects: Any,
-    max_length: Optional[int] = None,
-    single_line: bool = False,
-    truncate_suffix: str = "...",
-    sep: str = " ",
-) -> None:
-    """
-    Print one or more objects with customizable truncation and formatting.
-    
-    Args:
-        *objects: One or more objects to display
-        max_length: Maximum length of the displayed string representation (None for no limit)
-        single_line: If True, display content in a single line
-        truncate_suffix: String to append when truncation occurs
-        sep: Separator between multiple objects (default space)
-    """
-    if not objects:
-        return
-    
-    # Convert objects to Rich Text objects
-    text_objects = []
-    
-    for obj in objects:
-        if isinstance(obj, Text):
-            # Already a Text object
-            text_obj = obj
-        elif isinstance(obj, str):
-            # Convert string to Text object
-            text_obj = Text.from_markup(obj)
-        elif hasattr(obj, "__rich__"):
-            # Rich-compatible object, get its representation
-            text_obj = obj.__rich__()
-        else:
-            # Regular object, convert to string and highlight
-            obj_str = str(obj)
-            text_obj = highlighter(obj_str)
-        
-        # Handle single line conversion if needed
-        if single_line and isinstance(text_obj, Text):
-            plain_text = text_obj.plain
-            if "\n" in plain_text or "\r" in plain_text:
-                new_text = plain_text.replace("\n", "\\n").replace("\r", "\\r")
-                text_obj = Text(new_text, style=text_obj.style)
-        
-        text_objects.append(text_obj)
-    
-    # Join text objects with separator
-    if len(text_objects) > 1:
-        result = text_objects[0]
-        for text_obj in text_objects[1:]:
-            result = Text.assemble(result, sep, text_obj)
-    else:
-        result = text_objects[0]
-    
-    # Handle truncation
-    if max_length is not None:
-        plain_text = result.plain
-        if len(plain_text) > max_length:
-            # Create a new text object with the truncated content
-            truncated = result.copy()
-            truncated.plain = plain_text[:max_length] + truncate_suffix
-            result = truncated
-    
-    # Print the result
-    console.print(result)
-
+from .custom_logger import smart_print, setup, _config, _ensure_rich_traceback_installed, Console
 
 #############################################################################################################
 # Memory
@@ -106,7 +27,7 @@ class VerboseMemoryRunnerMixin:
         super()._set_value(key, value)
         if key.startswith("__") and key.endswith("__"):
             return        
-        smart_print(self._refer.attr(key), "=", value)
+        smart_print(self._refer.attr(key), "=", value, max_length=160)
 
 class Memory(VerboseMemoryRunnerMixin, bf.Memory[bf.M]):
     pass
@@ -127,22 +48,25 @@ class VerboseNodeRunnerMixin:
             me=f"[bold yellow]{self.__class__.__name__}[/bold yellow][white]#{self._node_order}[/white]",
         )
 
-    # async def exec_runner(self, *args, **kwargs) -> Any:
-    #     smart_print(f"{self._refer.me}.prep() →", args[1])
-    #     exec_res = await super().exec_runner(*args, **kwargs)
-    #     smart_print(f"{self._refer.me}.exec() →", exec_res)
-    #     return exec_res
+    async def exec_runner(self, *args, **kwargs) -> Any:
+        smart_print(f"{self._refer.me}.prep() →", args[1], max_length=160)
+        exec_res = await super().exec_runner(*args, **kwargs)
+        smart_print(f"{self._refer.me}.exec() →", exec_res, max_length=160)
+        return exec_res
 
     async def run(self, *args, **kwargs):
         result = await super().run(*args, **kwargs)
-        propagate = getattr(kwargs, "propagate", args[1] if len(args) > 1 else False)
+        propagate: bool = kwargs.get('propagate', args[1] if len(args) > 1 and isinstance(args[1], bool) else False)
         if not propagate:
-            smart_print(f"{self._refer.me}.run() → {result}")
+            smart_print(f"{self._refer.me}.run() → {result}", max_length=160)
             return result
     
-        # smart_print(f"{self._refer.me}.post():")
-        # for key, value in result:
-        #     smart_print(f"\t- [blue]{key}[/blue]\t >> ", ", ".join(f"[green]{c.__class__.__name__}[/green]#{c._node_order}" for c in self.get_next_nodes(key)) or f"[red]Missing successor![/red]")
+        smart_print(f"{self._refer.me}.post():")
+        if (len(result) == 1 and result[0][0] == 'default' and len(self._triggers) == 0):
+            smart_print(f"\t[dim italic]> Leaf Node[/dim italic]")
+        else:
+            for key, value in result:
+                smart_print(f"\t- [blue]{key}[/blue]\t >> ", ", ".join(f"[green]{c.__class__.__name__}[/green]#{c._node_order}" for c in self.get_next_nodes(key)) or f"[dim red]Terminal Action[/dim red]")
 
         return result
 
@@ -152,24 +76,22 @@ class SingleThreadedMixin:
         self._lock = threading.Lock()
 
     async def run(self, **kwargs):
-        print("Acquiring lock for single-threaded execution...")
+        smart_print(f"Acquiring lock for single-threaded execution in {self.__class__.__name__}...")
         self._lock.acquire()
         try:
             return await super().run(**kwargs)
         finally:
-            print("Releasing lock.")
+            smart_print(f"Releasing lock for {self.__class__.__name__}.")
             self._lock.release()
-
-            
 
 class Node(VerboseNodeRunnerMixin, bf.Node[bf.M, bf.PrepResultT, bf.ExecResultT, bf.ActionT]):
     pass
 
-
-
 ###################################################################################################################
 # Flow
 ###################################################################################################################
+ExecutionTree = Dict[str, Any] 
+Action = str 
 
 class ExecutionLogTreePrinterMixin:
     """
@@ -178,50 +100,34 @@ class ExecutionLogTreePrinterMixin:
     - If run with propagate=False on a Flow producing an ExecutionTree, prints a tree.
     - If run with propagate=True on any BaseNode, prints triggered actions and successors.
     """
-
-    async def run(
-        self, 
-        # Using *args and **kwargs to be a transparent wrapper for super().run()
-        *args: Any, 
-        **kwargs: Any
-    ) -> Any: # Return type is Any as super().run() can vary
-        
-        # Determine the effective 'propagate' argument value that super().run() will use.
-        # BaseNode.run signature is: run(self, memory: Union[Memory, Dict], propagate: bool = False)
-        # args[0] would be 'memory', args[1] could be 'propagate' if passed positionally.
-        effective_propagate: bool
-        if 'propagate' in kwargs:
-            effective_propagate = bool(kwargs['propagate'])
-        elif len(args) > 1 and isinstance(args[1], bool): # Check second positional arg
-            effective_propagate = args[1]
-        else:
-            effective_propagate = False # Default for BaseNode.run
-
-        # Call the superclass's run method first, passing all arguments through
+    async def run(self, *args: Any, **kwargs: Any) -> Any:
         result = await super().run(*args, **kwargs) # type: ignore
+        _ensure_rich_traceback_installed()
+        effective_propagate: bool = kwargs.get('propagate', args[1] if len(args) > 1 and isinstance(args[1], bool) else False)
 
         # `self` must be a BaseNode derivative to have _node_order and get_next_nodes.
         # These checks ensure we don't try to access attributes that might not exist.
         if not hasattr(self, '_node_order') or not isinstance(getattr(self, '_node_order', None), int):
-            # Not a BaseNode derivative, or _node_order is missing/wrong type.
-            # Cannot proceed with BrainyFlow-specific logging.
             return result
 
-        # Safely get class name and node order for logging
         class_name = self.__class__.__name__
         node_order_val = getattr(self, '_node_order', 'UnknownID')
 
         if not effective_propagate:
             # This branch handles propagate=False. For Flows, this typically returns ExecutionTree.
-            # Check if the result matches the structure of ExecutionTree.
-            if (isinstance(result, dict) and 
-                'order' in result and 'type' in result and 'triggered' in result): # Check for ExecutionTree structure
-                
-                log_tree_data = cast(bf.ExecutionTree, result) 
-                
-                console.rule(f"[bold cyan]Execution Path for {class_name}#{node_order_val}", style="cyan")
-                self._recursive_print_execution_log(log_tree_data, prefix="", is_last_sibling=True)
-                console.rule(style="cyan")
+            if (isinstance(result, dict) and all(k in result for k in ['order', 'type', 'triggered'])):
+                log_tree_data = cast(ExecutionTree, result)
+                title = f"Execution Path for {class_name}#{node_order_val}"
+                if _config.output_mode == "rich" and isinstance(_config.output_handler, Console):
+                    _config.output_handler.rule(f"[bold cyan]{title}", style="cyan", characters="═")
+                    self._recursive_print_execution_log(log_tree_data, prefix="", is_last_sibling=True)
+                    _config.output_handler.rule(style="cyan", characters="═")
+                else: 
+                    rule_line = "═" * (len(title) + 4) if len(title) < 76 else "═" * 80 # Adjusted for typical console
+                    smart_print(rule_line)
+                    smart_print(f"  {title}  ")
+                    self._recursive_print_execution_log(log_tree_data, prefix="", is_last_sibling=True)
+                    smart_print(rule_line)
             else:
                 # Fallback: If not propagate and result isn't an ExecutionTree, print basic result.
                 # This matches the old VerboseNodeRunnerMixin's behavior for this case.
@@ -230,26 +136,16 @@ class ExecutionLogTreePrinterMixin:
         else: # effective_propagate is True
             # This branch handles propagate=True, expects List[Tuple[Action, Memory]] from BaseNode.run.
             if isinstance(result, list) and all(isinstance(item, tuple) and len(item) == 2 for item in result):
-                # This type assertion helps type checkers understand 'result' here.
-                triggers_list = cast(List[Tuple["Action", "Memory"]], result)
-                
+                triggers_list = cast(List[Tuple[Action, Any]], result)
                 smart_print(f"Triggered in [bold yellow]{class_name}[/bold yellow]#{node_order_val}:")
-                
-                # Check if get_next_nodes method exists (it should for BaseNode derivatives)
                 if hasattr(self, 'get_next_nodes') and callable(self.get_next_nodes):
-                    for action_name_triggered, _node_memory_instance in triggers_list:
+                    for action_name_triggered, _ in triggers_list:
                         try:
-                            # self.get_next_nodes is from BaseNode
-                            next_nodes_for_action = self.get_next_nodes(action_name_triggered) # type: ignore 
-                            
-                            successors_str_parts = []
-                            for c_node in next_nodes_for_action:
-                                c_class_name = c_node.__class__.__name__
-                                c_node_order_s = getattr(c_node, '_node_order', 'UnknownID')
-                                successors_str_parts.append(f"[green]{c_class_name}[/green]#{c_node_order_s}")
-                            
-                            successors_str = ", ".join(successors_str_parts) or f"[red]Missing successor![/red]"
-                            smart_print(f"\t- [blue]{action_name_triggered}[/blue]\t >> ", successors_str)
+                            next_nodes = self.get_next_nodes(action_name_triggered) # type: ignore
+                            successors = ", ".join(
+                                f"[green]{n.__class__.__name__}[/green]#{getattr(n, '_node_order', 'ID?')}" for n in next_nodes
+                            ) or f"[red]Terminal Action[/red]"
+                            smart_print(f"\t- [blue]{action_name_triggered}[/blue]\t >> ", successors)
                         except Exception as e:
                             # Gracefully handle errors during successor fetching for logging
                             smart_print(f"\t- [blue]{action_name_triggered}[/blue]\t >> [bold red]Error getting successors: {e}[/bold red]")
@@ -263,74 +159,111 @@ class ExecutionLogTreePrinterMixin:
 
         return result
 
-    def _recursive_print_execution_log(
-        self, 
-        current_log_node: ExecutionTree, 
-        prefix: str, 
-        is_last_sibling: bool
-    ):
+    def _recursive_print_execution_log(self, current_log_node: ExecutionTree, prefix: str, is_last_sibling: bool):
         """
         Recursively prints the execution log in a tree structure.
         Highlights structural path endings based on the ExecutionTree content.
         """
         connector = "└── " if is_last_sibling else "├── "
-        node_text = Text()
-        node_text.append(prefix + connector, style="dim") # Tree structure lines
-        
-        node_type_str = current_log_node.get('type', 'UnknownType')
-        node_order_str = current_log_node.get('order', 'UnknownID')
-        
-        # Basic styling: assumes success if logged.
-        # "Broken" node highlighting based on structure (e.g. early termination)
-        # rather than explicit error fields, as ExecutionTree doesn't have them.
-        node_text.append(f"{node_type_str}", style="green bold")
-        node_text.append(f"#{node_order_str}", style="green")
-
-        smart_print(node_text)
+        node_type = current_log_node.get('type', 'UnknownType')
+        node_order = current_log_node.get('order', 'UnknownID')
+        smart_print(f"{prefix}{connector}[green bold]{node_type}[/green bold]#[green]{node_order}[/green]")
 
         children_prefix = prefix + ("    " if is_last_sibling else "│   ")
-        triggered_actions_map = current_log_node.get('triggered') # This is Optional[Dict[Action, List[ExecutionTree]]]
+        triggered_map = current_log_node.get('triggered')
 
-        if triggered_actions_map is not None: 
-            # Node has a 'triggered' dictionary (even if empty).
-            actions_list = list(triggered_actions_map.keys())
-            num_actions = len(actions_list)
-
-            if num_actions == 0: 
-                 # 'triggered' is an empty dictionary {}
-                 # This implies the node ran but its triggers didn't lead to further logged sub-nodes in this context.
-                 smart_print(Text(f"{children_prefix}└── ", style="dim") + Text("[No further actions/paths logged from this node]", style="dim italic"))
-
-            for i, action_key in enumerate(actions_list):
-                is_last_action_group = (i == num_actions - 1)
-                
-                action_connector = "└── " if is_last_action_group else "├── "
-                action_text_print = Text()
-                action_text_print.append(children_prefix + action_connector, style="dim")
-                action_text_print.append(f"'{action_key}'", style="blue bold")
-                smart_print(action_text_print)
-
-                # Get the list of sub-ExecutionTree logs for this action
-                sub_execution_trees = triggered_actions_map.get(action_key, []) 
-                
-                action_children_prefix = children_prefix + ("    " if is_last_action_group else "│   ")
-                
-                if not sub_execution_trees: 
-                    # Action maps to an empty list [], indicating an "exit trigger" or path end for this flow context.
-                    smart_print(Text(f"{action_children_prefix}└── ", style="dim") + Text("[Path End/Exit Trigger for this action]", style="red"))
+        if triggered_map is not None:
+            actions = list(triggered_map.keys())
+            if not actions:
+                smart_print(f"{children_prefix}└── [dim italic][No further actions/paths logged][/dim italic]")
+                return
+            for i, action_key in enumerate(actions):
+                is_last_action = (i == len(actions) - 1)
+                action_conn = "└── " if is_last_action else "├── "
+                smart_print(f"{children_prefix}{action_conn}[blue bold]{str(action_key)}[/blue bold]")
+                sub_trees = triggered_map.get(action_key, [])
+                sub_prefix = children_prefix + ("    " if is_last_action else "│   ")
+                if not sub_trees:
+                    smart_print(f"{sub_prefix}└── [red][Path End/Exit Trigger][/red]")
                 else:
-                    num_sub_trees = len(sub_execution_trees)
-                    for j, sub_tree_entry in enumerate(sub_execution_trees):
-                        is_last_sub_tree_in_group = (j == num_sub_trees - 1)
-                        self._recursive_print_execution_log(sub_tree_entry, prefix=action_children_prefix, is_last_sibling=is_last_sub_tree_in_group)
-        
-        elif triggered_actions_map is None: 
-            # 'triggered' key is None (or missing).
-            # This signifies a leaf in the execution tree as recorded by the Flow.
-            # It could be a normal end of a branch or a point where logging stopped.
-            smart_print(Text(f"{children_prefix}└── ", style="dim") + Text("[Leaf Node/No triggered paths logged]", style="dim italic"))
+                    for j, sub_tree in enumerate(sub_trees):
+                        self._recursive_print_execution_log(sub_tree, sub_prefix, (j == len(sub_trees) - 1))
+        else:
+            smart_print(f"{children_prefix}└── [dim italic]Leaf Node[/dim italic]")
 
-
-
-class Flow(ExecutionLogTreePrinterMixin, bf.Flow[bf.M, bf.PrepResultT, bf.ActionT]):
+class Flow(ExecutionLogTreePrinterMixin, bf.Flow[bf.M, bf.PrepResultT, bf.ActionT]): # type: ignore
     pass
+
+# --- Example Usage (for testing) ---
+if __name__ == "__main__":
+    import sys
+    import logging
+    from custom_logger import Text, Console, ReprHighlighter
+
+
+    # 1. Default Rich Console behavior
+    print("\n--- 1. Default Rich Console Logging ---")
+    smart_print("Hello", Text("Rich World", style="bold magenta"), {"data": [1,2,3]}, max_length=30)
+    
+    class MyMemory(Memory): pass
+    mem = MyMemory({})
+    mem.default_rich_key= "This uses default Rich console."
+
+    # 2. Configure for standard Python logger
+    print("\n--- 2. Standard Python Logger (output to console via handler) ---")
+    std_logger = logging.getLogger("MyExtrasLogger")
+    std_logger.setLevel(logging.DEBUG) 
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+    if not std_logger.hasHandlers(): 
+        std_logger.addHandler(handler)
+    
+    setup(
+        output_handler=std_logger,
+        logger_level_name="DEBUG", 
+        smart_print_options_update={"max_length": 70, "truncate_suffix": "[...]"}
+    )
+    smart_print("Logging to std_logger:", Text("This Rich Text is now plain.", style="blue"), {"value": 42})
+    mem.std_log_key= "This goes to standard logger."
+
+    # 3. Configure for a custom callable (simple print)
+    print("\n--- 3. Custom Callable (simple print) ---")
+    def my_custom_print(s: str):
+        print(f"CUSTOM PRINT: {s}")
+    
+    setup(output_handler=my_custom_print, smart_print_options_update={"single_line": True})
+    smart_print("Using custom print:", Text("Multi\nLine\nText", style="green"), "becomes single line.")
+    mem.custom_print_key= "This uses the custom print function."
+
+    # 4. Back to Rich Console, but a new one, and test traceback
+    print("\n--- 4. New Rich Console & Traceback Test ---")
+    new_rich_console = Console(width=60, style="on blue")
+    setup(
+        output_handler=new_rich_console,
+        highlighter=ReprHighlighter(), 
+        install_rich_traceback=True, 
+        show_locals_in_traceback=True,
+        verbose_mixin_logging=True 
+    )
+    smart_print("Switched to a new Rich Console with blue background!")
+    mem.new_rich_key= "Should appear on blue background console."
+    
+    smart_print("Testing smart_print options directly:", "loooong string" * 10, max_length=50)
+    
+    print("Testing Rich Traceback (expect an error message below):")
+    try:
+        a = 1
+        b = 0
+        # c = a / b # Uncomment to see Rich traceback
+        smart_print("If you uncommented the division by zero, a Rich traceback should have appeared.")
+        if 'c' not in locals(): 
+             smart_print("Division by zero was commented out, so no traceback this time.")
+    except ZeroDivisionError:
+        smart_print("ZeroDivisionError caught (Rich traceback should have handled this).")
+    
+    # 5. Disable verbose mixin logging
+    print("\n--- 5. Disabling Verbose Mixin Logging ---")
+    setup(verbose_mixin_logging=False, output_handler=Console()) 
+    smart_print("Verbose mixin logging is now OFF.")
+    mem.silent_key= "This _set_value call from mixin should NOT print."
+    smart_print("But smart_print itself still works.")
