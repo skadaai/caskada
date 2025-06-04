@@ -34,6 +34,6 @@ in pkgs.mkShell {
     fi
 
     source "${venvDir}/bin/activate"
-    export PYTHONPATH="$PWD:$PYTHONPATH"
+    export PYTHONPATH="$PWD/python:$PYTHONPATH"
   '';
 }

@@ -9,6 +9,7 @@ setup(
     name='brainyflow',
     version='2.1.0',
     py_modules=['brainyflow'],
+    package_data={'brainyflow': ['py.typed']},
     author="Victor Duarte",
     description="Minimalist AI framework in 300 Lines. Enable LLMs to Program Themselves.",
     long_description=long_description,
