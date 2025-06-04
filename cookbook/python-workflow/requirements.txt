@@ -1,3 +1,3 @@
-brainyflow>=1.0.0
+brainyflow>=2.1.0
 openai>=1.0.0
 pyyaml>=6.0 

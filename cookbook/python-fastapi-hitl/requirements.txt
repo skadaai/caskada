@@ -1,4 +1,4 @@
-brainyflow>=1.0.0
+brainyflow>=2.1.0
 fastapi
 uvicorn[standard] # ASGI server for FastAPI
 jinja2 # For HTML templating

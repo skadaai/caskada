@@ -1,5 +1,5 @@
 # For BrainyFlow Agent Logic
-brainyflow>=1.0.0
+brainyflow>=2.1.0
 openai>=1.0.0
 duckduckgo-search>=7.5.2
 pyyaml>=5.1
