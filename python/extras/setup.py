@@ -12,6 +12,7 @@ setup(
     packages=['brainyflow_extras'],
      install_requires=[
         'brainyflow>=2.1.0',
+        'rich'
     ],
     author="Victor Duarte",
     description="Minimalist AI framework in 300 Lines. Enable LLMs to Program Themselves.",
