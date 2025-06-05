@@ -4,11 +4,14 @@ from typing import List, Tuple, cast, Any, Dict, TYPE_CHECKING
 
 import threading
 from .utils.logger import smart_print, setup, _config, _ensure_rich_traceback_installed, Console
+from .utils.debug import debug_print
 
 if TYPE_CHECKING:
     import brainyflow as bf
 else:
     from .brainyflow_original import bf
+
+debug_print(f"Internal 'bf' alias for base is {bf}, from file: {getattr(bf, '__file__', 'Unknown location')}")
 
 NodeError = bf.NodeError
 
