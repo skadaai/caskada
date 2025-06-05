@@ -13,6 +13,24 @@ else:
 
 debug_print(f"Internal 'bf' alias for base is {bf}, from file: {getattr(bf, '__file__', 'Unknown location')}")
 
+#############################################################################################################
+# Pure Exports
+#############################################################################################################
+
+DEFAULT_ACTION = bf.DEFAULT_ACTION
+Action = bf.Action
+SharedStore = bf.SharedStore
+M = bf.M
+T = bf.T
+PrepResultT = bf.PrepResultT
+ExecResultT = bf.ExecResultT
+ActionT = bf.ActionT
+AnyNode = bf.AnyNode
+ExecutionTree = bf.ExecutionTree
+Trigger = bf.Trigger
+_get_from_stores = bf._get_from_stores
+_delete_from_stores = bf._delete_from_stores
+LocalProxy = bf.LocalProxy
 NodeError = bf.NodeError
 
 #############################################################################################################
@@ -202,3 +220,6 @@ class ExecutionLogTreePrinterMixin:
 
 class Flow(ExecutionLogTreePrinterMixin, bf.Flow[bf.M, bf.PrepResultT, bf.ActionT]): # type: ignore
     pass
+class ParallelFlow(ExecutionLogTreePrinterMixin, bf.ParallelFlow[bf.M, bf.PrepResultT, bf.ActionT]): # type: ignore
+    pass
+

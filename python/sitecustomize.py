@@ -3,7 +3,7 @@ import inspect
 import os
 from openai import OpenAI
 
-from python.extras.extras import Memory, Flow, Node
+from extras.brainyflow_extras import Memory, Flow, Node
 
 
 @functools.wraps(OpenAI)
