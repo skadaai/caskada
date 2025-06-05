@@ -1,10 +1,14 @@
 from __future__ import annotations
 from types import SimpleNamespace
-from typing import List, Tuple, cast, Any, Dict
+from typing import List, Tuple, cast, Any, Dict, TYPE_CHECKING
 
 import threading
-from .brainyflow import bf
 from .utils.logger import smart_print, setup, _config, _ensure_rich_traceback_installed, Console
+
+if TYPE_CHECKING:
+    import brainyflow as bf
+else:
+    from .brainyflow_original import bf
 
 NodeError = bf.NodeError
 
