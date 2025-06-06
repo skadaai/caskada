@@ -177,28 +177,27 @@ def _format_obj_to_rich_text(
     obj: Any,
     options: Dict[str, Any],
     current_depth: int,
-    highlighter: ReprHighlighter # Always pass the highlighter
+    highlighter: ReprHighlighter
 ) -> Text:
 
+    # 1. Handle recursion depth limit
     if current_depth > options['summary_max_depth']:
         return Text(f"...(depth>{options['summary_max_depth']})...", style="dim")
 
+    # 2. Handle basic types directly
     if isinstance(obj, (int, float, bool)) or obj is None:
         return Text(str(obj))
     
-    s_text: Text
+    # 3. Handle strings separately with care for markup and truncation
     if isinstance(obj, str):
+        s_text: Text
         try:
-            # Attempt to parse as Rich markup. If 'obj' is intended as markup, it should be valid.
-            s_text = Text.from_markup(obj)
+            s_text = Text.from_markup(obj) # Try to parse as Rich markup
         except MarkupError:
             # If it's not valid markup, treat it like other objects: highlight its repr().
-            # This adds quotes and escapes, making it clear it's a string literal.
-            s_text = highlighter(repr(obj))
-            # Alternative if you want the raw string content without quotes, but safely escaped:
-            # s_text = Text(escape_markup(obj))
+            s_text = highlighter(repr(obj)) # Fallback: highlight its repr()
 
-        # Apply item-level truncation for strings within summaries
+        # Truncate string if it's an item within a summary (nested)
         if current_depth > 0 and options.get('summary_item_max_len') is not None:
             max_item_len = options['summary_item_max_len']
             if len(s_text.plain) > max_item_len:
@@ -211,67 +210,93 @@ def _format_obj_to_rich_text(
                 s_text = Text(s_text.plain[:trunc_len] + suffix, style=original_style)
         return s_text
 
-    is_collection_type = isinstance(obj, (list, tuple, dict)) or \
-                         ('numpy' in sys.modules and isinstance(obj, sys.modules['numpy'].ndarray))
+    # 4. Determine if this object (collection or custom) should be summarized
+    is_standard_collection = isinstance(obj, (list, tuple, dict)) or \
+                             ('numpy' in sys.modules and isinstance(obj, sys.modules['numpy'].ndarray))
     
-    should_summarize_this_obj = (options['single_line'] and is_collection_type) or \
-                                (current_depth > 0 and is_collection_type)
+    # Custom objects are anything not basic, not string, not standard collection
+    is_custom_object = not (is_standard_collection or isinstance(obj, (str, int, float, bool, type(None))))
+
+    should_summarize = False
+    if options['single_line']: # If overall print is single_line, summarize all non-basic/non-string objects
+        if is_standard_collection or is_custom_object:
+            should_summarize = True
+    elif current_depth > 0: # If nested, summarize collections and custom objects
+        if is_standard_collection or is_custom_object:
+            should_summarize = True
     
 
-    if should_summarize_this_obj:
+    if should_summarize:
         summary_text = Text()
         num_items_to_show = options['summary_max_items']
+        item_max_len_for_str_repr = options['summary_item_max_len'] # For str(custom_obj)
 
-        if isinstance(obj, (list, tuple)):
-            summary_text.append(f"{type(obj).__name__} ({len(obj)} items): [")
-            items_shown_count = 0
-            for i, item in enumerate(obj):
-                if items_shown_count >= num_items_to_show:
-                    summary_text.append(options['truncate_suffix'])
-                    break
-                item_text = _format_obj_to_rich_text(item, options, current_depth + 1, highlighter)
-                summary_text.append(item_text)
-                items_shown_count +=1
-                if items_shown_count < num_items_to_show and i < len(obj) - 1:
-                    summary_text.append(", ")
-            summary_text.append("]")
-        
-        elif isinstance(obj, dict):
-            summary_text.append(f"dict ({len(obj)} items): {{")
-            items_shown_count = 0
-            for i, (k, v) in enumerate(obj.items()):
-                if items_shown_count >= num_items_to_show:
-                    summary_text.append(options['truncate_suffix'])
-                    break
-                k_text = _format_obj_to_rich_text(k, options, current_depth + 1, highlighter)
-                v_text = _format_obj_to_rich_text(v, options, current_depth + 1, highlighter)
-                summary_text.append(k_text).append(": ").append(v_text)
-                items_shown_count += 1
-                if items_shown_count < num_items_to_show and i < len(obj) - 1:
-                     summary_text.append(", ")
-            summary_text.append("}")
+        if is_standard_collection:
+            if isinstance(obj, (list, tuple)):
+                summary_text.append(f"{type(obj).__name__} ({len(obj)} items): [")
+                items_shown_count = 0
+                for i, item in enumerate(obj):
+                    if items_shown_count >= num_items_to_show:
+                        summary_text.append(options['truncate_suffix'])
+                        break
+                    item_text = _format_obj_to_rich_text(item, options, current_depth + 1, highlighter)
+                    summary_text.append(item_text)
+                    items_shown_count +=1
+                    if items_shown_count < num_items_to_show and i < len(obj) - 1:
+                        summary_text.append(", ")
+                summary_text.append("]")
+            
+            elif isinstance(obj, dict):
+                summary_text.append(f"dict ({len(obj)} items): {{")
+                items_shown_count = 0
+                for i, (k, v) in enumerate(obj.items()):
+                    if items_shown_count >= num_items_to_show:
+                        summary_text.append(options['truncate_suffix'])
+                        break
+                    k_text = _format_obj_to_rich_text(k, options, current_depth + 1, highlighter)
+                    v_text = _format_obj_to_rich_text(v, options, current_depth + 1, highlighter)
+                    summary_text.append(k_text).append(": ").append(v_text)
+                    items_shown_count += 1
+                    if items_shown_count < num_items_to_show and i < len(obj) - 1:
+                         summary_text.append(", ")
+                summary_text.append("}")
 
-        elif 'numpy' in sys.modules and isinstance(obj, sys.modules['numpy'].ndarray): # pragma: no cover
-            summary_text = Text(f"np.ndarray (shape={obj.shape}, dtype={obj.dtype})") # Basic summary for numpy
+            elif 'numpy' in sys.modules and isinstance(obj, sys.modules['numpy'].ndarray): # pragma: no cover
+                summary_text = Text(f"np.ndarray (shape={obj.shape}, dtype={obj.dtype})")
         
-        else: # Should not be reached if should_summarize_this_obj is accurate
+        elif is_custom_object: # Summarize custom objects
+            try:
+                obj_str = str(obj)
+            except Exception: # pragma: no cover
+                obj_str = f"<{type(obj).__name__} (str error)>"
+            
+            suffix = options['truncate_suffix']
+            if len(obj_str) > item_max_len_for_str_repr:
+                trunc_len = item_max_len_for_str_repr - len(suffix)
+                if trunc_len < 0: trunc_len = 0
+                obj_str = obj_str[:trunc_len] + suffix
+            
+            summary_text = Text(f"<{type(obj).__name__}: '{obj_str}'>")
+            # You could also try to get a "name" or "id" attribute for a more descriptive summary
+            # e.g., if hasattr(obj, 'id'): summary_text = Text(f"{type(obj).__name__}(id='{obj.id}', ...)")
+
+        else: # Should not be reached due to prior checks
             return highlighter(repr(obj))
 
         return summary_text
 
+    # 5. If not summarizing, render the object "fully" using Rich capabilities
     if isinstance(obj, Text):
         return obj.copy()
-    if hasattr(obj, "__rich_console__") and callable(obj.__rich_console__): # Check for __rich_console__
+    if hasattr(obj, "__rich_console__") and callable(obj.__rich_console__):
         try:
-            # Rich Console Protocol: yield renderables
-            # We need a Console to render these. Use a temporary one if not in rich mode.
-            temp_console = Console(width=120, highlighter=highlighter) # Adjust width as needed
+            # Rich Console Protocol: yields renderables
+            temp_console = Console(width=120, highlighter=highlighter) # Temp console for rendering
             with temp_console.capture() as capture:
-                # __rich_console__ yields renderables, console.print handles them
                 for renderable in obj.__rich_console__(_config.output_handler if isinstance(_config.output_handler, Console) else temp_console, temp_console.options):
                     temp_console.print(renderable)
             rich_repr_str = capture.get()
-            return Text(rich_repr_str.rstrip('\n')) # Remove trailing newline from capture
+            return Text(rich_repr_str.rstrip('\n'))
         except Exception as e_rich_console: # pragma: no cover
             # Fall through to __rich__ or repr
             pass
@@ -281,12 +306,12 @@ def _format_obj_to_rich_text(
             rich_repr = obj.__rich__()
             return rich_repr if isinstance(rich_repr, Text) else Text(str(rich_repr))
         except Exception as e_rich: # pragma: no cover
-            return highlighter(repr(obj))
+            pass
     
     return highlighter(repr(obj))
 
 
-# --- Smart Print Function ---
+# --- Smart Print Function
 def smart_print(*objects: Any, **override_options) -> None:
     _ensure_rich_traceback_installed()
 
@@ -297,29 +322,29 @@ def smart_print(*objects: Any, **override_options) -> None:
 
     processed_texts: List[Text] = []
 
-    for i, obj in enumerate(objects):
-        text_part = _format_obj_to_rich_text(obj, options, 0, current_highlighter)
+    for i, obj_to_print in enumerate(objects):
+        text_part = _format_obj_to_rich_text(obj_to_print, options, 0, current_highlighter)
         
+        # This 'single_line' post-processing for the plain representation might still be desired
+        # for the very final output, but the summarization should do most of the work.
         if options['single_line'] and '\n' in text_part.plain:
             escaped_plain = text_part.plain.replace("\n", "\\n").replace("\r", "\\r")
             simple_style = text_part.style if text_part.style and not text_part.spans else ""
-            text_part = Text(escaped_plain, style=simple_style)
+            text_part = Text(escaped_plain, style=simple_style) # This might lose complex styling from original text_part
 
         processed_texts.append(text_part)
 
     final_text = Text(options['sep']).join(processed_texts)
 
+    # Apply overall max_length truncation
     max_len = options['max_length']
     if max_len is not None and len(final_text.plain) > max_len:
         suffix = options['truncate_suffix']
         truncated_len = max_len - len(suffix)
-        if truncated_len < 0:
-            truncated_len = 0
-        
-        # Create a new Text object from the truncated plain string.
-        # This loses original styling on the truncated part but ensures length.
-        final_text = Text(final_text.plain[:truncated_len] + suffix)
+        if truncated_len < 0: truncated_len = 0
+        final_text = Text(final_text.plain[:truncated_len] + suffix) # New Text from truncated plain
     
+    # Output
     if _config.output_mode == "rich":
         if isinstance(_config.output_handler, Console):
             _config.output_handler.print(final_text)
