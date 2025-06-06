@@ -111,3 +111,6 @@ if bf is None:
 
 # Debug output
 debug_print(f"Final bf alias points to {bf} from {getattr(bf, '__file__', 'unknown location')}")
+
+for _name in dir(bf):
+    globals()[_name] = getattr(bf, _name)

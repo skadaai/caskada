@@ -3,8 +3,13 @@ import inspect
 import os
 from openai import OpenAI
 
-from extras.brainyflow_extras import Memory, Flow, Node
+from extras.brainyflow_extras import enhance
 
+enhanced_components = enhance(
+    verbose=True,
+    logging={'log_folder': '.logs'},
+    performance=True
+)
 
 @functools.wraps(OpenAI)
 def custom_OpenAI(*args, **kwargs):
@@ -85,20 +90,20 @@ def custom_import(name, globals=None, locals=None, fromlist=(), level=0):
         if not hasattr(module.Memory, '_original'):
             module.Memory._original = module.Memory
         
-        module.Memory = Memory
+        module.Memory = enhanced_components.Memory
 
     if name == 'brainyflow' and hasattr(module, 'Node'):
         if not hasattr(module.Node, '_original'):
             module.Node._original = module.Node
         
-        module.Node = Node
+        module.Node = enhanced_components.Node
 
 
     if name == 'brainyflow' and hasattr(module, 'Flow'):
         if not hasattr(module.Flow, '_original'):
             module.Flow._original = module.Flow
         
-        module.Flow = Flow
+        module.Flow = enhanced_components.Flow
 
     return module
 
