@@ -1,17 +1,24 @@
 from __future__ import annotations
 from abc import ABC
 import json
+import cbor2
 import hashlib
-import pickle
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, Generic, Optional, TYPE_CHECKING, Callable, Tuple
+from typing import Any, Dict, Generic, Optional, TYPE_CHECKING
 from contextvars import ContextVar
+import sys
 
+# Optional imports for handling specific complex types
 try:
     import numpy as np
 except ImportError:
     np = None
+
+try:
+    import faiss
+except ImportError:
+    faiss = None
 
 if TYPE_CHECKING:
     import brainyflow as bf
@@ -34,85 +41,156 @@ class LogContext:
         self.snapshot_dir.mkdir(parents=True, exist_ok=True)
         self.artifact_dir.mkdir(parents=True, exist_ok=True)
 
-# ContextVar to hold the current LogContext for the running async task.
 log_context_var: ContextVar[Optional[LogContext]] = ContextVar("log_context", default=None)
 
+# --- Serialization Engine using Hybrid JSON + CBOR ---
+
 class ArtifactSerializer:
-    """Handles serialization of complex, non-JSON objects to binary files."""
-    def __init__(self):
-        self.handlers: Dict[type, Tuple[str, Callable, str]] = {}
+    """Handles secure serialization of complex 'artifact' objects to binary CBOR files."""
+
+    def _cbor_encoder_hook(self, encoder, value: Any) -> Any:
+        """
+        A hook for cbor2.dumps to handle types that aren't natively supported.
+        This is the core of handling complex, non-standard objects.
+        """
+        # Handle NumPy types if numpy is installed
         if np:
-            self.register(np.ndarray, 'numpy', self.save_numpy, '.npy')
+            if isinstance(value, np.ndarray):
+                # Convert numpy array to a list for serialization
+                encoder.encode(value.tolist())
+                return
+            if isinstance(value, (np.int64, np.int32, np.int16, np.int8)):
+                encoder.encode(int(value))
+                return
+            if isinstance(value, (np.float64, np.float32, np.float16)):
+                encoder.encode(float(value))
+                return
 
-    def register(self, type_to_handle: type, handler_name: str, save_func: Callable, extension: str):
-        self.handlers[type_to_handle] = (handler_name, save_func, extension)
+        # Handle FAISS index if faiss is installed
+        if faiss and isinstance(value, faiss.Index):
+            # Serialize the FAISS index to a binary buffer (bytes)
+            # This is the standard way to save/persist an index.
+            binary_index = faiss.write_index(value)
+            # Encode the binary data as bytes, with a custom tag to identify it
+            encoder.encode(cbor2.CBORTag(4001, binary_index)) # Using an unassigned tag for FAISS index
+            return
+            
+        # Handle Python's Path objects
+        if isinstance(value, Path):
+            encoder.encode(str(value))
+            return
+            
+        # Handle typing objects (like list[str]) by converting them to strings
+        if 'typing' in sys.modules and isinstance(value, sys.modules['typing']._GenericAlias):
+            encoder.encode(str(value))
+            return
 
-    def save_numpy(self, obj: np.ndarray, path: Path):
-        np.save(path, obj)
-
-    def save_pickle(self, obj: Any, path: Path):
-        with open(path, 'wb') as f:
-            pickle.dump(obj, f, protocol=pickle.HIGHEST_PROTOCOL)
-
-    def handle(self, obj: Any, context: LogContext) -> Optional[Dict[str, Any]]:
-        obj_type = type(obj)
-        handler_name, save_func, extension = self.handlers.get(obj_type, ('pickle', self.save_pickle, '.pkl'))
+        # For any other object, represent it as a generic map.
+        if hasattr(value, '__dict__'):
+            # The payload is a map with class info and the object's dictionary
+            payload = {
+                "__type__": "GenericObject",
+                "module": value.__class__.__module__,
+                "class": value.__class__.__name__,
+                "data": vars(value)
+            }
+            encoder.encode(payload)
+            return
+            
+        # If all else fails, use the default encoder which will raise an error
+        # for unhandled types. We can catch this and provide a fallback.
         try:
-            data_bytes = pickle.dumps(obj)
+            # Let the default encoder handle it if possible (e.g., dicts, lists inside objects)
+            return encoder.encode(value)
+        except cbor2.CBOREncodeError:
+            # Fallback for objects that are truly not serializable
+            encoder.encode(f"<Unserializable CBOR Leaf: {type(value).__name__}>")
+
+
+    def handle_as_cbor_artifact(self, obj: Any, context: LogContext) -> Optional[Dict[str, Any]]:
+        """
+        Securely serializes a single Python object to a standalone CBOR artifact file.
+        """
+        try:
+            # Pass our custom encoder hook to cbor2.dumps
+            data_bytes = cbor2.dumps(obj, default=self._cbor_encoder_hook)
             data_hash = hashlib.sha256(data_bytes).hexdigest()
-            filename = f"{data_hash}{extension}"
+            filename = f"{data_hash}.cbor"
             filepath = context.artifact_dir / filename
+
             if not filepath.exists():
-                save_func(obj, filepath)
-            return {"__type__": "Artifact", "handler": handler_name, "ref": filename}
-        except Exception:
+                with open(filepath, 'wb') as f:
+                    f.write(data_bytes)
+            
+            # Return a JSON-serializable dictionary that references the binary artifact
+            return {"__type__": "Artifact", "handler": "cbor2", "ref": filename}
+        except (cbor2.CBOREncodeError, TypeError) as e:
+            print(f"ArtifactSerializer Error: Could not serialize object to CBOR. Type: {type(obj)}. Error: {e}")
             return None
 
-# --- Serialization Engine ---
-
 def _serialize_for_log(data: Any, context: LogContext, serializer: ArtifactSerializer, seen: set) -> Any:
-    """Recursively serializes data for logging, handling Memory, artifacts, and recursion."""
-    obj_id = id(data)
-    if obj_id in seen:
-        return f"<CircularReference to {type(data).__name__}>"
-    
-    # Use duck-typing for Memory-like objects
-    if hasattr(data, '_global') and hasattr(data, '_local'):
-        seen.add(obj_id)
-        # Serialize the *contents* of the memory, not the object itself, to prevent recursion on the container.
-        snapshot_content = {
-            "global": _serialize_for_log(data._global, context, serializer, seen),
-            "local": _serialize_for_log(data._local, context, serializer, seen),
-        }
-        seen.remove(obj_id)
-        try:
-            state_str = json.dumps(snapshot_content, sort_keys=True)
-            state_hash = hashlib.sha256(state_str.encode('utf-8')).hexdigest()
-            filepath = context.snapshot_dir / f"{state_hash}.json"
-            if not filepath.exists():
-                with open(filepath, 'w', encoding='utf-8') as f:
-                    json.dump(snapshot_content, f, indent=2)
-            return {"__type__": "MemorySnapshot", "ref": state_hash}
-        except Exception:
-            return "<Unserializable Memory State>"
-
+    """
+    Recursively traverses data to make it JSON-serializable.
+    Complex objects are offloaded to binary CBOR artifacts.
+    """
+    # 1. Handle primitive types that are already JSON-serializable
     if data is None or isinstance(data, (str, int, float, bool)):
         return data
 
+    # 2. Handle circular references
+    obj_id = id(data)
+    if obj_id in seen:
+        return f"<CircularReference to {type(data).__name__} id:{obj_id}>"
+
+    # 3. Add object to the 'seen' set for the duration of its processing
     seen.add(obj_id)
-    if isinstance(data, (list, tuple, set)):
-        res = [_serialize_for_log(item, context, serializer, seen) for item in list(data)]
-    elif isinstance(data, dict):
-        res = {str(k): _serialize_for_log(v, context, serializer, seen) for k, v in data.items()}
-    else:
-        # Fallback to artifact serialization for any other complex type
-        res = serializer.handle(data, context) or f"<{type(data).__name__}>"
-    seen.remove(obj_id)
-    return res
+
+    result = None
+    try:
+        # 4. Handle specific known container types
+        if isinstance(data, (list, tuple)):
+            result = [_serialize_for_log(item, context, serializer, seen) for item in data]
+        elif isinstance(data, dict):
+            result = {str(k): _serialize_for_log(v, context, serializer, seen) for k, v in data.items()}
+        # 5. Convert Python-specific types to a JSON-compatible representation
+        elif isinstance(data, set):
+            result = {"__type__": "set", "data": [_serialize_for_log(item, context, serializer, seen) for item in data]}
+        elif isinstance(data, datetime):
+            result = {'__type__': 'datetime', 'iso': data.isoformat()}
+        elif isinstance(data, Path):
+            result = {'__type__': 'path', 'path': str(data)}
+        # 6. Handle special brainyflow types
+        elif hasattr(data, '_global') and hasattr(data, '_local'): # Duck-typing for brainyflow.Memory
+            snapshot_content = {
+                "global": _serialize_for_log(data._global, context, serializer, seen),
+                "local": _serialize_for_log(data._local, context, serializer, seen),
+            }
+            try:
+                # Memory snapshots can be saved as human-readable JSON for easier debugging
+                state_str = json.dumps(snapshot_content, sort_keys=True)
+                state_hash = hashlib.sha256(state_str.encode('utf-8')).hexdigest()
+                filepath = context.snapshot_dir / f"{state_hash}.json" # Save as .json
+                if not filepath.exists():
+                    with open(filepath, 'w', encoding='utf-8') as f:
+                        json.dump(snapshot_content, f, indent=2)
+                result = {"__type__": "MemorySnapshot", "ref": state_hash}
+            except Exception:
+                result = "<Unserializable Memory State>"
+        else:
+            # 7. For any other complex object, offload it to a CBOR artifact.
+            result = serializer.handle_as_cbor_artifact(data, context)
+            if result is None:
+                result = f"<Unserializable Object: {type(data).__name__}>"
+    finally:
+        # 8. IMPORTANT: We are done processing this object, so remove it from the 'seen' set
+        seen.remove(obj_id)
+
+    return result
 
 # --- The Mixin Implementation ---
 
 class FileLoggerNodeMixin:
+    """A mixin that provides deep, secure logging using a JSON+CBOR hybrid model."""
     def __init__(self, *args, log_folder: str = "brainyflow_logs", **kwargs):
         super().__init__(*args, **kwargs)
         self.log_folder = Path(log_folder)
@@ -120,12 +198,14 @@ class FileLoggerNodeMixin:
 
     def _log_event(self, event_name: str, data: Dict[str, Any]):
         context = log_context_var.get()
-        if not context: return # Do not log if not in a logging context
+        if not context: return
 
         mro_list = [cls.__name__ for cls in self.__class__.__mro__ if cls not in (object, ABC, Generic)]
         if 'BaseNode' not in mro_list: mro_list.append('BaseNode')
         mro_list = mro_list[:mro_list.index('BaseNode')+1]
         
+        # This is now a JSON-serializable dictionary because _serialize_for_log offloads
+        # complex objects to CBOR files and returns a JSON-friendly reference dict.
         log_entry = {
             "timestamp": datetime.now().isoformat(),
             "node": f"{self.__class__.__name__}#{getattr(self, '_node_order', '?')}",
@@ -133,8 +213,10 @@ class FileLoggerNodeMixin:
             "event": event_name,
             "data": _serialize_for_log(data, context, self.artifact_serializer, set())
         }
+        
+        # The main log file is now human-readable JSON Lines
         log_file = context.session_dir / "events.jsonl"
-        with open(log_file, 'a', encoding='utf-8') as f:
+        with open(log_file, 'a', encoding='utf-8') as f: # Append in text mode
             f.write(json.dumps(log_entry) + '\n')
 
     async def prep(self, memory: "bf.Memory", **kwargs):
@@ -171,6 +253,7 @@ class FileLoggerNodeMixin:
         return super().trigger(action, forking_data, **kwargs)
 
 class FileLoggerFlowMixin(FileLoggerNodeMixin):
+    """A mixin that provides deep, secure logging for brainyflow flows."""
     async def run(self, *args, **kwargs):
         ctx = log_context_var.get()
         is_root_call = ctx is None
@@ -180,13 +263,16 @@ class FileLoggerFlowMixin(FileLoggerNodeMixin):
             ctx = LogContext(self.log_folder, session_id)
             log_context_var.set(ctx)
 
-        self._log_event("flow.enter", {"flow_type": self.__class__.__name__,"initial_memory": args[0] if args else {}})
+        initial_memory = args[0] if args else {}
+        self._log_event("flow.enter", {"flow_type": self.__class__.__name__,"initial_memory": initial_memory})
         try:
             result = await super().run(*args, **kwargs)
-            self._log_event("flow.exit", {"result": result, "final_memory": args[0] if args else {}})
+            final_memory = args[0] if args else {}
+            self._log_event("flow.exit", {"result": result, "final_memory": final_memory})
             return result
         except Exception as error:
-            self._log_event("flow.error", {"error": str(error), "final_memory": args[0] if args else {}})
+            final_memory = args[0] if args else {}
+            self._log_event("flow.error", {"error": str(error), "final_memory": final_memory})
             raise
         finally:
             if is_root_call:
