@@ -15,7 +15,8 @@ from .mixins import (
     VerboseMemoryMixin,
     VerboseNodeMixin,
     ExecutionTreePrinterMixin,
-    FileLoggerMixin,
+    FileLoggerNodeMixin,
+    FileLoggerFlowMixin,
     SingleThreadedMixin,
     PerformanceMonitorMixin,
 )
@@ -187,7 +188,13 @@ def _create_enhanced_class(base_class: Type[T], config: EnhancementConfig) -> Ty
             mixin_counter += 1
     
     if config.logging:
-        mixin = _create_configured_mixin(FileLoggerMixin, config.logging, f"_{mixin_counter}")
+        # Choose appropriate logging mixin based on class type
+        if _is_flow_like(base_class):
+            logging_mixin = FileLoggerFlowMixin
+        else:
+            logging_mixin = FileLoggerNodeMixin
+            
+        mixin = _create_configured_mixin(logging_mixin, config.logging, f"_{mixin_counter}")
         if mixin:
             mixins.append(mixin)
             mixin_counter += 1
@@ -237,7 +244,13 @@ def _create_enhanced_memory_class(base_class: Type[T], config: EnhancementConfig
             mixin_counter += 1
     
     if config.logging:
-        mixin = _create_configured_mixin(FileLoggerMixin, config.logging, f"_{mixin_counter}")
+        # Choose appropriate logging mixin based on class type
+        if _is_flow_like(base_class):
+            logging_mixin = FileLoggerFlowMixin
+        else:
+            logging_mixin = FileLoggerNodeMixin
+            
+        mixin = _create_configured_mixin(logging_mixin, config.logging, f"_{mixin_counter}")
         if mixin:
             mixins.append(mixin)
             mixin_counter += 1
