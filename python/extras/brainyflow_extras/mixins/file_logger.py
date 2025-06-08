@@ -30,12 +30,11 @@ class LogContext:
     def __init__(self, log_folder: Path, session_id: str):
         self.log_folder = log_folder
         self.session_id = session_id
-        self.session_dir = log_folder / "sessions" / session_id
-        self.snapshot_dir = log_folder / "memory_snapshots"
-        self.artifact_dir = log_folder / "artifacts"
+        self.session_log_path = self.log_folder / f"{self.session_id}.jsonl"
+        self.snapshot_dir = self.log_folder / "memory_snapshots"
+        self.artifact_dir = self.log_folder / "artifacts"
         self.global_memory_cache: Dict[int, Dict] = {}
-        # Ensure directories exist
-        self.session_dir.mkdir(parents=True, exist_ok=True)
+        self.log_folder.mkdir(parents=True, exist_ok=True)
         self.snapshot_dir.mkdir(parents=True, exist_ok=True)
         self.artifact_dir.mkdir(parents=True, exist_ok=True)
 
@@ -54,7 +53,6 @@ class ArtifactSerializer:
         # Handle NumPy types if numpy is installed
         if np:
             if isinstance(value, np.ndarray):
-                # Convert numpy array to a list for serialization
                 encoder.encode(value.tolist())
                 return
             if isinstance(value, (np.int64, np.int32, np.int16, np.int8)):
@@ -66,11 +64,13 @@ class ArtifactSerializer:
 
         # Handle FAISS index if faiss is installed
         if faiss and isinstance(value, faiss.Index):
-            # Serialize the FAISS index to a binary buffer (bytes)
-            # This is the standard way to save/persist an index.
-            binary_index = faiss.write_index(value)
-            # Encode the binary data as bytes, with a custom tag to identify it
-            encoder.encode(cbor2.CBORTag(4001, binary_index)) # Using an unassigned tag for FAISS index
+            try:
+                binary_index = faiss.serialize_index(value)
+                encoder.encode(cbor2.CBORTag(4001, binary_index))
+            except Exception as e:
+                 # FIX: Catch any exception from FAISS and provide a more informative message
+                print(f"Error: FAISS serialization failed for index of type {type(value)}: {e}")
+                encoder.encode(f"<Unserializable FAISS Index: {type(value).__name__}>")
             return
             
         # Handle Python's Path objects
@@ -139,6 +139,10 @@ def _serialize_for_log(data: Any, context: LogContext, serializer: ArtifactSeria
     obj_id = id(data)
     if obj_id in seen:
         return f"<CircularReference to {type(data).__name__} id:{obj_id}>"
+
+    # Handle simple typing representations directly, preventing them from becoming artifacts.
+    if 'typing' in sys.modules and isinstance(data, sys.modules['typing']._GenericAlias):
+        return str(data)
 
     # 3. Add object to the 'seen' set for the duration of its processing
     seen.add(obj_id)
@@ -215,14 +219,14 @@ class FileLoggerNodeMixin:
         # This is now a JSON-serializable dictionary because _serialize_for_log offloads
         # complex objects to CBOR files and returns a JSON-friendly reference dict.
         log_entry = {
-            "timestamp": datetime.now().isoformat(),
+            "when": datetime.now().isoformat(),
             "node": f"{self.__class__.__name__}#{getattr(self, '_node_order', '?')}",
-            "mro": mro_list,
             "event": event_name,
-            "data": _serialize_for_log(data, context, self.artifact_serializer, set())
+            "data": _serialize_for_log(data, context, self.artifact_serializer, set()),
+            "mro": mro_list,
         }
         
-        log_file = context.session_dir / "events.jsonl"
+        log_file = context.session_log_path
         with open(log_file, 'a', encoding='utf-8') as f:
             f.write(json.dumps(log_entry) + '\n')
 
@@ -275,7 +279,7 @@ class FileLoggerFlowMixin(FileLoggerNodeMixin):
         try:
             result = await super().run(*args, **kwargs)
             final_memory = args[0] if args else {}
-            self._log_event("flow.exit", {"result": result, "final_memory": final_memory})
+            self._log_event("flow.exit", {"execution_tree": result, "final_memory": final_memory})
             return result
         except Exception as error:
             final_memory = args[0] if args else {}
