@@ -243,24 +243,6 @@ def _create_enhanced_memory_class(base_class: Type[T], config: EnhancementConfig
             mixins.append(mixin)
             mixin_counter += 1
     
-    if config.logging:
-        # Choose appropriate logging mixin based on class type
-        if _is_flow_like(base_class):
-            logging_mixin = FileLoggerFlowMixin
-        else:
-            logging_mixin = FileLoggerNodeMixin
-            
-        mixin = _create_configured_mixin(logging_mixin, config.logging, f"_{mixin_counter}")
-        if mixin:
-            mixins.append(mixin)
-            mixin_counter += 1
-    
-    if config.performance:
-        mixin = _create_configured_mixin(PerformanceMonitorMixin, config.performance, f"_{mixin_counter}")
-        if mixin:
-            mixins.append(mixin)
-            mixin_counter += 1
-    
     # If no mixins, return original class
     if not mixins:
         return base_class
