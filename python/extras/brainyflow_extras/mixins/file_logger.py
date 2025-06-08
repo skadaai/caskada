@@ -104,7 +104,6 @@ class ArtifactSerializer:
             # Fallback for objects that are truly not serializable
             encoder.encode(f"<Unserializable CBOR Leaf: {type(value).__name__}>")
 
-
     def handle_as_cbor_artifact(self, obj: Any, context: LogContext) -> Optional[Dict[str, Any]]:
         """
         Securely serializes a single Python object to a standalone CBOR artifact file.
@@ -202,7 +201,7 @@ def _serialize_for_log(data: Any, context: LogContext, serializer: ArtifactSeria
 # --- The Mixin Implementation ---
 
 class FileLoggerNodeMixin:
-    """A mixin that provides deep, secure logging using a JSON+CBOR hybrid model."""
+    """A mixin that provides deep, secure logging by hooking into orchestrator methods."""
     def __init__(self, *args, log_folder: str = "brainyflow_logs", **kwargs):
         super().__init__(*args, **kwargs)
         self.log_folder = Path(log_folder)
@@ -210,7 +209,7 @@ class FileLoggerNodeMixin:
 
     def _log_event(self, event_name: str, data: Dict[str, Any]):
         context = log_context_var.get()
-        if not context: return
+        if not context: raise Exception('Log context not found')
 
         mro_list = [cls.__name__ for cls in self.__class__.__mro__ if cls not in (object, ABC, Generic)]
         if 'BaseNode' not in mro_list: mro_list.append('BaseNode')
@@ -223,49 +222,56 @@ class FileLoggerNodeMixin:
             "node": f"{self.__class__.__name__}#{getattr(self, '_node_order', '?')}",
             "event": event_name,
             "data": _serialize_for_log(data, context, self.artifact_serializer, set()),
-            "mro": mro_list,
+            # "mro": mro_list,
         }
         
-        log_file = context.session_log_path
-        with open(log_file, 'a', encoding='utf-8') as f:
+        with open(context.session_log_path, 'a', encoding='utf-8') as f:
             f.write(json.dumps(log_entry) + '\n')
-
-    async def prep(self, memory: "bf.Memory", **kwargs):
-        self._log_event("prep.enter", {"memory_in": memory})
+    
+    # Hook into `exec_runner` to gain visibility into the results of `prep` and `exec`
+    async def exec_runner(self, memory: "bf.Memory", prep_res: Any, **kwargs) -> Any:
+        self._log_event("prep.exit", {"result": prep_res})
+        
+        # self._log_event("exec.enter", {"prep_result": prep_res})
         try:
-            result = await super().prep(memory, **kwargs)
-            self._log_event("prep.exit", {"result": result})
-            return result
-        except Exception as error:
-            self._log_event("prep.error", {"error": str(error)})
-            raise
-
-    async def exec(self, prep_res: Any, **kwargs):
-        self._log_event("exec.enter", {"prep_result": prep_res})
-        try:
-            result = await super().exec(prep_res, **kwargs)
-            self._log_event("exec.exit", {"result": result})
-            return result
+            exec_res = await super().exec_runner(memory, prep_res, **kwargs)
+            self._log_event("exec.exit", {"result": exec_res})
+            return exec_res
         except Exception as error:
             self._log_event("exec.error", {"error": str(error), "retry": getattr(self, 'cur_retry', 0)})
-            raise
-
-    async def post(self, memory: "bf.Memory", prep_res: Any, exec_res: Any, **kwargs):
-        self._log_event("post.enter", {"memory_in": memory, "prep_result": prep_res, "exec_result": exec_res})
-        try:
-            await super().post(memory, prep_res, exec_res, **kwargs)
-            self._log_event("post.exit", {"memory_out": memory})
-        except Exception as error:
-            self._log_event("post.error", {"error": str(error)})
             raise
 
     def trigger(self, action: str, forking_data: Optional[Dict[str, Any]] = None, **kwargs):
         self._log_event("trigger", {"action": action, "forking_data": forking_data})
         return super().trigger(action, forking_data, **kwargs)
 
-class FileLoggerFlowMixin(FileLoggerNodeMixin):
-    """A mixin that provides deep, secure logging for brainyflow flows."""
+    # Hook into the main `run` method to log the state before and after the node's execution.
     async def run(self, *args, **kwargs):
+        context = log_context_var.get()
+        is_flow = hasattr(self, 'start') # Duck-typing to check if it's a Flow
+
+        # We only log node.enter for non-flow nodes, as the Flow mixin handles its own entry log.
+        if context and not is_flow:
+            memory_in = args[0] if args else {}
+            self._log_event("node.enter", {"memory": memory_in})
+        
+        try:
+            result = await super().run(*args, **kwargs)
+            
+            if context and not is_flow:
+                memory_out = args[0] if args else {}
+                self._log_event("node.exit", {"result": result, "memory": memory_out})
+
+            return result
+        except Exception as error:
+            if context and not is_flow:
+                 self._log_event("node.error", {"error": str(error)})
+            raise
+
+class FileLoggerFlowMixin(FileLoggerNodeMixin):
+    """A mixin that establishes the logging context and logs flow-specific events."""
+    async def run(self, *args, **kwargs):
+        # This is the root of the logging context.
         ctx = log_context_var.get()
         is_root_call = ctx is None
 
@@ -274,12 +280,16 @@ class FileLoggerFlowMixin(FileLoggerNodeMixin):
             ctx = LogContext(self.log_folder, session_id)
             log_context_var.set(ctx)
 
-        initial_memory = args[0] if args else {}
-        self._log_event("flow.enter", {"flow_type": self.__class__.__name__,"initial_memory": initial_memory})
         try:
+            initial_memory = args[0] if args else {}
+            self._log_event("flow.enter", {"flow_type": self.__class__.__name__, "initial_memory": initial_memory})
+            
+            # This call will propagate down to FileLoggerNodeMixin.run
             result = await super().run(*args, **kwargs)
+            
             final_memory = args[0] if args else {}
             self._log_event("flow.exit", {"execution_tree": result, "final_memory": final_memory})
+            
             return result
         except Exception as error:
             final_memory = args[0] if args else {}
