@@ -22,9 +22,6 @@ except ImportError:
 
 if TYPE_CHECKING:
     import brainyflow as bf
-else:
-    # A trick to allow type-checking without circular dependencies
-    from ..brainyflow_original import bf
 
 # --- Context and Artifact Management ---
 
@@ -36,6 +33,7 @@ class LogContext:
         self.session_dir = log_folder / "sessions" / session_id
         self.snapshot_dir = log_folder / "memory_snapshots"
         self.artifact_dir = log_folder / "artifacts"
+        self.global_memory_cache: Dict[int, Dict] = {}
         # Ensure directories exist
         self.session_dir.mkdir(parents=True, exist_ok=True)
         self.snapshot_dir.mkdir(parents=True, exist_ok=True)
@@ -144,11 +142,39 @@ def _serialize_for_log(data: Any, context: LogContext, serializer: ArtifactSeria
 
     # 3. Add object to the 'seen' set for the duration of its processing
     seen.add(obj_id)
-
     result = None
     try:
+        # Handle special brainyflow types
+        # Prioritize handling of Memory objects to ensure they are never treated as generic artifacts.
+        if hasattr(data, '_global') and hasattr(data, '_local'):  # Duck-typing for brainyflow.Memory
+            global_store_id = id(data._global)
+            global_ref = context.global_memory_cache.get(global_store_id)
+
+            # FIX: Only serialize the global store if it hasn't been seen before in this context.
+            if global_ref is None:
+                global_snapshot_content = _serialize_for_log(data._global, context, serializer, seen)
+                try:
+                    state_str = json.dumps(global_snapshot_content, sort_keys=True)
+                    state_hash = hashlib.sha256(state_str.encode('utf-8')).hexdigest()
+                    filepath = context.snapshot_dir / f"{state_hash}.json"
+                    if not filepath.exists():
+                        with open(filepath, 'w', encoding='utf-8') as f:
+                            json.dump(global_snapshot_content, f, indent=2)
+                    global_ref = {"__type__": "MemorySnapshot", "ref": state_hash}
+                    context.global_memory_cache[global_store_id] = global_ref
+                except Exception:
+                    global_ref = "<Unserializable Global Memory State>"
+            
+            # The local store is always unique to this memory instance, so it's always serialized.
+            local_snapshot_content = _serialize_for_log(data._local, context, serializer, seen)
+            
+            result = {
+                "__type__": "MemoryObject",
+                "global": global_ref,
+                "local": local_snapshot_content
+            }
         # 4. Handle specific known container types
-        if isinstance(data, (list, tuple)):
+        elif isinstance(data, (list, tuple)):
             result = [_serialize_for_log(item, context, serializer, seen) for item in data]
         elif isinstance(data, dict):
             result = {str(k): _serialize_for_log(v, context, serializer, seen) for k, v in data.items()}
@@ -159,23 +185,6 @@ def _serialize_for_log(data: Any, context: LogContext, serializer: ArtifactSeria
             result = {'__type__': 'datetime', 'iso': data.isoformat()}
         elif isinstance(data, Path):
             result = {'__type__': 'path', 'path': str(data)}
-        # 6. Handle special brainyflow types
-        elif hasattr(data, '_global') and hasattr(data, '_local'): # Duck-typing for brainyflow.Memory
-            snapshot_content = {
-                "global": _serialize_for_log(data._global, context, serializer, seen),
-                "local": _serialize_for_log(data._local, context, serializer, seen),
-            }
-            try:
-                # Memory snapshots can be saved as human-readable JSON for easier debugging
-                state_str = json.dumps(snapshot_content, sort_keys=True)
-                state_hash = hashlib.sha256(state_str.encode('utf-8')).hexdigest()
-                filepath = context.snapshot_dir / f"{state_hash}.json" # Save as .json
-                if not filepath.exists():
-                    with open(filepath, 'w', encoding='utf-8') as f:
-                        json.dump(snapshot_content, f, indent=2)
-                result = {"__type__": "MemorySnapshot", "ref": state_hash}
-            except Exception:
-                result = "<Unserializable Memory State>"
         else:
             # 7. For any other complex object, offload it to a CBOR artifact.
             result = serializer.handle_as_cbor_artifact(data, context)
@@ -184,7 +193,6 @@ def _serialize_for_log(data: Any, context: LogContext, serializer: ArtifactSeria
     finally:
         # 8. IMPORTANT: We are done processing this object, so remove it from the 'seen' set
         seen.remove(obj_id)
-
     return result
 
 # --- The Mixin Implementation ---
@@ -214,9 +222,8 @@ class FileLoggerNodeMixin:
             "data": _serialize_for_log(data, context, self.artifact_serializer, set())
         }
         
-        # The main log file is now human-readable JSON Lines
         log_file = context.session_dir / "events.jsonl"
-        with open(log_file, 'a', encoding='utf-8') as f: # Append in text mode
+        with open(log_file, 'a', encoding='utf-8') as f:
             f.write(json.dumps(log_entry) + '\n')
 
     async def prep(self, memory: "bf.Memory", **kwargs):
