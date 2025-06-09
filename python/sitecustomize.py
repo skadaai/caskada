@@ -3,7 +3,14 @@ import inspect
 import os
 from openai import OpenAI
 
-from extras.brainyflow_extras import enhance
+from extras.brainyflow_extras import enhance, setup
+
+setup(
+    show_locals_in_traceback=False,
+    smart_print_options={
+        "single_line": True,
+    }
+)
 
 enhanced_components = enhance(
     verbose=True,

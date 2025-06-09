@@ -53,7 +53,7 @@ def setup(
     highlighter: Optional[ReprHighlighter] = None,
     install_rich_traceback: Optional[bool] = None,
     show_locals_in_traceback: Optional[bool] = None,
-    smart_print_options_update: Optional[Dict[str, Any]] = None,
+    smart_print_options: Optional[Dict[str, Any]] = None,
     verbose_mixin_logging: Optional[bool] = None,
     logger_level_name: Optional[str] = None,
 ) -> None:
@@ -151,8 +151,8 @@ def setup(
             _config.rich_traceback_installed = False
             _config.original_sys_excepthook = None
 
-    if smart_print_options_update is not None:
-        _config.smart_print_options.update(smart_print_options_update)
+    if smart_print_options is not None:
+        _config.smart_print_options.update(smart_print_options)
 
     if verbose_mixin_logging is not None:
         _config.verbose_mixin_logging = verbose_mixin_logging
