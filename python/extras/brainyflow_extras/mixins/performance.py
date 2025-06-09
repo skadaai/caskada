@@ -22,12 +22,12 @@ class PerformanceMonitorMixin:
             result = await super().run(*args, **kwargs)
             execution_time = time.perf_counter() - start_time
             self._perf_metrics['last_run_time'] = execution_time
-            smart_print(f"├─ ⏱️  {self.__class__.__name__} executed in {execution_time:.3f}s")
+            smart_print(f"├─ ⏱️  {self._refer.me or self.__class__.__name__}.run() executed in {execution_time:.3f}s")
             return result
         except Exception as e:
             execution_time = time.perf_counter() - start_time
             self._perf_metrics['last_run_time'] = execution_time
-            smart_print(f"├─ ⚠️  {self.__class__.__name__} failed after {execution_time:.3f}s")
+            smart_print(f"├─ ⚠️  {self._refer.me or self.__class__.__name__}.run() failed after {execution_time:.3f}s")
             raise
     
     def get_performance_metrics(self) -> dict:

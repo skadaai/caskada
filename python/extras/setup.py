@@ -7,12 +7,13 @@ long_description = (this_directory / "../../README.md").read_text(encoding="utf-
 
 setup(
     name='brainyflow-extras',
-    version='0.0.2',
+    version='0.0.3',
     package_dir={'': '.'},
     packages=['brainyflow_extras'],
      install_requires=[
         'brainyflow>=2.1.0',
-        'rich'
+        'rich',
+        'cbor2'
     ],
     author="Victor Duarte",
     description="Minimalist AI framework in 300 Lines. Enable LLMs to Program Themselves.",

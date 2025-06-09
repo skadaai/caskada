@@ -7,8 +7,9 @@ from extras.brainyflow_extras import enhance
 
 enhanced_components = enhance(
     verbose=True,
-    logging={'log_folder': '.logs'},
-    performance=True
+    file_logging={'log_folder': '.logs'},
+    performance=True,
+    execution_tree=True,
 )
 
 @functools.wraps(OpenAI)

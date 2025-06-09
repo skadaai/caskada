@@ -26,7 +26,7 @@ T = TypeVar('T')
 
 # Type definitions for options
 VerboseOptions = Union[bool, Dict[str, Any]]
-LoggingOptions = Union[bool, Dict[str, Any]]
+FileLoggingOptions = Union[bool, Dict[str, Any]]
 PerformanceOptions = Union[bool, Dict[str, Any]]
 SingleThreadedOptions = Union[bool, Dict[str, Any]]
 ExecutionTreeOptions = Union[bool, Dict[str, Any]]
@@ -36,7 +36,7 @@ ExecutionTreeOptions = Union[bool, Dict[str, Any]]
 class EnhancementConfig:
     """Configuration for enhancements"""
     verbose: Optional[VerboseOptions] = None
-    logging: Optional[LoggingOptions] = None
+    file_logging: Optional[FileLoggingOptions] = None
     performance: Optional[PerformanceOptions] = None
     single_threaded: Optional[SingleThreadedOptions] = None
     execution_tree: Optional[ExecutionTreeOptions] = None
@@ -74,7 +74,7 @@ def enhance(
     base_class: Type[T],
     *,
     verbose: VerboseOptions = None,
-    logging: LoggingOptions = None,
+    file_logging: FileLoggingOptions = None,
     performance: PerformanceOptions = None,
     single_threaded: SingleThreadedOptions = None,
     execution_tree: ExecutionTreeOptions = None,
@@ -87,7 +87,7 @@ def enhance(
     base_class: None = None,
     *,
     verbose: VerboseOptions = None,
-    logging: LoggingOptions = None,
+    file_logging: FileLoggingOptions = None,
     performance: PerformanceOptions = None,
     single_threaded: SingleThreadedOptions = None,
     execution_tree: ExecutionTreeOptions = None,
@@ -99,7 +99,7 @@ def enhance(
     base_class: Optional[Type[T]] = None,
     *,
     verbose: VerboseOptions = None,
-    logging: LoggingOptions = None,
+    file_logging: FileLoggingOptions = None,
     performance: PerformanceOptions = None,
     single_threaded: SingleThreadedOptions = None,
     execution_tree: ExecutionTreeOptions = None,
@@ -108,18 +108,18 @@ def enhance(
     Universal enhancement function for BrainyFlow classes.
     
     Usage Pattern 1 - Direct enhancement:
-        NodeEnhanced = enhance(Node, verbose=True, logging={'log_folder': 'custom_logs'})
+        NodeEnhanced = enhance(Node, verbose=True, file_logging={'log_folder': 'custom_logs'})
         node = NodeEnhanced()
     
     Usage Pattern 2 - Builder pattern:
-        builder = enhance(verbose=True, logging=True)
+        builder = enhance(verbose=True, file_logging=True)
         NodeEnhanced = builder.Node
         FlowEnhanced = builder.Flow
     
     Args:
         base_class: The base class to enhance (Node, Flow, etc.). If None, returns builder.
         verbose: Enable verbose output. True/False or dict with options.
-        logging: Enable file logging. True/False or dict with options.
+        file_logging: Enable file file_logging. True/False or dict with options.
         performance: Enable performance monitoring. True/False or dict with options.
         single_threaded: Enable single-threaded execution. True/False or dict with options.
         execution_tree: Enable execution tree printing. True/False or dict with options.
@@ -129,7 +129,7 @@ def enhance(
     """
     config = EnhancementConfig(
         verbose=verbose,
-        logging=logging,
+        file_logging=file_logging,
         performance=performance,
         single_threaded=single_threaded,
         execution_tree=execution_tree,
@@ -167,14 +167,7 @@ def _create_enhanced_class(base_class: Type[T], config: EnhancementConfig) -> Ty
     
     mixins = []
     mixin_counter = 0
-    
-    # Determine which mixins to apply based on base class and config
-    if config.verbose and _is_node_like(base_class):
-        mixin = _create_configured_mixin(VerboseNodeMixin, config.verbose, f"_{mixin_counter}")
-        if mixin:
-            mixins.append(mixin)
-            mixin_counter += 1
-    
+
     if config.single_threaded:
         mixin = _create_configured_mixin(SingleThreadedMixin, config.single_threaded, f"_{mixin_counter}")
         if mixin:
@@ -186,15 +179,22 @@ def _create_enhanced_class(base_class: Type[T], config: EnhancementConfig) -> Ty
         if mixin:
             mixins.append(mixin)
             mixin_counter += 1
+
+    # Determine which mixins to apply based on base class and config
+    if config.verbose and _is_node_like(base_class):
+        mixin = _create_configured_mixin(VerboseNodeMixin, config.verbose, f"_{mixin_counter}")
+        if mixin:
+            mixins.append(mixin)
+            mixin_counter += 1
     
-    if config.logging:
-        # Choose appropriate logging mixin based on class type
+    if config.file_logging:
+        # Choose appropriate file_logging mixin based on class type
         if _is_flow_like(base_class):
-            logging_mixin = FileLoggerFlowMixin
+            file_logging_mixin = FileLoggerFlowMixin
         else:
-            logging_mixin = FileLoggerNodeMixin
+            file_logging_mixin = FileLoggerNodeMixin
             
-        mixin = _create_configured_mixin(logging_mixin, config.logging, f"_{mixin_counter}")
+        mixin = _create_configured_mixin(file_logging_mixin, config.file_logging, f"_{mixin_counter}")
         if mixin:
             mixins.append(mixin)
             mixin_counter += 1
@@ -211,8 +211,8 @@ def _create_enhanced_class(base_class: Type[T], config: EnhancementConfig) -> Ty
     
     # Create unique class name to avoid conflicts
     import uuid
-    unique_id = str(uuid.uuid4())[:8]
-    class_name = f"Enhanced{base_class.__name__}_{unique_id}"
+    unique_id = str(uuid.uuid4())[:4]
+    class_name = f"{base_class.__name__}_{unique_id}"
     
     try:
         enhanced_class = type(class_name, tuple(mixins) + (base_class,), {
@@ -340,7 +340,7 @@ class EnhancementBuilder:
     Builder class for creating multiple enhanced classes with the same configuration.
     
     Usage:
-        builder = enhance(verbose=True, logging={'log_folder': 'my_logs'})
+        builder = enhance(verbose=True, file_logging={'log_folder': 'my_logs'})
         MyNode = builder.Node
         MyFlow = builder.Flow
         MyMemory = builder.Memory
