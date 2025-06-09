@@ -209,7 +209,7 @@ class FileLoggerNodeMixin:
 
     def _log_event(self, event_name: str, data: Dict[str, Any]):
         context = log_context_var.get()
-        if not context: raise Exception('Log context not found')
+        if not context: raise Exception(f"Log context not found when trying to log event '{event_name}' for node '{getattr(self, '_refer', self).__class__.__name__}'")
 
         mro_list = [cls.__name__ for cls in self.__class__.__mro__ if cls not in (object, ABC, Generic)]
         if 'BaseNode' not in mro_list: mro_list.append('BaseNode')
@@ -240,9 +240,9 @@ class FileLoggerNodeMixin:
             self._log_event("exec.error", {"error": str(error), "retry": getattr(self, 'cur_retry', 0)})
             raise
 
-    def trigger(self, action: str, forking_data: Optional[Dict[str, Any]] = None, **kwargs):
+    def trigger(self, action: str, forking_data: Optional[Dict[str, Any]] = None)-> None:
         self._log_event("trigger", {"action": action, "forking_data": forking_data})
-        return super().trigger(action, forking_data, **kwargs)
+        return super().trigger(action, forking_data)
 
     # Hook into the main `run` method to log the state before and after the node's execution.
     async def run(self, *args, **kwargs):
@@ -273,13 +273,16 @@ class FileLoggerFlowMixin(FileLoggerNodeMixin):
         # This is the root of the logging context.
         ctx = log_context_var.get()
         is_root_call = ctx is None
+        token = None
 
         if is_root_call:
             session_id = datetime.now().strftime('%Y%m%d_%H%M%S_%f')
             ctx = LogContext(self.log_folder, session_id)
-            log_context_var.set(ctx)
+            token = log_context_var.set(ctx)
 
         try:
+            # We log the flow's entry before calling super().run().
+            # At this point, the context is guaranteed to be set for this task.
             initial_memory = args[0] if args else {}
             self._log_event("flow.enter", {"flow_type": self.__class__.__name__, "initial_memory": initial_memory})
             
@@ -295,5 +298,7 @@ class FileLoggerFlowMixin(FileLoggerNodeMixin):
             self._log_event("flow.error", {"error": str(error), "final_memory": final_memory})
             raise
         finally:
-            if is_root_call:
-                log_context_var.set(None)
+            # The context is reset only at the very end of the root call.
+            if is_root_call and token:
+                log_context_var.reset(token)
+

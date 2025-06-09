@@ -47,29 +47,29 @@ class ExecutionTreePrinterMixin:
                 # This matches the old VerboseNodeRunnerMixin's behavior for this case.
                 smart_print(f">>>>>>> Result for {class_name}[#{node_order_val}]: {result}")
         
-        else: # effective_propagate is True
-            # This branch handles propagate=True, expects List[Tuple[Action, Memory]] from BaseNode.run.
-            if isinstance(result, list) and all(isinstance(item, tuple) and len(item) == 2 for item in result):
-                triggers_list = cast(List[Tuple[Action, Any]], result)
-                smart_print(f"Triggered in [bold yellow]{class_name}[/bold yellow]#{node_order_val}:")
-                if hasattr(self, 'get_next_nodes') and callable(self.get_next_nodes):
-                    for action_name_triggered, _ in triggers_list:
-                        try:
-                            next_nodes = self.get_next_nodes(action_name_triggered) # type: ignore
-                            successors = ", ".join(
-                                f"[green]{n.__class__.__name__}[/green]#{getattr(n, '_node_order', 'ID?')}" for n in next_nodes
-                            ) or f"[red]Terminal Action[/red]"
-                            smart_print(f"\t- [blue]{action_name_triggered}[/blue]\t >> ", successors)
-                        except Exception as e:
-                            # Gracefully handle errors during successor fetching for logging
-                            smart_print(f"\t- [blue]{action_name_triggered}[/blue]\t >> [bold red]Error getting successors: {e}[/bold red]")
-                else:
-                    # Fallback if get_next_nodes is somehow not available
-                    for action_name_triggered, _ in triggers_list:
-                        smart_print(f"\t- [blue]{action_name_triggered}[/blue]\t >> [dim](Successor info unavailable)[/dim]")
-            else:
-                # If propagate=True but result is not the expected list of triggers.
-                smart_print(f"Triggers from [bold yellow]{class_name}[/bold yellow]#{node_order_val} (propagate=True): {result} ([italic]unexpected format[/italic])")
+        # else: # effective_propagate is True
+        #     # This branch handles propagate=True, expects List[Tuple[Action, Memory]] from BaseNode.run.
+        #     if isinstance(result, list) and all(isinstance(item, tuple) and len(item) == 2 for item in result):
+        #         triggers_list = cast(List[Tuple[Action, Any]], result)
+        #         smart_print(f"Triggered in [bold yellow]{class_name}[/bold yellow]#{node_order_val}:")
+        #         if hasattr(self, 'get_next_nodes') and callable(self.get_next_nodes):
+        #             for action_name_triggered, _ in triggers_list:
+        #                 try:
+        #                     next_nodes = self.get_next_nodes(action_name_triggered) # type: ignore
+        #                     successors = ", ".join(
+        #                         f"[green]{n.__class__.__name__}[/green]#{getattr(n, '_node_order', 'ID?')}" for n in next_nodes
+        #                     ) or f"[red]Terminal Action[/red]"
+        #                     smart_print(f"\t- [blue]{action_name_triggered}[/blue]\t >> ", successors)
+        #                 except Exception as e:
+        #                     # Gracefully handle errors during successor fetching for logging
+        #                     smart_print(f"\t- [blue]{action_name_triggered}[/blue]\t >> [bold red]Error getting successors: {e}[/bold red]")
+        #         else:
+        #             # Fallback if get_next_nodes is somehow not available
+        #             for action_name_triggered, _ in triggers_list:
+        #                 smart_print(f"\t- [blue]{action_name_triggered}[/blue]\t >> [dim](Successor info unavailable)[/dim]")
+        #     else:
+        #         # If propagate=True but result is not the expected list of triggers.
+        #         smart_print(f"Triggers from [bold yellow]{class_name}[/bold yellow]#{node_order_val} (propagate=True): {result} ([italic]unexpected format[/italic])")
 
         return result
 
