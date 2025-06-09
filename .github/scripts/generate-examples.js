@@ -141,7 +141,7 @@ function generateMarkdown(pageTitle, projects) {
   let markdown = `---\ntitle: '${pageTitle.replace(/'/g, "\\'")}'\nmachine-display: false\n---\n\n`
   markdown += `# ${pageTitle}\n\n`
   markdown += `All projects listed below can be found in our [cookbook directory](${REPOSITORY}/${path.join('tree/main', COOKBOOK_DIR)}).\n`
-  markdown += `\nThey have been sorted by [complexity points](#the-complexity-points-system) - which are represented by the scale ${COMPLEXITY_SCALE.join('→')} - to help you easily find projects that suit your skills.\n\n`
+  markdown += `\nThey have been sorted by [complexity points](#the-complexity-points-system) - _which are represented by the scale ${COMPLEXITY_SCALE.join('→')}_ - to help you easily find projects that suit your skills.\n\n`
   if (projects.length === 0) {
     markdown += 'No examples found for this category yet.\n'
     return markdown
