@@ -5,6 +5,7 @@ Provides intuitive, discoverable API for applying mixins without knowing their n
 from __future__ import annotations
 from typing import TYPE_CHECKING, Union, Dict, Any, Type, Optional, overload, TypeVar
 from dataclasses import dataclass
+import uuid
 
 if TYPE_CHECKING:
     import brainyflow as bf
@@ -54,12 +55,13 @@ def _create_configured_mixin(mixin_class: Type, options: Union[bool, Dict[str, A
     class_name = f"Configured{mixin_class.__name__}{suffix}"
     
     def __init__(self, *args, **kwargs):
-        # Merge provided options with kwargs
+        final_kwargs = {}
         if isinstance(options, dict):
-            kwargs.update(options)
-        mixin_class.__init__(self, *args, **kwargs)
+            final_kwargs.update(options)
+        final_kwargs.update(kwargs)
+        
+        mixin_class.__init__(self, *args, **final_kwargs)
     
-    # Create a new class that inherits from the mixin
     configured_mixin = type(class_name, (mixin_class,), {
         '__init__': __init__,
         '__module__': mixin_class.__module__,
@@ -145,17 +147,18 @@ def enhance(
 
 def _is_memory_like(cls: Type) -> bool:
     """Check if class is Memory-like"""
-    return hasattr(cls, '_set_value') or 'Memory' in getattr(cls, '__name__', '')
+    # Check for a unique attribute of Memory, like _global, and check inheritance.
+    return issubclass(cls, getattr(bf, 'Memory', type(None)))
 
 
 def _is_node_like(cls: Type) -> bool:
     """Check if class is Node-like"""
-    return hasattr(cls, 'prep') and hasattr(cls, 'exec') and hasattr(cls, 'post')
+    return issubclass(cls, getattr(bf, 'BaseNode', type(None)))
 
 
 def _is_flow_like(cls: Type) -> bool:
     """Check if class is Flow-like"""
-    return hasattr(cls, 'start') or 'Flow' in getattr(cls, '__name__', '')
+    return issubclass(cls, getattr(bf, 'Flow', type(None)))
 
 
 def _create_enhanced_class(base_class: Type[T], config: EnhancementConfig) -> Type[T]:
@@ -179,56 +182,39 @@ def _create_enhanced_class(base_class: Type[T], config: EnhancementConfig) -> Ty
         if mixin:
             mixins.append(mixin)
             mixin_counter += 1
-
-    # Determine which mixins to apply based on base class and config
+            
+    # Verbose must come before performance for correct nesting display
     if config.verbose and _is_node_like(base_class):
         mixin = _create_configured_mixin(VerboseNodeMixin, config.verbose, f"_{mixin_counter}")
         if mixin:
             mixins.append(mixin)
             mixin_counter += 1
-    
-    if config.file_logging:
-        # Choose appropriate file_logging mixin based on class type
-        if _is_flow_like(base_class):
-            file_logging_mixin = FileLoggerFlowMixin
-        else:
-            file_logging_mixin = FileLoggerNodeMixin
-            
+
+    if config.file_logging and _is_node_like(base_class):
+        file_logging_mixin = FileLoggerFlowMixin if _is_flow_like(base_class) else FileLoggerNodeMixin
         mixin = _create_configured_mixin(file_logging_mixin, config.file_logging, f"_{mixin_counter}")
         if mixin:
             mixins.append(mixin)
             mixin_counter += 1
     
-    if config.performance:
+    if config.performance and _is_node_like(base_class):
         mixin = _create_configured_mixin(PerformanceMonitorMixin, config.performance, f"_{mixin_counter}")
         if mixin:
             mixins.append(mixin)
             mixin_counter += 1
     
-    # Create the enhanced class
     if not mixins:
         return base_class
     
     # Create unique class name to avoid conflicts
-    import uuid
-    unique_id = str(uuid.uuid4())[:4]
+    unique_id = str(uuid.uuid4().hex)[:4]
+    enhancement_names = [m.__name__.replace('Mixin', '').replace('Configured', '') for m in mixins]
     class_name = f"{base_class.__name__}_{unique_id}"
-    
-    try:
-        enhanced_class = type(class_name, tuple(mixins) + (base_class,), {
-            '__doc__': f"{base_class.__name__} enhanced with: {', '.join(type(m).__name__ for m in mixins)}",
-            '__module__': base_class.__module__,
-        })
-        
-        return enhanced_class  # type: ignore
-        
-    except TypeError as e:
-        if "consistent method resolution order" in str(e):
-            # Fallback: create a simpler enhanced class by combining mixins differently
-            return _create_enhanced_class_fallback(base_class, config, mixins)
-        else:
-            raise
 
+    return type(class_name, tuple(mixins) + (base_class,), {
+        '__doc__': f"{base_class.__name__} enhanced with: {', '.join(enhancement_names)}",
+        '__module__': base_class.__module__,
+    })
 
 def _create_enhanced_memory_class(base_class: Type[T], config: EnhancementConfig) -> Type[T]:
     """Create an enhanced Memory class that preserves generic behavior"""
@@ -246,17 +232,15 @@ def _create_enhanced_memory_class(base_class: Type[T], config: EnhancementConfig
     # If no mixins, return original class
     if not mixins:
         return base_class
-    
-    # Create a wrapper class that preserves the original Memory's generic behavior
-    import uuid
-    unique_id = str(uuid.uuid4())[:8]
+
+    unique_id = str(uuid.uuid4().hex)[:4]
     
     class EnhancedMemoryWrapper:
         """Wrapper that preserves Memory's generic behavior while adding mixins"""
         
         def __new__(cls, *args, **kwargs):
             # Create the actual enhanced class dynamically when instantiated
-            class_name = f"EnhancedMemory_{unique_id}"
+            class_name = f"Memory_{unique_id}"
             
             try:
                 enhanced_class = type(class_name, tuple(mixins) + (base_class,), {
@@ -279,7 +263,7 @@ def _create_enhanced_memory_class(base_class: Type[T], config: EnhancementConfig
                     typed_base = base_class[item]
                     
                     # Create enhanced version of the typed class
-                    class_name = f"EnhancedMemory_{unique_id}_{getattr(item, '__name__', str(item))}"
+                    class_name = f"Memory_{unique_id}_{getattr(item, '__name__', str(item))}"
                     
                     try:
                         enhanced_class = type(class_name, tuple(mixins) + (typed_base,), {
@@ -294,47 +278,6 @@ def _create_enhanced_memory_class(base_class: Type[T], config: EnhancementConfig
     
     return EnhancedMemoryWrapper  # type: ignore
 
-
-def _create_enhanced_class_fallback(base_class: Type[T], config: EnhancementConfig, failed_mixins: list) -> Type[T]:
-    """
-    Fallback method to create enhanced class when MRO conflicts occur.
-    Creates a single combined mixin to avoid conflicts.
-    """
-    import uuid
-    unique_id = str(uuid.uuid4())[:8]
-    
-    # Create a single combined mixin class
-    class CombinedMixin:
-        """Combined mixin to avoid MRO conflicts"""
-        
-        def __init__(self, *args, **kwargs):
-            # Initialize all mixin functionality
-            for mixin_class in failed_mixins:
-                if hasattr(mixin_class, '__init__'):
-                    try:
-                        mixin_class.__init__(self, *args, **kwargs)
-                    except TypeError:
-                        # Skip if mixin doesn't accept the arguments
-                        pass
-            super().__init__(*args, **kwargs)
-    
-    # Add methods from all mixins to the combined mixin
-    for mixin_class in failed_mixins:
-        for attr_name in dir(mixin_class):
-            if not attr_name.startswith('_') or attr_name in ['__init__']:
-                attr = getattr(mixin_class, attr_name)
-                if callable(attr) and not hasattr(CombinedMixin, attr_name):
-                    setattr(CombinedMixin, attr_name, attr)
-    
-    class_name = f"Enhanced{base_class.__name__}_Fallback_{unique_id}"
-    enhanced_class = type(class_name, (CombinedMixin, base_class), {
-        '__doc__': f"{base_class.__name__} enhanced (fallback mode)",
-        '__module__': base_class.__module__,
-    })
-    
-    return enhanced_class  # type: ignore
-
-
 class EnhancementBuilder:
     """
     Builder class for creating multiple enhanced classes with the same configuration.
@@ -348,33 +291,23 @@ class EnhancementBuilder:
     
     def __init__(self, config: EnhancementConfig):
         self.config = config
-        # Cache enhanced classes to avoid recreating them
         self._cache = {}
     
-    @property
-    def Node(self) -> Type['bf.Node']:
-        """Get enhanced Node class"""
-        if 'Node' not in self._cache:
-            self._cache['Node'] = _create_enhanced_class(bf.Node, self.config)
-        return self._cache['Node']
-    
-    @property
-    def Flow(self) -> Type['bf.Flow']:
-        """Get enhanced Flow class"""
-        if 'Flow' not in self._cache:
-            self._cache['Flow'] = _create_enhanced_class(bf.Flow, self.config)
-        return self._cache['Flow']
-    
-    @property
-    def ParallelFlow(self) -> Type['bf.ParallelFlow']:
-        """Get enhanced ParallelFlow class"""
-        return _create_enhanced_class(bf.ParallelFlow, self.config)
-    
-    @property
-    def Memory(self) -> Type['bf.Memory']:
-        """Get enhanced Memory class"""
-        return _create_enhanced_class(bf.Memory, self.config)
-    
+    def __getattr__(self, name: str) -> Any:
+        """Dynamically enhance any attribute from the base brainyflow module."""
+        if name in self._cache:
+            return self._cache[name]
+
+        if hasattr(bf, name):
+            base_class = getattr(bf, name)
+            if isinstance(base_class, type):
+                enhanced_class = _create_enhanced_class(base_class, self.config)
+                self._cache[name] = enhanced_class
+                return enhanced_class
+        
+        raise AttributeError(f"'EnhancementBuilder' has no attribute '{name}' and it was not found in the base brainyflow module.")
+
     def custom(self, base_class: Type[T]) -> Type[T]:
         """Enhance a custom base class with the builder's configuration"""
         return _create_enhanced_class(base_class, self.config)
+        
