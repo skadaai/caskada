@@ -33,7 +33,6 @@ class LogContext:
         self.session_log_path = self.log_folder / f"{self.session_id}.jsonl"
         self.snapshot_dir = self.log_folder / "memory_snapshots"
         self.artifact_dir = self.log_folder / "artifacts"
-        self.global_memory_cache: Dict[int, Dict] = {}
         self.log_folder.mkdir(parents=True, exist_ok=True)
         self.snapshot_dir.mkdir(parents=True, exist_ok=True)
         self.artifact_dir.mkdir(parents=True, exist_ok=True)
@@ -124,6 +123,30 @@ class ArtifactSerializer:
         except (cbor2.CBOREncodeError, TypeError) as e:
             print(f"ArtifactSerializer Error: Could not serialize object to CBOR. Type: {type(obj)}. Error: {e}")
             return None
+            
+def _create_snapshot(store: Dict, context: LogContext, serializer: ArtifactSerializer, seen: set) -> Dict:
+    """Creates a standardized snapshot file for a dictionary-like store (e.g., global memory)."""
+    # We must pass a new `seen` set here to avoid circular reference issues with the main log serialization
+    snapshot_content = _serialize_for_log(store, context, serializer, set(seen))
+    try:
+        state_str = json.dumps(snapshot_content, sort_keys=True)
+        state_hash = hashlib.sha256(state_str.encode('utf-8')).hexdigest()
+        filepath = context.snapshot_dir / f"{state_hash}.json"
+        if not filepath.exists():
+            with open(filepath, 'w', encoding='utf-8') as f:
+                json.dump(snapshot_content, f, indent=2)
+        return {"__type__": "MemorySnapshot", "ref": state_hash}
+    except Exception as e:
+        print('MemorySnapshotError:', e)
+        return {"__type__": "MemorySnapshot", "ref": "<error>"}
+
+def _is_memory_obj(data: Any) -> bool:
+    """More specific duck-typing to identify a Memory object."""
+    return hasattr(data, '_global') and hasattr(data, '_local') and callable(getattr(data, 'clone', None))
+
+def _is_execution_tree(data: Any) -> bool:
+    """Duck-typing to identify an ExecutionTree dictionary."""
+    return isinstance(data, dict) and all(k in data for k in ['order', 'type', 'triggered'])
 
 def _serialize_for_log(data: Any, context: LogContext, serializer: ArtifactSerializer, seen: set) -> Any:
     """
@@ -147,35 +170,12 @@ def _serialize_for_log(data: Any, context: LogContext, serializer: ArtifactSeria
     seen.add(obj_id)
     result = None
     try:
-        # Handle special brainyflow types
         # Prioritize handling of Memory objects to ensure they are never treated as generic artifacts.
-        if hasattr(data, '_global') and hasattr(data, '_local'):  # Duck-typing for brainyflow.Memory
-            global_store_id = id(data._global)
-            global_ref = context.global_memory_cache.get(global_store_id)
-
-            # FIX: Only serialize the global store if it hasn't been seen before in this context.
-            if global_ref is None:
-                global_snapshot_content = _serialize_for_log(data._global, context, serializer, seen)
-                try:
-                    state_str = json.dumps(global_snapshot_content, sort_keys=True)
-                    state_hash = hashlib.sha256(state_str.encode('utf-8')).hexdigest()
-                    filepath = context.snapshot_dir / f"{state_hash}.json"
-                    if not filepath.exists():
-                        with open(filepath, 'w', encoding='utf-8') as f:
-                            json.dump(global_snapshot_content, f, indent=2)
-                    global_ref = {"__type__": "MemorySnapshot", "ref": state_hash}
-                    context.global_memory_cache[global_store_id] = global_ref
-                except Exception:
-                    global_ref = "<Unserializable Global Memory State>"
-            
-            # The local store is always unique to this memory instance, so it's always serialized.
-            local_snapshot_content = _serialize_for_log(data._local, context, serializer, seen)
-            
-            result = {
-                "__type__": "MemoryObject",
-                "global": global_ref,
-                "local": local_snapshot_content
-            }
+        if _is_memory_obj(data):
+            # A memory object's state is defined by its global and local stores. We serialize them separately.
+            global_ref = _create_snapshot(data._global, context, serializer, seen)
+            local_content = _serialize_for_log(data._local, context, serializer, seen)
+            result = {"__type__": "MemoryObject", "global": global_ref, "local": local_content}
         # 4. Handle specific known container types
         elif isinstance(data, (list, tuple)):
             result = [_serialize_for_log(item, context, serializer, seen) for item in data]
@@ -231,7 +231,6 @@ class FileLoggerNodeMixin:
     # Hook into `exec_runner` to gain visibility into the results of `prep` and `exec`
     async def exec_runner(self, memory: "bf.Memory", prep_res: Any, **kwargs) -> Any:
         self._log_event("prep.exit", {"result": prep_res})
-        
         # self._log_event("exec.enter", {"prep_result": prep_res})
         try:
             exec_res = await super().exec_runner(memory, prep_res, **kwargs)
@@ -259,7 +258,7 @@ class FileLoggerNodeMixin:
             result = await super().run(*args, **kwargs)
             
             if context and not is_flow:
-                memory_out = args[0] if args else {}
+                memory_out = result[0][1] if isinstance(result, list) and result and isinstance(result[0], (list, tuple)) and len(result[0]) > 1 else args[0]
                 self._log_event("node.exit", {"result": result, "memory": memory_out})
 
             return result
