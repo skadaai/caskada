@@ -68,7 +68,7 @@ class ArtifactSerializer:
                 encoder.encode(cbor2.CBORTag(4001, binary_index))
             except Exception as e:
                  # FIX: Catch any exception from FAISS and provide a more informative message
-                print(f"Error: FAISS serialization failed for index of type {type(value)}: {e}")
+                print(f"├─ Error: FAISS serialization failed for index of type {type(value)}: {e}")
                 encoder.encode(f"<Unserializable FAISS Index: {type(value).__name__}>")
             return
             
@@ -121,7 +121,7 @@ class ArtifactSerializer:
             # Return a JSON-serializable dictionary that references the binary artifact
             return {"__type__": "Artifact", "handler": "cbor2", "ref": filename}
         except (cbor2.CBOREncodeError, TypeError) as e:
-            print(f"ArtifactSerializer Error: Could not serialize object to CBOR. Type: {type(obj)}. Error: {e}")
+            print(f"├─ ArtifactSerializerError: Could not serialize object to CBOR. Type: {type(obj)}. Error: {e}")
             return None
             
 def _create_snapshot(store: Dict, context: LogContext, serializer: ArtifactSerializer, seen: set) -> Dict:
@@ -137,7 +137,7 @@ def _create_snapshot(store: Dict, context: LogContext, serializer: ArtifactSeria
                 json.dump(snapshot_content, f, indent=2)
         return {"__type__": "MemorySnapshot", "ref": state_hash}
     except Exception as e:
-        print('MemorySnapshotError:', e)
+        print('├─ MemorySnapshotError:', e)
         return {"__type__": "MemorySnapshot", "ref": "<error>"}
 
 def _is_memory_obj(data: Any) -> bool:
