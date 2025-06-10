@@ -16,6 +16,7 @@ else:
 from .mixins import (
     VerboseMemoryMixin,
     VerboseNodeMixin,
+    VerboseParallelFlowMixin,
     ExecutionTreePrinterMixin,
     FileLoggerNodeMixin,
     FileLoggerFlowMixin,
@@ -23,16 +24,12 @@ from .mixins import (
     PerformanceMonitorMixin,
 )
 
-# Type variables for proper generic typing
 T = TypeVar('T')
-
-# Type definitions for options
 VerboseOptions = Union[bool, Dict[str, Any]]
 FileLoggingOptions = Union[bool, Dict[str, Any]]
 PerformanceOptions = Union[bool, Dict[str, Any]]
 SingleThreadedOptions = Union[bool, Dict[str, Any]]
 ExecutionTreeOptions = Union[bool, Dict[str, Any]]
-
 
 @dataclass
 class EnhancementConfig:
@@ -42,7 +39,6 @@ class EnhancementConfig:
     performance: Optional[PerformanceOptions] = None
     single_threaded: Optional[SingleThreadedOptions] = None
     execution_tree: Optional[ExecutionTreeOptions] = None
-
 
 def _create_configured_mixin(mixin_class: Type, options: Union[bool, Dict[str, Any]], suffix: str = "") -> Optional[Type]:
     """Create a mixin class that passes options to the underlying mixin"""
@@ -134,22 +130,18 @@ def enhance(
     # Pattern 1 - direct enhancement
     return _create_enhanced_class(base_class, config)
 
-
 def _is_memory_like(cls: Type) -> bool:
-    """Check if class is Memory-like"""
-    # Check for a unique attribute of Memory, like _global, and check inheritance.
     return issubclass(cls, getattr(bf, 'Memory', type(None)))
-
-
+    
 def _is_node_like(cls: Type) -> bool:
-    """Check if class is Node-like"""
     return issubclass(cls, getattr(bf, 'BaseNode', type(None)))
-
-
+    
 def _is_flow_like(cls: Type) -> bool:
-    """Check if class is Flow-like"""
     return issubclass(cls, getattr(bf, 'Flow', type(None)))
-
+    
+def _is_parallel_flow_like(cls: Type) -> bool:
+    return issubclass(cls, getattr(bf, 'ParallelFlow', type(None)))
+    
 
 def _create_enhanced_class(base_class: Type[T], config: EnhancementConfig) -> Type[T]:
     """Create an enhanced class with the specified configuration"""
@@ -172,13 +164,20 @@ def _create_enhanced_class(base_class: Type[T], config: EnhancementConfig) -> Ty
         if mixin:
             mixins.append(mixin)
             mixin_counter += 1
-            
-    # Verbose must come before performance for correct nesting display
-    if config.verbose and _is_node_like(base_class):
-        mixin = _create_configured_mixin(VerboseNodeMixin, config.verbose, f"_{mixin_counter}")
-        if mixin:
-            mixins.append(mixin)
-            mixin_counter += 1
+        
+    if config.verbose:
+        if _is_parallel_flow_like(base_class):
+            # Apply the specialized mixin for ParallelFlow. It includes VerboseNodeMixin behavior.
+            mixin = _create_configured_mixin(VerboseParallelFlowMixin, config.verbose, f"_{mixin_counter}")
+            if mixin:
+                mixins.append(mixin)
+                mixin_counter += 1
+        elif _is_node_like(base_class):
+            # Apply the standard mixin for all other nodes and flows.
+            mixin = _create_configured_mixin(VerboseNodeMixin, config.verbose, f"_{mixin_counter}")
+            if mixin:
+                mixins.append(mixin)
+                mixin_counter += 1
 
     if config.file_logging and _is_node_like(base_class):
         file_logging_mixin = FileLoggerFlowMixin if _is_flow_like(base_class) else FileLoggerNodeMixin

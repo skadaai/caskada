@@ -7,12 +7,12 @@ from contextvars import ContextVar
 
 from ..utils.logger import smart_print, _config
 
-# Import the depth context variable from the verbose mixin
 try:
-    from .verbose import verbose_depth_var
+    from .verbose import verbose_depth_var, _log
 except ImportError:
-    # Fallback if verbose mixin isn't used
+    # Fallback if verbose mixin isn't used: _log is a simple alias for smart_print.
     verbose_depth_var = ContextVar("verbose_depth", default=0)
+    _log = smart_print
 
 class PerformanceMonitorMixin:
     """
@@ -36,7 +36,7 @@ class PerformanceMonitorMixin:
                 # The depth is already incremented by the VerboseNodeMixin.run before this is called
                 prefix = "│  " * (depth - 1) + "├─" if depth > 0 else "├─"
                 refer_name = getattr(getattr(self, '_refer', None), 'me', self.__class__.__name__)
-                smart_print(f"{prefix} ⏱️  {refer_name} ran in {execution_time:.3f}s")
+                _log(f"{prefix} ⏱️  {refer_name} ran in {execution_time:.3f}s")
 
             return result
         except Exception as e:
@@ -47,7 +47,7 @@ class PerformanceMonitorMixin:
                 depth = verbose_depth_var.get()
                 prefix = "│  " * (depth - 1) + "├─" if depth > 0 else "├─"
                 refer_name = getattr(getattr(self, '_refer', None), 'me', self.__class__.__name__)
-                smart_print(f"{prefix} ⚠️  {refer_name} failed after {execution_time:.3f}s")
+                _log(f"{prefix} ⚠️  {refer_name} failed after {execution_time:.3f}s")
             
             raise
     

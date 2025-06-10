@@ -1,6 +1,7 @@
 from __future__ import annotations
+import asyncio
 from types import SimpleNamespace
-from typing import Any, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING, List, Tuple, Dict, Optional, Callable, Awaitable
 from contextvars import ContextVar
 
 if TYPE_CHECKING:
@@ -10,8 +11,23 @@ else:
 
 from ..utils.logger import smart_print, _config
 
-# Context variable to track nesting depth for verbose output
+_log_lock = asyncio.Lock()
+log_buffer_var: ContextVar[Optional[List[Tuple[Tuple, Dict]]]] = ContextVar("log_buffer", default=None)
 verbose_depth_var: ContextVar[int] = ContextVar("verbose_depth", default=0)
+
+
+def _log(*args: Any, **kwargs: Any):
+    """
+    A helper function that either prints directly or appends to a context-specific buffer
+    to ensure atomic output from parallel tasks.
+    """
+    buffer = log_buffer_var.get()
+    if buffer is not None:
+        # If a buffer exists in the current context, append the message to it.
+        buffer.append((args, kwargs))
+    else:
+        # Otherwise, print directly to the console (for non-buffered runs).
+        smart_print(*args, **kwargs)
 
 class VerboseLocalProxy(bf.LocalProxy):
     """A proxy for the local memory store that logs set and delete operations."""
@@ -29,7 +45,7 @@ class VerboseLocalProxy(bf.LocalProxy):
         prefix = "│  " * depth + "├─"
         # Construct a log name like "Memory_abc.local.my_key"
         log_key = f"{self._parent_refer.me}.[dim italic green]local[/dim italic green].[bold]{key}[/bold]"
-        smart_print(prefix, "📦", log_key, "=", value, single_line=True)
+        _log(prefix, "📦", log_key, "=", value, single_line=True)
 
     def __setitem__(self, key: str, value: Any) -> None:
         self.__setattr__(key, value)
@@ -42,7 +58,7 @@ class VerboseLocalProxy(bf.LocalProxy):
         depth = verbose_depth_var.get()
         prefix = "│  " * depth + "├─"
         log_key = f"{self._parent_refer.me}.[dim italic green]local[/dim italic green].[bold]{key}[/bold]"
-        smart_print(prefix, "🚫", log_key, single_line=True)
+        _log(prefix, "🚫", log_key, single_line=True)
 
     def __delitem__(self, key: str) -> None:
         self.__delattr__(key)
@@ -67,7 +83,7 @@ class VerboseMemoryMixin:
             
         depth = verbose_depth_var.get()
         prefix = "│  " * depth + "├─"
-        smart_print(prefix, "📦", self._refer.attr(key), "=", value)
+        _log(prefix, "📦", self._refer.attr(key), "=", value)
 
     def __delattr__(self, key: str) -> None:
         super().__delattr__(key)
@@ -76,19 +92,18 @@ class VerboseMemoryMixin:
         
         depth = verbose_depth_var.get()
         prefix = "│  " * depth + "├─"
-        smart_print(prefix, "🚫", self._refer.attr(key))
+        _log(prefix, "🚫", self._refer.attr(key))
 
     def __delitem__(self, key: str) -> None:
         self.__delattr__(key)
 
     @property
     def local(self) -> VerboseLocalProxy:
-        # Instead of the default LocalProxy, we return our enhanced version
         return VerboseLocalProxy(self._local, self._refer)
 
 
 class VerboseNodeMixin:
-    """A mixin that provides nested, box-drawing output."""
+    """A mixin that provides nested, race-condition-safe, box-drawing output."""
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
     
@@ -104,11 +119,11 @@ class VerboseNodeMixin:
 
         prefix = "│  " * (verbose_depth_var.get()) + "├─"
         if self.prep.__func__ != bf.BaseNode.prep:
-            smart_print(f"{prefix} prep() →", args[1] if len(args) > 1 else "No prep result")
+            _log(f"{prefix} prep() →", args[1] if len(args) > 1 else "No prep result")
 
         exec_res = await super().exec_runner(*args, **kwargs)
         if self.prep.__func__ != bf.BaseNode.prep:
-            smart_print(f"{prefix} exec() →", exec_res)
+            _log(f"{prefix} exec() →", exec_res)
         
         return exec_res
         
@@ -116,34 +131,54 @@ class VerboseNodeMixin:
         if not _config.verbose_mixin_logging:
             return await super().run(*args, **kwargs)
 
-        depth = verbose_depth_var.get()
-        
-        smart_print("│  " * depth + f"┌── Running {self._refer.me}")
+        active_buffer = log_buffer_var.get()
+        is_top_level_log_manager = active_buffer is None
 
-        token = verbose_depth_var.set(depth + 1)
+        # If this is the top-level call in a potentially parallel branch,
+        # it becomes the manager for the buffer and the final, locked print-out.
+        if is_top_level_log_manager:
+            active_buffer = []
+            log_buffer_token = log_buffer_var.set(active_buffer)
+
+        result = None
         try:
-            result = await super().run(*args, **kwargs)
+            # This block runs for all nodes, logging to the active buffer.
+            depth = verbose_depth_var.get()
+            _log("│  " * depth + f"┌── Running {self._refer.me}")
+            depth_token = verbose_depth_var.set(depth + 1)
+            
+            try:
+                # The actual execution ALWAYS happens here, calling the next in the MRO chain.
+                result = await super().run(*args, **kwargs)
+            finally:
+                verbose_depth_var.reset(depth_token)
+                
+                # Log the outcome after the run is complete.
+                propagate: bool = kwargs.get('propagate', args[1] if len(args) > 1 and isinstance(args[1], bool) else False)
+                if not propagate:
+                     _log("│  " * depth + f"└── Finished {self._refer.me}")
+                     return result
+
+                _log("│  " * depth + f"└─ {self._refer.me} next:")
+                if hasattr(self, '_triggers') and hasattr(self, 'get_next_nodes') and isinstance(result, list):
+                    if (len(result) == 1 and result[0][0] == 'default' and len(getattr(self, '_triggers', [])) == 0):
+                        _log("│  " * depth + f"\t[dim italic]> Leaf Node[/dim italic]")
+                    else:
+                        for key, _ in result:
+                            try:
+                                next_nodes = self.get_next_nodes(key)
+                                successors = ", ".join(f"[green]{c.__class__.__name__}[/green]#{getattr(c, '_node_order', 'Unknown')}" for c in next_nodes) or f"[dim red]Terminal Action[/dim red]"
+                                _log("│  " * depth + f"\t- [blue]{key}[/blue]\t >> {successors}")
+                            except Exception as e:
+                                _log("│  " * depth + f"\t- [blue]{key}[/blue]\t >> [red]Error: {e}[/red]")
+                                raise e
         finally:
-            verbose_depth_var.reset(token)
-        
-        # The ExecutionTreePrinter handles the final output for Flows
-        propagate: bool = kwargs.get('propagate', args[1] if len(args) > 1 and isinstance(args[1], bool) else False)
-        if not propagate:
-             smart_print("│  " * depth + f"└── Finished {self._refer.me}")
-             return result
-             
-        smart_print("│  " * depth + f"└─ {self._refer.me} next:")
-        if hasattr(self, '_triggers') and hasattr(self, 'get_next_nodes'):
-            if (len(result) == 1 and result[0][0] == 'default' and len(getattr(self, '_triggers', [])) == 0):
-                smart_print("│  " * depth + f"\t[dim italic]> Leaf Node[/dim italic]")
-            else:
-                for key,_ in result:
-                    try:
-                        next_nodes = self.get_next_nodes(key)
-                        successors = ", ".join(f"[green]{c.__class__.__name__}[/green]#{getattr(c, '_node_order', 'Unknown')}" for c in next_nodes) or f"[dim red]Terminal Action[/dim red]"
-                        smart_print("│  " * depth + f"\t- [blue]{key}[/blue]\t >> {successors}")
-                    except Exception as e:
-                        smart_print("│  " * depth + f"\t- [blue]{key}[/blue]\t >> [red]Error: {e}[/red]")
+            # If this was the top-level manager, it now flushes the entire buffer atomically.
+            if is_top_level_log_manager and active_buffer is not None:
+                log_buffer_var.reset(log_buffer_token)
+                async with _log_lock:
+                    for log_args, log_kwargs in active_buffer:
+                        smart_print(*log_args, **log_kwargs)
 
         return result
 
@@ -170,3 +205,36 @@ class VerboseNodeMixin:
     #     smart_print(f"{prefix} [blue]{action}[/blue]{successors_str}")
 
     #     return result
+
+
+class VerboseParallelFlowMixin(VerboseNodeMixin):
+    """
+    A specialization of VerboseNodeMixin that overrides run_tasks to visualize concurrency.
+    """
+    async def run_tasks(self, tasks: List[Callable[[], Awaitable[Any]]]) -> List[Any]:
+        if not _config.verbose_mixin_logging or len(tasks) <= 1:
+            return await super().run_tasks(tasks)
+
+        depth = verbose_depth_var.get()
+        _log("│  " * depth + f"╔══ Running [bold cyan]Parallel Tasks[/bold cyan] ({len(tasks)} tasks)")
+        
+        task_buffers: List[List[Tuple[Tuple, Dict]]] = [[] for _ in tasks]
+        
+        async def create_logged_task(task: Callable[[], Awaitable[Any]], buffer: list) -> Callable[[], Awaitable[Any]]:
+            async def logged_task_runner():
+                token = log_buffer_var.set(buffer)
+                try: return await task()
+                finally: log_buffer_var.reset(token)
+            return logged_task_runner
+
+        logged_tasks = [await create_logged_task(t, b) for t, b in zip(tasks, task_buffers)]
+        results = await super(VerboseNodeMixin, self).run_tasks(logged_tasks)
+
+        for i, buffer in enumerate(task_buffers):
+            is_last_task = i < len(tasks) - 1
+            _log("│  " * depth + f"{"╠" if is_last_task else "╚"}══▷ Task {i+1}/{len(tasks)}:")
+            for log_args, log_kwargs in buffer:
+                new_args = (log_args[0].replace("│  " * depth, "│  " * depth + ("║ " if is_last_task else "  ")),)
+                _log(*new_args, **log_kwargs)
+        
+        return results

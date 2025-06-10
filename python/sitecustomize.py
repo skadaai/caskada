@@ -113,6 +113,13 @@ def custom_import(name, globals=None, locals=None, fromlist=(), level=0):
         
         module.Flow = enhanced_components.Flow
 
+    if name == 'brainyflow' and hasattr(module, 'ParallelFlow'):
+        if not hasattr(module.ParallelFlow, '_original'):
+            module.ParallelFlow._original = module.ParallelFlow
+        
+        module.ParallelFlow = enhanced_components.ParallelFlow
+
+        
     return module
 
 # Replace the built-in import function
