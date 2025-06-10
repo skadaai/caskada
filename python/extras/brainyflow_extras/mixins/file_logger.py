@@ -23,8 +23,6 @@ except ImportError:
 if TYPE_CHECKING:
     import brainyflow as bf
 
-# --- Context and Artifact Management ---
-
 class LogContext:
     """A central object to manage paths and state for a single logging session."""
     def __init__(self, log_folder: Path, session_id: str):
@@ -38,8 +36,6 @@ class LogContext:
         self.artifact_dir.mkdir(parents=True, exist_ok=True)
 
 log_context_var: ContextVar[Optional[LogContext]] = ContextVar("log_context", default=None)
-
-# --- Serialization Engine using Hybrid JSON + CBOR ---
 
 class ArtifactSerializer:
     """Handles secure serialization of complex 'artifact' objects to binary CBOR files."""
@@ -84,14 +80,12 @@ class ArtifactSerializer:
 
         # For any other object, represent it as a generic map.
         if hasattr(value, '__dict__'):
-            # The payload is a map with class info and the object's dictionary
-            payload = {
+            encoder.encode({
                 "__type__": "GenericObject",
                 "module": value.__class__.__module__,
                 "class": value.__class__.__name__,
                 "data": vars(value)
-            }
-            encoder.encode(payload)
+            })
             return
             
         # If all else fails, use the default encoder which will raise an error
@@ -99,9 +93,8 @@ class ArtifactSerializer:
         try:
             # Let the default encoder handle it if possible (e.g., dicts, lists inside objects)
             return encoder.encode(value)
-        except cbor2.CBOREncodeError:
-            # Fallback for objects that are truly not serializable
-            encoder.encode(f"<Unserializable CBOR Leaf: {type(value).__name__}>")
+        except (cbor2.CBOREncodeError, TypeError, RecursionError):
+            encoder.encode(f"<Unserializable Object: {type(value).__name__}>")
 
     def handle_as_cbor_artifact(self, obj: Any, context: LogContext) -> Optional[Dict[str, Any]]:
         """
@@ -144,10 +137,6 @@ def _is_memory_obj(data: Any) -> bool:
     """More specific duck-typing to identify a Memory object."""
     return hasattr(data, '_global') and hasattr(data, '_local') and callable(getattr(data, 'clone', None))
 
-def _is_execution_tree(data: Any) -> bool:
-    """Duck-typing to identify an ExecutionTree dictionary."""
-    return isinstance(data, dict) and all(k in data for k in ['order', 'type', 'triggered'])
-
 def _serialize_for_log(data: Any, context: LogContext, serializer: ArtifactSerializer, seen: set) -> Any:
     """
     Recursively traverses data to make it JSON-serializable.
@@ -156,19 +145,14 @@ def _serialize_for_log(data: Any, context: LogContext, serializer: ArtifactSeria
     # 1. Handle primitive types that are already JSON-serializable
     if data is None or isinstance(data, (str, int, float, bool)):
         return data
-
     # 2. Handle circular references
-    obj_id = id(data)
-    if obj_id in seen:
-        return f"<CircularReference to {type(data).__name__} id:{obj_id}>"
-
+    if id(data) in seen:
+        return f"<CircularReference to {type(data).__name__} id:{id(data)}>"
     # Handle simple typing representations directly, preventing them from becoming artifacts.
     if 'typing' in sys.modules and isinstance(data, sys.modules['typing']._GenericAlias):
         return str(data)
-
     # 3. Add object to the 'seen' set for the duration of its processing
-    seen.add(obj_id)
-    result = None
+    seen.add(id(data))
     try:
         # Prioritize handling of Memory objects to ensure they are never treated as generic artifacts.
         if _is_memory_obj(data):
@@ -177,28 +161,23 @@ def _serialize_for_log(data: Any, context: LogContext, serializer: ArtifactSeria
             local_content = _serialize_for_log(data._local, context, serializer, seen)
             result = {"__type__": "MemoryObject", "global": global_ref, "local": local_content}
         # 4. Handle specific known container types
-        elif isinstance(data, (list, tuple)):
-            result = [_serialize_for_log(item, context, serializer, seen) for item in data]
-        elif isinstance(data, dict):
-            result = {str(k): _serialize_for_log(v, context, serializer, seen) for k, v in data.items()}
+        if isinstance(data, (list, tuple)):
+            return [_serialize_for_log(item, context, serializer, seen) for item in data]
+        if isinstance(data, dict):
+            return {str(k): _serialize_for_log(v, context, serializer, seen) for k, v in data.items()}
         # 5. Convert Python-specific types to a JSON-compatible representation
-        elif isinstance(data, set):
-            result = {"__type__": "set", "data": [_serialize_for_log(item, context, serializer, seen) for item in data]}
-        elif isinstance(data, datetime):
-            result = {'__type__': 'datetime', 'iso': data.isoformat()}
-        elif isinstance(data, Path):
-            result = {'__type__': 'path', 'path': str(data)}
-        else:
-            # 7. For any other complex object, offload it to a CBOR artifact.
-            result = serializer.handle_as_cbor_artifact(data, context)
-            if result is None:
-                result = f"<Unserializable Object: {type(data).__name__}>"
+        if isinstance(data, set):
+            return {"__type__": "set", "data": [_serialize_for_log(item, context, serializer, seen) for item in data]}
+        if isinstance(data, datetime):
+            return {'__type__': 'datetime', 'iso': data.isoformat()}
+        if isinstance(data, Path):
+            return {'__type__': 'path', 'path': str(data)}
+        # 7. For any other complex object, offload it to a CBOR artifact.
+        result = serializer.handle_as_cbor_artifact(data, context)
+        return result if result is not None else f"<Unserializable Object: {type(data).__name__}>"
     finally:
         # 8. IMPORTANT: We are done processing this object, so remove it from the 'seen' set
-        seen.remove(obj_id)
-    return result
-
-# --- The Mixin Implementation ---
+        seen.remove(id(data))
 
 class FileLoggerNodeMixin:
     """A mixin that provides deep, secure logging by hooking into orchestrator methods."""
@@ -209,7 +188,8 @@ class FileLoggerNodeMixin:
 
     def _log_event(self, event_name: str, data: Dict[str, Any]):
         context = log_context_var.get()
-        if not context: raise Exception(f"Log context not found when trying to log event '{event_name}' for node '{getattr(self, '_refer', self).__class__.__name__}'")
+        if not context:
+            raise Exception(f"Log context not found when trying to log event '{event_name}' for node '{getattr(self, '_refer', self).__class__.__name__}'")
 
         mro_list = [cls.__name__ for cls in self.__class__.__mro__ if cls not in (object, ABC, Generic)]
         if 'BaseNode' not in mro_list: mro_list.append('BaseNode')
@@ -301,4 +281,3 @@ class FileLoggerFlowMixin(FileLoggerNodeMixin):
             # The context is reset only at the very end of the root call.
             if is_root_call and token:
                 log_context_var.reset(token)
-
