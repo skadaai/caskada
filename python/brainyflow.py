@@ -64,7 +64,7 @@ class Memory(Generic[M]):
         if key in self._local:
             del self._local[key]
         self._global[key] = value
-    def __setattr__(self, name: str, value: Any) -> None: self._set_value(name, value)
+    def __setattr__(self, key: str, value: Any) -> None: super().__setattr__(key, value) if key.startswith('__') and key.endswith('__') else self._set_value(key, value)
     def __setitem__(self, key: str, value: Any) -> None: self._set_value(key, value)
     def __delattr__(self, key: str) -> None: _delete_from_stores(key, self._global, self._local)
     def __delitem__(self, key: str) -> None: _delete_from_stores(key, self._global, self._local)
@@ -72,7 +72,7 @@ class Memory(Generic[M]):
     def clone(self, forking_data: Optional[SharedStore] = None) -> Memory[M]:
         new_local = copy.deepcopy(self._local)
         new_local.update(copy.deepcopy(forking_data or {}))
-        return Memory[M](self._global, new_local)
+        return type(self)(self._global, new_local)
     @property
     def local(self) -> LocalProxy[SharedStore]:
         return LocalProxy(self._local) # cast(M["local"], LocalProxy(self._local))
@@ -182,19 +182,18 @@ class BaseNode(Generic[M, PrepResultT, ExecResultT, ActionT], ABC):
     async def run(self, memory: Union[Memory[M], M], propagate: Literal[False] = False) -> ExecResultT: ...
     async def run(self, memory: Union[Memory[M], M], propagate: bool = False) -> Union[List[Tuple[Action, Memory[M]]], ExecResultT]:
         """Run the node's full lifecycle (prep → exec → post)."""
-        if not isinstance(memory, Memory):
-            memory = Memory[M](memory)
+        mem_instance: Memory[M] = Memory(memory) if not isinstance(memory, Memory) else cast(Memory[M], memory)
         
         self._triggers = []
-        prep_res = await self.prep(cast(M, memory))
-        exec_res = await self.exec_runner(cast(Memory[M], memory), prep_res)
+        prep_res = await self.prep(cast(M, mem_instance))
+        exec_res = await self.exec_runner(mem_instance, prep_res)
         
         self._locked = False
-        await self.post(cast(M, memory), prep_res, exec_res)
+        await self.post(cast(M, mem_instance), prep_res, exec_res)
         self._locked = True
         
         if propagate:
-            return self.list_triggers(cast(Memory[M], memory))
+            return self.list_triggers(mem_instance)
         return exec_res
 
 class Node(BaseNode[M, PrepResultT, ExecResultT, ActionT]):
