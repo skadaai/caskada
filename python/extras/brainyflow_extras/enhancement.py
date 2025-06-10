@@ -197,12 +197,13 @@ def _create_enhanced_class(base_class: Type[T], config: EnhancementConfig) -> Ty
         return base_class
 
     class_name = f"{base_class.__name__}_{str(uuid.uuid4())[:4]}"
-    return types.new_class(class_name, tuple(mixins) + (base_class,))
+    enhanced_class = types.new_class(class_name, tuple(mixins) + (base_class,), {})
+    setattr(enhanced_class, '__module__', base_class.__module__)
+    return enhanced_class
 
 def _create_enhanced_memory_class(base_class: Type[T], config: EnhancementConfig) -> Type[T]:
-    """Create an enhanced Memory class that preserves generic behavior"""
+    """Create an enhanced Memory class that preserves generic behavior."""
     
-    # Collect mixins for Memory
     mixins = []
     mixin_counter = 0
     
@@ -212,32 +213,29 @@ def _create_enhanced_memory_class(base_class: Type[T], config: EnhancementConfig
             mixins.append(mixin)
             mixin_counter += 1
     
-    # If no mixins, return original class
     if not mixins:
         return base_class
 
     unique_id = str(uuid.uuid4())[:4]
-    
-    class EnhancedMemoryWrapper:
-        """Wrapper that preserves Memory's generic behavior while adding mixins"""
-        
-        def __new__(cls, *args, **kwargs):
-            # Create the actual enhanced class dynamically when instantiated
-            class_name = f"Memory_{unique_id}"
-            enhanced_class = types.new_class(class_name, tuple(mixins) + (base_class,), {})
-            return enhanced_class(*args, **kwargs)
-        
-        @classmethod
-        def __class_getitem__(cls, item):
-            class TypedEnhancedMemory:
-                def __new__(cls, *args, **kwargs):
-                    typed_base = base_class[item]
-                    class_name = f"Memory_{unique_id}_{getattr(item, '__name__', str(item))}"
-                    enhanced_class = types.new_class(class_name, tuple(mixins) + (typed_base,), {})
-                    return enhanced_class(*args, **kwargs)
-            return TypedEnhancedMemory
-    
-    return EnhancedMemoryWrapper  # type: ignore
+    class_name = f"Memory_{unique_id}"
+    enhanced_class = types.new_class(class_name, tuple(mixins) + (base_class,))
+
+    # To make the enhanced class generic (support `EnhancedMemory[T]`), we must
+    # provide a `__class_getitem__` method.
+    _mixins = tuple(mixins)
+
+    @classmethod
+    def __class_getitem__(cls, item):
+        # When EnhancedMemory[T] is called, this creates a new, specialized class.
+        specialized_base = base_class[item]
+        specialized_name = f"{cls.__name__}[{getattr(item, '__name__', str(item))}]"
+        specialized_bases = _mixins + (specialized_base,)
+        return types.new_class(specialized_name, specialized_bases)
+
+    enhanced_class.__class_getitem__ = __class_getitem__
+    setattr(enhanced_class, '__module__', base_class.__module__)
+
+    return enhanced_class
 
 class EnhancementBuilder:
     """
