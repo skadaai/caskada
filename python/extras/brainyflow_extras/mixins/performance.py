@@ -47,7 +47,7 @@ class PerformanceMonitorMixin:
                 depth = verbose_depth_var.get()
                 prefix = "│  " * (depth - 1) + "├─" if depth > 0 else "├─"
                 refer_name = getattr(getattr(self, '_refer', None), 'me', self.__class__.__name__)
-                _log(f"{prefix} ⚠️  {refer_name} failed after {execution_time:.3f}s")
+                _log(f"{prefix} ⛔️  {refer_name} failed after {execution_time:.3f}s")
             
             raise
     

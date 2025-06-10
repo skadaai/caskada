@@ -141,37 +141,36 @@ class VerboseNodeMixin:
             log_buffer_token = log_buffer_var.set(active_buffer)
 
         result = None
+        depth = verbose_depth_var.get()
+        _log("│  " * depth + f"┌── Running {self._refer.me}")
+        depth_token = verbose_depth_var.set(depth + 1)
+        
         try:
-            # This block runs for all nodes, logging to the active buffer.
-            depth = verbose_depth_var.get()
-            _log("│  " * depth + f"┌── Running {self._refer.me}")
-            depth_token = verbose_depth_var.set(depth + 1)
+            # The actual execution ALWAYS happens here.
+            result = await super().run(*args, **kwargs)
             
-            try:
-                # The actual execution ALWAYS happens here, calling the next in the MRO chain.
-                result = await super().run(*args, **kwargs)
-            finally:
-                verbose_depth_var.reset(depth_token)
+            verbose_depth_var.reset(depth_token)
+            propagate: bool = kwargs.get('propagate', args[1] if len(args) > 1 and isinstance(args[1], bool) else False)
+            if not propagate:
+                _log("│  " * depth + f"└── Finished {self._refer.me}")
+                return result
                 
-                # Log the outcome after the run is complete.
-                propagate: bool = kwargs.get('propagate', args[1] if len(args) > 1 and isinstance(args[1], bool) else False)
-                if not propagate:
-                     _log("│  " * depth + f"└── Finished {self._refer.me}")
-                     return result
-
-                _log("│  " * depth + f"└─ {self._refer.me} next:")
-                if hasattr(self, '_triggers') and hasattr(self, 'get_next_nodes') and isinstance(result, list):
-                    if (len(result) == 1 and result[0][0] == 'default' and len(getattr(self, '_triggers', [])) == 0):
-                        _log("│  " * depth + f"\t[dim italic]> Leaf Node[/dim italic]")
-                    else:
-                        for key, _ in result:
-                            try:
-                                next_nodes = self.get_next_nodes(key)
-                                successors = ", ".join(f"[green]{c.__class__.__name__}[/green]#{getattr(c, '_node_order', 'Unknown')}" for c in next_nodes) or f"[dim red]Terminal Action[/dim red]"
-                                _log("│  " * depth + f"\t- [blue]{key}[/blue]\t >> {successors}")
-                            except Exception as e:
-                                _log("│  " * depth + f"\t- [blue]{key}[/blue]\t >> [red]Error: {e}[/red]")
-                                raise e
+            _log("│  " * depth + f"└─ {self._refer.me} next:")
+            if hasattr(self, '_triggers') and hasattr(self, 'get_next_nodes') and isinstance(result, list):
+                if (len(result) == 1 and result[0][0] == 'default' and len(getattr(self, '_triggers', [])) == 0):
+                    _log("│  " * depth + f"\t[dim italic]> Leaf Node[/dim italic]")
+                else:
+                    for key, _ in result:
+                        try:
+                            next_nodes = self.get_next_nodes(key)
+                            successors = ", ".join(f"[green]{c.__class__.__name__}[/green]#{getattr(c, '_node_order', 'Unknown')}" for c in next_nodes) or f"[dim red]Terminal Action[/dim red]"
+                            _log("│  " * depth + f"\t- [blue]{key}[/blue]\t >> {successors}")
+                        except Exception as e:
+                            _log("│  " * depth + f"\t- [blue]{key}[/blue]\t >> [red]Error: {e}[/red]")
+        except Exception as e:
+            verbose_depth_var.reset(depth_token)
+            _log("│  " * depth + f"└── [bold red]Error[/bold red] in {self._refer.me}", e)
+            raise
         finally:
             # If this was the top-level manager, it now flushes the entire buffer atomically.
             if is_top_level_log_manager and active_buffer is not None:
