@@ -6,6 +6,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Union, Dict, Any, Type, Optional, overload, TypeVar
 from dataclasses import dataclass
 import uuid
+import types
 
 if TYPE_CHECKING:
     import brainyflow as bf
@@ -55,22 +56,11 @@ def _create_configured_mixin(mixin_class: Type, options: Union[bool, Dict[str, A
     class_name = f"Configured{mixin_class.__name__}{suffix}"
     
     def __init__(self, *args, **kwargs):
-        final_kwargs = {}
-        if isinstance(options, dict):
-            final_kwargs.update(options)
-        final_kwargs.update(kwargs)
-        
+        final_kwargs = {**options, **kwargs} if isinstance(options, dict) else kwargs
         mixin_class.__init__(self, *args, **final_kwargs)
     
-    configured_mixin = type(class_name, (mixin_class,), {
-        '__init__': __init__,
-        '__module__': mixin_class.__module__,
-    })
-    
-    return configured_mixin
+    return type(class_name, (mixin_class,), {'__init__': __init__, '__module__': mixin_class.__module__})
 
-
-# Overloads for proper typing
 @overload
 def enhance(
     base_class: Type[T],
@@ -205,16 +195,9 @@ def _create_enhanced_class(base_class: Type[T], config: EnhancementConfig) -> Ty
     
     if not mixins:
         return base_class
-    
-    # Create unique class name to avoid conflicts
-    unique_id = str(uuid.uuid4().hex)[:4]
-    enhancement_names = [m.__name__.replace('Mixin', '').replace('Configured', '') for m in mixins]
-    class_name = f"{base_class.__name__}_{unique_id}"
 
-    return type(class_name, tuple(mixins) + (base_class,), {
-        '__doc__': f"{base_class.__name__} enhanced with: {', '.join(enhancement_names)}",
-        '__module__': base_class.__module__,
-    })
+    class_name = f"{base_class.__name__}_{str(uuid.uuid4())[:4]}"
+    return types.new_class(class_name, tuple(mixins) + (base_class,))
 
 def _create_enhanced_memory_class(base_class: Type[T], config: EnhancementConfig) -> Type[T]:
     """Create an enhanced Memory class that preserves generic behavior"""
@@ -233,7 +216,7 @@ def _create_enhanced_memory_class(base_class: Type[T], config: EnhancementConfig
     if not mixins:
         return base_class
 
-    unique_id = str(uuid.uuid4().hex)[:4]
+    unique_id = str(uuid.uuid4())[:4]
     
     class EnhancedMemoryWrapper:
         """Wrapper that preserves Memory's generic behavior while adding mixins"""
@@ -241,39 +224,17 @@ def _create_enhanced_memory_class(base_class: Type[T], config: EnhancementConfig
         def __new__(cls, *args, **kwargs):
             # Create the actual enhanced class dynamically when instantiated
             class_name = f"Memory_{unique_id}"
-            
-            try:
-                enhanced_class = type(class_name, tuple(mixins) + (base_class,), {
-                    '__module__': base_class.__module__,
-                })
-                return enhanced_class(*args, **kwargs)
-            except TypeError:
-                # Fallback to just the base class if mixins cause issues
-                return base_class(*args, **kwargs)
+            enhanced_class = types.new_class(class_name, tuple(mixins) + (base_class,), {})
+            return enhanced_class(*args, **kwargs)
         
         @classmethod
         def __class_getitem__(cls, item):
-            # Preserve generic subscripting behavior
-            # When someone does EnhancedMemory[SomeType], we want to return
-            # a class that can be instantiated with that type
-            
             class TypedEnhancedMemory:
                 def __new__(cls, *args, **kwargs):
-                    # Get the typed base class
                     typed_base = base_class[item]
-                    
-                    # Create enhanced version of the typed class
                     class_name = f"Memory_{unique_id}_{getattr(item, '__name__', str(item))}"
-                    
-                    try:
-                        enhanced_class = type(class_name, tuple(mixins) + (typed_base,), {
-                            '__module__': base_class.__module__,
-                        })
-                        return enhanced_class(*args, **kwargs)
-                    except TypeError:
-                        # Fallback to just the typed base class
-                        return typed_base(*args, **kwargs)
-            
+                    enhanced_class = types.new_class(class_name, tuple(mixins) + (typed_base,), {})
+                    return enhanced_class(*args, **kwargs)
             return TypedEnhancedMemory
     
     return EnhancedMemoryWrapper  # type: ignore
@@ -301,11 +262,9 @@ class EnhancementBuilder:
         if hasattr(bf, name):
             base_class = getattr(bf, name)
             if isinstance(base_class, type):
-                enhanced_class = _create_enhanced_class(base_class, self.config)
-                self._cache[name] = enhanced_class
-                return enhanced_class
-        
-        raise AttributeError(f"'EnhancementBuilder' has no attribute '{name}' and it was not found in the base brainyflow module.")
+                self._cache[name] = _create_enhanced_class(base_class, self.config)
+                return self._cache[name]
+        raise AttributeError(f"'{type(self).__name__}' has no attribute '{name}' and it was not found in the base brainyflow module.")
 
     def custom(self, base_class: Type[T]) -> Type[T]:
         """Enhance a custom base class with the builder's configuration"""
