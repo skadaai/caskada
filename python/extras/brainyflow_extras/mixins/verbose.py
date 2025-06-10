@@ -13,30 +13,79 @@ from ..utils.logger import smart_print, _config
 # Context variable to track nesting depth for verbose output
 verbose_depth_var: ContextVar[int] = ContextVar("verbose_depth", default=0)
 
+class VerboseLocalProxy(bf.LocalProxy):
+    """A proxy for the local memory store that logs set and delete operations."""
+    def __init__(self, store: bf.SharedStore, parent_refer: SimpleNamespace):
+        super().__init__(store)
+        # Store a reference to the parent's logger for consistent naming
+        object.__setattr__(self, '_parent_refer', parent_refer)
+
+    def __setattr__(self, key: str, value: Any) -> None:
+        super().__setattr__(key, value)
+        if not _config.verbose_mixin_logging:
+            return
+        
+        depth = verbose_depth_var.get()
+        prefix = "│  " * depth + "├─"
+        # Construct a log name like "Memory_abc.local.my_key"
+        log_key = f"{self._parent_refer.me}.[dim italic green]local[/dim italic green].[bold]{key}[/bold]"
+        smart_print(prefix, "📦", log_key, "=", value, single_line=True)
+
+    def __setitem__(self, key: str, value: Any) -> None:
+        self.__setattr__(key, value)
+
+    def __delattr__(self, key: str) -> None:
+        super().__delattr__(key)
+        if not (_config.verbose_mixin_logging and not key.startswith("__")):
+            return
+        
+        depth = verbose_depth_var.get()
+        prefix = "│  " * depth + "├─"
+        log_key = f"{self._parent_refer.me}.[dim italic green]local[/dim italic green].[bold]{key}[/bold]"
+        smart_print(prefix, "🚫", log_key, single_line=True)
+
+    def __delitem__(self, key: str) -> None:
+        self.__delattr__(key)
+
+
 class VerboseMemoryMixin:
-    """A mixin for BaseMemory derivatives to print execution logs."""
+    """A mixin for Memory derivatives to provide detailed execution logs."""
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
     
     @property
-    def _refer(self):
+    def _refer(self) -> SimpleNamespace:
         return SimpleNamespace(
-            me=f"[white]{self.__class__.__name__}[/white]",
+            me=f"[dim italic]memory[/dim italic]",
             attr=lambda key: f"{self._refer.me}.[bold]{key}[/bold]",
         )
     
     def _set_value(self, key: str, value: Any) -> None:
         super()._set_value(key, value)
-        
         if not _config.verbose_mixin_logging:
             return
-        if key.startswith("__") and key.endswith("__"):
+            
+        depth = verbose_depth_var.get()
+        prefix = "│  " * depth + "├─"
+        smart_print(prefix, "📦", self._refer.attr(key), "=", value)
+
+    def __delattr__(self, key: str) -> None:
+        super().__delattr__(key)
+        if not _config.verbose_mixin_logging:
             return
         
         depth = verbose_depth_var.get()
-        # Memory logs appear inside the node's execution box
         prefix = "│  " * depth + "├─"
-        smart_print(prefix, self._refer.attr(key), "=", value, single_line=True)
+        smart_print(prefix, "🚫", self._refer.attr(key))
+
+    def __delitem__(self, key: str) -> None:
+        self.__delattr__(key)
+
+    @property
+    def local(self) -> VerboseLocalProxy:
+        # Instead of the default LocalProxy, we return our enhanced version
+        return VerboseLocalProxy(self._local, self._refer)
+
 
 class VerboseNodeMixin:
     """A mixin that provides nested, box-drawing output."""
@@ -68,9 +117,7 @@ class VerboseNodeMixin:
             return await super().run(*args, **kwargs)
 
         depth = verbose_depth_var.get()
-        is_flow = issubclass(self.__class__, getattr(bf, 'Flow', type(None)))
         
-        # All nodes and flows get a "Running" banner
         smart_print("│  " * depth + f"┌── Running {self._refer.me}")
 
         token = verbose_depth_var.set(depth + 1)
