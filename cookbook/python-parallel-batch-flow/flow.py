@@ -1,6 +1,6 @@
 """Flow definitions for parallel image processing."""
 
-from brainyflow import Flow, ParallelFlow
+from brainyflow import Node, Flow, ParallelFlow
 from nodes import LoadImage, ApplyFilter, SaveImage
 
 def create_base_flow():
@@ -20,7 +20,7 @@ def create_base_flow():
 class ImageTriggerNode(Node):
     """Node for processing multiple images with different filters."""
     
-    async def post(self, shared, prep_res, exec_res)
+    async def post(self, shared, prep_res, exec_res):
         """Generate parameters for each image-filter combination."""
         # Get list of images and filters
         images = getattr(shared, "images", [])
@@ -45,4 +45,4 @@ def create_flows():
     trigger = ImageTriggerNode()
     trigger >> base_flow
     
-    return Flow(start=trigger), ParallelFlow(start=base_flow)
+    return Flow(start=trigger), ParallelFlow(start=trigger)

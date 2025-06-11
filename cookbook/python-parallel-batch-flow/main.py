@@ -5,7 +5,7 @@ from flow import create_flows
 
 def get_image_paths():
     """Get paths of existing images in the images directory."""
-    images_dir = "images"
+    images_dir = os.path.join(os.path.dirname(__file__), "images")
     if not os.path.exists(images_dir):
         raise ValueError(f"Directory '{images_dir}' not found!")
     
@@ -40,13 +40,13 @@ async def main():
     
     # Run and time batch flow
     start_time = time.time()
-    print("\nRunning sequential batch flow...")
+    print("\nRunning SEQUENTIAL batch flow first...")
     await batch_flow.run(shared)
     batch_time = time.time() - start_time
     
     # Run and time parallel batch flow
     start_time = time.time()
-    print("\nRunning parallel batch flow...")
+    print("\nRunning PARALLEL batch flow...")
     await parallel_batch_flow.run(shared)
     parallel_time = time.time() - start_time
     

@@ -9,7 +9,7 @@ class LoadImage(Node):
     
     async def prep(self, shared):
         """Get image path from parameters."""
-        return os.path.join("images", shared["input"])
+        return os.path.join(os.path.dirname(__file__), "images", shared["input"])
     
     async def exec(self, image_path):
         """Load the image using PIL."""
@@ -55,12 +55,12 @@ class SaveImage(Node):
     async def prep(self, shared):
         """Get filtered image and prepare output path."""
         # Create output directory if it doesn't exist
-        os.makedirs("output", exist_ok=True)
+        os.makedirs(os.path.join(os.path.dirname(__file__), "output"), exist_ok=True)
         
         # Generate output filename
         input_name = os.path.splitext(shared["input"])[0]
         filter_name = shared["filter"]
-        output_path = os.path.join("output", f"{input_name}_{filter_name}.jpg")
+        output_path = os.path.join(os.path.dirname(__file__), "output", f"{input_name}_{filter_name}.jpg")
         
         return shared["filtered_image"], output_path
     
