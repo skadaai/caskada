@@ -36,7 +36,7 @@ class PerformanceMonitorMixin:
                 # The depth is already incremented by the VerboseNodeMixin.run before this is called
                 prefix = "│  " * (depth - 1) + "├─" if depth > 0 else "├─"
                 refer_name = getattr(getattr(self, '_refer', None), 'me', self.__class__.__name__)
-                _log(f"{prefix} ⏱️  {refer_name} ran in {execution_time:.3f}s")
+                _log(f"{prefix} ⏱️  {refer_name if not depth else 'it'} ran in {execution_time:.3f}s")
 
             return result
         except Exception as e:

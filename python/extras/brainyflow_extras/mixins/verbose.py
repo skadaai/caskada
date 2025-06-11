@@ -124,23 +124,39 @@ class VerboseNodeMixin:
     @property
     def _refer(self):
         return SimpleNamespace(
-            me=f"[bold yellow]{self.__class__.__name__}[/bold yellow][white]#{getattr(self, '_node_order', 'Unknown')}[/white]",
+            me=f"{self.__class__.__name__}[dim]#{getattr(self, '_node_order', 'Unknown')}[/dim]",
+            highlight=SimpleNamespace(
+                me=f"[bold yellow]{self.__class__.__name__}[/bold yellow][dim]#{getattr(self, '_node_order', 'Unknown')}[/dim]",
+            )
         )
     
     async def exec_runner(self, *args, **kwargs) -> Any:
         if not _config.verbose_mixin_logging:
             return await super().exec_runner(*args, **kwargs)
 
-        prefix = "│  " * (verbose_depth_var.get()) + "├─"
+        prefix = "│  " * (verbose_depth_var.get())
         if self.prep.__func__ != bf.BaseNode.prep:
-            _log(f"{prefix} prep() →", args[1] if len(args) > 1 else "No prep result")
+            _log(f"{prefix}┌─ [dim italic]prep()[/dim italic] →", args[1] if len(args) > 1 else "No prep result")
 
         exec_res = await super().exec_runner(*args, **kwargs)
-        if self.prep.__func__ != bf.BaseNode.prep:
-            _log(f"{prefix} exec() →", exec_res)
+        if self.exec.__func__ != bf.BaseNode.exec and self.exec.__func__ != bf.Flow.exec:
+            _log(f"{prefix}├─ [dim italic]exec()[/dim italic] →", exec_res)
         
         return exec_res
+    
+    def list_triggers(self, *args, **kwargs):
+        if not _config.verbose_mixin_logging:
+            return super().list_triggers(*args, **kwargs)
         
+        is_flow = hasattr(self, 'run_nodes')
+
+        prefix = "│  " * (verbose_depth_var.get()-(1 if is_flow else 0))
+
+        _log(f"{prefix}{"├" if is_flow else "└"}─ [dim italic]trigger()[/dim italic] →", ", ".join([f"[blue]{str(t['action'])}[/blue]" for t in self._triggers]) if len(self._triggers) else "[dim]none[/dim]")
+        
+        triggers = super().list_triggers(*args, **kwargs)        
+        return triggers
+     
     async def run(self, *args, **kwargs):
         if not _config.verbose_mixin_logging:
             return await super().run(*args, **kwargs)
@@ -156,7 +172,7 @@ class VerboseNodeMixin:
 
         result = None
         depth = verbose_depth_var.get()
-        _log("│  " * depth + f"┌── Running {self._refer.me}")
+        _log("│  " * depth + f"┌── Running {self._refer.highlight.me}")
         depth_token = verbose_depth_var.set(depth + 1)
         
         try:
@@ -169,18 +185,20 @@ class VerboseNodeMixin:
                 _log("│  " * depth + f"└── Finished {self._refer.me}")
                 return result
                 
-            _log("│  " * depth + f"└─ {self._refer.me} next:")
+            _log("│  " * depth + f"└─ successors:")
             if hasattr(self, '_triggers') and hasattr(self, 'get_next_nodes') and isinstance(result, list):
-                if (len(result) == 1 and result[0][0] == 'default' and len(getattr(self, '_triggers', [])) == 0):
-                    _log("│  " * depth + f"\t[dim italic]> Leaf Node[/dim italic]")
+                if (len(result) == 1) and len(self._triggers) == 0 and not self.successors.get('default'):
+                    _log("│  " * depth + f"\t[dim]> none [italic](Leaf Node)[/italic][/dim]")
                 else:
                     for key, data in result:
                         try:
                             next_nodes = self.get_next_nodes(key)
-                            successors = ", ".join(f"[green]{c.__class__.__name__}[/green]#{getattr(c, '_node_order', 'Unknown')}" for c in next_nodes) or f"[dim red]Terminal Action[/dim red]"
-                            _log("│  " * depth + f"\t- [blue]{key}[/blue]\t >> {successors}" + ("" if not data else f" 📦"), data._local)
+                            successors = ", ".join(f"[green]{c.__class__.__name__}[/green][dim]#{getattr(c, '_node_order', 'Unknown')}[/dim]" for c in next_nodes) or f"[red]Terminal Action[/red]"
+                            _log("│  " * depth + f"\t- [blue]{key}[/blue]\t >> {successors}" + ("" if not len(data._local) else f" 📦"), ("" if not len(data._local) else data._local))
                         except Exception as e:
                             _log("│  " * depth + f"\t- [blue]{key}[/blue]\t >> [red]Error: {e}[/red]")
+            
+            _log("│  " * depth)
         except Exception as e:
             verbose_depth_var.reset(depth_token)
             _log("│  " * depth + f"└── [bold red]Error[/bold red] in {self._refer.me}", e)
