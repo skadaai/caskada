@@ -14,6 +14,7 @@ else:
     from .brainyflow_original import bf
 
 from .mixins import (
+    ParallelContextMixin,
     VerboseMemoryMixin,
     VerboseNodeMixin,
     VerboseParallelFlowMixin,
@@ -137,7 +138,7 @@ def _is_node_like(cls: Type) -> bool:
     return issubclass(cls, getattr(bf, 'BaseNode', type(None)))
     
 def _is_flow_like(cls: Type) -> bool:
-    return issubclass(cls, getattr(bf, 'Flow', type(None)))
+    return hasattr(cls, 'run_node')
     
 def _is_parallel_flow_like(cls: Type) -> bool:
     return issubclass(cls, getattr(bf, 'ParallelFlow', type(None)))
@@ -151,46 +152,43 @@ def _create_enhanced_class(base_class: Type[T], config: EnhancementConfig) -> Ty
         return _create_enhanced_memory_class(base_class, config)
     
     mixins = []
-    mixin_counter = 0
+
+    if _is_parallel_flow_like(base_class) and (config.file_logging or config.verbose):
+        mixins.append(ParallelContextMixin)
+        
+        
+    if config.file_logging and _is_node_like(base_class):
+        file_logging_mixin = FileLoggerFlowMixin if _is_flow_like(base_class) else FileLoggerNodeMixin
+        mixin = _create_configured_mixin(file_logging_mixin, config.file_logging, f"_{len(mixins)}")
+        if mixin:
+            mixins.append(mixin)
 
     if config.single_threaded:
-        mixin = _create_configured_mixin(SingleThreadedMixin, config.single_threaded, f"_{mixin_counter}")
+        mixin = _create_configured_mixin(SingleThreadedMixin, config.single_threaded, f"_{len(mixins)}")
         if mixin:
             mixins.append(mixin)
-            mixin_counter += 1
-    
+            
     if config.execution_tree and _is_flow_like(base_class):
-        mixin = _create_configured_mixin(ExecutionTreePrinterMixin, config.execution_tree, f"_{mixin_counter}")
+        mixin = _create_configured_mixin(ExecutionTreePrinterMixin, config.execution_tree, f"_{len(mixins)}")
         if mixin:
             mixins.append(mixin)
-            mixin_counter += 1
-        
+
     if config.verbose:
         if _is_parallel_flow_like(base_class):
             # Apply the specialized mixin for ParallelFlow. It includes VerboseNodeMixin behavior.
-            mixin = _create_configured_mixin(VerboseParallelFlowMixin, config.verbose, f"_{mixin_counter}")
+            mixin = _create_configured_mixin(VerboseParallelFlowMixin, config.verbose, f"_{len(mixins)}")
             if mixin:
                 mixins.append(mixin)
-                mixin_counter += 1
         elif _is_node_like(base_class):
             # Apply the standard mixin for all other nodes and flows.
-            mixin = _create_configured_mixin(VerboseNodeMixin, config.verbose, f"_{mixin_counter}")
+            mixin = _create_configured_mixin(VerboseNodeMixin, config.verbose, f"_{len(mixins)}")
             if mixin:
                 mixins.append(mixin)
-                mixin_counter += 1
 
-    if config.file_logging and _is_node_like(base_class):
-        file_logging_mixin = FileLoggerFlowMixin if _is_flow_like(base_class) else FileLoggerNodeMixin
-        mixin = _create_configured_mixin(file_logging_mixin, config.file_logging, f"_{mixin_counter}")
-        if mixin:
-            mixins.append(mixin)
-            mixin_counter += 1
-    
     if config.performance and _is_node_like(base_class):
-        mixin = _create_configured_mixin(PerformanceMonitorMixin, config.performance, f"_{mixin_counter}")
+        mixin = _create_configured_mixin(PerformanceMonitorMixin, config.performance, f"_{len(mixins)}")
         if mixin:
             mixins.append(mixin)
-            mixin_counter += 1
     
     if not mixins:
         return base_class
@@ -204,13 +202,11 @@ def _create_enhanced_memory_class(base_class: Type[T], config: EnhancementConfig
     """Create an enhanced Memory class that preserves generic behavior."""
     
     mixins = []
-    mixin_counter = 0
     
     if config.verbose:
-        mixin = _create_configured_mixin(VerboseMemoryMixin, config.verbose, f"_{mixin_counter}")
+        mixin = _create_configured_mixin(VerboseMemoryMixin, config.verbose, f"_{len(mixins)}")
         if mixin:
             mixins.append(mixin)
-            mixin_counter += 1
     
     if not mixins:
         return base_class
