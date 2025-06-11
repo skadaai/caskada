@@ -1,4 +1,5 @@
 from __future__ import annotations
+import copy
 import asyncio
 from types import SimpleNamespace
 from typing import Any, TYPE_CHECKING, List, Tuple, Dict, Optional, Callable, Awaitable
@@ -8,6 +9,11 @@ if TYPE_CHECKING:
     import brainyflow as bf
 else:
     from ..brainyflow_original import bf
+
+try:
+    from PIL import Image
+except ImportError:
+    Image = None
 
 from ..utils.logger import smart_print, _config
 
@@ -23,11 +29,19 @@ def _log(*args: Any, **kwargs: Any):
     """
     buffer = log_buffer_var.get()
     if buffer is not None:
-        # If a buffer exists in the current context, append the message to it.
-        buffer.append((args, kwargs))
+        # Deepcopy the arguments to capture their state at this moment in time.
+        # This prevents issues with stale object references when printing later.
+        try:
+            copied_args = copy.deepcopy(args)
+            copied_kwargs = copy.deepcopy(kwargs)
+            buffer.append((copied_args, copied_kwargs))
+        except Exception:
+            # Fallback for uncopyable objects (like some locks or system resources)
+            buffer.append((args, kwargs))
     else:
         # Otherwise, print directly to the console (for non-buffered runs).
         smart_print(*args, **kwargs)
+
 
 class VerboseLocalProxy(bf.LocalProxy):
     """A proxy for the local memory store that logs set and delete operations."""
@@ -230,10 +244,14 @@ class VerboseParallelFlowMixin(VerboseNodeMixin):
         results = await super(VerboseNodeMixin, self).run_tasks(logged_tasks)
 
         for i, buffer in enumerate(task_buffers):
-            is_last_task = i < len(tasks) - 1
-            _log("│  " * depth + f"{"╠" if is_last_task else "╚"}══▷ Task {i+1}/{len(tasks)}:")
+            is_last_task = i == len(tasks) - 1
+            _log("│  " * depth + f"{"╠" if not is_last_task else "╚"}══▷ Task {i+1}/{len(tasks)}:")
+            
             for log_args, log_kwargs in buffer:
-                new_args = (log_args[0].replace("│  " * depth, "│  " * depth + ("║ " if is_last_task else "  ")),)
+                if not log_args: continue
+                
+                modified_first_arg = log_args[0].replace("│  " * depth, "│  " * depth + ("║ " if not is_last_task else "  "))
+                new_args = (modified_first_arg,) + log_args[1:]
                 _log(*new_args, **log_kwargs)
         
         return results
