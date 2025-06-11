@@ -73,4 +73,3 @@ class SaveImage(Node):
     async def post(self, shared, prep_res, exec_res):
         """Print success message."""
         print(f"Saved filtered image to: {exec_res}")
-        self.trigger("default")

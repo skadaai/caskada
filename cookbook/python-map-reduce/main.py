@@ -14,7 +14,7 @@ async def main():
     # Display final summary information (additional to what's already printed in ReduceResultsNode)
     if "summary" in shared:
         print("\nDetailed evaluation results:")
-        for filename, evaluation in shared.get("data", {}).items():
+        for filename, evaluation in shared.get("processed_items", {}).items():
             qualified = "✓" if evaluation.get("qualifies", False) else "✗"
             name = evaluation.get("candidate_name", "Unknown")
             print(f"{qualified} {name} ({filename})")

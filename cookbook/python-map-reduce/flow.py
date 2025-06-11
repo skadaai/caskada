@@ -1,4 +1,4 @@
-from brainyflow import Flow
+from brainyflow import ParallelFlow
 from nodes import Map, ReadResumesNode, EvaluateResumesNode, Reduce, ResultsNode
 
 def create_resume_processing_flow():
@@ -14,4 +14,4 @@ def create_resume_processing_flow():
     read_resumes_node >> map >> evaluate_resumes_node >> reduce >> results_node
     
     # Create flow
-    return Flow(start=read_resumes_node)
+    return ParallelFlow(start=read_resumes_node)
