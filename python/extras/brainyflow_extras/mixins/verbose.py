@@ -244,14 +244,14 @@ class VerboseParallelFlowMixin(VerboseNodeMixin):
         results = await super(VerboseNodeMixin, self).run_tasks(logged_tasks)
 
         for i, buffer in enumerate(task_buffers):
-            is_last_task = i == len(tasks) - 1
-            _log("│  " * depth + f"{"╠" if not is_last_task else "╚"}══▷ Task {i+1}/{len(tasks)}:")
+            _log("│  " * depth + f"╠══▷ Task {i+1}/{len(tasks)}:")
             
             for log_args, log_kwargs in buffer:
                 if not log_args: continue
                 
-                modified_first_arg = log_args[0].replace("│  " * depth, "│  " * depth + ("║ " if not is_last_task else "  "))
+                modified_first_arg = log_args[0].replace("│  " * depth, "│  " * depth + "║ ", 1)
                 new_args = (modified_first_arg,) + log_args[1:]
                 _log(*new_args, **log_kwargs)
         
+        _log("│  " * depth + f"╚══ Finished [bold cyan]Parallel Tasks[/bold cyan] ({len(tasks)} tasks)")
         return results
