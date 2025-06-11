@@ -247,6 +247,9 @@ class EnhancementBuilder:
         self.config = config
         self._cache = {}
     
+    def __dir__(self):
+        return dir(bf) + list(self._cache.keys())
+
     def __getattr__(self, name: str) -> Any:
         """Dynamically enhance any attribute from the base brainyflow module."""
         if name in self._cache:
@@ -257,6 +260,8 @@ class EnhancementBuilder:
             if isinstance(base_class, type):
                 self._cache[name] = _create_enhanced_class(base_class, self.config)
                 return self._cache[name]
+            return base_class
+        
         raise AttributeError(f"'{type(self).__name__}' has no attribute '{name}' and it was not found in the base brainyflow module.")
 
     def custom(self, base_class: Type[T]) -> Type[T]:
