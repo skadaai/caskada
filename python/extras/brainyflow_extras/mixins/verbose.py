@@ -174,11 +174,11 @@ class VerboseNodeMixin:
                 if (len(result) == 1 and result[0][0] == 'default' and len(getattr(self, '_triggers', [])) == 0):
                     _log("│  " * depth + f"\t[dim italic]> Leaf Node[/dim italic]")
                 else:
-                    for key, _ in result:
+                    for key, data in result:
                         try:
                             next_nodes = self.get_next_nodes(key)
                             successors = ", ".join(f"[green]{c.__class__.__name__}[/green]#{getattr(c, '_node_order', 'Unknown')}" for c in next_nodes) or f"[dim red]Terminal Action[/dim red]"
-                            _log("│  " * depth + f"\t- [blue]{key}[/blue]\t >> {successors}")
+                            _log("│  " * depth + f"\t- [blue]{key}[/blue]\t >> {successors}" + ("" if not data else f" 📦"), data._local)
                         except Exception as e:
                             _log("│  " * depth + f"\t- [blue]{key}[/blue]\t >> [red]Error: {e}[/red]")
         except Exception as e:
