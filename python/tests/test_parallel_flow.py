@@ -113,34 +113,24 @@ class TestParallelFlow:
         assert setup["memory"][f"post_C_C"] == f"exec_C_slept_{delay_c}"
         
         assert result and isinstance(result, dict), "Result should be a dictionary (ExecutionTree)"
-        assert result['order'] == trigger_node._node_order
-        assert result['type'] == trigger_node.__class__.__name__
-        
-        triggered = result['triggered']
-        assert triggered is not None
-        assert "process_b" in triggered, "Result should contain 'process_b' key in triggered"
-        assert "process_c" in triggered, "Result should contain 'process_c' key in triggered"
-        
-        process_b_results_list = triggered["process_b"]
-        process_c_results_list = triggered["process_c"]
-        
-        assert isinstance(process_b_results_list, list) and len(process_b_results_list) == 1
-        assert isinstance(process_c_results_list, list) and len(process_c_results_list) == 1
-        
-        # Check structure of individual node logs
-        expected_log_b: ExecutionTree = {
-            'order': node_b._node_order,
-            'type': node_b.__class__.__name__,
-            'triggered': {DEFAULT_ACTION: []} # DelayedNode is terminal for this action
+        assert result == {
+            "order": parallel_flow._node_order,
+            "type": "ParallelFlow",
+            "orchestrated": {
+                "order": trigger_node._node_order,
+                "type": "MultiTriggerNode",
+                "triggered": {
+                    "process_b": [
+                        {"order": node_b._node_order, "type": "DelayedNode", "triggered": {"default": []}}
+                    ],
+                    "process_c": [
+                        {"order": node_c._node_order, "type": "DelayedNode", "triggered": {"default": []}}
+                    ],
+                },
+            },
+            "triggered": {},
         }
-        expected_log_c: ExecutionTree = {
-            'order': node_c._node_order,
-            'type': node_c.__class__.__name__,
-            'triggered': {DEFAULT_ACTION: []} # DelayedNode is terminal for this action
-        }
-        
-        assert process_b_results_list[0] == expected_log_b
-        assert process_c_results_list[0] == expected_log_c
+
         
         assert node_b.exec_mock.call_count + node_c.exec_mock.call_count == 2
     
@@ -189,19 +179,36 @@ class TestParallelFlow:
         
         assert node_d.exec_mock.call_count == 2
 
-        # Optionally, assert the structure of result_mix if needed
-        assert result_mix['order'] == trigger_node._node_order
-        triggered_mix = result_mix['triggered']
-        assert triggered_mix is not None
-        
-        path_b_log = triggered_mix['parallel_b'][0]
-        path_c_log = triggered_mix['parallel_c'][0]
-
-        assert path_b_log['order'] == node_b._node_order
-        assert path_b_log['triggered'][DEFAULT_ACTION][0]['order'] == node_d._node_order
-        assert path_b_log['triggered'][DEFAULT_ACTION][0]['triggered'] == {DEFAULT_ACTION: []}
-
-        assert path_c_log['order'] == node_c._node_order
-        assert path_c_log['triggered'][DEFAULT_ACTION][0]['order'] == node_d._node_order
-        assert path_c_log['triggered'][DEFAULT_ACTION][0]['triggered'] == {DEFAULT_ACTION: []}
-
+        assert result_mix == {
+            'order': parallel_flow._node_order,
+            'type': ParallelFlow.__name__,
+            'orchestrated': {
+                'order': trigger_node._node_order,
+                'type': trigger_node.__class__.__name__,
+                'triggered': {
+                    'parallel_b': [{
+                        'order': node_b._node_order,
+                        'type': node_b.__class__.__name__,
+                        'triggered': {
+                            'default': [{
+                                'order': node_d._node_order,
+                                'type': node_d.__class__.__name__,
+                                'triggered': {"default": []},
+                            }]
+                        }
+                    }],
+                    'parallel_c': [{
+                        'order': node_c._node_order,
+                        'type': node_c.__class__.__name__,
+                        'triggered': {
+                            'default': [{
+                                'order': node_d._node_order,
+                                'type': node_d.__class__.__name__,
+                                'triggered': {"default": []},
+                            }]
+                        }
+                    }]
+                }
+            },
+            'triggered': {}
+        }

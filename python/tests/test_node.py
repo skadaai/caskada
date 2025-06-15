@@ -216,7 +216,7 @@ class TestBaseNodeAndNode:
 
 
     class TestTriggering:
-        """Tests for node triggering (trigger, list_triggers)."""
+        """Tests for node triggering."""
         
         async def test_store_triggers_internally_via_trigger(self, memory):
             """trigger(action, forking_data) should store triggers internally."""
@@ -224,16 +224,13 @@ class TestBaseNodeAndNode:
             node.action_to_trigger = "my_action"
             node.forking_data = {"key": "value"}
             
-            # Run with propagate=True to get triggers
-            triggers = await node.run(memory, propagate=True)
+            await node.run(memory)
+            triggers = node._triggers
             
             assert len(triggers) == 1
-            action, triggered_memory = triggers[0]
             
-            assert action == "my_action"
-            assert isinstance(triggered_memory, Memory)
-            assert triggered_memory.key == "value"  # Check forking_data applied locally
-            assert triggered_memory.local["key"] == "value"
+            assert triggers[0]["action"] == "my_action"
+            assert triggers[0]["forking_data"]["key"] == "value"
             # Original memory should not have 'key'
             with pytest.raises(AttributeError, match="Key 'key' not found in stores"):
                 _ = memory.key
@@ -245,20 +242,15 @@ class TestBaseNodeAndNode:
             with pytest.raises(Exception, match="An action can only be triggered inside post"):
                 node.trigger("test")
         
-        async def test_list_triggers_returns_default_action_if_no_trigger_called(self, memory):
-            """list_triggers() should return DEFAULT_ACTION if no trigger was called."""
+        async def test_no_action_if_no_trigger_called(self, memory):
+            """triggers should default to DEFAULT_ACTION if no trigger was called."""
             node = TriggeringNode()
             node.action_to_trigger = None  # Ensure trigger is not called in post
             
-            triggers = await node.run(memory, propagate=True)
-            
-            assert len(triggers) == 1
-            action, triggered_memory = triggers[0]
-            
-            assert action == DEFAULT_ACTION
-            assert isinstance(triggered_memory, Memory)
-            assert triggered_memory is not memory  # Should be a clone
-            assert triggered_memory.local == {}  # No forking data
+            await node.run(memory)
+            triggers = node._triggers
+
+            assert len(triggers) == 0
         
         async def test_list_triggers_handles_multiple_triggers(self, memory):
             """list_triggers() should handle multiple triggers."""
@@ -269,27 +261,26 @@ class TestBaseNodeAndNode:
                     self.trigger("action2", {"data2": 2})
             
             node = MultiTriggerNode()
-            triggers = await node.run(memory, propagate=True)
+            await node.run(memory)
+            triggers = node._triggers
             
             assert len(triggers) == 2
             
             # Find triggers by action
-            trigger1 = next((t for t in triggers if t[0] == "action1"), None)
-            trigger2 = next((t for t in triggers if t[0] == "action2"), None)
-            
+            trigger1 = next((t for t in triggers if t["action"] == "action1"), None)
+            trigger2 = next((t for t in triggers if t["action"] == "action2"), None)
+
             assert trigger1 is not None
-            assert trigger1[1].data1 == 1
-            assert trigger1[1].local == {"data1": 1}
+            assert trigger1["forking_data"]["data1"] == 1
             
             assert trigger2 is not None
-            assert trigger2[1].data2 == 2
-            assert trigger2[1].local == {"data2": 2}
+            assert trigger2["forking_data"]["data2"] == 2
 
     class TestExecution:
         """Tests for node execution (run method)."""
         
-        async def test_run_with_propagate_false_returns_exec_result(self, memory):
-            """run(memory, propagate=False) should return execRunner result."""
+        async def test_run_returns_exec_result(self, memory):
+            """run(memory) should return execRunner result."""
             node = SimpleNode()
             
             # Override mocks with real methods to ensure correct behavior
@@ -303,7 +294,7 @@ class TestBaseNodeAndNode:
             node.prep = mock_prep
             node.exec = mock_exec
             
-            result = await node.run(memory, propagate=False)
+            result = await node.run(memory)
             
             assert result == "exec_result"
         
@@ -322,20 +313,20 @@ class TestBaseNodeAndNode:
             node.prep = mock_prep
             node.exec = mock_exec
             
-            result = await node.run(memory)  # Omitted propagate
+            result = await node.run(memory)
             
             assert result == "exec_result"
         
-        async def test_run_with_propagate_true_returns_list_triggers_result(self, memory):
+        async def test_run_returns_list_triggers_result(self, memory):
             """run(memory, propagate=True) should return list_triggers result."""
             node = TriggeringNode()
             node.action_to_trigger = "test_action"
             
-            triggers = await node.run(memory, propagate=True)
+            exec_result = await node.run(memory)
+            triggers = node._triggers
             
-            assert len(triggers) == 1
-            assert triggers[0][0] == "test_action"
-            assert isinstance(triggers[0][1], Memory)
+            assert exec_result == None
+            assert triggers == [{'action': 'test_action', 'forking_data': {}}]
         
         async def test_run_accepts_global_store_directly(self):
             """run() should accept global store directly."""

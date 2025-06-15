@@ -1,5 +1,5 @@
 import pytest
-from unittest.mock import AsyncMock, ANY
+from unittest.mock import AsyncMock
 from brainyflow import Memory, Node, Flow, ParallelFlow, DEFAULT_ACTION, BaseNode
 
 # --- Helper Node Implementations ---
@@ -412,18 +412,22 @@ class TestFlow:
             result = await flow.run(memory)
             
             expected = {
-                'order': node_a._node_order,
-                'type': node_a.__class__.__name__,
-                'triggered': {
-                    DEFAULT_ACTION: [
-                        {
-                            'order': node_b._node_order,
-                            'type': node_b.__class__.__name__,
-                            'triggered': None # Node B is terminal
-                        }
-                    ]
-                }
+                "order": flow._node_order,
+                "type": flow.__class__.__name__,
+                "orchestrated": {
+                    "order": node_a._node_order,
+                    "type": node_a.__class__.__name__,
+                    "triggered": {
+                        "default": [{
+                            "order": node_b._node_order,
+                            "type": node_b.__class__.__name__,
+                            "triggered": {},
+                        }]
+                    },
+                },
+                "triggered": {},
             }
+
             assert result == expected
         
         async def test_return_correct_structure_for_branching_flow(self, nodes):
@@ -445,25 +449,30 @@ class TestFlow:
             result_b = await flow_b.run(Memory({}))
             
             expected_b = {
-                'order': branching_node._node_order,
-                'type': branching_node.__class__.__name__,
-                'triggered': {
-                    "path_B": [
-                        {
-                            'order': node_b._node_order,
-                            'type': node_b.__class__.__name__,
-                            'triggered': {
-                                DEFAULT_ACTION: [
-                                    {
-                                        'order': node_d._node_order,
-                                        'type': node_d.__class__.__name__,
-                                        'triggered': None # Node D is terminal
-                                    }
-                                ]
+                "order": flow_b._node_order,
+                "type": flow_b.__class__.__name__,
+                "orchestrated": {
+                    "order": branching_node._node_order,
+                    "type": branching_node.__class__.__name__,
+                    "triggered": {
+                        "path_B": [
+                            {
+                                'order': node_b._node_order,
+                                'type': node_b.__class__.__name__,
+                                "triggered": {
+                                    "default": [
+                                        {
+                                            'order': node_d._node_order,
+                                            'type': node_d.__class__.__name__,
+                                            'triggered': {} # Node D is terminal
+                                        }
+                                    ]
+                                },
                             }
-                        }
-                    ]
-                }
+                        ]
+                    },
+                },
+                "triggered": {},
             }
             assert result_b == expected_b
             
@@ -484,17 +493,22 @@ class TestFlow:
             result_c = await flow_c.run(Memory({}))
             
             expected_c = {
-                'order': branching_node_c_path._node_order,
-                'type': branching_node_c_path.__class__.__name__,
-                'triggered': {
-                    "path_C": [
-                        {
-                            'order': node_c_c_path._node_order,
-                            'type': node_c_c_path.__class__.__name__,
-                            'triggered': None # Node C is terminal
-                        }
-                    ]
-                }
+                "order": flow_c._node_order,
+                "type": flow_c.__class__.__name__,
+                "orchestrated": {
+                    "order": branching_node_c_path._node_order,
+                    "type": branching_node_c_path.__class__.__name__,
+                    "triggered": {
+                        "path_C": [
+                            {
+                                'order': node_c_c_path._node_order,
+                                'type': node_c_c_path.__class__.__name__,
+                                "triggered": {} # Node C is terminal
+                            }
+                        ]
+                    },
+                },
+                "triggered": {},
             }
             assert result_c == expected_c
         
@@ -522,24 +536,28 @@ class TestFlow:
                     {
                         'order': node_b._node_order,
                         'type': node_b.__class__.__name__,
-                        'triggered': None # Node B is terminal
+                        'triggered': {} # Node B is terminal
                     }
                 ],
                 "out2": [
                     {
                         'order': node_c._node_order,
                         'type': node_c.__class__.__name__,
-                        'triggered': None # Node C is terminal
+                        'triggered': {} # Node C is terminal
                     }
                 ]
             }
             
-            assert result['order'] == multi_node._node_order
-            assert result['type'] == multi_node.__class__.__name__
-            assert result['triggered'] is not None
-            assert set(result['triggered'].keys()) == {"out1", "out2"}
-            assert result['triggered']["out1"] == expected_triggered["out1"]
-            assert result['triggered']["out2"] == expected_triggered["out2"]
+            assert result == {
+                "order": flow._node_order,
+                "type": flow.__class__.__name__,
+                "orchestrated": {
+                    "order": multi_node._node_order,
+                    "type": multi_node.__class__.__name__,
+                    "triggered": expected_triggered
+                },
+                "triggered": {}
+            }
 
     class TestTerminalTriggerPropagation:
         """Tests for verifying terminal trigger propagation behavior in Flow and ParallelFlow."""
@@ -559,17 +577,32 @@ class TestFlow:
             sflow = Flow(start=tnode)  
             pflow = Flow(start=sflow)  
 
-            parent_execution_tree_for_sflow = await pflow.run(memory, propagate=False)
+            parent_execution_tree_for_sflow = await pflow.run(memory)
 
             assert len(pflow._triggers) == 1
             parent_trigger_info = pflow._triggers[0]
             assert parent_trigger_info["action"] == "TERMINAL_ACTION"
             assert parent_trigger_info["forking_data"] == tnode_forking_data
 
-            assert parent_execution_tree_for_sflow['order'] == sflow._node_order 
-            assert parent_execution_tree_for_sflow['type'] == "Flow" 
-            assert "TERMINAL_ACTION" in parent_execution_tree_for_sflow['triggered']
-            assert parent_execution_tree_for_sflow['triggered']["TERMINAL_ACTION"] == []
+            assert parent_execution_tree_for_sflow == {
+                "order": pflow._node_order,
+                "type": pflow.__class__.__name__,
+                "orchestrated": {
+                    "order": sflow._node_order,
+                    "type": sflow.__class__.__name__,
+                    "orchestrated": {
+                        "order": tnode._node_order,
+                        "type": tnode.__class__.__name__,
+                        "triggered": {
+                            "TERMINAL_ACTION": []
+                        }
+                    },
+                    "triggered": {
+                        "TERMINAL_ACTION": []
+                    }
+                },
+                "triggered": {}
+            }
             
         async def test_parallelflow_terminal_trigger_propagation_from_nested_parallelflow(self, memory):
             """
@@ -583,24 +616,38 @@ class TestFlow:
             sflow = ParallelFlow(start=tnode)  
             pflow = ParallelFlow(start=sflow)  
 
-            parent_execution_tree_for_sflow = await pflow.run(memory, propagate=False)
+            parent_execution_tree_for_sflow = await pflow.run(memory)
 
             assert len(pflow._triggers) == 1
             parent_trigger_info = pflow._triggers[0]
             assert parent_trigger_info["action"] == "TERMINAL_ACTION"
             assert parent_trigger_info["forking_data"] == tnode_forking_data
 
-            assert parent_execution_tree_for_sflow['order'] == sflow._node_order
-            assert parent_execution_tree_for_sflow['type'] == "ParallelFlow" 
-            assert "TERMINAL_ACTION" in parent_execution_tree_for_sflow['triggered']
-            assert parent_execution_tree_for_sflow['triggered']["TERMINAL_ACTION"] == []
+            assert parent_execution_tree_for_sflow == {
+                "order": pflow._node_order,
+                "type": pflow.__class__.__name__,
+                "orchestrated": {
+                    "order": sflow._node_order,
+                    "type": sflow.__class__.__name__,
+                     'orchestrated': {
+                         'order': tnode._node_order,
+                         'triggered': {
+                             'TERMINAL_ACTION': [],
+                         },
+                         'type': 'BranchingNode',
+                     },
+                    "triggered": {
+                        "TERMINAL_ACTION": []
+                    }
+                },
+                "triggered": {}
+            }
 
 
 class TestFlowActionPropagation:
     """
-    Tests how a Flow propagates actions when it's run as a node itself
-    (i.e., using flow.run(memory, propagate=True)).
-    Focuses on the *observable output* of flow.run(propagate=True).
+    Tests how a Flow propagates actions when it's run as a node itself.
+    Focuses on the *observable output* of flow.run().
     """
 
     @pytest.fixture(autouse=True)
@@ -618,20 +665,19 @@ class TestFlowActionPropagation:
     async def test_flow_with_silently_terminating_sub_node_propagates_implicit_default(self, mem):
         """
         Scenario: Flow contains one sub-node that finishes without any explicit trigger.
-        Expected: The Flow itself, when run with propagate=True, should yield its own
-                  implicit DEFAULT_ACTION (because its internal _triggers list will be empty).
+        Expected: The Flow itself should yield its own implicit DEFAULT_ACTION
+        (because its internal _triggers list will be empty).
         """
         silent_sub_node = BaseTestNode("SilentSub") # Order 0
         # silent_sub_node.post_mock is not configured to call self.trigger()
 
         flow = Flow(silent_sub_node) # Order 1
-        propagated_triggers = await flow.run(mem, propagate=True)
+        execution_tree = await flow.run(mem)
 
-        assert len(propagated_triggers) == 1, "Flow should propagate one action"
-        action, p_mem = propagated_triggers[0]
-        assert action == DEFAULT_ACTION, "Flow should propagate DEFAULT_ACTION"
-        assert isinstance(p_mem, Memory), "Propagated action should include a Memory object"
-        # No direct check on flow._triggers - its state is implied by propagated_triggers
+        assert execution_tree == {'order': 1, 'type': 'Flow', 'orchestrated': {'order': 0, 'type': 'BaseTestNode', 'triggered': {}}, 'triggered': {}}
+        assert flow._triggers == []
+
+        # No direct check on flow._triggers - its state is implied by execution_tree
 
     async def test_flow_with_sub_node_explicitly_triggering_default_propagates_default(self, mem):
         """
@@ -643,12 +689,10 @@ class TestFlowActionPropagation:
         explicit_default_sub_node.set_trigger(DEFAULT_ACTION, clear_existing_in_post=True)
 
         flow = Flow(explicit_default_sub_node) # Order 1
-        propagated_triggers = await flow.run(mem, propagate=True)
+        execution_tree = await flow.run(mem)
         
-        assert len(propagated_triggers) == 1, "Flow should propagate one action"
-        action, p_mem = propagated_triggers[0]
-        assert action == DEFAULT_ACTION, "Flow should propagate the explicit DEFAULT_ACTION"
-        assert isinstance(p_mem, Memory)
+        assert execution_tree == {'order': 1, 'type': 'Flow', 'orchestrated': {'order': 0, 'type': 'BranchingNode', 'triggered': {'default': []}}, 'triggered': {}}
+        assert flow._triggers == [{'action': 'default', 'forking_data': {}}]
 
     async def test_flow_with_sub_node_explicitly_triggering_custom_action_propagates_custom(self, mem):
         """
@@ -660,13 +704,10 @@ class TestFlowActionPropagation:
         explicit_custom_sub_node.set_trigger("MY_CUSTOM", fork_data=fork_data, clear_existing_in_post=True)
 
         flow = Flow(explicit_custom_sub_node) # Order 1
-        propagated_triggers = await flow.run(mem, propagate=True)
+        execution_tree = await flow.run(mem)
 
-        assert len(propagated_triggers) == 1, "Flow should propagate one action"
-        action, p_mem = propagated_triggers[0]
-        assert action == "MY_CUSTOM", "Flow should propagate the CUSTOM_ACTION"
-        assert isinstance(p_mem, Memory)
-        assert p_mem.local["key"] == "value", "Forking data should be in the propagated memory's local store"
+        assert execution_tree == {'order': 1, 'type': 'Flow', 'orchestrated': {'order': 0, 'type': 'BranchingNode', 'triggered': {'MY_CUSTOM': []}}, 'triggered': {}}
+        assert flow._triggers == [{'action': 'MY_CUSTOM', 'forking_data': {'key': 'value'}}]
         
     async def test_nested_flow_outer_propagates_implicit_default_if_sub_flow_silent(self, mem):
         """
@@ -682,11 +723,10 @@ class TestFlowActionPropagation:
         outer_a.next(sub_flow) # OuterA -> SubFlow (default action)
         
         outer_flow = Flow(outer_a) # Order 3
-        propagated_triggers = await outer_flow.run(mem, propagate=True)
+        execution_tree = await outer_flow.run(mem)
 
-        assert len(propagated_triggers) == 1, "OuterFlow should propagate one action"
-        action, _ = propagated_triggers[0]
-        assert action == DEFAULT_ACTION, "OuterFlow should propagate its own implicit DEFAULT_ACTION"
+        assert execution_tree == {'order': 3, 'type': 'Flow', 'orchestrated': {'order': 2, 'type': 'BaseTestNode', 'triggered': {'default': [{'order': 1, 'type': 'Flow', 'orchestrated': {'order': 0, 'type': 'BaseTestNode', 'triggered': {}}, 'triggered': {}}]}}, 'triggered': {}}
+        assert outer_flow._triggers == []
 
     async def test_nested_flow_outer_propagates_explicit_default_from_sub_flow(self, mem):
         """
@@ -703,11 +743,10 @@ class TestFlowActionPropagation:
         outer_a.next(sub_flow)
         
         outer_flow = Flow(outer_a) # Order 3
-        propagated_triggers = await outer_flow.run(mem, propagate=True)
+        execution_tree = await outer_flow.run(mem)
 
-        assert len(propagated_triggers) == 1, "OuterFlow should propagate one action"
-        action, _ = propagated_triggers[0]
-        assert action == DEFAULT_ACTION, "OuterFlow should propagate the explicit DEFAULT_ACTION from SubFlow"
+        assert execution_tree == {'order': 3, 'type': 'Flow', 'orchestrated': {'order': 2, 'type': 'BaseTestNode', 'triggered': {'default': [{'order': 1, 'type': 'Flow', 'orchestrated': {'order': 0, 'type': 'BranchingNode', 'triggered': {'default': []}}, 'triggered': {'default': []}}]}}, 'triggered': {}}
+        assert outer_flow._triggers == [{'action': 'default', 'forking_data': {}}]
 
     async def test_nested_flow_outer_propagates_explicit_custom_action_from_sub_flow(self, mem):
         """
@@ -724,10 +763,7 @@ class TestFlowActionPropagation:
         outer_a.next(sub_flow)
         
         outer_flow = Flow(outer_a) # Order 3
-        propagated_triggers = await outer_flow.run(mem, propagate=True)
+        execution_tree = await outer_flow.run(mem)
 
-        assert len(propagated_triggers) == 1, "OuterFlow should propagate one action"
-        action, p_mem = propagated_triggers[0]
-        assert action == "NESTED_CUSTOM", "OuterFlow should propagate the CUSTOM_ACTION from SubFlow"
-        assert isinstance(p_mem, Memory)
-        assert p_mem.local["sub_val"] == "sub_data_value", "Forking data should be present"
+        assert execution_tree == {'order': 3, 'type': 'Flow', 'orchestrated': {'order': 2, 'type': 'BaseTestNode', 'triggered': {'default': [{'order': 1, 'type': 'Flow', 'orchestrated': {'order': 0, 'type': 'BranchingNode', 'triggered': {'NESTED_CUSTOM': []}}, 'triggered': {'NESTED_CUSTOM': []}}]}}, 'triggered': {}}
+        assert outer_flow._triggers == [{'action': 'NESTED_CUSTOM', 'forking_data': {'sub_val': 'sub_data_value'}}]
