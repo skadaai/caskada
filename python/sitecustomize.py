@@ -63,6 +63,10 @@ def custom_import(name, globals=None, locals=None, fromlist=(), level=0):
     # First, use the original import
     module = original_import(name, globals, locals, fromlist, level)
 
+    # If it's a test file, skip the customizations
+    if any('/pytest/' in arg for arg in sys.argv):
+        return module
+
     if 'ipykernel' in sys.modules or 'IPython' in sys.modules:
         # skip patching in Jupyter environments
         return module
@@ -125,4 +129,4 @@ def custom_import(name, globals=None, locals=None, fromlist=(), level=0):
 # Replace the built-in import function
 __builtins__['__import__'] = custom_import
 
-print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> brainyflow, utils, and tools have been patched globally <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+print(">>>>> Brainyflow has been enhanced <<<<<")
