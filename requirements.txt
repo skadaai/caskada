@@ -1,0 +1,6 @@
+pytest
+pytest-asyncio
+rich
+openai
+cbor2
+light_embed
