@@ -33,10 +33,11 @@ class PerformanceMonitorMixin:
             # Use depth for nested output if verbose logging is on
             if _config.verbose_mixin_logging:
                 depth = verbose_depth_var.get()
-                # The depth is already incremented by the VerboseNodeMixin.run before this is called
-                prefix = "│  " * (depth - 1) + "├─" if depth > 0 else "├─"
+                is_flow = hasattr(self, 'run_node')
+                # prefix = "│  " * (depth - 1) + "├─" if depth > 0 else "├─"
+                prefix = "│  " * (depth - (1 if is_flow else 0)) + "├─"
                 refer_name = getattr(getattr(self, '_refer', None), 'me', self.__class__.__name__)
-                _log(f"{prefix} ⏱️  {refer_name if not depth else 'it'} ran in {execution_time:.3f}s")
+                _log(f"{prefix} ⏱️  {f"{refer_name} ran in " if not depth else ''}{execution_time:.3f}s")
 
             return result
         except Exception as e:
@@ -51,6 +52,3 @@ class PerformanceMonitorMixin:
             
             raise
     
-    def get_performance_metrics(self) -> dict:
-        """Get performance metrics for this node"""
-        return self._perf_metrics.copy()

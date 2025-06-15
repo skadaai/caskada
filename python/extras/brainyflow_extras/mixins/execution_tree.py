@@ -1,23 +1,22 @@
 from __future__ import annotations
-from typing import List, Tuple, cast, Any, Dict, TYPE_CHECKING
+import json
+from typing import cast, Any, Dict
 
 from ..utils.logger import smart_print, _config, _ensure_rich_traceback_installed, Console
 
 ExecutionTree = Dict[str, Any] 
-Action = str 
-
+# Action = str 
 
 class ExecutionTreePrinterMixin:
     """
     A mixin for BaseNode derivatives (especially Flow) to print execution logs
     in a user-friendly way.
-    - If run with propagate=False on a Flow producing an ExecutionTree, prints a tree.
-    - If run with propagate=True on any BaseNode, prints triggered actions and successors.
+    - If run on a Flow producing an ExecutionTree, prints a tree.
+    - If run with on a Node, prints its execution result.
     """
     async def run(self, *args: Any, **kwargs: Any) -> Any:
         result = await super().run(*args, **kwargs) # type: ignore
         _ensure_rich_traceback_installed()
-        effective_propagate: bool = kwargs.get('propagate', args[1] if len(args) > 1 and isinstance(args[1], bool) else False)
 
         # `self` must be a BaseNode derivative to have _node_order and get_next_nodes.
         # These checks ensure we don't try to access attributes that might not exist.
@@ -27,25 +26,23 @@ class ExecutionTreePrinterMixin:
         class_name = self.__class__.__name__
         node_order_val = getattr(self, '_node_order', 'UnknownID')
 
-        if not effective_propagate:
-            # This branch handles propagate=False. For Flows, this typically returns ExecutionTree.
-            if (isinstance(result, dict) and all(k in result for k in ['order', 'type', 'triggered'])):
-                log_tree_data = cast(ExecutionTree, result)
-                title = f"Execution Path for {class_name}#{node_order_val}"
-                if _config.output_mode == "rich" and isinstance(_config.output_handler, Console):
-                    _config.output_handler.rule(f"[bold cyan]{title}", style="cyan", characters="═")
-                    self._recursive_print_execution_log(log_tree_data, prefix="", is_last_sibling=True)
-                    _config.output_handler.rule(style="cyan", characters="═")
-                else: 
-                    rule_line = "═" * (len(title) + 4) if len(title) < 76 else "═" * 80 # Adjusted for typical console
-                    smart_print(rule_line)
-                    smart_print(f"  {title}  ")
-                    self._recursive_print_execution_log(log_tree_data, prefix="", is_last_sibling=True)
-                    smart_print(rule_line)
-            else:
-                # Fallback: If not propagate and result isn't an ExecutionTree, print basic result.
-                # This matches the old VerboseNodeRunnerMixin's behavior for this case.
-                smart_print(f">>>>>>> Result for {class_name}[#{node_order_val}]: {result}")
+        if (isinstance(result, dict) and all(k in result for k in ['order', 'type', 'triggered'])):
+            log_tree_data = cast(ExecutionTree, result)
+            title = f"Execution Path for {class_name}#{node_order_val}"
+            if _config.output_mode == "rich" and isinstance(_config.output_handler, Console):
+                _config.output_handler.rule(f"[bold cyan]{title}", style="cyan", characters="═")
+                self._recursive_print_execution_log(log_tree_data, prefix="", is_last_sibling=True)
+                _config.output_handler.rule(style="cyan", characters="═")
+            else: 
+                rule_line = "═" * (len(title) + 4) if len(title) < 76 else "═" * 80 # Adjusted for typical console
+                smart_print(rule_line)
+                smart_print(f"  {title}  ")
+                self._recursive_print_execution_log(log_tree_data, prefix="", is_last_sibling=True)
+                smart_print(rule_line)
+        else:
+            # Fallback: If not propagate and result isn't an ExecutionTree, print basic result.
+            # This matches the old VerboseNodeRunnerMixin's behavior for this case.
+            smart_print(f">>>>>>> Result for {class_name}[#{node_order_val}]: {result}")
         
         # else: # effective_propagate is True
         #     # This branch handles propagate=True, expects List[Tuple[Action, Memory]] from BaseNode.run.
@@ -84,23 +81,35 @@ class ExecutionTreePrinterMixin:
         smart_print(f"{prefix}{connector}[green bold]{node_type}[/green bold]#[green]{node_order}[/green]")
 
         children_prefix = prefix + ("    " if is_last_sibling else "│   ")
+        orchestrated_body = current_log_node.get('orchestrated')
         triggered_map = current_log_node.get('triggered')
 
-        if triggered_map is not None:
+        # 1. If the node orchestrated a sub-graph, print that first.
+        if orchestrated_body:
+            is_last_item = not triggered_map
+            body_connector = "└── " if is_last_item else "├── "
+            smart_print(f"{children_prefix}{body_connector}[dim italic]orchestrates[/dim italic]")
+            body_prefix = children_prefix + ("    " if is_last_item else "│   ")
+            self._recursive_print_execution_log(orchestrated_body, body_prefix, is_last_sibling=True)
+
+        # 2. Then, print any externally triggered actions.
+        if triggered_map:
             actions = list(triggered_map.keys())
-            if not actions:
-                smart_print(f"{children_prefix}└── [dim italic][No further actions/paths logged][/dim italic]")
-                return
             for i, action_key in enumerate(actions):
                 is_last_action = (i == len(actions) - 1)
                 action_conn = "└── " if is_last_action else "├── "
                 smart_print(f"{children_prefix}{action_conn}[blue bold]{str(action_key)}[/blue bold]")
-                sub_trees = triggered_map.get(action_key, [])
+                
+                sub_trees = triggered_map.get(action_key)
                 sub_prefix = children_prefix + ("    " if is_last_action else "│   ")
-                if not sub_trees:
-                    smart_print(f"{sub_prefix}└── [red][Path End/Exit Trigger][/red]")
+
+                if sub_trees is None or not sub_trees:
+                    smart_print(f"{sub_prefix}└── [red][End][/red]")
                 else:
                     for j, sub_tree in enumerate(sub_trees):
                         self._recursive_print_execution_log(sub_tree, sub_prefix, (j == len(sub_trees) - 1))
-        else:
-            smart_print(f"{children_prefix}└── [dim italic]Leaf Node[/dim italic]")
+        
+        # 3. If it's a true leaf node (no body and no triggers), indicate that.
+        elif not orchestrated_body:
+             smart_print(f"{children_prefix}└── [dim italic]Leaf Node[/dim italic]")
+             

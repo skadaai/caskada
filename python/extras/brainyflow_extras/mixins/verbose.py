@@ -5,22 +5,20 @@ from types import SimpleNamespace
 from typing import Any, TYPE_CHECKING, List, Tuple, Dict, Optional, Callable, Awaitable
 from contextvars import ContextVar
 
-if TYPE_CHECKING:
-    import brainyflow as bf
-else:
-    from ..brainyflow_original import bf
-
 try:
     from PIL import Image
 except ImportError:
     Image = None
+if TYPE_CHECKING:
+    import brainyflow as bf
+else:
+    from ..brainyflow_original import bf
 
 from ..utils.logger import smart_print, _config
 
 _log_lock = asyncio.Lock()
 log_buffer_var: ContextVar[Optional[List[Tuple[Tuple, Dict]]]] = ContextVar("log_buffer", default=None)
 verbose_depth_var: ContextVar[int] = ContextVar("verbose_depth", default=0)
-
 
 def _log(*args: Any, **kwargs: Any):
     """
@@ -36,10 +34,8 @@ def _log(*args: Any, **kwargs: Any):
             copied_kwargs = copy.deepcopy(kwargs)
             buffer.append((copied_args, copied_kwargs))
         except Exception:
-            # Fallback for uncopyable objects (like some locks or system resources)
             buffer.append((args, kwargs))
     else:
-        # Otherwise, print directly to the console (for non-buffered runs).
         smart_print(*args, **kwargs)
 
 
@@ -117,7 +113,7 @@ class VerboseMemoryMixin:
 
 
 class VerboseNodeMixin:
-    """A mixin that provides nested, race-condition-safe, box-drawing output."""
+    """Provides detailed, race-condition-safe console logging for any node or flow."""
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
     
@@ -130,81 +126,77 @@ class VerboseNodeMixin:
             )
         )
     
-    async def exec_runner(self, *args, **kwargs) -> Any:
+    def _get_stable_repr(self, obj: Any) -> Any:
+        """Creates a stable representation of complex objects for deferred logging."""
+        if Image and isinstance(obj, Image.Image):
+            return f"<Image mode={obj.mode} size={obj.size}>"
+        if isinstance(obj, tuple):
+            return tuple(self._get_stable_repr(item) for item in obj)
+        return obj
+
+    async def exec_runner(self, memory: bf.Memory, prep_res: Any, **kwargs) -> Any:
+        """Hooks into the execution process to log prep and exec results."""
         if not _config.verbose_mixin_logging:
-            return await super().exec_runner(*args, **kwargs)
+            return await super().exec_runner(memory, prep_res, **kwargs)
 
         prefix = "│  " * (verbose_depth_var.get())
         if self.prep.__func__ != bf.BaseNode.prep:
-            _log(f"{prefix}┌─ [dim italic]prep()[/dim italic] →", args[1] if len(args) > 1 else "No prep result")
+            _log(f"{prefix}┌─ [dim italic]prep()[/dim italic] →", self._get_stable_repr(prep_res))
 
-        exec_res = await super().exec_runner(*args, **kwargs)
+        exec_res = await super().exec_runner(memory, prep_res, **kwargs)
         if self.exec.__func__ != bf.BaseNode.exec and self.exec.__func__ != bf.Flow.exec:
-            _log(f"{prefix}├─ [dim italic]exec()[/dim italic] →", exec_res)
+            _log(f"{prefix}├─ [dim italic]exec()[/dim italic] →", self._get_stable_repr(exec_res))
         
         return exec_res
-    
-    def list_triggers(self, *args, **kwargs):
-        if not _config.verbose_mixin_logging:
-            return super().list_triggers(*args, **kwargs)
-        
-        is_flow = hasattr(self, 'run_nodes')
 
-        prefix = "│  " * (verbose_depth_var.get()-(1 if is_flow else 0))
-
-        _log(f"{prefix}{"├" if is_flow else "└"}─ [dim italic]trigger()[/dim italic] →", ", ".join([f"[blue]{str(t['action'])}[/blue]" for t in self._triggers]) if len(self._triggers) else "[dim]none[/dim]")
-        
-        triggers = super().list_triggers(*args, **kwargs)        
-        return triggers
-     
-    async def run(self, *args, **kwargs):
+    async def run(self, *args: Any, **kwargs: Any):
+        """Wraps the node's run to provide entry/exit logging and successor visualization."""
         if not _config.verbose_mixin_logging:
             return await super().run(*args, **kwargs)
 
         active_buffer = log_buffer_var.get()
         is_top_level_log_manager = active_buffer is None
-
-        # If this is the top-level call in a potentially parallel branch,
-        # it becomes the manager for the buffer and the final, locked print-out.
         if is_top_level_log_manager:
             active_buffer = []
             log_buffer_token = log_buffer_var.set(active_buffer)
 
-        result = None
         depth = verbose_depth_var.get()
         _log("│  " * depth + f"┌── Running {self._refer.highlight.me}")
         depth_token = verbose_depth_var.set(depth + 1)
         
         try:
-            # The actual execution ALWAYS happens here.
             result = await super().run(*args, **kwargs)
+			
+            is_flow = hasattr(self, 'run_node')
+            trigger_prefix = "│  " * (depth + (0 if is_flow else 1))
             
+            # Log the triggers that were fired (no default added)
+            _log(f"{trigger_prefix}{'├' if is_flow else '└'}─ [dim italic]trigger()[/dim italic] →", ", ".join([f"[blue]{str(t['action'])}[/blue]" for t in self._triggers]) or "[dim]none[/dim]")
+            
+            triggers = self._triggers or [{ "action": bf.DEFAULT_ACTION, "forking_data": {} }]
             verbose_depth_var.reset(depth_token)
-            propagate: bool = kwargs.get('propagate', args[1] if len(args) > 1 and isinstance(args[1], bool) else False)
-            if not propagate:
-                _log("│  " * depth + f"└── Finished {self._refer.me}")
-                return result
+            prefix = "│  " * depth
+
+            ignored_actions = self.successors.keys() - [t["action"] for t in triggers]
+            if len(ignored_actions) > 0:
+                _log(f"{prefix}├─ ignored actions: {str(", ".join(f"[dim]{a}[/dim]" for a in ignored_actions))}")
                 
-            _log("│  " * depth + f"└─ successors:")
-            if hasattr(self, '_triggers') and hasattr(self, 'get_next_nodes') and isinstance(result, list):
-                if (len(result) == 1) and len(self._triggers) == 0 and not self.successors.get('default'):
-                    _log("│  " * depth + f"\t[dim]> none [italic](Leaf Node)[/italic][/dim]")
-                else:
-                    for key, data in result:
-                        try:
-                            next_nodes = self.get_next_nodes(key)
-                            successors = ", ".join(f"[green]{c.__class__.__name__}[/green][dim]#{getattr(c, '_node_order', 'Unknown')}[/dim]" for c in next_nodes) or f"[red]Terminal Action[/red]"
-                            _log("│  " * depth + f"\t- [blue]{key}[/blue]\t >> {successors}" + ("" if not len(data._local) else f" 📦"), ("" if not len(data._local) else data._local))
-                        except Exception as e:
-                            _log("│  " * depth + f"\t- [blue]{key}[/blue]\t >> [red]Error: {e}[/red]")
+            _log(f"{prefix}└─ successors:")
+
+            for trigger in triggers:
+                action = trigger.get('action')
+                next_nodes = self.get_next_nodes(action)
+                successors = ", ".join(f"[green]{c.__class__.__name__}[/green][dim]#{getattr(c, '_node_order', '?')}[/dim]" for c in next_nodes) or "[red]Terminal Action[/red]"
+                action_repr = f"[blue]{str(action)}[/blue]" if len(self._triggers) else "[dim]default [italic](implicit)[/italic][/dim]"
+                _log(f"{prefix}\t- {action_repr}\t >> {successors}" + ("" if not trigger.get('forking_data') else f" 📦"), ("" if not trigger.get('forking_data') else trigger.get('forking_data')))
             
-            _log("│  " * depth)
+            _log("│  " * depth) # Spacer
+        
         except Exception as e:
             verbose_depth_var.reset(depth_token)
             _log("│  " * depth + f"└── [bold red]Error[/bold red] in {self._refer.me}", e)
             raise
         finally:
-            # If this was the top-level manager, it now flushes the entire buffer atomically.
             if is_top_level_log_manager and active_buffer is not None:
                 log_buffer_var.reset(log_buffer_token)
                 async with _log_lock:

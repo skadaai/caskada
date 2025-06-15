@@ -211,8 +211,8 @@ class FileLoggerNodeMixin:
         with open(context.session_log_path, 'a', encoding='utf-8') as f:
             f.write(json.dumps(log_entry) + '\n')
     
-    # Hook into `exec_runner` to gain visibility into the results of `prep` and `exec`
     async def exec_runner(self, memory: "bf.Memory", prep_res: Any, **kwargs) -> Any:
+        """Hooks into exec_runner to log prep and exec results."""
         self._log_event("prep.exit", {"result": prep_res})
         # self._log_event("exec.enter", {"prep_result": prep_res})
         try:
@@ -224,33 +224,28 @@ class FileLoggerNodeMixin:
             raise
 
     def trigger(self, action: str, forking_data: Optional[Dict[str, Any]] = None)-> None:
+        """Hooks into trigger to log the action as it's called."""
         self._log_event("trigger", {"action": action, "forking_data": forking_data})
         return super().trigger(action, forking_data)
 
-    # Hook into the main `run` method to log the state before and after the node's execution.
-    async def run(self, *args, **kwargs):
+    async def run(self, memory: Union[bf.Memory, Dict]) -> Any:
+        """
+        Wraps the simplified run method to log entry, exit, and final memory state.
+        """
         context = log_context_var.get()
-        is_flow = hasattr(self, 'start')
+        is_flow = hasattr(self, 'run_node')
 
-        # Standardize the memory input, same as the base library does.
-        # This ensures we log a MemorySnapshot, not a generic artifact.
-        raw_memory = args[0] if args else {}
-        mem_instance = bf.Memory(raw_memory) if not isinstance(raw_memory, bf.Memory) else raw_memory
+        # Standardize memory for consistent logging, mirroring brainyflow's internal logic.
+        mem_instance = memory if isinstance(memory, bf.Memory) else bf.Memory(memory or {})
 
-        # We only log run.enter for non-flow nodes, as the Flow mixin handles its own entry log.
         if context and not is_flow:
             self._log_event("run.enter", {"memory": mem_instance})
         
         try:
-            result = await super().run(*args, **kwargs)
+            result = await super().run(mem_instance)
             
             if context and not is_flow:
-                # The result of a node run is a list of tuples: [(action, memory_clone), ...].
-                # The memory_clone is the final state of memory for that execution path.
-                # If the run was successful and produced a result, use that memory object.
-                # Otherwise, fall back to the memory instance from the start of the run.
-                memory_out = result[0][1] if isinstance(result, list) and result and isinstance(result[0], (list, tuple)) and len(result[0]) > 1 else mem_instance
-                self._log_event("run.exit", {"memory": memory_out, "result": result})
+                self._log_event("run.exit", {"memory": mem_instance, "result": result})
 
             return result
         except Exception as error:
@@ -259,9 +254,9 @@ class FileLoggerNodeMixin:
             raise
 
 class FileLoggerFlowMixin(FileLoggerNodeMixin):
-    """A mixin that establishes the logging context and logs flow-specific events."""
-    async def run(self, *args, **kwargs):
-        # This is the root of the logging context.
+    """A mixin that establishes the logging context and logs Flow-specific events."""
+    async def run(self, memory: Union[bf.Memory, Dict]) -> Any:
+        """Wraps a Flow's run to manage the logging session context."""
         ctx = log_context_var.get()
         is_root_call = ctx is None
         token = None
@@ -271,17 +266,14 @@ class FileLoggerFlowMixin(FileLoggerNodeMixin):
             ctx = LogContext(self.log_folder, session_id)
             token = log_context_var.set(ctx)
 
-        # Standardize memory here as well for consistent logging.
-        raw_memory = args[0] if args else {}
-        mem_instance = bf.Memory(raw_memory) if not isinstance(raw_memory, bf.Memory) else raw_memory
+        mem_instance = memory if isinstance(memory, bf.Memory) else bf.Memory(memory)
 
         try:
-            # Log the standardized memory instance at the flow's entry.
             self._log_event("run.enter", {"memory": mem_instance})
             
-            result = await super().run(*args, **kwargs)
-            
-            # The memory object might have been mutated, so we log it again at exit.
+            # The result of a Flow's run is now always its ExecutionTree.
+            result = await super().run(mem_instance)
+
             self._log_event("run.exit", {"execution_tree": result, "memory": mem_instance})
             
             return result

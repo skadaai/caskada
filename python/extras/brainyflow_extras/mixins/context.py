@@ -1,11 +1,7 @@
 """A mixin to provide asyncio context propagation for ParallelFlow."""
 from __future__ import annotations
-import asyncio
 import contextvars
-from typing import List, Callable, Awaitable, Any, Sequence, TYPE_CHECKING
-
-if TYPE_CHECKING:
-    import brainyflow as bf
+from typing import List, Callable, Awaitable, Any, Sequence
 
 class ParallelContextMixin:
     """
