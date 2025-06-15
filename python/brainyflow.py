@@ -4,8 +4,9 @@ from __future__ import annotations
 import asyncio
 import copy
 import warnings
+import collections
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional, Protocol, Tuple, Type, TypeAlias, TypeVar, Generic, Callable, Union, cast, TypedDict, Literal, overload, Awaitable, Sequence, runtime_checkable
+from typing import Any, Dict, List, Optional, Protocol, Tuple, Type, TypeAlias, TypeVar, Generic, Callable, Union, cast, TypedDict, Awaitable, Sequence, runtime_checkable
 
 DEFAULT_ACTION = 'default'
 Action = str | None
@@ -19,7 +20,8 @@ AnyNode: TypeAlias = 'BaseNode[M, Any, Any, Any]'
 class ExecutionTree(TypedDict):
     order: int
     type: str
-    triggered: Optional[Dict[Action, List["ExecutionTree"]]]
+    orchestrated: Optional["ExecutionTree"]
+    triggered: Dict[Action, List["ExecutionTree"]]
 class Trigger(TypedDict):
     action: Action
     forking_data: SharedStore
@@ -164,23 +166,12 @@ class BaseNode(Generic[M, PrepResultT, ExecResultT, ActionT], ABC):
         assert not self._locked, "An action can only be triggered inside post()"
         self._triggers.append({ "action": action, "forking_data": forking_data or {} })
     
-    def list_triggers(self, memory: Memory[M]) -> List[Tuple[Action, Memory[M]]]:
-        """Process triggers or return default."""
-        if not self._triggers:
-            return [(DEFAULT_ACTION, memory.clone())]
-        
-        return [(t["action"], memory.clone(t["forking_data"])) for t in self._triggers]
-    
     @abstractmethod
     async def exec_runner(self, memory: Memory[M], prep_res: PrepResultT) -> ExecResultT:
         """Core execution logic - must be implemented by subclasses."""
         pass
     
-    @overload
-    async def run(self, memory: Union[Memory[M], M], propagate: Literal[True]) -> List[Tuple[Action, Memory[M]]]: ...
-    @overload
-    async def run(self, memory: Union[Memory[M], M], propagate: Literal[False] = False) -> ExecResultT: ...
-    async def run(self, memory: Union[Memory[M], M], propagate: bool = False) -> Union[List[Tuple[Action, Memory[M]]], ExecResultT]:
+    async def run(self, memory: Union[Memory[M], M]) -> ExecResultT:
         """Run the node's full lifecycle (prep → exec → post)."""
         mem_instance: Memory[M] = Memory(memory) if not isinstance(memory, Memory) else cast(Memory[M], memory)
         
@@ -192,8 +183,6 @@ class BaseNode(Generic[M, PrepResultT, ExecResultT, ActionT], ABC):
         await self.post(cast(M, mem_instance), prep_res, exec_res)
         self._locked = True
         
-        if propagate:
-            return self.list_triggers(mem_instance)
         return exec_res
 
 class Node(BaseNode[M, PrepResultT, ExecResultT, ActionT]):
@@ -236,7 +225,6 @@ class Flow(BaseNode[M, PrepResultT, ExecutionTree, ActionT]):
     Attributes:
         start: The entry point node of the flow
         options: Configuration options like max_visits
-        visit_counts: Tracks node visits for cycle detection
     """
     def __init__(self, start: AnyNode[M], options: Optional[Dict[str, Any]] = None) -> None:
         """Initialize a Flow with a start node and options."""
@@ -251,7 +239,7 @@ class Flow(BaseNode[M, PrepResultT, ExecutionTree, ActionT]):
     async def exec_runner(self, memory: Memory[M], prep_res: PrepResultT) -> ExecutionTree:
         """Run the flow starting from the start node."""
         self.visit_counts = {}  # Reset visit counts
-        return await self.run_node(self.start, memory)
+        return { 'order': self._node_order, 'type': self.__class__.__name__, 'orchestrated': await self.run_node(self.start, memory), 'triggered': {} }
     
     async def run_tasks(self, tasks: Sequence[Callable[[], Awaitable[T]]]) -> List[T]:
         """Run tasks sequentially."""
@@ -259,45 +247,44 @@ class Flow(BaseNode[M, PrepResultT, ExecutionTree, ActionT]):
         for task in tasks:
             results.append(await task())
         return results
-    
-    async def run_nodes(self, nodes: List[AnyNode[M]], memory: Memory[M]) -> List[ExecutionTree]:
-        """Run a list of nodes with the given memory."""
-        tasks: List[Callable[[], Awaitable[ExecutionTree]]] = [
-            (lambda n=node, m=memory: lambda: self.run_node(n, m))() for node in nodes # type: ignore
-        ]
-        return await self.run_tasks(tasks)
-    
+
     async def run_node(self, node: AnyNode[M], memory: Memory[M]) -> ExecutionTree:
-        """Run a node with cycle detection and return its execution log."""
+        """Recursively runs a node and its descendents."""
         node_order = node._node_order
         current_visit_count = self.visit_counts.get(node_order, 0) + 1
         assert current_visit_count <= self.options["max_visits"], f"Maximum cycle count ({self.options['max_visits']}) reached for {node.__class__.__name__}#{node_order}"
         self.visit_counts[node_order] = current_visit_count
         
         cloned_node = node.clone()
-        triggers = await cloned_node.run(memory.clone(), True)
-        triggered: Dict[Action, List[ExecutionTree]] = {}
-        tasks: List[Callable[[], Awaitable[Tuple[Action, List[ExecutionTree]]]]] = []
+        node_memory = memory.clone()
+        exec_result = await cloned_node.run(node_memory)
+        base_tree = exec_result if hasattr(cloned_node, 'run_node') else { 'order': node_order, 'type': node.__class__.__name__ }
 
-        for action, node_memory in triggers:
-            next_nodes = cloned_node.get_next_nodes(action)
+        triggered_sub_trees = collections.defaultdict(list)
+        tasks_to_run: List[Tuple[Action, Callable[[], Awaitable[ExecutionTree]]]] = []
+        
+        for trigger in cloned_node._triggers or [{'action': DEFAULT_ACTION, 'forking_data': {}}]:
+            next_nodes = cloned_node.get_next_nodes(trigger['action'])
             if next_nodes:
-                tasks.append((lambda act=action, nn_list=next_nodes, nm_mem=node_memory: # type: ignore
-                                 lambda: self._process_trigger(act, nn_list, nm_mem))())
+                for next_node in next_nodes:
+                    forked_memory = node_memory.clone(trigger['forking_data'])
+                    tasks_to_run.append((trigger['action'], lambda n=next_node, m=forked_memory: self.run_node(n, m)))
             elif len(cloned_node._triggers) > 0:
-                # If the sub-node explicitly triggered an action that has no successors, that action becomes a terminal trigger for this Flow itself
-                self._triggers.append({ "action": action, "forking_data": node_memory._local })
-                triggered[action] = [] # Log that this action was triggered but led to no further nodes within this Flow.
+                # If the sub-node EXPLICITLY triggered an action that has no successors, that action becomes a terminal trigger for this Flow itself
+                self._triggers.append({ "action": trigger['action'], "forking_data": node_memory._local | trigger['forking_data'] })
+                if trigger['action'] not in triggered_sub_trees:
+                    triggered_sub_trees[trigger['action']] = [] # Log that this action was triggered but led to no further nodes within this Flow.
 
-        tree: List[Tuple[Action, List[ExecutionTree]]] = await self.run_tasks(tasks)
-        for action, execution_trees in tree:
-            triggered[action] = execution_trees
+        if tasks_to_run:
+            task_callables = [t[1] for t in tasks_to_run]
+            results = await self.run_tasks(task_callables)
             
-        return { 'order': node_order, 'type': node.__class__.__name__, 'triggered': triggered if triggered else None }
-    
-    async def _process_trigger(self, action: Action, next_nodes: List[AnyNode[M]], node_memory: Memory[M]) -> Tuple[Action, List[ExecutionTree]]:
-        """Process a single trigger by running its next_nodes."""
-        return (action, await self.run_nodes(next_nodes, node_memory))
+            for i, sub_tree in enumerate(results):
+                action = tasks_to_run[i][0]
+                triggered_sub_trees[action].append(sub_tree)
+
+        base_tree['triggered'] = {k: v for k, v in triggered_sub_trees.items()} or {}
+        return base_tree
 
 class ParallelFlow(Flow[M, PrepResultT, ActionT]):
     """Orchestrates execution of a graph of nodes with parallel branching."""    
