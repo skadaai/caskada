@@ -41,18 +41,20 @@ Translated:"""
         
         result = await call_llm(prompt)
         print(f"Translated {language} text")
-        return {"language": language, "translation": result}
+        return result
 
     async def post(self, shared, prep_res, result):
-        """Stores the dictionary of {language: translation} pairs and writes to files."""
-        if not isinstance(result, dict):
-            print(f"Warning: Invalid result received: {result}")
-            return
+        shared.local.translation = result
         
-        output_dir = getattr(shared, "output_dir", "translations")
+class StoreTextNodeParallel(Node):
+    """Stores the dictionary of {language: translation} pairs and writes to files."""
+    async def prep(self, memory):
+        return memory.data[1], memory.translation, getattr(memory, "output_dir", "translations")
+
+    async def exec(self, data_tuple):        
+        language, translation, output_dir = data_tuple
+        
         os.makedirs(output_dir, exist_ok=True)
-        
-        language, translation = result["language"], result["translation"]
         
         filename = os.path.join(output_dir, f"README_{language.upper()}.md")
         try:
@@ -73,13 +75,17 @@ def create_parallel_translation_flow():
     """Creates and returns the parallel translation flow."""
     trigger_node = TriggerTranslationsNode()
     translate_node = TranslateTextNodeParallel(max_retries=3)
-    trigger_node >> translate_node
+    store_node = StoreTextNodeParallel()
+
+    trigger_node >> translate_node >> store_node
     return ParallelFlow(start=trigger_node)
 
 # --- Main Execution ---
 
 async def main():
     source_readme_path = "../../README.md"
+    source_readme_path = os.path.join(os.path.dirname(__file__), source_readme_path)
+
     try:
         with open(source_readme_path, "r", encoding='utf-8') as f:
             text = f.read()
@@ -93,7 +99,7 @@ async def main():
     shared = {
         "text": text,
         "languages": ["Chinese", "Spanish", "Japanese", "German", "Russian", "Portuguese", "French", "Korean"],
-        "output_dir": "translations"
+        "output_dir": os.path.join(os.path.dirname(__file__), "translations")
     }
 
     translation_flow = create_parallel_translation_flow()
