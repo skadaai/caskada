@@ -9,10 +9,12 @@ class SingleThreadedMixin:
         self._lock = threading.Lock()
 
     async def run(self, **kwargs):
-        smart_print(f"├─ Acquiring lock for single-threaded execution in {self.__class__.__name__}...")
+        display_name = getattr(self, 'id', None) or self.__class__.__name__
+        smart_print(f"├─ Acquiring lock for single-threaded execution in {display_name}...")
         self._lock.acquire()
         try:
             return await super().run(**kwargs)
         finally:
-            smart_print(f"├─ Releasing lock for {self.__class__.__name__}.")
+            display_name = getattr(self, 'id', None) or self.__class__.__name__
+            smart_print(f"├─ Releasing lock for {display_name}.")
             self._lock.release()

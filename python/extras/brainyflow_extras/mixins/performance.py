@@ -36,7 +36,7 @@ class PerformanceMonitorMixin:
                 is_flow = hasattr(self, 'run_node')
                 # prefix = "│  " * (depth - 1) + "├─" if depth > 0 else "├─"
                 prefix = "│  " * (depth - (1 if is_flow else 0)) + "├─"
-                refer_name = getattr(getattr(self, '_refer', None), 'me', self.__class__.__name__)
+                refer_name = getattr(getattr(self, '_refer', None), 'me', getattr(self, 'id', None) or self.__class__.__name__)
                 _log(f"{prefix} ⏱️  {f"{refer_name} ran in " if not depth else ''}{execution_time:.3f}s")
 
             return result
@@ -47,7 +47,7 @@ class PerformanceMonitorMixin:
             if _config.verbose_mixin_logging:
                 depth = verbose_depth_var.get()
                 prefix = "│  " * (depth - 1) + "├─" if depth > 0 else "├─"
-                refer_name = getattr(getattr(self, '_refer', None), 'me', self.__class__.__name__)
+                refer_name = getattr(getattr(self, '_refer', None), 'me', getattr(self, 'id', None) or self.__class__.__name__)
                 _log(f"{prefix} ⛔️  {refer_name} failed after {execution_time:.3f}s")
             
             raise

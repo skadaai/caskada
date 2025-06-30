@@ -119,10 +119,11 @@ class VerboseNodeMixin:
     
     @property
     def _refer(self):
+        display_name = getattr(self, 'id', None) or self.__class__.__name__
         return SimpleNamespace(
-            me=f"{self.__class__.__name__}[dim]#{getattr(self, '_node_order', 'Unknown')}[/dim]",
+            me=f"{display_name}[dim]#{getattr(self, '_node_order', 'Unknown')}[/dim]",
             highlight=SimpleNamespace(
-                me=f"[bold yellow]{self.__class__.__name__}[/bold yellow][dim]#{getattr(self, '_node_order', 'Unknown')}[/dim]",
+                me=f"[bold yellow]{display_name}[/bold yellow][dim]#{getattr(self, '_node_order', 'Unknown')}[/dim]",
             )
         )
     
@@ -185,8 +186,8 @@ class VerboseNodeMixin:
 
             for trigger in triggers:
                 action = trigger.get('action')
-                next_nodes = self.get_next_nodes(action)
-                successors = ", ".join(f"[green]{c.__class__.__name__}[/green][dim]#{getattr(c, '_node_order', '?')}[/dim]" for c in next_nodes) or "[red]Terminal Action[/red]"
+                next_nodes = self.get_next_nodes(action) # type: ignore
+                successors = ", ".join(f"[green]{getattr(c, 'id', None) or c.__class__.__name__}[/green][dim]#{getattr(c, '_node_order', '?')}[/dim]" for c in next_nodes) or "[red]Terminal Action[/red]"
                 action_repr = f"[blue]{str(action)}[/blue]" if len(self._triggers) else "[dim]default [italic](implicit)[/italic][/dim]"
                 _log(f"{prefix}\t- {action_repr}\t >> {successors}" + ("" if not trigger.get('forking_data') else f" 📦"), ("" if not trigger.get('forking_data') else trigger.get('forking_data')))
             

@@ -95,8 +95,9 @@ class BaseNode(Generic[M, PrepResultT, ExecResultT, ActionT], ABC):
     - ActionT: Type of actions this node can trigger
     """
     _next_id = 0
-    def __init__(self) -> None:
+    def __init__(self, id: Optional[str] = None) -> None:
         self.successors: Dict[Action, List[AnyNode[M]]] = {}  # dict of action -> list of nodes
+        self.id = id
         self._triggers: List[Trigger] = [] # list of dicts with action and forking_data
         self._locked: bool = True  # Prevent trigger calls outside post()
         self._node_order: int = BaseNode._next_id
@@ -194,9 +195,9 @@ class Node(BaseNode[M, PrepResultT, ExecResultT, ActionT]):
         wait: Seconds to wait between retry attempts
         cur_retry: Current retry attempt (0-indexed)
     """
-    def __init__(self, max_retries: int = 1, wait: float = 0) -> None:
-        """Initialize a Node with retry configuration."""
-        super().__init__()
+    def __init__(self, id: Optional[str] = None, max_retries: int = 1, wait: float = 0) -> None:
+        """Initialize a Node with an optional ID and retry configuration."""
+        super().__init__(id=id)
         self.max_retries = max_retries
         self.wait = wait
         self.cur_retry = 0
@@ -226,9 +227,9 @@ class Flow(BaseNode[M, PrepResultT, ExecutionTree, ActionT]):
         start: The entry point node of the flow
         options: Configuration options like max_visits
     """
-    def __init__(self, start: AnyNode[M], options: Optional[Dict[str, Any]] = None) -> None:
-        """Initialize a Flow with a start node and options."""
-        super().__init__()
+    def __init__(self, start: AnyNode[M], id: Optional[str] = None, options: Optional[Dict[str, Any]] = None) -> None:
+        """Initialize a Flow with a start node, optional ID, and options."""
+        super().__init__(id=id)
         self.start = start
         self.options = options or {"max_visits": 15}
         self.visit_counts: Dict[int, int] = {}
@@ -239,7 +240,7 @@ class Flow(BaseNode[M, PrepResultT, ExecutionTree, ActionT]):
     async def exec_runner(self, memory: Memory[M], prep_res: PrepResultT) -> ExecutionTree:
         """Run the flow starting from the start node."""
         self.visit_counts = {}  # Reset visit counts
-        return { 'order': self._node_order, 'type': self.__class__.__name__, 'orchestrated': await self.run_node(self.start, memory), 'triggered': {} }
+        return { 'order': self._node_order, 'type': self.id or self.__class__.__name__, 'orchestrated': await self.run_node(self.start, memory), 'triggered': {} }
     
     async def run_tasks(self, tasks: Sequence[Callable[[], Awaitable[T]]]) -> List[T]:
         """Run tasks sequentially."""
@@ -258,7 +259,7 @@ class Flow(BaseNode[M, PrepResultT, ExecutionTree, ActionT]):
         cloned_node = node.clone()
         node_memory = memory.clone()
         exec_result = await cloned_node.run(node_memory)
-        base_tree = exec_result if hasattr(cloned_node, 'run_node') else { 'order': node_order, 'type': node.__class__.__name__ }
+        base_tree = exec_result if hasattr(cloned_node, 'run_node') else { 'order': node_order, 'type': node.id or node.__class__.__name__ }
 
         triggered_sub_trees = collections.defaultdict(list)
         tasks_to_run: List[Tuple[Action, Callable[[], Awaitable[ExecutionTree]]]] = []

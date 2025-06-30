@@ -192,7 +192,8 @@ class FileLoggerNodeMixin:
     def _log_event(self, event_name: str, data: Dict[str, Any]):
         context = log_context_var.get()
         if not context:
-            raise Exception(f"Log context not found when trying to log event '{event_name}' for node '{getattr(self, '_refer', self).__class__.__name__}'")
+            display_name = getattr(self, 'id', None) or getattr(self, '_refer', self).__class__.__name__
+            raise Exception(f"Log context not found when trying to log event '{event_name}' for node '{display_name}'")
 
         mro_list = [cls.__name__ for cls in self.__class__.__mro__ if cls not in (object, ABC, Generic)]
         if 'BaseNode' not in mro_list: mro_list.append('BaseNode')
@@ -200,9 +201,10 @@ class FileLoggerNodeMixin:
         
         # This is now a JSON-serializable dictionary because _serialize_for_log offloads
         # complex objects to CBOR files and returns a JSON-friendly reference dict.
+        display_name = getattr(self, 'id', None) or self.__class__.__name__
         log_entry = {
             "when": datetime.now().isoformat(),
-            "node": f"{self.__class__.__name__}#{getattr(self, '_node_order', '?')}",
+            "node": f"{display_name}#{getattr(self, '_node_order', '?')}",
             "event": event_name,
             "data": _serialize_for_log(data, context, self.artifact_serializer, set()),
             # "mro": mro_list,

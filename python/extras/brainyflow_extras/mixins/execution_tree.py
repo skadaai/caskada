@@ -23,7 +23,7 @@ class ExecutionTreePrinterMixin:
         if not hasattr(self, '_node_order') or not isinstance(getattr(self, '_node_order', None), int):
             return result
 
-        class_name = self.__class__.__name__
+        class_name = getattr(self, 'id', None) or self.__class__.__name__
         node_order_val = getattr(self, '_node_order', 'UnknownID')
 
         if (isinstance(result, dict) and all(k in result for k in ['order', 'type', 'triggered'])):
