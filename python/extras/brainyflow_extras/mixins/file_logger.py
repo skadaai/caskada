@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any, Dict, Generic, Optional, TYPE_CHECKING
 from contextvars import ContextVar
 import sys
+import shutil
 
 if TYPE_CHECKING:
     import brainyflow as bf
@@ -184,9 +185,10 @@ def _serialize_for_log(data: Any, context: LogContext, serializer: ArtifactSeria
 
 class FileLoggerNodeMixin:
     """A mixin that provides deep, secure logging by hooking into orchestrator methods."""
-    def __init__(self, *args, log_folder: str = "brainyflow_logs", **kwargs):
+    def __init__(self, *args, log_folder: str = "brainyflow_logs", clear_logs: bool = False, **kwargs):
         super().__init__(*args, **kwargs)
         self.log_folder = Path(log_folder)
+        self.clear_logs = clear_logs
         self.artifact_serializer = ArtifactSerializer()
 
     def _log_event(self, event_name: str, data: Dict[str, Any]):
@@ -264,6 +266,10 @@ class FileLoggerFlowMixin(FileLoggerNodeMixin):
         token = None
 
         if is_root_call:
+            # Clear logs folder if requested and it exists
+            if self.clear_logs and self.log_folder.exists():
+                shutil.rmtree(self.log_folder)
+            
             session_id = datetime.now().strftime('%Y%m%d_%H%M%S_%f')
             ctx = LogContext(self.log_folder, session_id)
             token = log_context_var.set(ctx)

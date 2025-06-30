@@ -97,7 +97,7 @@ def enhance(
     Universal enhancement function for BrainyFlow classes.
     
     Usage Pattern 1 - Direct enhancement:
-        NodeEnhanced = enhance(Node, verbose=True, file_logging={'log_folder': 'custom_logs'})
+        NodeEnhanced = enhance(Node, verbose=True, file_logging={'log_folder': 'custom_logs', 'clear_logs': True})
         node = NodeEnhanced()
     
     Usage Pattern 2 - Builder pattern:
@@ -155,7 +155,6 @@ def _create_enhanced_class(base_class: Type[T], config: EnhancementConfig) -> Ty
 
     if _is_parallel_flow_like(base_class) and (config.file_logging or config.verbose):
         mixins.append(ParallelContextMixin)
-        
         
     if config.file_logging and _is_node_like(base_class):
         file_logging_mixin = FileLoggerFlowMixin if _is_flow_like(base_class) else FileLoggerNodeMixin
@@ -237,7 +236,7 @@ class EnhancementBuilder:
     Builder class for creating multiple enhanced classes with the same configuration.
     
     Usage:
-        builder = enhance(verbose=True, file_logging={'log_folder': 'my_logs'})
+        builder = enhance(verbose=True, file_logging={'log_folder': 'my_logs', 'clear_logs': True})
         MyNode = builder.Node
         MyFlow = builder.Flow
         MyMemory = builder.Memory
