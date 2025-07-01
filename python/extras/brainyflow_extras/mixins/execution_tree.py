@@ -104,14 +104,25 @@ class ExecutionTreePrinterMixin:
             for i, action_key in enumerate(actions):
                 is_last_action = (i == len(actions) - 1)
                 action_conn = "└── " if is_last_action else "├── "
-                smart_print(f"{children_prefix}{action_conn}[blue bold]{str(action_key)}[/blue bold]")
                 
                 sub_trees = triggered_map.get(action_key)
                 sub_prefix = children_prefix + ("    " if is_last_action else "│   ")
 
                 if sub_trees is None or not sub_trees:
+                    smart_print(f"{children_prefix}{action_conn}[blue bold]{str(action_key)}[/blue bold]")
                     smart_print(f"{sub_prefix}└── [red][End][/red]")
+                elif len(sub_trees) == 1:
+                    # If action leads to a single node, print them on the same line
+                    single_sub_tree = sub_trees[0]
+                    node_type = single_sub_tree.get('type', 'UnknownType')
+                    node_order = single_sub_tree.get('order', 'UnknownID')
+                    smart_print(f"{children_prefix}{action_conn}[blue bold]{str(action_key)}[/blue bold] >> [green bold]{node_type}[/green bold]#[green]{node_order}[/green]")
+                    
+                    # Continue with the single node's children, skipping the node print since we already printed it
+                    self._recursive_print_execution_log(single_sub_tree, sub_prefix, is_last_sibling=True, skip_node_print=True)
                 else:
+                    # Multiple nodes - use the original format
+                    smart_print(f"{children_prefix}{action_conn}[blue bold]{str(action_key)}[/blue bold]")
                     for j, sub_tree in enumerate(sub_trees):
                         self._recursive_print_execution_log(sub_tree, sub_prefix, (j == len(sub_trees) - 1))
         
