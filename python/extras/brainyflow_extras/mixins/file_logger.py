@@ -9,6 +9,7 @@ from typing import Any, Dict, Generic, Optional, TYPE_CHECKING
 from contextvars import ContextVar
 import sys
 import shutil
+import dataclasses
 
 if TYPE_CHECKING:
     import brainyflow as bf
@@ -79,6 +80,16 @@ class ArtifactSerializer:
         # Handle typing objects (like list[str]) by converting them to strings
         if 'typing' in sys.modules and isinstance(value, sys.modules['typing']._GenericAlias):
             encoder.encode(str(value))
+            return
+
+        # Handle dataclasses by converting them to dictionaries
+        if dataclasses.is_dataclass(value):
+            encoder.encode({
+                "__type__": "Dataclass",
+                "module": value.__class__.__module__,
+                "class": value.__class__.__name__,
+                "data": dataclasses.asdict(value)
+            })
             return
 
         # For any other object, represent it as a generic map.
@@ -176,6 +187,14 @@ def _serialize_for_log(data: Any, context: LogContext, serializer: ArtifactSeria
             return {'__type__': 'datetime', 'iso': data.isoformat()}
         if isinstance(data, Path):
             return {'__type__': 'path', 'path': str(data)}
+        # 6. Handle dataclasses by converting them to dictionaries
+        if dataclasses.is_dataclass(data):
+            return {
+                '__type__': 'dataclass',
+                'module': data.__class__.__module__,
+                'class': data.__class__.__name__,
+                'data': _serialize_for_log(dataclasses.asdict(data), context, serializer, seen)
+            }
         # 7. For any other complex object, offload it to a CBOR artifact.
         result = serializer.handle_as_cbor_artifact(data, context)
         return result if result is not None else f"<Unserializable Object: {type(data).__name__}>"
