@@ -70,15 +70,16 @@ class ExecutionTreePrinterMixin:
 
         return result
 
-    def _recursive_print_execution_log(self, current_log_node: ExecutionTree, prefix: str, is_last_sibling: bool):
+    def _recursive_print_execution_log(self, current_log_node: ExecutionTree, prefix: str, is_last_sibling: bool, skip_node_print: bool = False):
         """
         Recursively prints the execution log in a tree structure.
         Highlights structural path endings based on the ExecutionTree content.
         """
-        connector = "└── " if is_last_sibling else "├── "
-        node_type = current_log_node.get('type', 'UnknownType')
-        node_order = current_log_node.get('order', 'UnknownID')
-        smart_print(f"{prefix}{connector}[green bold]{node_type}[/green bold]#[green]{node_order}[/green]")
+        if not skip_node_print:
+            connector = "└── " if is_last_sibling else "├── "
+            node_type = current_log_node.get('type', 'UnknownType')
+            node_order = current_log_node.get('order', 'UnknownID')
+            smart_print(f"{prefix}{connector}[green bold]{node_type}[/green bold]#[green]{node_order}[/green]")
 
         children_prefix = prefix + ("    " if is_last_sibling else "│   ")
         orchestrated_body = current_log_node.get('orchestrated')
@@ -88,9 +89,14 @@ class ExecutionTreePrinterMixin:
         if orchestrated_body:
             is_last_item = not triggered_map
             body_connector = "└── " if is_last_item else "├── "
-            smart_print(f"{children_prefix}{body_connector}[dim italic]orchestrates[/dim italic]")
+            # Print "orchestrates" and the orchestrated node on the same line
+            orchestrated_node_type = orchestrated_body.get('type', 'UnknownType')
+            orchestrated_node_order = orchestrated_body.get('order', 'UnknownID')
+            smart_print(f"{children_prefix}{body_connector}[dim italic]orchestrates[/dim italic] [green bold]{orchestrated_node_type}[/green bold]#[green]{orchestrated_node_order}[/green]")
+            
+            # Continue with the orchestrated node's children, skipping the node print since we already printed it
             body_prefix = children_prefix + ("    " if is_last_item else "│   ")
-            self._recursive_print_execution_log(orchestrated_body, body_prefix, is_last_sibling=True)
+            self._recursive_print_execution_log(orchestrated_body, body_prefix, is_last_sibling=True, skip_node_print=True)
 
         # 2. Then, print any externally triggered actions.
         if triggered_map:
