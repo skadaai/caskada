@@ -44,30 +44,6 @@ class ExecutionTreePrinterMixin:
             # This matches the old VerboseNodeRunnerMixin's behavior for this case.
             smart_print(f">>>>>>> Result for {class_name}[#{node_order_val}]: {result}")
         
-        # else: # effective_propagate is True
-        #     # This branch handles propagate=True, expects List[Tuple[Action, Memory]] from BaseNode.run.
-        #     if isinstance(result, list) and all(isinstance(item, tuple) and len(item) == 2 for item in result):
-        #         triggers_list = cast(List[Tuple[Action, Any]], result)
-        #         smart_print(f"Triggered in [bold yellow]{class_name}[/bold yellow]#{node_order_val}:")
-        #         if hasattr(self, 'get_next_nodes') and callable(self.get_next_nodes):
-        #             for action_name_triggered, _ in triggers_list:
-        #                 try:
-        #                     next_nodes = self.get_next_nodes(action_name_triggered) # type: ignore
-        #                     successors = ", ".join(
-        #                         f"[green]{n.__class__.__name__}[/green]#{getattr(n, '_node_order', 'ID?')}" for n in next_nodes
-        #                     ) or f"[red]Terminal Action[/red]"
-        #                     smart_print(f"\t- [blue]{action_name_triggered}[/blue]\t >> ", successors)
-        #                 except Exception as e:
-        #                     # Gracefully handle errors during successor fetching for logging
-        #                     smart_print(f"\t- [blue]{action_name_triggered}[/blue]\t >> [bold red]Error getting successors: {e}[/bold red]")
-        #         else:
-        #             # Fallback if get_next_nodes is somehow not available
-        #             for action_name_triggered, _ in triggers_list:
-        #                 smart_print(f"\t- [blue]{action_name_triggered}[/blue]\t >> [dim](Successor info unavailable)[/dim]")
-        #     else:
-        #         # If propagate=True but result is not the expected list of triggers.
-        #         smart_print(f"Triggers from [bold yellow]{class_name}[/bold yellow]#{node_order_val} (propagate=True): {result} ([italic]unexpected format[/italic])")
-
         return result
 
     def _recursive_print_execution_log(self, current_log_node: ExecutionTree, prefix: str, is_last_sibling: bool, skip_node_print: bool = False):
@@ -75,15 +51,22 @@ class ExecutionTreePrinterMixin:
         Recursively prints the execution log in a tree structure.
         Highlights structural path endings based on the ExecutionTree content.
         """
+        orchestrated_body = current_log_node.get('orchestrated')
+        triggered_map = current_log_node.get('triggered')
+        
+        # Check if this is a leaf node (no orchestrated body and no triggered actions)
+        is_leaf_node = not orchestrated_body and not triggered_map
+        
         if not skip_node_print:
             connector = "└── " if is_last_sibling else "├── "
             node_type = current_log_node.get('type', 'UnknownType')
             node_order = current_log_node.get('order', 'UnknownID')
-            smart_print(f"{prefix}{connector}[green bold]{node_type}[/green bold]#[green]{node_order}[/green]")
+            
+            # If it's a leaf node, append "Leaf Node" to the same line
+            leaf_suffix = " [dim italic]Leaf Node[/dim italic]" if is_leaf_node else ""
+            smart_print(f"{prefix}{connector}[green bold]{node_type}[/green bold]#[green]{node_order}[/green]{leaf_suffix}")
 
         children_prefix = prefix + ("    " if is_last_sibling else "│   ")
-        orchestrated_body = current_log_node.get('orchestrated')
-        triggered_map = current_log_node.get('triggered')
 
         # 1. If the node orchestrated a sub-graph, print that first.
         if orchestrated_body:
@@ -116,17 +99,24 @@ class ExecutionTreePrinterMixin:
                     single_sub_tree = sub_trees[0]
                     node_type = single_sub_tree.get('type', 'UnknownType')
                     node_order = single_sub_tree.get('order', 'UnknownID')
-                    smart_print(f"{children_prefix}{action_conn}[blue bold]{str(action_key)}[/blue bold] >> [green bold]{node_type}[/green bold]#[green]{node_order}[/green]")
                     
-                    # Continue with the single node's children, skipping the node print since we already printed it
-                    self._recursive_print_execution_log(single_sub_tree, sub_prefix, is_last_sibling=True, skip_node_print=True)
+                    # Check if the single node is a leaf node
+                    single_orchestrated_body = single_sub_tree.get('orchestrated')
+                    single_triggered_map = single_sub_tree.get('triggered')
+                    single_is_leaf_node = not single_orchestrated_body and not single_triggered_map
+                    
+                    # If it's a leaf node, append "Leaf Node" to the same line
+                    leaf_suffix = " [dim italic]Leaf Node[/dim italic]" if single_is_leaf_node else ""
+                    smart_print(f"{children_prefix}{action_conn}[blue bold]{str(action_key)}[/blue bold] >> [green bold]{node_type}[/green bold]#[green]{node_order}[/green]{leaf_suffix}")
+                    
+                    # Continue with the single node's children only if it's not a leaf node
+                    if not single_is_leaf_node:
+                        self._recursive_print_execution_log(single_sub_tree, sub_prefix, is_last_sibling=True, skip_node_print=True)
                 else:
                     # Multiple nodes - use the original format
                     smart_print(f"{children_prefix}{action_conn}[blue bold]{str(action_key)}[/blue bold]")
                     for j, sub_tree in enumerate(sub_trees):
                         self._recursive_print_execution_log(sub_tree, sub_prefix, (j == len(sub_trees) - 1))
         
-        # 3. If it's a true leaf node (no body and no triggers), indicate that.
-        elif not orchestrated_body:
-             smart_print(f"{children_prefix}└── [dim italic]Leaf Node[/dim italic]")
+        # Note: Leaf node indication is now handled inline when printing the node itself
              
