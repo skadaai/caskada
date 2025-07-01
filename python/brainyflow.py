@@ -231,7 +231,8 @@ class Flow(BaseNode[M, PrepResultT, ExecutionTree, ActionT]):
         """Initialize a Flow with a start node, optional ID, and options."""
         super().__init__(id=id)
         self.start = start
-        self.options = options or {"max_visits": 15}
+        self.options = options or {}
+        self.options["max_visits"] = self.options.get("max_visits", 15)
         self.visit_counts: Dict[int, int] = {}
     
     async def exec(self, prep_res: PrepResultT) -> ExecutionTree:
