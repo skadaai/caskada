@@ -1,6 +1,6 @@
 """Node implementations for the communication example."""
 
-from brainyflow import Node
+from caskada import Node
 
 class EndNode(Node):
     """Node that handles flow termination."""

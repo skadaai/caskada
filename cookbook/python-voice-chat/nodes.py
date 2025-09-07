@@ -3,7 +3,7 @@ import scipy.io.wavfile
 import io
 import soundfile # For converting MP3 bytes to NumPy array
 
-from brainyflow import Node
+from caskada import Node
 from utils.audio_utils import record_audio, play_audio_data
 from utils.speech_to_text import speech_to_text_api
 from utils.call_llm import call_llm

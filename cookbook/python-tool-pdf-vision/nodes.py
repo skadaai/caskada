@@ -1,4 +1,4 @@
-from brainyflow import Node
+from caskada import Node
 from tools.pdf import pdf_to_images
 from tools.vision import extract_text_from_image
 from typing import List, Dict, Any
@@ -121,7 +121,7 @@ class CombineResultsNode(Node):
 
 def create_single_pdf_flow():
     """Create a flow for processing a single PDF"""
-    from brainyflow import Flow
+    from caskada import Flow
     
     # Create nodes
     load_pdf = LoadPDFNode()

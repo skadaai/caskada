@@ -72,7 +72,7 @@ python-tool-crawler/
 
 ## Dependencies
 
-- brainyflow: Flow-based processing
+- caskada: Flow-based processing
 - requests: HTTP requests
 - beautifulsoup4: HTML parsing
 - openai: GPT-4 API access

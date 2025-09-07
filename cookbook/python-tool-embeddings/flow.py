@@ -1,4 +1,4 @@
-from brainyflow import Flow
+from caskada import Flow
 from nodes import EmbeddingNode
 
 def create_embedding_flow():

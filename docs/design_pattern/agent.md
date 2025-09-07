@@ -76,7 +76,7 @@ First, we define (mock) our tool nodes.
 {% tab title="Python" %}
 
 ```python
-from brainyflow import Node
+from caskada import Node
 
 # Mock tool: Search
 class SearchTool(Node):
@@ -102,7 +102,7 @@ class SearchTool(Node):
 {% tab title="TypeScript" %}
 
 ```typescript
-import { Node } from 'brainyflow'
+import { Node } from 'caskada'
 
 // Mock tool: Search
 class SearchTool extends Node {
@@ -137,7 +137,7 @@ class SearchTool extends Node {
 {% tab title="Python" %}
 
 ````python
-from brainyflow import Node, Memory
+from caskada import Node, Memory
 
 class DecideAction(Node):
     async def prep(self, shared):
@@ -214,7 +214,7 @@ if __name__ == "__main__":
 
 ```````typescript
 import { parse } from 'yaml'
-import { Node, Flow } from './brainyflow'
+import { Node, Flow } from './caskada'
 
 class DecideAction extends Node {
   async prep(memory) {

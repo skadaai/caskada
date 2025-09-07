@@ -874,7 +874,7 @@ python-tool-search/
 
 ## Dependencies
 
-- brainyflow: Flow-based processing
+- caskada: Flow-based processing
 - google-search-results: SerpAPI client
 - openai: GPT-4 API access
 - pyyaml: YAML processing
@@ -2794,7 +2794,7 @@ python-tool-crawler/
 
 ## Dependencies
 
-- brainyflow: Flow-based processing
+- caskada: Flow-based processing
 - requests: HTTP requests
 - beautifulsoup4: HTML parsing
 - openai: GPT-4 API access
@@ -3385,7 +3385,7 @@ This project demonstrates a voice-based interactive chat application built with 
     pip install -r requirements.txt
     ```
 
-    This will install libraries such as `openai`, `brainyflow`, `sounddevice`, `numpy`, `scipy`, and `soundfile`.
+    This will install libraries such as `openai`, `caskada`, `sounddevice`, `numpy`, `scipy`, and `soundfile`.
 
     **Note for Linux users**: `sounddevice` may require PortAudio. If you encounter issues, you might need to install it first:
 
@@ -3825,10 +3825,10 @@ Here's what each part does:
         Lightweight: Just 300 lines. Zero bloat, zero dependencies, zero vendor lock-in.
         Expressive: Everything you love—(Multi-)Agents, Workflow, RAG, and more.
         Agentic Coding: Let AI Agents (e.g., Cursor AI) build Agents—10x productivity boost!
-        To install, pip install brainyflow or just copy the source code (only 300 lines)."
+        To install, pip install caskada or just copy the source code (only 300 lines)."
 
 🤖 Generated Answer:
-To install Caskada, use the command `pip install brainyflow` or simply copy its 300 lines of source code.
+To install Caskada, use the command `pip install caskada` or simply copy its 300 lines of source code.
 ```
 
 

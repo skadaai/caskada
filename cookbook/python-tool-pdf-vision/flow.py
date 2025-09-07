@@ -1,4 +1,4 @@
-from brainyflow import Flow
+from caskada import Flow
 from nodes import TriggerPDFNode, ProcessPDFNode
 
 def create_vision_flow():

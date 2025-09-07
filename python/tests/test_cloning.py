@@ -1,5 +1,5 @@
 import pytest
-from brainyflow import Node
+from caskada import Node
 
 class TestNodeCloneDeepCopying:
     """Tests that verify mutable attributes are properly deep-copied during node cloning."""

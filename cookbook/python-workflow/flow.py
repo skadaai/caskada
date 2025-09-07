@@ -1,4 +1,4 @@
-from brainyflow import Flow
+from caskada import Flow
 from nodes import GenerateOutline, WriteSimpleContent, ApplyStyle
 
 def create_article_flow():

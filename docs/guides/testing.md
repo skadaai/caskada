@@ -20,7 +20,7 @@ Individual nodes can be tested in isolation to verify their behavior:
 ```python
 import unittest
 from unittest.mock import AsyncMock, patch
-from brainyflow import Node
+from caskada import Node
 
 class TestSummarizeNode(unittest.TestCase):
     async def test_summarize_node(self):
@@ -100,7 +100,7 @@ Test complete flows to verify that nodes work together correctly:
 ```python
 import unittest
 from unittest.mock import AsyncMock, patch
-from brainyflow import Flow
+from caskada import Flow
 
 class TestQuestionAnsweringFlow(unittest.TestCase):
     async def test_qa_flow(self):
@@ -325,7 +325,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { callLLM } from './utils/callLLM' // Your LLM utility
 
 // import { MyLlmNode } from './MyLlmNode'; // Your Node implementation
-// import { Memory } from 'brainyflow'; // Assuming Memory is imported if needed
+// import { Memory } from 'caskada'; // Assuming Memory is imported if needed
 
 // Mock the LLM utility module
 vi.mock('./utils/callLLM', () => ({
@@ -374,7 +374,7 @@ To test retry behavior:
 ```python
 from unittest.mock import patch, AsyncMock
 import asyncio
-# from brainyflow import Node # Assuming Node is imported
+# from caskada import Node # Assuming Node is imported
 
 # Mock function that fails twice, then succeeds
 call_count_retry = 0
@@ -424,7 +424,7 @@ async def test_retry_logic():
 ```typescript
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-// import { Node, Memory } from 'brainyflow'; // Assuming imports
+// import { Node, Memory } from 'caskada'; // Assuming imports
 // import { someExternalCall } from './utils/externalCall'; // The function called by exec
 
 // Mock the external call module
@@ -497,7 +497,7 @@ Creating helper functions can make tests more readable and maintainable.
 
 ```python
 # Example helpers (can be placed in a conftest.py for pytest or a base class for unittest)
-# from brainyflow import Memory, Node # Assuming imports
+# from caskada import Memory, Node # Assuming imports
 
 def create_default_test_memory() -> dict:
     """Creates a standard dictionary for test memory."""
@@ -531,7 +531,7 @@ def assert_memory_contains(memory: dict, expected_data: dict):
 ```typescript
 import { expect } from 'vitest'
 
-// import { Node, Memory } from 'brainyflow'; // Assuming imports
+// import { Node, Memory } from 'caskada'; // Assuming imports
 
 // Define a type for your standard test memory if desired
 interface TestMemory {
@@ -591,7 +591,7 @@ Test that nodes properly handle invalid or unexpected inputs.
 ```python
 # Requires: pip install pytest pytest-asyncio
 import pytest
-# from brainyflow import Node, Memory # Assuming imports
+# from caskada import Node, Memory # Assuming imports
 # from my_nodes import MyNodeThatValidates # Your node
 
 @pytest.mark.parametrize("invalid_input", [None, "", {}, [], {"wrong_key": 1}])
@@ -620,7 +620,7 @@ async def test_node_handles_invalid_input(invalid_input):
 import { describe, expect, it } from 'vitest'
 
 // import { MyNodeThatValidates } from './MyNodeThatValidates'; // Your node
-// import { Memory } from 'brainyflow'; // Assuming imports
+// import { Memory } from 'caskada'; // Assuming imports
 
 describe('Input Validation', () => {
   const invalidInputs = [null, undefined, '', {}, [], { wrongKey: 1 }]
@@ -655,7 +655,7 @@ Test that flows follow the expected paths based on node triggers.
 
 ```python
 import asyncio
-# from brainyflow import Node, Flow, Memory # Assuming imports
+# from caskada import Node, Flow, Memory # Assuming imports
 
 async def test_flow_follows_correct_path():
     """Tests if the flow executes nodes in the expected sequence."""
@@ -703,7 +703,7 @@ async def test_flow_follows_correct_path():
 ```typescript
 import { describe, expect, it } from 'vitest'
 
-// import { Node, Flow, Memory, BaseNode } from 'brainyflow'; // Assuming imports
+// import { Node, Flow, Memory, BaseNode } from 'caskada'; // Assuming imports
 
 describe('Flow Path Testing', () => {
   it('should follow the correct path based on triggers', async () => {

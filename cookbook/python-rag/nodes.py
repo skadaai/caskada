@@ -1,4 +1,4 @@
-from brainyflow import Node
+from caskada import Node
 import numpy as np
 import faiss
 from utils import call_llm, get_embedding, fixed_size_chunk

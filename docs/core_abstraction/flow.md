@@ -12,7 +12,7 @@ A Flow begins with a **start node**, a memory state, and follows the [action-bas
 {% tab title="Python" %}
 
 ```python
-from brainyflow import Flow, Node
+from caskada import Flow, Node
 
 # Define nodes and transitions (placeholders for actual node classes)
 # node_a = NodeA()
@@ -44,7 +44,7 @@ print('Execution Tree:', execution_result)
 {% tab title="TypeScript" %}
 
 ```typescript
-import { Flow, Memory, Node } from 'brainyflow'
+import { Flow, Memory, Node } from 'caskada'
 
 // Define nodes and transitions (placeholders for actual node classes)
 // const node_a = new YourActualNode();
@@ -100,7 +100,7 @@ Here's a simple expense approval flow that demonstrates branching and looping:
 {% tab title="Python" %}
 
 ```python
-from brainyflow import Flow, Node
+from caskada import Flow, Node
 
 # Define the nodes first (placeholders for actual node classes)
 # review = ReviewExpenseNode()
@@ -126,7 +126,7 @@ expense_flow = Flow(start=review)
 {% tab title="TypeScript" %}
 
 ```typescript
-import { Flow, Node } from 'brainyflow'
+import { Flow, Node } from 'caskada'
 
 // Define the nodes first (placeholders for actual node classes)
 // const review = new ReviewExpenseNode()
@@ -196,7 +196,7 @@ Here's a practical example that breaks down order processing into nested flows:
 {% tab title="Python" %}
 
 ```python
-from brainyflow import Flow, Node
+from caskada import Flow, Node
 
 # Payment processing sub-flow
 validate_payment >> process_payment >> payment_confirmation
@@ -226,7 +226,7 @@ print('Order pipeline completed. Final state:', memory)
 {% tab title="TypeScript" %}
 
 ```typescript
-import { Flow, Node } from 'brainyflow'
+import { Flow, Node } from 'caskada'
 
 // Payment processing sub-flow
 validatePayment.next(processPayment).next(paymentConfirmation)
@@ -387,7 +387,7 @@ When using `ParallelFlow`, be mindful of potential race conditions if multiple p
 For more advanced control over how triggered branches are executed, you can extend `Flow` (or `ParallelFlow`) and override the `runTasks` method. This method receives a list of functions, where each function, when called, will execute one triggered branch.
 
 ```typescript
-import { Flow, Memory } from 'brainyflow'
+import { Flow, Memory } from 'caskada'
 
 declare function sleep(ms: number): Promise<void>
 

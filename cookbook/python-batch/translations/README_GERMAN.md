@@ -7,7 +7,7 @@
 <p>
 
 <p align="center">
-  Ein radikal minimalistisches KI-Framework (nur <a href="https://github.com/skadaai/caskada/blob/main/python/brainyflow.py">200 Zeilen in Python</a>! 🤯)
+  Ein radikal minimalistisches KI-Framework (nur <a href="https://github.com/skadaai/caskada/blob/main/python/caskada.py">200 Zeilen in Python</a>! 🤯)
 
   <br />
   Erstelle leistungsstarke KI-Agenten mit minimalem Code und maximaler Freiheit.
@@ -17,11 +17,11 @@
 
 <p align="center">
 
-  <a href="https://pypi.org/project/brainyflow">
-   <img src="https://img.shields.io/pypi/dw/brainyflow?logo=python&label=Python&style=flat-square" alt="Python-Version">
+  <a href="https://pypi.org/project/caskada">
+   <img src="https://img.shields.io/pypi/dw/caskada?logo=python&label=Python&style=flat-square" alt="Python-Version">
   </a>
-  <a href="https://npmjs.com/packages/brainyflow">
-   <img src="https://img.shields.io/npm/d18m/brainyflow?logo=typescript&label=Typescript&style=flat-square" alt="Typescript-Version">
+  <a href="https://npmjs.com/packages/caskada">
+   <img src="https://img.shields.io/npm/d18m/caskada?logo=typescript&label=Typescript&style=flat-square" alt="Typescript-Version">
   </a>
   <a href="https://discord.gg/N9mVvxRXyH">
     <img src="https://img.shields.io/discord/1346833819172601907?logo=discord&style=flat-square" alt="Discord">
@@ -48,7 +48,7 @@ Es ermöglicht sowohl Menschen als auch KI-Assistenten, effektiv an der Gestaltu
 - **Leistungsstark 🦾**: Unterstützt alles, was du liebst – ([Multi-](https://brainy.gitbook.io/flow/design_pattern/multi_agent))[Agenten](https://brainy.gitbook.io/flow/design_pattern/agent), [Workflow](https://brainy.gitbook.io/flow/design_pattern/workflow), [RAG](https://brainy.gitbook.io/flow/design_pattern/rag) und mehr
 - **Agentic-Coding 🤖**: Für die KI-unterstützte Entwicklung konzipiert
 - **Universell 🌈**: Funktioniert mit jedem LLM-Anbieter oder API
-- **Polyglott 🌍**: <!-- gitbook-ignore-start --><a href="https://pypi.org/project/brainyflow"><img src="https://github.com/skadaai/caskada/raw/main/.github/media/python.svg" width="16" height="16" alt="Python-Logo" style="vertical-align: middle; margin: 0 2px;"></a><!-- gitbook-ignore-end --> Python und <!-- gitbook-ignore-start --><a href="https://npmjs.com/packages/brainyflow"><img src="https://github.com/skadaai/caskada/raw/main/.github/media/typescript.svg" width="16" height="16" alt="Typescript-Logo" style="vertical-align: middle; margin: 0 2px;"></a><!-- gitbook-ignore-end --> Typescript werden beide unterstützt
+- **Polyglott 🌍**: <!-- gitbook-ignore-start --><a href="https://pypi.org/project/caskada"><img src="https://github.com/skadaai/caskada/raw/main/.github/media/python.svg" width="16" height="16" alt="Python-Logo" style="vertical-align: middle; margin: 0 2px;"></a><!-- gitbook-ignore-end --> Python und <!-- gitbook-ignore-start --><a href="https://npmjs.com/packages/caskada"><img src="https://github.com/skadaai/caskada/raw/main/.github/media/typescript.svg" width="16" height="16" alt="Typescript-Logo" style="vertical-align: middle; margin: 0 2px;"></a><!-- gitbook-ignore-end --> Typescript werden beide unterstützt
 
 ![](https://raw.githubusercontent.com/skadaai/caskada/master/.github/media/divider.png)
 
@@ -90,7 +90,7 @@ Aktuelle LLM-Frameworks sind aufgebläht... Du brauchst tatsächlich nur 200 Zei
 
 ## Wie funktioniert Caskada?
 
-Die einzelne Datei in <a href="https://github.com/skadaai/caskada/blob/main/python/brainyflow.py"><!-- gitbook-ignore-start --><img src="https://github.com/skadaai/caskada/raw/main/.github/media/python.svg" width="16" height="16" alt="Python-Logo" style="vertical-align: middle; margin: 0 2px;"> <!-- gitbook-ignore-end -->Python</a> oder <a href="https://github.com/skadaai/caskada/blob/main/typescript/brainyflow.ts"><!-- gitbook-ignore-start --><img src="https://github.com/skadaai/caskada/raw/main/.github/media/typescript.svg" width="16" height="16" alt="Typescript-Logo" style="vertical-align: middle; margin: 0 2px;"> <!-- gitbook-ignore-end -->Typescript</a> erfasst die Kernabstraktion von LLM-Frameworks: Graph!
+Die einzelne Datei in <a href="https://github.com/skadaai/caskada/blob/main/python/caskada.py"><!-- gitbook-ignore-start --><img src="https://github.com/skadaai/caskada/raw/main/.github/media/python.svg" width="16" height="16" alt="Python-Logo" style="vertical-align: middle; margin: 0 2px;"> <!-- gitbook-ignore-end -->Python</a> oder <a href="https://github.com/skadaai/caskada/blob/main/typescript/caskada.ts"><!-- gitbook-ignore-start --><img src="https://github.com/skadaai/caskada/raw/main/.github/media/typescript.svg" width="16" height="16" alt="Typescript-Logo" style="vertical-align: middle; margin: 0 2px;"> <!-- gitbook-ignore-end -->Typescript</a> erfasst die Kernabstraktion von LLM-Frameworks: Graph!
 <br>
 
 <div align="center">
@@ -165,14 +165,14 @@ Wir übernehmen keine Verantwortung für die Verwendung der generierten Ausgaben
 ## Sponsoren
 
 <p align="center">
-  <a style="color: inherit" href="https://github.com/sponsors/zvictor?utm_source=brainyflow&utm_medium=sponsorship&utm_campaign=brainyflow&utm_id=brainyflow">
+  <a style="color: inherit" href="https://github.com/sponsors/zvictor?utm_source=caskada&utm_medium=sponsorship&utm_campaign=caskada&utm_id=caskada">
     <img width="150" src="https://cdn.jsdelivr.net/gh/skadaai/caskada@main/.github/media/brain.png" alt="Caskadas Logo" />
   </a><br /><br />
   Caskada läuft mit 200 Codezeilen und deiner Großzügigkeit! 💰<br />
-    <a style="color: inherit" href="https://github.com/sponsors/zvictor?utm_source=brainyflow&utm_medium=sponsorship&utm_campaign=brainyflow&utm_id=brainyflow">
+    <a style="color: inherit" href="https://github.com/sponsors/zvictor?utm_source=caskada&utm_medium=sponsorship&utm_campaign=caskada&utm_id=caskada">
       Hilf uns, mehr KI mit weniger Code (aber vielleicht mehr Koffein) zu liefern
     </a> ☕<br /><br />
-    <a style="color: inherit" href="https://github.com/sponsors/zvictor?utm_source=brainyflow&utm_medium=sponsorship&utm_campaign=brainyflow&utm_id=brainyflow">Deine Unterstützung</a> hilft, es minimalistisch, leistungsstark und abhängigkeitsfrei zu halten! 🚀
+    <a style="color: inherit" href="https://github.com/sponsors/zvictor?utm_source=caskada&utm_medium=sponsorship&utm_campaign=caskada&utm_id=caskada">Deine Unterstützung</a> hilft, es minimalistisch, leistungsstark und abhängigkeitsfrei zu halten! 🚀
   </a>
 </p>
 

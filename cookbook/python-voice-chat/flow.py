@@ -1,4 +1,4 @@
-from brainyflow import Flow
+from caskada import Flow
 from nodes import CaptureAudioNode, SpeechToTextNode, QueryLLMNode, TextToSpeechNode
 
 def create_voice_chat_flow() -> Flow:

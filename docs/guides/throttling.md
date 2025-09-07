@@ -21,7 +21,7 @@ These patterns limit the number of concurrent operations within a node.
 
 ```python
 import asyncio
-from brainyflow import Node, Memory # Assuming imports
+from caskada import Node, Memory # Assuming imports
 
 class LimitedParallelNode(Node):
     def __init__(self, concurrency_limit: int = 3, **kwargs): # Allow passing other Node args
@@ -77,7 +77,7 @@ class LimitedParallelNode(Node):
 
 ```typescript
 // Requires: npm install p-limit
-import { Memory, Node } from 'brainyflow' // Assuming imports
+import { Memory, Node } from 'caskada' // Assuming imports
 import pLimit from 'p-limit'
 
 class LimitedParallelNodeTs extends Node {
@@ -386,7 +386,7 @@ class ThrottledLLMNode(Node):
 {% tab title="TypeScript" %}
 
 ```typescript
-import { Memory, Node, NodeError } from 'brainyflow'
+import { Memory, Node, NodeError } from 'caskada'
 import { RateLimiter } from 'limiter'
 
 class ThrottledLLMNode extends Node {

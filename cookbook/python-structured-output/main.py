@@ -1,6 +1,6 @@
 import yaml
 import os  # Needed for the utils import below
-from brainyflow import Node, Flow
+from caskada import Node, Flow
 from utils import call_llm # Assumes utils.py with call_llm exists
 
 class ResumeParserNode(Node):

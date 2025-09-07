@@ -72,7 +72,7 @@ python-tool-search/
 
 ## Dependencies
 
-- brainyflow: Flow-based processing
+- caskada: Flow-based processing
 - google-search-results: SerpAPI client
 - openai: GPT-4 API access
 - pyyaml: YAML processing

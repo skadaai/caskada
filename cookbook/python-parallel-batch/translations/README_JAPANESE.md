@@ -7,7 +7,7 @@
 <p>
 
 <p align="center">
-  革命的にミニマルなAIフレームワーク（たった<a href="https://github.com/skadaai/caskada/blob/main/python/brainyflow.py">Pythonで200行</a>! 🤯）
+  革命的にミニマルなAIフレームワーク（たった<a href="https://github.com/skadaai/caskada/blob/main/python/caskada.py">Pythonで200行</a>! 🤯）
 
   <br />
   最小限のコードで強力なAIエージェントを構築し、最大限の自由度を実現。
@@ -17,11 +17,11 @@
 
 <p align="center">
 
-  <a href="https://pypi.org/project/brainyflow">
-   <img src="https://img.shields.io/pypi/dw/brainyflow?logo=python&label=Python&style=flat-square" alt="pythonバージョン">
+  <a href="https://pypi.org/project/caskada">
+   <img src="https://img.shields.io/pypi/dw/caskada?logo=python&label=Python&style=flat-square" alt="pythonバージョン">
   </a>
-  <a href="https://npmjs.com/packages/brainyflow">
-   <img src="https://img.shields.io/npm/d18m/brainyflow?logo=typescript&label=Typescript&style=flat-square" alt="typescriptバージョン">
+  <a href="https://npmjs.com/packages/caskada">
+   <img src="https://img.shields.io/npm/d18m/caskada?logo=typescript&label=Typescript&style=flat-square" alt="typescriptバージョン">
   </a>
   <a href="https://discord.gg/N9mVvxRXyH">
     <img src="https://img.shields.io/discord/1346833819172601907?logo=discord&style=flat-square" alt="Discord">
@@ -48,7 +48,7 @@ Caskadaは、強力な抽象化を通じて_エージェンシックコーディ
 - **強力 🦾**: お気に入りのすべてをサポート（[マルチ](https://brainy.gitbook.io/flow/design_pattern/multi_agent)）[エージェント](https://brainy.gitbook.io/flow/design_pattern/agent)、[ワークフロー](https://brainy.gitbook.io/flow/design_pattern/workflow)、[RAG](https://brainy.gitbook.io/flow/design_pattern/rag)など
 - **エージェンシックコーディング 🤖**: AI支援開発向けに設計
 - **ユニバーサル 🌈**: 任意のLLMプロバイダーまたはAPIと連携
-- **多言語対応 🌍**: <!-- gitbook-ignore-start --><a href="https://pypi.org/project/brainyflow"><img src="https://github.com/skadaai/caskada/raw/main/.github/media/python.svg" width="16" height="16" alt="Pythonロゴ" style="vertical-align: middle; margin: 0 2px;"></a><!-- gitbook-ignore-end --> Pythonと<!-- gitbook-ignore-start --><a href="https://npmjs.com/packages/brainyflow"><img src="https://github.com/skadaai/caskada/raw/main/.github/media/typescript.svg" width="16" height="16" alt="Typescriptロゴ" style="vertical-align: middle; margin: 0 2px;"></a><!-- gitbook-ignore-end --> Typescriptの両方をサポート
+- **多言語対応 🌍**: <!-- gitbook-ignore-start --><a href="https://pypi.org/project/caskada"><img src="https://github.com/skadaai/caskada/raw/main/.github/media/python.svg" width="16" height="16" alt="Pythonロゴ" style="vertical-align: middle; margin: 0 2px;"></a><!-- gitbook-ignore-end --> Pythonと<!-- gitbook-ignore-start --><a href="https://npmjs.com/packages/caskada"><img src="https://github.com/skadaai/caskada/raw/main/.github/media/typescript.svg" width="16" height="16" alt="Typescriptロゴ" style="vertical-align: middle; margin: 0 2px;"></a><!-- gitbook-ignore-end --> Typescriptの両方をサポート
 
 ![](https://raw.githubusercontent.com/skadaai/caskada/master/.github/media/divider.png)
 
@@ -90,7 +90,7 @@ Caskadaは、強力な抽象化を通じて_エージェンシックコーディ
 
 ## Caskadaの仕組み
 
-単一ファイルの<a href="https://github.com/skadaai/caskada/blob/main/python/brainyflow.py"><!-- gitbook-ignore-start --><img src="https://github.com/skadaai/caskada/raw/main/.github/media/python.svg" width="16" height="16" alt="Pythonロゴ" style="vertical-align: middle; margin: 0 2px;"> <!-- gitbook-ignore-end -->Python</a>または<a href="https://github.com/skadaai/caskada/blob/main/typescript/brainyflow.ts"><!-- gitbook-ignore-start --><img src="https://github.com/skadaai/caskada/raw/main/.github/media/typescript.svg" width="16" height="16" alt="Typescriptロゴ" style="vertical-align: middle; margin: 0 2px;"> <!-- gitbook-ignore-end -->Typescript</a>がLLMフレームワークのコア抽象化であるグラフをキャプチャします！
+単一ファイルの<a href="https://github.com/skadaai/caskada/blob/main/python/caskada.py"><!-- gitbook-ignore-start --><img src="https://github.com/skadaai/caskada/raw/main/.github/media/python.svg" width="16" height="16" alt="Pythonロゴ" style="vertical-align: middle; margin: 0 2px;"> <!-- gitbook-ignore-end -->Python</a>または<a href="https://github.com/skadaai/caskada/blob/main/typescript/caskada.ts"><!-- gitbook-ignore-start --><img src="https://github.com/skadaai/caskada/raw/main/.github/media/typescript.svg" width="16" height="16" alt="Typescriptロゴ" style="vertical-align: middle; margin: 0 2px;"> <!-- gitbook-ignore-end -->Typescript</a>がLLMフレームワークのコア抽象化であるグラフをキャプチャします！
 <br>
 
 <div align="center">
@@ -177,14 +177,14 @@ Caskadaは「現状のまま」提供され、いかなる保証もありませ�
 ## スポンサー
 
 <p align="center">
-  <a style="color: inherit" href="https://github.com/sponsors/zvictor?utm_source=brainyflow&utm_medium=sponsorship&utm_campaign=brainyflow&utm_id=brainyflow">
+  <a style="color: inherit" href="https://github.com/sponsors/zvictor?utm_source=caskada&utm_medium=sponsorship&utm_campaign=caskada&utm_id=caskada">
     <img width="150" src="https://cdn.jsdelivr.net/gh/skadaai/caskada@main/.github/media/brain.png" alt="Caskadaのロゴ" />
   </a><br /><br />
   Caskadaは200行のコードとあなたの寛大さで動いています！ 💰<br />
-    <a style="color: inherit" href="https://github.com/sponsors/zvictor?utm_source=brainyflow&utm_medium=sponsorship&utm_campaign=brainyflow&utm_id=brainyflow">
+    <a style="color: inherit" href="https://github.com/sponsors/zvictor?utm_source=caskada&utm_medium=sponsorship&utm_campaign=caskada&utm_id=caskada">
       より多くのAIをより少ないコードで提供するのを手伝ってください（ただし、カフェインはもっと必要かもしれません）
     </a> ☕<br /><br />
-    <a style="color: inherit" href="https://github.com/sponsors/zvictor?utm_source=brainyflow&utm_medium=sponsorship&utm_campaign=brainyflow&utm_id=brainyflow">あなたのサポート</a>が、Caskadaをミニマルで強力で依存関係のない状態に保つのに役立ちます！ 🚀
+    <a style="color: inherit" href="https://github.com/sponsors/zvictor?utm_source=caskada&utm_medium=sponsorship&utm_campaign=caskada&utm_id=caskada">あなたのサポート</a>が、Caskadaをミニマルで強力で依存関係のない状態に保つのに役立ちます！ 🚀
   </a>
 </p>
 

@@ -1,6 +1,6 @@
 # Caskada Python Test Plan
 
-This document outlines the testing strategy for the Python port of the `brainyflow` library, ensuring parity with the TypeScript implementation.
+This document outlines the testing strategy for the Python port of the `caskada` library, ensuring parity with the TypeScript implementation.
 
 ## 1. Goals
 
@@ -187,7 +187,7 @@ pytest tests/test_parallel_flow.py   # Test just ParallelFlow
 For coverage reporting:
 
 ```bash
-pytest tests/ --cov=brainyflow --cov-report=html
+pytest tests/ --cov=caskada --cov-report=html
 ```
 
 ## 7. Testing Utilities

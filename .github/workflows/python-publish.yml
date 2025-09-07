@@ -58,7 +58,7 @@ jobs:
           fi
           echo "Current version from setup.py: $CURRENT_VERSION"
 
-          pnpm pkg set name=brainyflow
+          pnpm pkg set name=caskada
           pnpm pkg set version=$CURRENT_VERSION # Use extracted version
 
           echo "Running changeset version..."
@@ -145,10 +145,10 @@ jobs:
 
             ### Installation
 
-            pip install brainyflow==${{ steps.version.outputs.new_version }}
+            pip install caskada==${{ steps.version.outputs.new_version }}
 
             ### PyPI Package
-            🐍 [View on PyPI](https://pypi.org/project/brainyflow/${{ steps.version.outputs.new_version }}/)
+            🐍 [View on PyPI](https://pypi.org/project/caskada/${{ steps.version.outputs.new_version }}/)
           draft: false
           prerelease: false
 

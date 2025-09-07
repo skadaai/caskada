@@ -1,4 +1,4 @@
-from brainyflow import Flow
+from caskada import Flow
 from mapreduce import mapreduce
 from nodes import CrawlWebsiteNode, AnalyzeContentNode, GenerateReportNode
 

@@ -34,7 +34,7 @@ This project demonstrates a voice-based interactive chat application built with 
     pip install -r requirements.txt
     ```
 
-    This will install libraries such as `openai`, `brainyflow`, `sounddevice`, `numpy`, `scipy`, and `soundfile`.
+    This will install libraries such as `openai`, `caskada`, `sounddevice`, `numpy`, `scipy`, and `soundfile`.
 
     **Note for Linux users**: `sounddevice` may require PortAudio. If you encounter issues, you might need to install it first:
 

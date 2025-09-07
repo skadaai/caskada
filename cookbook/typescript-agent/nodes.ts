@@ -1,4 +1,4 @@
-import { Memory, Node } from 'brainyflow'
+import { Memory, Node } from 'caskada'
 import { parse } from 'yaml'
 import { callLLM, webSearch } from './utils'
 

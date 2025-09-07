@@ -1,5 +1,5 @@
 # cookbook/python-thinking/nodes.py
-from brainyflow import Node
+from caskada import Node
 import yaml
 from utils import call_llm
 import textwrap

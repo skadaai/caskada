@@ -7,7 +7,7 @@
 <p>
 
 <p align="center">
-  Un marco de IA radicalmente minimalista (¡solo <a href="https://github.com/skadaai/caskada/blob/main/python/brainyflow.py">200 líneas en Python</a>! 🤯)
+  Un marco de IA radicalmente minimalista (¡solo <a href="https://github.com/skadaai/caskada/blob/main/python/caskada.py">200 líneas en Python</a>! 🤯)
 
   <br />
   Construye agentes de IA poderosos con código mínimo y máxima libertad.
@@ -17,11 +17,11 @@
 
 <p align="center">
 
-  <a href="https://pypi.org/project/brainyflow">
-   <img src="https://img.shields.io/pypi/dw/brainyflow?logo=python&label=Python&style=flat-square" alt="versión de Python">
+  <a href="https://pypi.org/project/caskada">
+   <img src="https://img.shields.io/pypi/dw/caskada?logo=python&label=Python&style=flat-square" alt="versión de Python">
   </a>
-  <a href="https://npmjs.com/package/brainyflow">
-   <img src="https://img.shields.io/npm/d18m/brainyflow?logo=typescript&label=Typescript&style=flat-square" alt="versión de TypeScript">
+  <a href="https://npmjs.com/package/caskada">
+   <img src="https://img.shields.io/npm/d18m/caskada?logo=typescript&label=Typescript&style=flat-square" alt="versión de TypeScript">
   </a>
   <a href="https://discord.gg/N9mVvxRXyH">
     <img src="https://img.shields.io/discord/1346833819172601907?logo=discord&style=flat-square" alt="Discord">

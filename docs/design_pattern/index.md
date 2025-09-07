@@ -95,7 +95,7 @@ Each pattern can be implemented using Caskada's core abstractions. Here's a simp
 {% tab title="Python" %}
 
 ```python
-from brainyflow import Flow, Node
+from caskada import Flow, Node
 
 # Define the agent's components (assuming these classes exist)
 perceive = PerceiveNode()
@@ -114,7 +114,7 @@ agent_flow = Flow(start=perceive)
 {% tab title="TypeScript" %}
 
 ```typescript
-import { Flow, Node } from 'brainyflow'
+import { Flow, Node } from 'caskada'
 
 // Define the agent's components (assuming these classes exist)
 const perceive = new PerceiveNode()

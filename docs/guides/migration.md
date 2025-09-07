@@ -259,7 +259,7 @@ class TranslateTextBatchNode(BatchNode):
 ```python
 # After (v1.0) - Using Flow Patterns with ParallelFlow
 
-from brainyflow import Node, Memory
+from caskada import Node, Memory
 
 # 1. Trigger Node (Fans out work)
 class TriggerTranslationsNode(Node):
@@ -328,7 +328,7 @@ class TranslateTextBatchNode extends BatchNode<any, any, any, [string, string], 
 ```typescript
 // After (v1.0) - Using Flow Patterns with ParallelFlow
 
-import { Memory, Node } from 'brainyflow'
+import { Memory, Node } from 'caskada'
 
 // Define Memory structure (optional but recommended)
 interface TranslationGlobalStore {

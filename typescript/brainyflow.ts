@@ -311,6 +311,6 @@ export class ParallelFlow<GS extends SharedStore = SharedStore, AllowedActions e
 }
 
 // @ts-ignore Make classes available globally in the browser for UMD bundle
-if (typeof window !== 'undefined' && !(globalThis as any).brainyflow) {
-  ;(globalThis as any).brainyflow = { createMemory, BaseNode, Node, Flow, ParallelFlow, DEFAULT_ACTION }
+if (typeof window !== 'undefined' && !(globalThis as any).caskada) {
+  ;(globalThis as any).caskada = { createMemory, BaseNode, Node, Flow, ParallelFlow, DEFAULT_ACTION }
 }

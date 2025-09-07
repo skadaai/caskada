@@ -1,3 +1,3 @@
-brainyflow
+caskada
 aiohttp>=3.8.0  # For async HTTP requests
 openai>=1.0.0   # For async LLM calls 

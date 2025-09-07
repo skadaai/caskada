@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@phukon/duckduckgo-search": "^1.1.0",
-    "brainyflow": "^1.0.0",
+    "caskada": "^1.0.0",
     "openai": "^4.103.0",
     "yaml": "^2.8.0"
   }

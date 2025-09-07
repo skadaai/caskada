@@ -1,16 +1,16 @@
 {
-  "name": "brainyflow",
+  "name": "caskada",
   "version": "2.1.0",
   "type": "module",
-  "types": "./dist/brainyflow.d.ts",
+  "types": "./dist/caskada.d.ts",
   "exports": {
     ".": {
       "types": {
-        "import": "./dist/brainyflow.d.ts",
-        "require": "./dist/brainyflow.d.cts"
+        "import": "./dist/caskada.d.ts",
+        "require": "./dist/caskada.d.cts"
       },
-      "import": "./dist/brainyflow.js",
-      "require": "./dist/brainyflow.cjs"
+      "import": "./dist/caskada.js",
+      "require": "./dist/caskada.cjs"
     }
   },
   "files": [

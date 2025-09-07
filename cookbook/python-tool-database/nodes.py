@@ -1,4 +1,4 @@
-from brainyflow import Node
+from caskada import Node
 from tools.database import execute_sql, init_db
 
 class InitDatabaseNode(Node):

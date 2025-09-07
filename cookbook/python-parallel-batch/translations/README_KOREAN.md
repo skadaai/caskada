@@ -7,7 +7,7 @@
 <p>
 
 <p align="center">
-  혁신적으로 미니멀한 AI 프레임워크 (<a href="https://github.com/skadaai/caskada/blob/main/python/brainyflow.py">파이썬으로 단 200줄</a>! 🤯)
+  혁신적으로 미니멀한 AI 프레임워크 (<a href="https://github.com/skadaai/caskada/blob/main/python/caskada.py">파이썬으로 단 200줄</a>! 🤯)
 
   <br />
   최소한의 코드와 최대한의 자유로 강력한 AI 에이전트를 구축하세요.
@@ -17,11 +17,11 @@
 
 <p align="center">
 
-  <a href="https://pypi.org/project/brainyflow">
-   <img src="https://img.shields.io/pypi/dw/brainyflow?logo=python&label=Python&style=flat-square" alt="python 버전">
+  <a href="https://pypi.org/project/caskada">
+   <img src="https://img.shields.io/pypi/dw/caskada?logo=python&label=Python&style=flat-square" alt="python 버전">
   </a>
-  <a href="https://npmjs.com/packages/brainyflow">
-   <img src="https://img.shields.io/npm/d18m/brainyflow?logo=typescript&label=Typescript&style=flat-square" alt="typescript 버전">
+  <a href="https://npmjs.com/packages/caskada">
+   <img src="https://img.shields.io/npm/d18m/caskada?logo=typescript&label=Typescript&style=flat-square" alt="typescript 버전">
   </a>
   <a href="https://discord.gg/N9mVvxRXyH">
     <img src="https://img.shields.io/discord/1346833819172601907?logo=discord&style=flat-square" alt="Discord">
@@ -48,7 +48,7 @@ Caskada는 _에이전트 코딩_을 가능하게 하는 강력한 추상화를 �
 - **강력함 🦾**: 여러분이 좋아하는 모든 것 지원—([멀티](https://brainy.gitbook.io/flow/design_pattern/multi_agent))[에이전트](https://brainy.gitbook.io/flow/design_pattern/agent), [워크플로우](https://brainy.gitbook.io/flow/design_pattern/workflow), [RAG](https://brainy.gitbook.io/flow/design_pattern/rag) 등
 - **에이전트 코딩 🤖**: AI 지원 개발을 위해 설계
 - **범용성 🌈**: 모든 LLM 제공자나 API와 호환
-- **다언어 지원 🌍**: <!-- gitbook-ignore-start --><a href="https://pypi.org/project/brainyflow"><img src="https://github.com/skadaai/caskada/raw/main/.github/media/python.svg" width="16" height="16" alt="Python 로고" style="vertical-align: middle; margin: 0 2px;"></a><!-- gitbook-ignore-end --> 파이썬과 <!-- gitbook-ignore-start --><a href="https://npmjs.com/packages/brainyflow"><img src="https://github.com/skadaai/caskada/raw/main/.github/media/typescript.svg" width="16" height="16" alt="Typescript 로고" style="vertical-align: middle; margin: 0 2px;"></a><!-- gitbook-ignore-end --> 타입스크립트 모두 지원
+- **다언어 지원 🌍**: <!-- gitbook-ignore-start --><a href="https://pypi.org/project/caskada"><img src="https://github.com/skadaai/caskada/raw/main/.github/media/python.svg" width="16" height="16" alt="Python 로고" style="vertical-align: middle; margin: 0 2px;"></a><!-- gitbook-ignore-end --> 파이썬과 <!-- gitbook-ignore-start --><a href="https://npmjs.com/packages/caskada"><img src="https://github.com/skadaai/caskada/raw/main/.github/media/typescript.svg" width="16" height="16" alt="Typescript 로고" style="vertical-align: middle; margin: 0 2px;"></a><!-- gitbook-ignore-end --> 타입스크립트 모두 지원
 
 ![](https://raw.githubusercontent.com/skadaai/caskada/master/.github/media/divider.png)
 
@@ -90,7 +90,7 @@ Caskada는 _에이전트 코딩_을 가능하게 하는 강력한 추상화를 �
 
 ## Caskada는 어떻게 동작하나요?
 
-<a href="https://github.com/skadaai/caskada/blob/main/python/brainyflow.py"><!-- gitbook-ignore-start --><img src="https://github.com/skadaai/caskada/raw/main/.github/media/python.svg" width="16" height="16" alt="Python 로고" style="vertical-align: middle; margin: 0 2px;"> <!-- gitbook-ignore-end -->파이썬</a> 또는 <a href="https://github.com/skadaai/caskada/blob/main/typescript/brainyflow.ts"><!-- gitbook-ignore-start --><img src="https://github.com/skadaai/caskada/raw/main/.github/media/typescript.svg" width="16" height="16" alt="Typescript 로고" style="vertical-align: middle; margin: 0 2px;"> <!-- gitbook-ignore-end -->타입스크립트</a>의 단일 파일은 LLM 프레임워크의 핵심 추상화인 그래프를 담고 있습니다!
+<a href="https://github.com/skadaai/caskada/blob/main/python/caskada.py"><!-- gitbook-ignore-start --><img src="https://github.com/skadaai/caskada/raw/main/.github/media/python.svg" width="16" height="16" alt="Python 로고" style="vertical-align: middle; margin: 0 2px;"> <!-- gitbook-ignore-end -->파이썬</a> 또는 <a href="https://github.com/skadaai/caskada/blob/main/typescript/caskada.ts"><!-- gitbook-ignore-start --><img src="https://github.com/skadaai/caskada/raw/main/.github/media/typescript.svg" width="16" height="16" alt="Typescript 로고" style="vertical-align: middle; margin: 0 2px;"> <!-- gitbook-ignore-end -->타입스크립트</a>의 단일 파일은 LLM 프레임워크의 핵심 추상화인 그래프를 담고 있습니다!
 <br>
 
 <div align="center">
@@ -177,14 +177,14 @@ Caskada는 "있는 그대로" 제공되며 어떠한 보증이나 보장도 없�
 ## 스폰서
 
 <p align="center">
-  <a style="color: inherit" href="https://github.com/sponsors/zvictor?utm_source=brainyflow&utm_medium=sponsorship&utm_campaign=brainyflow&utm_id=brainyflow">
+  <a style="color: inherit" href="https://github.com/sponsors/zvictor?utm_source=caskada&utm_medium=sponsorship&utm_campaign=caskada&utm_id=caskada">
     <img width="150" src="https://cdn.jsdelivr.net/gh/skadaai/caskada@main/.github/media/brain.png" alt="Caskada 로고" />
   </a><br /><br />
   Caskada는 200줄의 코드와 여러분의 관대함으로 동작합니다! 💰<br />
-    <a style="color: inherit" href="https://github.com/sponsors/zvictor?utm_source=brainyflow&utm_medium=sponsorship&utm_campaign=brainyflow&utm_id=brainyflow">
+    <a style="color: inherit" href="https://github.com/sponsors/zvictor?utm_source=caskada&utm_medium=sponsorship&utm_campaign=caskada&utm_id=caskada">
       더 많은 AI를 더 적은 코드로 제공할 수 있도록 도와주세요 (그러나 커피는 더 필요할지도 모릅니다)
     </a> ☕<br /><br />
-    <a style="color: inherit" href="https://github.com/sponsors/zvictor?utm_source=brainyflow&utm_medium=sponsorship&utm_campaign=brainyflow&utm_id=brainyflow">여러분의 지원</a>이 Caskada를 미니멀하고 강력하며 의존성 없이 유지하는 데 도움이 됩니다! 🚀
+    <a style="color: inherit" href="https://github.com/sponsors/zvictor?utm_source=caskada&utm_medium=sponsorship&utm_campaign=caskada&utm_id=caskada">여러분의 지원</a>이 Caskada를 미니멀하고 강력하며 의존성 없이 유지하는 데 도움이 됩니다! 🚀
   </a>
 </p>
 

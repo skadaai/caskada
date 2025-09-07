@@ -1,4 +1,4 @@
-from brainyflow import Flow
+from caskada import Flow
 from nodes import ProcessNode, ReviewNode, ResultNode
 
 def create_feedback_flow():

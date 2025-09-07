@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { afterEach, beforeEach, describe, it, mock } from 'node:test'
-import { BaseNode, createMemory, DEFAULT_ACTION, Memory, Node, NodeError } from '../brainyflow'
+import { BaseNode, createMemory, DEFAULT_ACTION, Memory, Node, NodeError } from '../caskada'
 
 // Helper sleep function
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))

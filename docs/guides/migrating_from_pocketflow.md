@@ -30,16 +30,16 @@ The move to async brings several benefits:
 
 ### Step 1: Update Imports and Dependencies
 
-- Replace all `from pocketflow import ...` with `from brainyflow import ...` (Python) or `import { ... } from 'brainyflow'` (TypeScript).
+- Replace all `from pocketflow import ...` with `from caskada import ...` (Python) or `import { ... } from 'caskada'` (TypeScript).
 ```python
 # Before
 from pocketflow import Node, Flow, BatchNode # ... etc
 
 # After
 import asyncio
-from brainyflow import Node, Flow # ... etc
+from caskada import Node, Flow # ... etc
 ```
-- Update your `requirements.txt` or `package.json` to use `brainyflow`.
+- Update your `requirements.txt` or `package.json` to use `caskada`.
 
 ### Step 2: Convert to Async and Update Method Signatures
 
@@ -129,14 +129,14 @@ The batch functionality is now achieved using standard `Node`s and `Flow`s combi
 
 2.  **Choose the Right Flow**:
 
-    - Wrap the `TriggerNode` and `ProcessorNode` in a standard `brainyflow.Flow` if you need items processed **sequentially**.
+    - Wrap the `TriggerNode` and `ProcessorNode` in a standard `caskada.Flow` if you need items processed **sequentially**.
     - Wrap them in a `ParallelFlow` if you need items processed **concurrently**.
 
 3.  **Rename All Classes**:
 
     - Replace `AsyncParallelBatchFlow` with `ParallelFlow`.
     - Replace `AsyncParallelBatchNode`, `ParallelBatchNode`, `AsyncBatchNode`, `BatchNode` with the standard `Node`.
-    - Replace `AsyncBatchFlow`, `BatchFlow` with `brainyflow.Flow`.
+    - Replace `AsyncBatchFlow`, `BatchFlow` with `caskada.Flow`.
     - Remember to make `prep`, `exec`, `post` methods `async` as per Step 2.
 
 ### Step 6: Python `NodeError` Protocol
@@ -163,7 +163,7 @@ if __name__ == "__main__":
 
 **Summary of Key Migration Points:**
 
-1.  Updating imports to `brainyflow` and adding `import asyncio`.
+1.  Updating imports to `caskada` and adding `import asyncio`.
 2.  Adding `async` to your Node/Flow method definitions (`prep`, `exec`, `post`, `exec_fallback`) and removing any `_async` suffix from the method names.
 3.  Replacing any `return action` in `post()` with `self.trigger(action, forking_data={...})` (Python) or `this.trigger(action, { ... })` (TypeScript).
 4.  Using `await` when calling `run()` methods and any other asynchronous operations within your methods.

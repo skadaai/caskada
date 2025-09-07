@@ -1,6 +1,6 @@
 # Caskada TypeScript Library Design
 
-This document describes the design and implementation of the Caskada TypeScript library (`brainyflow.ts`).
+This document describes the design and implementation of the Caskada TypeScript library (`caskada.ts`).
 
 ## 1. High-Level Purpose
 
@@ -117,4 +117,4 @@ The library is built around several key abstractions:
 ### 3.7. Browser Compatibility
 
 - A simple check (`typeof window !== 'undefined'`) detects browser environments.
-- If in a browser and `globalThis.brainyflow` is not already defined, the main classes (`BaseNode`, `Node`, `Flow`, `ParallelFlow`) are attached to `globalThis.brainyflow` for easy access without module loaders.
+- If in a browser and `globalThis.caskada` is not already defined, the main classes (`BaseNode`, `Node`, `Flow`, `ParallelFlow`) are attached to `globalThis.caskada` for easy access without module loaders.

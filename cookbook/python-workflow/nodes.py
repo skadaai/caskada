@@ -1,5 +1,5 @@
 import re
-from brainyflow import Node
+from caskada import Node
 from utils import call_llm
 import yaml
 

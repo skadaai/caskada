@@ -1,5 +1,5 @@
 import pytest
-from brainyflow import Memory
+from caskada import Memory
 
 class TestMemory:
     """Tests for the Memory class."""

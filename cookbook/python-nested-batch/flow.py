@@ -1,5 +1,5 @@
 import os
-from brainyflow import Flow, Node
+from caskada import Flow, Node
 from nodes import LoadGrades, CalculateAverage
 
 def create_base_flow():

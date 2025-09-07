@@ -66,7 +66,7 @@ While the `ExecutionTree` provides a structural log, you can complement it with 
 ```python
 import logging
 import json
-from brainyflow import Node, Memory, Flow
+from caskada import Node, Memory, Flow
 
 # ... (setup logger, define nodes as in previous Python logging example) ...
 

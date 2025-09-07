@@ -10,7 +10,7 @@ First, ensure you have Caskada installed:
 {% tab title="Python" %}
 
 ```bash
-pip install brainyflow
+pip install caskada
 ```
 
 {% endtab %}
@@ -18,7 +18,7 @@ pip install brainyflow
 {% tab title="TypeScript" %}
 
 ```bash
-npm install brainyflow # or pnpm/yarn
+npm install caskada # or pnpm/yarn
 ```
 
 {% endtab %}
@@ -57,7 +57,7 @@ graph LR
 
 ```python
 import asyncio
-from brainyflow import Node, Flow, Memory
+from caskada import Node, Flow, Memory
 from utils import call_llm  # Your LLM implementation
 
 class GetQuestionNode(Node):
@@ -87,7 +87,7 @@ class AnswerNode(Node):
 {% tab title="TypeScript" %}
 
 ```typescript
-import { Flow, Memory, Node } from 'brainyflow'
+import { Flow, Memory, Node } from 'caskada'
 import { input } from '@inquirer/prompts'
 import { callLLM } from './utils/callLLM'
 
@@ -138,7 +138,7 @@ class AnswerNode extends Node<QAGlobalStore> {
 
 ```python
 from .nodes import GetQuestionNode, AnswerNode # defined in the previous step
-from brainyflow import Flow
+from caskada import Flow
 
 def create_qa_flow():
     get_question_node = GetQuestionNode()
@@ -157,7 +157,7 @@ def create_qa_flow():
 
 ```typescript
 // import { GetQuestionNode, AnswerNode } from './nodes'; // defined in the previous step
-import { Flow } from 'brainyflow'
+import { Flow } from 'caskada'
 
 function createQaFlow(): Flow {
   const getQuestionNode = new GetQuestionNode()

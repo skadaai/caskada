@@ -1,6 +1,6 @@
 import time
 import threading
-from brainyflow import Node, Flow
+from caskada import Node, Flow
 from utils import stream_llm
 
 class StreamNode(Node):

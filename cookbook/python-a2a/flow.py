@@ -1,4 +1,4 @@
-from brainyflow import Flow
+from caskada import Flow
 from nodes import DecideAction, SearchWeb, AnswerQuestion
 
 def create_agent_flow():

@@ -34,7 +34,7 @@ This node represents an individual agent that processes messages from a queue.
 
 ```python
 import asyncio
-from brainyflow import Node
+from caskada import Node
 
 class AgentNode(Node):
     async def prep(self, memory):
@@ -71,7 +71,7 @@ class AgentNode(Node):
 {% tab title="TypeScript" %}
 
 ```typescript
-import { Flow, Node } from 'brainyflow'
+import { Flow, Node } from 'caskada'
 
 class AgentNode extends Node {
   // We'll store the queue in global memory for simplicity here,
@@ -192,7 +192,7 @@ We create a flow where the `AgentNode` loops back to itself to continuously chec
 
 ```python
 import asyncio
-from brainyflow import Flow, Memory
+from caskada import Flow, Memory
 
 # Instantiate agent node
 agent_node = AgentNode()
@@ -225,7 +225,7 @@ if __name__ == "__main__":
 {% tab title="TypeScript" %}
 
 ```typescript
-import { Flow, Memory, Node } from 'brainyflow'
+import { Flow, Memory, Node } from 'caskada'
 
 // (AgentNode and AsyncQueue definitions as above)
 

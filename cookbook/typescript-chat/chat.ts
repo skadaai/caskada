@@ -1,5 +1,5 @@
 import readline from 'node:readline'
-import { Flow, Memory, Node } from 'brainyflow'
+import { Flow, Memory, Node } from 'caskada'
 import { callLLM, Message } from './utils'
 
 function promptUser(): Promise<string> {

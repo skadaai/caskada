@@ -1,4 +1,4 @@
-import { Flow } from 'brainyflow'
+import { Flow } from 'caskada'
 import { AnswerNode, DecideNode, SearchNode } from './nodes'
 
 export function createAgentFlow() {

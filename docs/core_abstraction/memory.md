@@ -10,7 +10,7 @@ The proxied memory instance is automatically created when you pass the initial m
 {% tab title="Python" %}
 
 ```python
-from brainyflow import Memory
+from caskada import Memory
 
 global_store = {"initial_config": "abc"}
 local_store_for_start_node = {"start_node_specific": 123} # Optional
@@ -23,7 +23,7 @@ memory_instance = Memory(global_store, local_store_for_start_node)
 {% tab title="TypeScript" %}
 
 ```typescript
-import { createMemory, Memory, SharedStore } from 'brainyflow'
+import { createMemory, Memory, SharedStore } from 'caskada'
 
 interface MyGlobal extends SharedStore {
   initial_config?: string
@@ -75,7 +75,7 @@ Nodes access data stored in either scope through the `memory` proxy instance pas
 2.  If the property is not found locally, it checks the **global store (`memory`)**.
 
 ```typescript
-import { Memory, Node } from 'brainyflow'
+import { Memory, Node } from 'caskada'
 
 interface MyGlobal {
   config?: object
@@ -139,7 +139,7 @@ That is optional, but helps you keep your code organized.
 
 ```python
 from typing import List, TypedDict
-from brainyflow import Memory, Node
+from caskada import Memory, Node
 
 class GlobalStore(TypedDict, total=False):
     fileList: List[str]
@@ -185,7 +185,7 @@ class FileProcessorNode(Node):
 {% tab title="TypeScript" %}
 
 ```typescript
-import { Memory, Node } from 'brainyflow'
+import { Memory, Node } from 'caskada'
 
 interface MyGlobal {
   fileList?: string[]

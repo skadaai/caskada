@@ -117,12 +117,12 @@ jobs:
 
             ### Installation
 
-            npm install brainyflow@${{ steps.version.outputs.new_version }}
-            pnpm add brainyflow@${{ steps.version.outputs.new_version }}
-            yarn add brainyflow@${{ steps.version.outputs.new_version }}
+            npm install caskada@${{ steps.version.outputs.new_version }}
+            pnpm add caskada@${{ steps.version.outputs.new_version }}
+            yarn add caskada@${{ steps.version.outputs.new_version }}
 
             ### NPM Package
-            📦 [View on NPM](https://www.npmjs.com/package/brainyflow/v/${{ steps.version.outputs.new_version }})
+            📦 [View on NPM](https://www.npmjs.com/package/caskada/v/${{ steps.version.outputs.new_version }})
           draft: false
           prerelease: false
 

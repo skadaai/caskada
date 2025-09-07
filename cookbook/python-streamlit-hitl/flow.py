@@ -1,4 +1,4 @@
-from brainyflow import Flow
+from caskada import Flow
 from nodes import InitialInputNode, ProcessDataNode, PrepareFinalResultNode
 
 def create_initial_processing_flow():

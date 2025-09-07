@@ -19,7 +19,7 @@ async def run_rag_demo():
         Lightweight: Just 300 lines. Zero bloat, zero dependencies, zero vendor lock-in.
         Expressive: Everything you love—(Multi-)Agents, Workflow, RAG, and more.
         Agentic Coding: Let AI Agents (e.g., Cursor AI) build Agents—10x productivity boost!
-        To install, pip install brainyflow or just copy the source code (only 300 lines).""",
+        To install, pip install caskada or just copy the source code (only 300 lines).""",
         
         # Fictional medical device
         """NeurAlign M7 is a revolutionary non-invasive neural alignment device.

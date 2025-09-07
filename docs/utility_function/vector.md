@@ -183,7 +183,7 @@ def create_pinecone_index_if_not_exists(pc: Pinecone, index_name: str, dimension
 # Example Usage:
 # pc = init_pinecone()
 # if pc:
-#     index_name = "my-brainyflow-index"
+#     index_name = "my-caskada-index"
 #     dimension = 128
 #     create_pinecone_index_if_not_exists(pc, index_name, dimension)
 
@@ -277,7 +277,7 @@ async function pineconeExample() {
     const pc = await initPinecone();
     if (!pc) return;
 
-    const indexName = "my-brainyflow-index-ts";
+    const indexName = "my-caskada-index-ts";
     const dimension = 128;
     await createPineconeIndexIfNotExists(pc, indexName, dimension);
 
@@ -357,7 +357,7 @@ def create_qdrant_collection_if_not_exists(client: qdrant_client.QdrantClient, c
 # Example Usage:
 # client = init_qdrant_client()
 # if client:
-#     collection_name = "brainyflow_qdrant_demo"
+#     collection_name = "caskada_qdrant_demo"
 #     dimension = 128
 #     create_qdrant_collection_if_not_exists(client, collection_name, dimension)
 
@@ -447,7 +447,7 @@ async function qdrantExample() {
     const client = initQdrantClient();
     if (!client) return;
 
-    const collectionName = "brainyflow_qdrant_demo_ts";
+    const collectionName = "caskada_qdrant_demo_ts";
     const dimension = 128;
     await createQdrantCollectionIfNotExists(client, collectionName, dimension);
 
@@ -765,7 +765,7 @@ def create_milvus_collection_if_not_exists(collection_name: str, dimension: int)
 
 # Example Usage:
 # connect_milvus()
-# collection_name = "brainyflow_milvus_demo"
+# collection_name = "caskada_milvus_demo"
 # dimension = 128
 # create_milvus_collection_if_not_exists(collection_name, dimension)
 
@@ -893,7 +893,7 @@ async function milvusExample() {
     const client = initMilvusClient();
     if (!client) return;
 
-    const collectionName = "brainyflow_milvus_demo_ts";
+    const collectionName = "caskada_milvus_demo_ts";
     const dimension = 128;
     await createMilvusCollectionIfNotExists(client, collectionName, dimension);
 
@@ -984,7 +984,7 @@ def get_or_create_chroma_collection(client: chromadb.Client, collection_name: st
 # Example Usage:
 # client = init_chroma_client()
 # if client:
-#     collection_name = "brainyflow_chroma_demo"
+#     collection_name = "caskada_chroma_demo"
 #     collection = get_or_create_chroma_collection(client, collection_name)
 
 #     if collection:
@@ -1077,7 +1077,7 @@ async function chromaExample() {
     const client = initChromaClient();
     if (!client) return;
 
-    const collectionName = "brainyflow_chroma_demo_ts";
+    const collectionName = "caskada_chroma_demo_ts";
     const collection = await getOrCreateChromaCollection(client, collectionName);
 
     if (collection) {
@@ -1192,7 +1192,7 @@ def create_redis_index_if_not_exists(client: redis.Redis, index_name: str, prefi
 # Example Usage:
 # client = init_redis_client()
 # if client:
-#     index_name = "brainyflow-redis-idx"
+#     index_name = "caskada-redis-idx"
 #     doc_prefix = "bfdoc:" # Prefix for keys to be indexed
 #     dimension = 128
 #     create_redis_index_if_not_exists(client, index_name, doc_prefix, dimension)
@@ -1359,7 +1359,7 @@ async function redisExample() {
     const client = await initRedisClient();
     if (!client) return;
 
-    const indexName = "brainyflow-redis-idx-ts";
+    const indexName = "caskada-redis-idx-ts";
     const docPrefix = "bfdoc-ts:"; // Prefix for keys
     const dimension = 128;
     await createRedisIndexIfNotExists(client, indexName, docPrefix, dimension);

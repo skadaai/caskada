@@ -13,7 +13,7 @@ import sys
 from pathlib import Path
 from typing import Any, Optional, Tuple, Union
 
-from brainyflow import Flow
+from caskada import Flow
 
 from async_flow import order_pipeline
 

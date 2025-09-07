@@ -80,7 +80,7 @@ Here's how to use your LLM wrapper in a Caskada node:
 {% tab title="Python" %}
 
 ```python
-from brainyflow import Node
+from caskada import Node
 from utils import call_llm
 
 class LLMNode(Node):
@@ -100,7 +100,7 @@ class LLMNode(Node):
 {% tab title="TypeScript" %}
 
 ```typescript
-import { Memory, Node } from 'brainyflow'
+import { Memory, Node } from 'caskada'
 import { callLLM } from './utils/callLLM' // Your wrapper
 
 class LLMNode extends Node {

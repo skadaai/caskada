@@ -39,7 +39,7 @@ We use a `ParallelFlow` for the mapping phase for performance gain.
 {% tab title="Python" %}
 
 ```python
-from brainyflow import Node, Flow, ParallelFlow
+from caskada import Node, Flow, ParallelFlow
 
 class Trigger(Node):
     async def prep(self, memory):
@@ -72,7 +72,7 @@ def mapreduce(iterate: Node | Flow):
 {% tab title="TypeScript" %}
 
 ```typescript
-import { Flow, Node, ParallelFlow } from 'brainyflow'
+import { Flow, Node, ParallelFlow } from 'caskada'
 
 class Trigger extends Node {
   async prep(memory): Promise<any[] | Record<string, any>> {
@@ -140,7 +140,7 @@ This node will summarize a single file.
 {% tab title="Python" %}
 
 ```python
-from brainyflow import Node
+from caskada import Node
 
 # Assume call_llm is defined elsewhere
 class SummarizeFileNode(Node):
@@ -162,7 +162,7 @@ class SummarizeFileNode(Node):
 {% tab title="TypeScript" %}
 
 ```typescript
-import { Node } from 'brainyflow'
+import { Node } from 'caskada'
 
 // Assume callLLM is defined elsewhere
 declare function callLLM(prompt: string): Promise<string>
@@ -196,7 +196,7 @@ This node will combine all individual summaries.
 {% tab title="Python" %}
 
 ```python
-from brainyflow import Node
+from caskada import Node
 
 class AggregateSummariesNode(Node):
     async def prep(self, memory):
@@ -217,7 +217,7 @@ class AggregateSummariesNode(Node):
 {% tab title="TypeScript" %}
 
 ```typescript
-import { Node } from 'brainyflow'
+import { Node } from 'caskada'
 
 class AggregateSummariesNode extends Node {
   async prep(memory): Promise<string[]> {
@@ -247,7 +247,7 @@ class AggregateSummariesNode extends Node {
 
 ```python
 import asyncio
-from brainyflow import Flow
+from caskada import Flow
 
 # (mapreduce, SummarizeFileNode and AggregateSummariesNode definitions as above)
 
@@ -283,7 +283,7 @@ if __name__ == "__main__":
 {% tab title="TypeScript" %}
 
 ```typescript
-import { Flow, Memory, Node } from 'brainyflow'
+import { Flow, Memory, Node } from 'caskada'
 
 // Assume callLLM is defined elsewhere
 declare function callLLM(prompt: string): Promise<string>

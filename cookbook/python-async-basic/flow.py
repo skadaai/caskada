@@ -1,6 +1,6 @@
 """Implementation for recipe finder."""
 
-from brainyflow import Flow, Node
+from caskada import Flow, Node
 from nodes import FetchRecipes, SuggestRecipe, GetApproval
 
 class NoOp(Node):
