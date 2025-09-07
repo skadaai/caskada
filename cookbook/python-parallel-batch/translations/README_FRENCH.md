@@ -67,7 +67,7 @@ Commencez par sélectionner votre condition - ou peut-être _celle que vous avez
 
 <!-- gitbook-ignore-end -->
 
-## Pourquoi Brainy Flow ?
+## Pourquoi Caskada ?
 
 Les frameworks LLM actuels sont gonflés... Vous n'avez en fait besoin que de 200 lignes pour un framework LLM robuste !
 
@@ -143,7 +143,7 @@ Et bien d'autres disponibles pour tous les niveaux ! [Découvrez-les tous !](htt
 
 ![](https://raw.githubusercontent.com/skadaai/caskada/master/.github/media/divider.png)
 
-<!-- ## Comment utiliser Brainy Flow ?
+<!-- ## Comment utiliser Caskada ?
 
 🚀 Grâce au **Codage Agentique**—le paradigme de développement d'applications LLM le plus rapide où _les humains conçoivent_ et _les agents codent_ !
 

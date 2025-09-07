@@ -67,7 +67,7 @@ Comienza seleccionando tu condición - o quizás _la que has sido condicionado a
 
 <!-- gitbook-ignore-end -->
 
-## ¿Por qué Brainy Flow?
+## ¿Por qué Caskada?
 
 Los frameworks actuales de LLM están hinchados... ¡En realidad solo necesitas 200 líneas para un framework robusto de LLM!
 

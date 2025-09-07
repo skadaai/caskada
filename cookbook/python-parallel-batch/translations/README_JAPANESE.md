@@ -67,7 +67,7 @@ Caskadaは、強力な抽象化を通じて_エージェンシックコーディ
 
 <!-- gitbook-ignore-end -->
 
-## Brainy Flowを選ぶ理由？
+## Caskadaを選ぶ理由？
 
 現在のLLMフレームワークは肥大化しています... 実際には、堅牢なLLMフレームワークにはたった200行しか必要ありません！
 
@@ -143,7 +143,7 @@ Caskadaは、強力な抽象化を通じて_エージェンシックコーディ
 
 ![](https://raw.githubusercontent.com/skadaai/caskada/master/.github/media/divider.png)
 
-<!-- ## Brainy Flowの使い方？
+<!-- ## Caskadaの使い方？
 
 🚀 **エージェンシックコーディング**を通じて、最速のLLMアプリ開発パラダイムで _人間が設計_ し _エージェントがコーディング_ します！
 

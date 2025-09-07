@@ -66,7 +66,7 @@ Caskada是一个通过强大抽象实现_代理编程_的框架。
 
 <!-- gitbook-ignore-end -->
 
-## 为什么选择Brainy Flow?
+## 为什么选择Caskada?
 
 现有的LLM框架过于臃肿... 实际上，200行代码就能实现一个健壮的LLM框架！
 

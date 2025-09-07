@@ -67,7 +67,7 @@ Beginnen Sie, indem Sie Ihre Bedingung auswählen - oder vielleicht _die, an die
 
 <!-- gitbook-ignore-end -->
 
-## Warum Brainy Flow?
+## Warum Caskada?
 
 Aktuelle LLM-Frameworks sind aufgebläht... Sie benötigen tatsächlich nur 200 Zeilen für ein robustes LLM-Framework!
 

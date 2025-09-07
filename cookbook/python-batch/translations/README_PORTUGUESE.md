@@ -34,7 +34,7 @@
   </a>
 </p>
 
-Brainy Flow é um framework que permite a programação de agentes através de poderosas abstrações.
+Caskada é um framework que permite a programação de agentes através de poderosas abstrações.
 
 Ele fornece uma interface simples para construir aplicações complexas de IA baseadas em grafos direcionados aninhados com estado compartilhado. Ele permite que humanos e assistentes de IA colaborem efetivamente no design e implementação de sistemas de IA.
 
@@ -66,7 +66,7 @@ Comece selecionando sua condição - ou talvez aquela que você foi condicionado
 
 <!-- gitbook-ignore-end -->
 
-## Por que Brainy Flow?
+## Por que Caskada?
 
 Os frameworks atuais de LLM são inchados... Você só precisa de 200 linhas para um framework robusto de LLM!
 
@@ -80,14 +80,14 @@ Os frameworks atuais de LLM são inchados... Você só precisa de 200 linhas par
 | SmolAgent                                                                                                                                                                                                      |      Agente      |   Alguns <br><sup><sub>(ex: CodeAgent, VisitWebTool)</sub></sup>   |  Alguns <br><sup><sub>(ex: DuckDuckGo, Hugging Face, etc.)</sub></sup>   |                    8K                    |                   +198MB                    |
 | LangGraph                                                                                                                                                                                                      |  Agente, Grafo  |       Alguns <br><sup><sub>(ex: busca semântica)</sub></sup>       | Alguns <br><sup><sub>(ex: PostgresStore, SqliteSaver, etc.)</sub></sup> |                   37K                    |                    +51MB                    |
 | AutoGen                                                                                                                                                                                                        |      Agente      |   Alguns <br><sup><sub>(ex: Tool Agent, Chat Agent)</sub></sup>    | Muitos <sup><sub>[Opcional]<br> (ex: OpenAI, Pinecone, etc.)</sub></sup> | 7K <br><sup><sub>(núcleo)</sub></sup> | +26MB <br><sup><sub>(núcleo)</sub></sup> |
-| **Brainy Flow** <!-- gitbook-ignore-start --><img src="https://github.com/skadaai/caskada/raw/main/.github/media/typescript.svg" width="16" height="16" alt="Typescript Logo"><!-- gitbook-ignore-end -->.ts |    **Grafo**    |                              **Nenhum**                              |                                 **Nenhum**                                 |                 **300**                  |                 **poucos KB**                 |
-| **Brainy Flow** <!-- gitbook-ignore-start --><img src="https://github.com/skadaai/caskada/raw/main/.github/media/python.svg" width="16" height="16" alt="Python Logo"><!-- gitbook-ignore-end -->.py         |    **Grafo**    |                              **Nenhum**                              |                                 **Nenhum**                                 |                 **200**                  |                 **poucos KB**                 |
+| **Caskada** <!-- gitbook-ignore-start --><img src="https://github.com/skadaai/caskada/raw/main/.github/media/typescript.svg" width="16" height="16" alt="Typescript Logo"><!-- gitbook-ignore-end -->.ts |    **Grafo**    |                              **Nenhum**                              |                                 **Nenhum**                                 |                 **300**                  |                 **poucos KB**                 |
+| **Caskada** <!-- gitbook-ignore-start --><img src="https://github.com/skadaai/caskada/raw/main/.github/media/python.svg" width="16" height="16" alt="Python Logo"><!-- gitbook-ignore-end -->.py         |    **Grafo**    |                              **Nenhum**                              |                                 **Nenhum**                                 |                 **200**                  |                 **poucos KB**                 |
 
 </div>
 
 ![](https://raw.githubusercontent.com/skadaai/caskada/master/.github/media/divider.png)
 
-## Como o Brainy Flow funciona?
+## Como o Caskada funciona?
 
 O arquivo único em <a href="https://github.com/skadaai/caskada/blob/main/python/caskada.py"><!-- gitbook-ignore-start --><img src="https://github.com/skadaai/caskada/raw/main/.github/media/python.svg" width="16" height="16" alt="Python Logo" style="vertical-align: middle; margin: 0 2px;"> <!-- gitbook-ignore-end -->Python</a> ou <a href="https://github.com/skadaai/caskada/blob/main/typescript/caskada.ts"><!-- gitbook-ignore-start --><img src="https://github.com/skadaai/caskada/raw/main/.github/media/typescript.svg" width="16" height="16" alt="Typescript Logo" style="vertical-align: middle; margin: 0 2px;"> <!-- gitbook-ignore-end -->TypeScript</a> captura a abstração central dos frameworks LLM: o grafo!
 <br>
