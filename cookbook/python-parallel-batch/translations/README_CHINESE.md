@@ -1,13 +1,13 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://cdn.jsdelivr.net/gh/zvictor/brainyflow@main/.github/media/logo-dark.png">
-    <source media="(prefers-color-scheme: light)" srcset="https://cdn.jsdelivr.net/gh/zvictor/brainyflow@main/.github/media/logo-light.png">
-    <img width="280" alt="Brainyflow的Logo" src="https://cdn.jsdelivr.net/gh/zvictor/brainyflow@main/.github/media/logo-light.png">
+    <source media="(prefers-color-scheme: dark)" srcset="https://cdn.jsdelivr.net/gh/skadaai/caskada@main/.github/media/logo-dark.png">
+    <source media="(prefers-color-scheme: light)" srcset="https://cdn.jsdelivr.net/gh/skadaai/caskada@main/.github/media/logo-light.png">
+    <img width="280" alt="Brainyflow的Logo" src="https://cdn.jsdelivr.net/gh/skadaai/caskada@main/.github/media/logo-light.png">
   </picture>
 <p>
 
 <p align="center">
-  一个极度极简的AI框架（仅<a href="https://github.com/zvictor/BrainyFlow/blob/main/python/brainyflow.py">200行Python代码</a>！🤯）
+  一个极度极简的AI框架（仅<a href="https://github.com/skadaai/caskada/blob/main/python/brainyflow.py">200行Python代码</a>！🤯）
 
   <br />
   用最少的代码和最大的自由构建强大的AI代理。
@@ -26,8 +26,8 @@
   <a href="https://discord.gg/N9mVvxRXyH">
     <img src="https://img.shields.io/discord/1346833819172601907?logo=discord&style=flat-square" alt="Discord">
   </a>
-  <a href="https://github.com/zvictor/brainyflow">
-    <img src="https://img.shields.io/github/stars/zvictor/BrainyFlow?logo=github&style=flat-square" alt="GitHub仓库">
+  <a href="https://github.com/skadaai/caskada">
+    <img src="https://img.shields.io/github/stars/skadaai/caskada?logo=github&style=flat-square" alt="GitHub仓库">
   </a>
   <a href="https://github.com/sponsors/zvictor">
     <img src="https://img.shields.io/github/sponsors/zvictor?logo=github&style=flat-square" alt="GitHub赞助者">
@@ -47,9 +47,9 @@ BrainyFlow是一个通过强大抽象实现_代理编程_的框架。
 - **强大 🦾**：支持你喜爱的一切——([多](https://brainy.gitbook.io/flow/design_pattern/multi_agent))[代理](https://brainy.gitbook.io/flow/design_pattern/agent)、[工作流](https://brainy.gitbook.io/flow/design_pattern/workflow)、[RAG](https://brainy.gitbook.io/flow/design_pattern/rag)等
 - **代理编程 🤖**：专为AI辅助开发设计
 - **通用 🌈**：兼容任何LLM提供商或API
-- **多语言 🌍**：<!-- gitbook-ignore-start --><a href="https://pypi.org/project/brainyflow"><img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/python.svg" width="16" height="16" alt="Python Logo" style="vertical-align: middle; margin: 0 2px;"></a><!-- gitbook-ignore-end --> Python和<!-- gitbook-ignore-start --><a href="https://npmjs.com/packages/brainyflow"><img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/typescript.svg" width="16" height="16" alt="Typescript Logo" style="vertical-align: middle; margin: 0 2px;"></a><!-- gitbook-ignore-end --> TypeScript皆支持
+- **多语言 🌍**：<!-- gitbook-ignore-start --><a href="https://pypi.org/project/brainyflow"><img src="https://github.com/skadaai/caskada/raw/main/.github/media/python.svg" width="16" height="16" alt="Python Logo" style="vertical-align: middle; margin: 0 2px;"></a><!-- gitbook-ignore-end --> Python和<!-- gitbook-ignore-start --><a href="https://npmjs.com/packages/brainyflow"><img src="https://github.com/skadaai/caskada/raw/main/.github/media/typescript.svg" width="16" height="16" alt="Typescript Logo" style="vertical-align: middle; margin: 0 2px;"></a><!-- gitbook-ignore-end --> TypeScript皆支持
 
-![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
+![](https://raw.githubusercontent.com/skadaai/caskada/master/.github/media/divider.png)
 
 <!-- gitbook-ignore-start -->
 
@@ -62,7 +62,7 @@ BrainyFlow是一个通过强大抽象实现_代理编程_的框架。
 
 \>> [我是硅基生命 🤖](https://flow.brainy.sh/docs.txt) <<
 
-![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
+![](https://raw.githubusercontent.com/skadaai/caskada/master/.github/media/divider.png)
 
 <!-- gitbook-ignore-end -->
 
@@ -71,7 +71,7 @@ BrainyFlow是一个通过强大抽象实现_代理编程_的框架。
 现有的LLM框架过于臃肿... 实际上，200行代码就能实现一个健壮的LLM框架！
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/meme.jpg" width="500"/>
+  <img src="https://raw.githubusercontent.com/skadaai/caskada/main/.github/media/meme.jpg" width="500"/>
 
 |                                                                                                                                                                                                                | **抽象层** |                     **应用特定封装**                      |                       **厂商特定封装**                       |                **代码行数**                 |                  **体积**                   |
 | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------: | :----------------------------------------------------------------: | :----------------------------------------------------------------------: | :--------------------------------------: | :-----------------------------------------: |
@@ -80,20 +80,20 @@ BrainyFlow是一个通过强大抽象实现_代理编程_的框架。
 | SmolAgent                                                                                                                                                                                                      |      代理      |   部分 <br><sup><sub>(如代码代理、网页访问工具)</sub></sup>    |  部分 <br><sup><sub>(如DuckDuckGo、Hugging Face等)</sub></sup>   |                    8K                    |                   +198MB                    |
 | LangGraph                                                                                                                                                                                                      |  代理, 图结构  |       部分 <br><sup><sub>(如语义搜索)</sub></sup>        | 部分 <br><sup><sub>(如Postgres存储、Sqlite存储等)</sub></sup> |                   37K                    |                    +51MB                    |
 | AutoGen                                                                                                                                                                                                        |      代理      |   部分 <br><sup><sub>(如工具代理、聊天代理)</sub></sup>     | 大量 <sup><sub>[可选]<br> (如OpenAI、Pinecone等)</sub></sup> | 7K <br><sup><sub>(仅核心)</sub></sup> | +26MB <br><sup><sub>(仅核心)</sub></sup> |
-| **BrainyFlow** <!-- gitbook-ignore-start --><img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/typescript.svg" width="16" height="16" alt="Typescript Logo"><!-- gitbook-ignore-end -->.ts |    **图结构**    |                              **无**                              |                                 **无**                                 |                 **300**                  |                 **几KB**                  |
-| **BrainyFlow** <!-- gitbook-ignore-start --><img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/python.svg" width="16" height="16" alt="Python Logo"><!-- gitbook-ignore-end -->.py         |    **图结构**    |                              **无**                              |                                 **无**                                 |                 **200**                  |                 **几KB**                  |
+| **BrainyFlow** <!-- gitbook-ignore-start --><img src="https://github.com/skadaai/caskada/raw/main/.github/media/typescript.svg" width="16" height="16" alt="Typescript Logo"><!-- gitbook-ignore-end -->.ts |    **图结构**    |                              **无**                              |                                 **无**                                 |                 **300**                  |                 **几KB**                  |
+| **BrainyFlow** <!-- gitbook-ignore-start --><img src="https://github.com/skadaai/caskada/raw/main/.github/media/python.svg" width="16" height="16" alt="Python Logo"><!-- gitbook-ignore-end -->.py         |    **图结构**    |                              **无**                              |                                 **无**                                 |                 **200**                  |                 **几KB**                  |
 
 </div>
 
-![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
+![](https://raw.githubusercontent.com/skadaai/caskada/master/.github/media/divider.png)
 
 ## BrainyFlow如何工作?
 
-<a href="https://github.com/zvictor/BrainyFlow/blob/main/python/brainyflow.py"><!-- gitbook-ignore-start --><img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/python.svg" width="16" height="16" alt="Python Logo" style="vertical-align: middle; margin: 0 2px;"> <!-- gitbook-ignore-end -->Python</a>或<a href="https://github.com/zvictor/BrainyFlow/blob/main/typescript/brainyflow.ts"><!-- gitbook-ignore-start --><img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/typescript.svg" width="16" height="16" alt="Typescript Logo" style="vertical-align: middle; margin: 0 2px;"> <!-- gitbook-ignore-end -->TypeScript</a>的单文件封装了LLM框架的核心抽象：图结构！
+<a href="https://github.com/skadaai/caskada/blob/main/python/brainyflow.py"><!-- gitbook-ignore-start --><img src="https://github.com/skadaai/caskada/raw/main/.github/media/python.svg" width="16" height="16" alt="Python Logo" style="vertical-align: middle; margin: 0 2px;"> <!-- gitbook-ignore-end -->Python</a>或<a href="https://github.com/skadaai/caskada/blob/main/typescript/brainyflow.ts"><!-- gitbook-ignore-start --><img src="https://github.com/skadaai/caskada/raw/main/.github/media/typescript.svg" width="16" height="16" alt="Typescript Logo" style="vertical-align: middle; margin: 0 2px;"> <!-- gitbook-ignore-end -->TypeScript</a>的单文件封装了LLM框架的核心抽象：图结构！
 <br>
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/abstraction.jpg" width="1300"/>
+  <img src="https://raw.githubusercontent.com/skadaai/caskada/main/.github/media/abstraction.jpg" width="1300"/>
 </div>
 <br>
 
@@ -105,7 +105,7 @@ BrainyFlow是一个通过强大抽象实现_代理编程_的框架。
 <br>
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/design.jpg" width="1300"/>
+  <img src="https://raw.githubusercontent.com/skadaai/caskada/main/.github/media/design.jpg" width="1300"/>
 </div>
 <br>
 
@@ -116,7 +116,7 @@ BrainyFlow是一个通过强大抽象实现_代理编程_的框架。
 - [结构化输出](https://brainy.gitbook.io/flow/design_pattern/structure)规范化输出格式。
 - [多代理](https://brainy.gitbook.io/flow/design_pattern/multi_agent)协调多个代理协作。
 
-![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
+![](https://raw.githubusercontent.com/skadaai/caskada/master/.github/media/divider.png)
 
 ## 教程
 
@@ -124,23 +124,23 @@ BrainyFlow是一个通过强大抽象实现_代理编程_的框架。
   
 |  名称  | 难度    |  描述  |  
 | :-------------:  | :-------------: | :--------------------- |  
-| [聊天机器人](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-chat) | ☆☆☆ <br> *入门*   | 带对话历史的基础聊天机器人 |
-| [RAG](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-rag) | ☆☆☆ <br> *入门*   | 简单的检索增强生成流程 |
-| [工作流](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-workflow) | ☆☆☆ <br> *入门*   | 包含大纲编写、内容创作和样式应用的写作流程 |
-| [Map-Reduce](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-map-reduce) | ☆☆☆ <br> *入门* | 使用map-reduce模式批量评估简历 |
-| [代理](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-agent) | ☆☆☆ <br> *入门*   | 能搜索网络并回答问题的研究代理 |
-| [流式处理](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-llm-streaming) | ☆☆☆ <br> *入门*   | 支持用户中断的实时LLM流式演示 |
-| [多代理](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-multi-agent) | ★☆☆ <br> *初级* | 两个代理间异步沟通的禁忌词游戏 |
-| [监督者](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-supervisor) | ★☆☆ <br> *初级* | 研究代理不可靠？建立监督流程 |
-| [并行处理](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-parallel-batch) | ★☆☆ <br> *初级*   | 3倍加速的并行执行演示 |
-| [思考链](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-thinking) | ★☆☆ <br> *初级*   | 通过思维链解决复杂推理问题 |
-| [记忆](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-chat-memory) | ★☆☆ <br> *初级* | 带短期和长期记忆的聊天机器人 |
+| [聊天机器人](https://github.com/skadaai/caskada/tree/main/cookbook/python-chat) | ☆☆☆ <br> *入门*   | 带对话历史的基础聊天机器人 |
+| [RAG](https://github.com/skadaai/caskada/tree/main/cookbook/python-rag) | ☆☆☆ <br> *入门*   | 简单的检索增强生成流程 |
+| [工作流](https://github.com/skadaai/caskada/tree/main/cookbook/python-workflow) | ☆☆☆ <br> *入门*   | 包含大纲编写、内容创作和样式应用的写作流程 |
+| [Map-Reduce](https://github.com/skadaai/caskada/tree/main/cookbook/python-map-reduce) | ☆☆☆ <br> *入门* | 使用map-reduce模式批量评估简历 |
+| [代理](https://github.com/skadaai/caskada/tree/main/cookbook/python-agent) | ☆☆☆ <br> *入门*   | 能搜索网络并回答问题的研究代理 |
+| [流式处理](https://github.com/skadaai/caskada/tree/main/cookbook/python-llm-streaming) | ☆☆☆ <br> *入门*   | 支持用户中断的实时LLM流式演示 |
+| [多代理](https://github.com/skadaai/caskada/tree/main/cookbook/python-multi-agent) | ★☆☆ <br> *初级* | 两个代理间异步沟通的禁忌词游戏 |
+| [监督者](https://github.com/skadaai/caskada/tree/main/cookbook/python-supervisor) | ★☆☆ <br> *初级* | 研究代理不可靠？建立监督流程 |
+| [并行处理](https://github.com/skadaai/caskada/tree/main/cookbook/python-parallel-batch) | ★☆☆ <br> *初级*   | 3倍加速的并行执行演示 |
+| [思考链](https://github.com/skadaai/caskada/tree/main/cookbook/python-thinking) | ★☆☆ <br> *初级*   | 通过思维链解决复杂推理问题 |
+| [记忆](https://github.com/skadaai/caskada/tree/main/cookbook/python-chat-memory) | ★☆☆ <br> *初级* | 带短期和长期记忆的聊天机器人 |
 
 </div>
 
-还有更多适合各个水平的教程！[全部查看](https://github.com/zvictor/BrainyFlow/tree/main/cookbook)
+还有更多适合各个水平的教程！[全部查看](https://github.com/skadaai/caskada/tree/main/cookbook)
 
-![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
+![](https://raw.githubusercontent.com/skadaai/caskada/master/.github/media/divider.png)
 
 ## 快速开始
 
@@ -150,7 +150,7 @@ BrainyFlow是一个通过强大抽象实现_代理编程_的框架。
 
 了解[代理编程指南](https://brainy.gitbook.io/flow/guides/agentic_coding)，用BrainyFlow快速开发自编程LLM项目的最快方式！
 
-![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
+![](https://raw.githubusercontent.com/skadaai/caskada/master/.github/media/divider.png)
 
 ## 致谢
 
@@ -165,7 +165,7 @@ BrainyFlow按"原样"提供，不附带任何保证。<br />
 
 <p align="center">
   <a style="color: inherit" href="https://github.com/sponsors/zvictor?utm_source=brainyflow&utm_medium=sponsorship&utm_campaign=brainyflow&utm_id=brainyflow">
-    <img width="150" src="https://cdn.jsdelivr.net/gh/zvictor/brainyflow@main/.github/media/brain.png" alt="Brainyflow的Logo" />
+    <img width="150" src="https://cdn.jsdelivr.net/gh/skadaai/caskada@main/.github/media/brain.png" alt="Brainyflow的Logo" />
   </a><br /><br />
   BrainyFlow运行在200行代码和您的慷慨之上！💰<br />
     <a style="color: inherit" href="https://github.com/sponsors/zvictor?utm_source=brainyflow&utm_medium=sponsorship&utm_campaign=brainyflow&utm_id=brainyflow">
@@ -175,4 +175,4 @@ BrainyFlow按"原样"提供，不附带任何保证。<br />
   </a>
 </p>
 
-![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
+![](https://raw.githubusercontent.com/skadaai/caskada/master/.github/media/divider.png)

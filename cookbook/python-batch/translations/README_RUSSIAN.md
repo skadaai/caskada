@@ -1,13 +1,13 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://cdn.jsdelivr.net/gh/zvictor/brainyflow@main/.github/media/logo-dark.png">
-    <source media="(prefers-color-scheme: light)" srcset="https://cdn.jsdelivr.net/gh/zvictor/brainyflow@main/.github/media/logo-light.png">
-    <img width="280" alt="Логотип Brainyflow" src="https://cdn.jsdelivr.net/gh/zvictor/brainyflow@main/.github/media/logo-light.png">
+    <source media="(prefers-color-scheme: dark)" srcset="https://cdn.jsdelivr.net/gh/skadaai/caskada@main/.github/media/logo-dark.png">
+    <source media="(prefers-color-scheme: light)" srcset="https://cdn.jsdelivr.net/gh/skadaai/caskada@main/.github/media/logo-light.png">
+    <img width="280" alt="Логотип Brainyflow" src="https://cdn.jsdelivr.net/gh/skadaai/caskada@main/.github/media/logo-light.png">
   </picture>
 <p>
 
 <p align="center">
-  Радикально минималистичный фреймворк для ИИ (всего <a href="https://github.com/zvictor/BrainyFlow/blob/main/python/brainyflow.py">200 строк на Python</a>! 🤯)
+  Радикально минималистичный фреймворк для ИИ (всего <a href="https://github.com/skadaai/caskada/blob/main/python/brainyflow.py">200 строк на Python</a>! 🤯)
 
   <br />
   Создавайте мощных ИИ-агентов с минимальным кодом и максимальной свободой.
@@ -26,8 +26,8 @@
   <a href="https://discord.gg/N9mVvxRXyH">
     <img src="https://img.shields.io/discord/1346833819172601907?logo=discord&style=flat-square" alt="Discord">
   </a>
-  <a href="https://github.com/zvictor/brainyflow">
-    <img src="https://img.shields.io/github/stars/zvictor/BrainyFlow?logo=github&style=flat-square" alt="Репозиторий GitHub">
+  <a href="https://github.com/skadaai/caskada">
+    <img src="https://img.shields.io/github/stars/skadaai/caskada?logo=github&style=flat-square" alt="Репозиторий GitHub">
   </a>
   <a href="https://github.com/sponsors/zvictor">
     <img src="https://img.shields.io/github/sponsors/zvictor?logo=github&style=flat-square" alt="Спонсоры GitHub">
@@ -48,9 +48,9 @@ BrainyFlow — это фреймворк, позволяющий создава�
 - **Мощь 🦾**: Поддерживает всё, что вам нравится — ([Мульти-](https://brainy.gitbook.io/flow/design_pattern/multi_agent))[Агенты](https://brainy.gitbook.io/flow/design_pattern/agent), [Рабочие процессы](https://brainy.gitbook.io/flow/design_pattern/workflow), [RAG](https://brainy.gitbook.io/flow/design_pattern/rag) и многое другое
 - **Агентное программирование 🤖**: Создан для разработки с помощью ИИ
 - **Универсальность 🌈**: Работает с любым провайдером LLM или API
-- **Полиглот 🌍**: <!-- gitbook-ignore-start --><a href="https://pypi.org/project/brainyflow"><img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/python.svg" width="16" height="16" alt="Логотип Python" style="vertical-align: middle; margin: 0 2px;"></a><!-- gitbook-ignore-end --> Python и <!-- gitbook-ignore-start --><a href="https://npmjs.com/packages/brainyflow"><img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/typescript.svg" width="16" height="16" alt="Логотип Typescript" style="vertical-align: middle; margin: 0 2px;"></a><!-- gitbook-ignore-end --> Typescript поддерживаются
+- **Полиглот 🌍**: <!-- gitbook-ignore-start --><a href="https://pypi.org/project/brainyflow"><img src="https://github.com/skadaai/caskada/raw/main/.github/media/python.svg" width="16" height="16" alt="Логотип Python" style="vertical-align: middle; margin: 0 2px;"></a><!-- gitbook-ignore-end --> Python и <!-- gitbook-ignore-start --><a href="https://npmjs.com/packages/brainyflow"><img src="https://github.com/skadaai/caskada/raw/main/.github/media/typescript.svg" width="16" height="16" alt="Логотип Typescript" style="vertical-align: middle; margin: 0 2px;"></a><!-- gitbook-ignore-end --> Typescript поддерживаются
 
-![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
+![](https://raw.githubusercontent.com/skadaai/caskada/master/.github/media/divider.png)
 
 <!-- gitbook-ignore-start -->
 
@@ -63,7 +63,7 @@ BrainyFlow — это фреймворк, позволяющий создава�
 
 \>> [Я кремниевый 🤖](https://flow.brainy.sh/docs.txt) <<
 
-![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
+![](https://raw.githubusercontent.com/skadaai/caskada/master/.github/media/divider.png)
 
 <!-- gitbook-ignore-end -->
 
@@ -72,7 +72,7 @@ BrainyFlow — это фреймворк, позволяющий создава�
 Современные фреймворки для LLM слишком раздуты... Вам на самом деле нужно всего 200 строк для надежного фреймворка LLM!
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/meme.jpg" width="500"/>
+  <img src="https://raw.githubusercontent.com/skadaai/caskada/main/.github/media/meme.jpg" width="500"/>
 
 |                                                                                                                                                                                                                | **Абстракция** |                     **Специфичные обёртки**                      |                       **Вендор-специфичные обёртки**                       |                **Строки**                 |                  **Размер**                   |
 | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------: | :----------------------------------------------------------------: | :----------------------------------------------------------------------: | :--------------------------------------: | :-----------------------------------------: |
@@ -81,20 +81,20 @@ BrainyFlow — это фреймворк, позволяющий создава�
 | SmolAgent                                                                                                                                                                                                      |      Агент      |   Некоторые <br><sup><sub>(например, CodeAgent, VisitWebTool)</sub></sup>   |  Некоторые <br><sup><sub>(например, DuckDuckGo, Hugging Face и др.)</sub></sup>   |                    8K                    |                   +198MB                    |
 | LangGraph                                                                                                                                                                                                      |  Агент, Граф   |       Некоторые <br><sup><sub>(например, семантический поиск)</sub></sup>       | Некоторые <br><sup><sub>(например, PostgresStore, SqliteSaver и др.) </sub></sup> |                   37K                    |                    +51MB                    |
 | AutoGen                                                                                                                                                                                                        |      Агент      |   Некоторые <br><sup><sub>(например, Tool Agent, Chat Agent)</sub></sup>    | Много <sup><sub>[Опционально]<br> (например, OpenAI, Pinecone и др.)</sub></sup> | 7K <br><sup><sub>(только ядро)</sub></sup> | +26MB <br><sup><sub>(только ядро)</sub></sup> |
-| **BrainyFlow** <!-- gitbook-ignore-start --><img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/typescript.svg" width="16" height="16" alt="Логотип Typescript"><!-- gitbook-ignore-end -->.ts |    **Граф**    |                              **Нет**                              |                                 **Нет**                                 |                 **300**                  |                 **несколько KB**                  |
-| **BrainyFlow** <!-- gitbook-ignore-start --><img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/python.svg" width="16" height="16" alt="Логотип Python"><!-- gitbook-ignore-end -->.py         |    **Граф**    |                              **Нет**                              |                                 **Нет**                                 |                 **200**                  |                 **несколько KB**                  |
+| **BrainyFlow** <!-- gitbook-ignore-start --><img src="https://github.com/skadaai/caskada/raw/main/.github/media/typescript.svg" width="16" height="16" alt="Логотип Typescript"><!-- gitbook-ignore-end -->.ts |    **Граф**    |                              **Нет**                              |                                 **Нет**                                 |                 **300**                  |                 **несколько KB**                  |
+| **BrainyFlow** <!-- gitbook-ignore-start --><img src="https://github.com/skadaai/caskada/raw/main/.github/media/python.svg" width="16" height="16" alt="Логотип Python"><!-- gitbook-ignore-end -->.py         |    **Граф**    |                              **Нет**                              |                                 **Нет**                                 |                 **200**                  |                 **несколько KB**                  |
 
 </div>
 
-![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
+![](https://raw.githubusercontent.com/skadaai/caskada/master/.github/media/divider.png)
 
 ## Как работает BrainyFlow?
 
-Единственный файл в <a href="https://github.com/zvictor/BrainyFlow/blob/main/python/brainyflow.py"><!-- gitbook-ignore-start --><img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/python.svg" width="16" height="16" alt="Логотип Python" style="vertical-align: middle; margin: 0 2px;"> <!-- gitbook-ignore-end -->Python</a> или <a href="https://github.com/zvictor/BrainyFlow/blob/main/typescript/brainyflow.ts"><!-- gitbook-ignore-start --><img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/typescript.svg" width="16" height="16" alt="Логотип Typescript" style="vertical-align: middle; margin: 0 2px;"> <!-- gitbook-ignore-end -->Typescript</a> содержит основную абстракцию фреймворков LLM: Граф!
+Единственный файл в <a href="https://github.com/skadaai/caskada/blob/main/python/brainyflow.py"><!-- gitbook-ignore-start --><img src="https://github.com/skadaai/caskada/raw/main/.github/media/python.svg" width="16" height="16" alt="Логотип Python" style="vertical-align: middle; margin: 0 2px;"> <!-- gitbook-ignore-end -->Python</a> или <a href="https://github.com/skadaai/caskada/blob/main/typescript/brainyflow.ts"><!-- gitbook-ignore-start --><img src="https://github.com/skadaai/caskada/raw/main/.github/media/typescript.svg" width="16" height="16" alt="Логотип Typescript" style="vertical-align: middle; margin: 0 2px;"> <!-- gitbook-ignore-end -->Typescript</a> содержит основную абстракцию фреймворков LLM: Граф!
 <br>
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/abstraction.jpg" width="1300"/>
+  <img src="https://raw.githubusercontent.com/skadaai/caskada/main/.github/media/abstraction.jpg" width="1300"/>
 </div>
 <br>
 
@@ -106,7 +106,7 @@ BrainyFlow — это фреймворк, позволяющий создава�
 <br>
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/design.jpg" width="1300"/>
+  <img src="https://raw.githubusercontent.com/skadaai/caskada/main/.github/media/design.jpg" width="1300"/>
 </div>
 <br>
 
@@ -117,7 +117,7 @@ BrainyFlow — это фреймворк, позволяющий создава�
 - [Структурированный вывод](https://brainy.gitbook.io/flow/design_pattern/structure) обеспечивает единообразное форматирование результатов.
 - [Мульти-Агенты](https://brainy.gitbook.io/flow/design_pattern/multi_agent) координируют работу нескольких агентов.
 
-![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
+![](https://raw.githubusercontent.com/skadaai/caskada/master/.github/media/divider.png)
 
 ## Руководства
 
@@ -125,23 +125,23 @@ BrainyFlow — это фреймворк, позволяющий создава�
   
 |  Название  | Сложность    |  Описание  |  
 | :-------------:  | :-------------: | :--------------------- |  
-| [Чат](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-chat) | ☆☆☆ <br> *Просто*   | Простой чат-бот с историей диалога |
-| [RAG](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-rag) | ☆☆☆ <br> *Просто*   | Простой процесс генерации с дополненным поиском |
-| [Рабочий процесс](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-workflow) | ☆☆☆ <br> *Просто*   | Процесс написания, включающий создание плана, написание и стилизацию |
-| [Map-Reduce](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-map-reduce) | ☆☆☆ <br> *Просто* | Обработка резюме с использованием паттерна map-reduce для пакетной оценки |
-| [Агент](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-agent) | ☆☆☆ <br> *Просто*   | Исследовательский агент, который может искать в интернете и отвечать на вопросы |
-| [Потоковая передача](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-llm-streaming) | ☆☆☆ <br> *Просто*   | Демонстрация потоковой передачи LLM в реальном времени с возможностью прерывания |
-| [Мульти-Агент](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-multi-agent) | ★☆☆ <br> *Новичок* | Игра в табу для асинхронной коммуникации между двумя агентами |
-| [Супервизор](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-supervisor) | ★☆☆ <br> *Новичок* | Исследовательский агент становится ненадежным... Давайте создадим процесс контроля |
-| [Параллельное выполнение](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-parallel-batch) | ★☆☆ <br> *Новичок*   | Демонстрация параллельного выполнения с трёхкратным ускорением |
-| [Мышление](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-thinking) | ★☆☆ <br> *Новичок*   | Решение сложных задач с помощью "цепочки мыслей" |
-| [Память](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-chat-memory) | ★☆☆ <br> *Новичок* | Чат-бот с краткосрочной и долгосрочной памятью |
+| [Чат](https://github.com/skadaai/caskada/tree/main/cookbook/python-chat) | ☆☆☆ <br> *Просто*   | Простой чат-бот с историей диалога |
+| [RAG](https://github.com/skadaai/caskada/tree/main/cookbook/python-rag) | ☆☆☆ <br> *Просто*   | Простой процесс генерации с дополненным поиском |
+| [Рабочий процесс](https://github.com/skadaai/caskada/tree/main/cookbook/python-workflow) | ☆☆☆ <br> *Просто*   | Процесс написания, включающий создание плана, написание и стилизацию |
+| [Map-Reduce](https://github.com/skadaai/caskada/tree/main/cookbook/python-map-reduce) | ☆☆☆ <br> *Просто* | Обработка резюме с использованием паттерна map-reduce для пакетной оценки |
+| [Агент](https://github.com/skadaai/caskada/tree/main/cookbook/python-agent) | ☆☆☆ <br> *Просто*   | Исследовательский агент, который может искать в интернете и отвечать на вопросы |
+| [Потоковая передача](https://github.com/skadaai/caskada/tree/main/cookbook/python-llm-streaming) | ☆☆☆ <br> *Просто*   | Демонстрация потоковой передачи LLM в реальном времени с возможностью прерывания |
+| [Мульти-Агент](https://github.com/skadaai/caskada/tree/main/cookbook/python-multi-agent) | ★☆☆ <br> *Новичок* | Игра в табу для асинхронной коммуникации между двумя агентами |
+| [Супервизор](https://github.com/skadaai/caskada/tree/main/cookbook/python-supervisor) | ★☆☆ <br> *Новичок* | Исследовательский агент становится ненадежным... Давайте создадим процесс контроля |
+| [Параллельное выполнение](https://github.com/skadaai/caskada/tree/main/cookbook/python-parallel-batch) | ★☆☆ <br> *Новичок*   | Демонстрация параллельного выполнения с трёхкратным ускорением |
+| [Мышление](https://github.com/skadaai/caskada/tree/main/cookbook/python-thinking) | ★☆☆ <br> *Новичок*   | Решение сложных задач с помощью "цепочки мыслей" |
+| [Память](https://github.com/skadaai/caskada/tree/main/cookbook/python-chat-memory) | ★☆☆ <br> *Новичок* | Чат-бот с краткосрочной и долгосрочной памятью |
 
 </div>
 
-И многие другие для всех уровней! [Посмотрите их все!](https://github.com/zvictor/BrainyFlow/tree/main/cookbook)
+И многие другие для всех уровней! [Посмотрите их все!](https://github.com/skadaai/caskada/tree/main/cookbook)
 
-![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
+![](https://raw.githubusercontent.com/skadaai/caskada/master/.github/media/divider.png)
 
 ## Быстрый старт
 
@@ -151,7 +151,7 @@ BrainyFlow — это фреймворк, позволяющий создава�
 
 Ознакомьтесь с [Руководством по агентному программированию](https://brainy.gitbook.io/flow/guides/agentic_coding), самым быстрым способом разработки само-кодирующих LLM-проектов с BrainyFlow!
 
-![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
+![](https://raw.githubusercontent.com/skadaai/caskada/master/.github/media/divider.png)
 
 ## Благодарности
 
@@ -166,7 +166,7 @@ BrainyFlow предоставляется «как есть» без каких-
 
 <p align="center">
   <a style="color: inherit" href="https://github.com/sponsors/zvictor?utm_source=brainyflow&utm_medium=sponsorship&utm_campaign=brainyflow&utm_id=brainyflow">
-    <img width="150" src="https://cdn.jsdelivr.net/gh/zvictor/brainyflow@main/.github/media/brain.png" alt="Логотип Brainyflow" />
+    <img width="150" src="https://cdn.jsdelivr.net/gh/skadaai/caskada@main/.github/media/brain.png" alt="Логотип Brainyflow" />
   </a><br /><br />
   BrainyFlow работает на 200 строках кода и вашей щедрости! 💰<br />
     <a style="color: inherit" href="https://github.com/sponsors/zvictor?utm_source=brainyflow&utm_medium=sponsorship&utm_campaign=brainyflow&utm_id=brainyflow">
@@ -176,4 +176,4 @@ BrainyFlow предоставляется «как есть» без каких-
   </a>
 </p>
 
-![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
+![](https://raw.githubusercontent.com/skadaai/caskada/master/.github/media/divider.png)

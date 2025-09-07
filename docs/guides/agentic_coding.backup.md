@@ -283,7 +283,7 @@ The human identifies necessary external tools and APIs while the AI helps implem
 
 Utility functions serve as the interface between your LLM application and external systems:
 
-<div align="center"><img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/utility.png?raw=true" width="400"/></div>
+<div align="center"><img src="https://github.com/skadaai/caskada/raw/main/.github/media/utility.png?raw=true" width="400"/></div>
 
 **Categories of Utilities:**
 
@@ -432,7 +432,7 @@ The AI assistant transforms the design into working code:
 {% hint style="success" %}
 **You'll likely iterate a lot!** Expect to repeat Steps 3–6 numerous times.
 
-<div align="center"><img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/success.png?raw=true" width="400"/></div>
+<div align="center"><img src="https://github.com/skadaai/caskada/raw/main/.github/media/success.png?raw=true" width="400"/></div>
 {% endhint %}
 
 The human evaluates the system's performance while the AI suggests improvements.

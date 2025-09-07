@@ -3,7 +3,7 @@
 Many real-world tasks are too complex for one LLM call. The solution is **Task Decomposition**: decompose them into a [chain](../core_abstraction/flow.md) of multiple Nodes.
 
 <div align="center">
-  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/workflow.png?raw=true" width="400"/>
+  <img src="https://github.com/skadaai/caskada/raw/main/.github/media/workflow.png?raw=true" width="400"/>
 </div>
 
 {% hint style="success" %}

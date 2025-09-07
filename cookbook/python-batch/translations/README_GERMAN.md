@@ -1,13 +1,13 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://cdn.jsdelivr.net/gh/zvictor/brainyflow@main/.github/media/logo-dark.png">
-    <source media="(prefers-color-scheme: light)" srcset="https://cdn.jsdelivr.net/gh/zvictor/brainyflow@main/.github/media/logo-light.png">
-    <img width="280" alt="Brainyflows Logo" src="https://cdn.jsdelivr.net/gh/zvictor/brainyflow@main/.github/media/logo-light.png">
+    <source media="(prefers-color-scheme: dark)" srcset="https://cdn.jsdelivr.net/gh/skadaai/caskada@main/.github/media/logo-dark.png">
+    <source media="(prefers-color-scheme: light)" srcset="https://cdn.jsdelivr.net/gh/skadaai/caskada@main/.github/media/logo-light.png">
+    <img width="280" alt="Brainyflows Logo" src="https://cdn.jsdelivr.net/gh/skadaai/caskada@main/.github/media/logo-light.png">
   </picture>
 <p>
 
 <p align="center">
-  Ein radikal minimalistisches KI-Framework (nur <a href="https://github.com/zvictor/BrainyFlow/blob/main/python/brainyflow.py">200 Zeilen in Python</a>! 🤯)
+  Ein radikal minimalistisches KI-Framework (nur <a href="https://github.com/skadaai/caskada/blob/main/python/brainyflow.py">200 Zeilen in Python</a>! 🤯)
 
   <br />
   Erstelle leistungsstarke KI-Agenten mit minimalem Code und maximaler Freiheit.
@@ -26,8 +26,8 @@
   <a href="https://discord.gg/N9mVvxRXyH">
     <img src="https://img.shields.io/discord/1346833819172601907?logo=discord&style=flat-square" alt="Discord">
   </a>
-  <a href="https://github.com/zvictor/brainyflow">
-    <img src="https://img.shields.io/github/stars/zvictor/BrainyFlow?logo=github&style=flat-square" alt="GitHub-Repository">
+  <a href="https://github.com/skadaai/caskada">
+    <img src="https://img.shields.io/github/stars/skadaai/caskada?logo=github&style=flat-square" alt="GitHub-Repository">
   </a>
   <a href="https://github.com/sponsors/zvictor">
     <img src="https://img.shields.io/github/sponsors/zvictor?logo=github&style=flat-square" alt="GitHub-Sponsoren">
@@ -48,9 +48,9 @@ Es ermöglicht sowohl Menschen als auch KI-Assistenten, effektiv an der Gestaltu
 - **Leistungsstark 🦾**: Unterstützt alles, was du liebst – ([Multi-](https://brainy.gitbook.io/flow/design_pattern/multi_agent))[Agenten](https://brainy.gitbook.io/flow/design_pattern/agent), [Workflow](https://brainy.gitbook.io/flow/design_pattern/workflow), [RAG](https://brainy.gitbook.io/flow/design_pattern/rag) und mehr
 - **Agentic-Coding 🤖**: Für die KI-unterstützte Entwicklung konzipiert
 - **Universell 🌈**: Funktioniert mit jedem LLM-Anbieter oder API
-- **Polyglott 🌍**: <!-- gitbook-ignore-start --><a href="https://pypi.org/project/brainyflow"><img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/python.svg" width="16" height="16" alt="Python-Logo" style="vertical-align: middle; margin: 0 2px;"></a><!-- gitbook-ignore-end --> Python und <!-- gitbook-ignore-start --><a href="https://npmjs.com/packages/brainyflow"><img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/typescript.svg" width="16" height="16" alt="Typescript-Logo" style="vertical-align: middle; margin: 0 2px;"></a><!-- gitbook-ignore-end --> Typescript werden beide unterstützt
+- **Polyglott 🌍**: <!-- gitbook-ignore-start --><a href="https://pypi.org/project/brainyflow"><img src="https://github.com/skadaai/caskada/raw/main/.github/media/python.svg" width="16" height="16" alt="Python-Logo" style="vertical-align: middle; margin: 0 2px;"></a><!-- gitbook-ignore-end --> Python und <!-- gitbook-ignore-start --><a href="https://npmjs.com/packages/brainyflow"><img src="https://github.com/skadaai/caskada/raw/main/.github/media/typescript.svg" width="16" height="16" alt="Typescript-Logo" style="vertical-align: middle; margin: 0 2px;"></a><!-- gitbook-ignore-end --> Typescript werden beide unterstützt
 
-![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
+![](https://raw.githubusercontent.com/skadaai/caskada/master/.github/media/divider.png)
 
 <!-- gitbook-ignore-start -->
 
@@ -63,7 +63,7 @@ Starte, indem du deine Bedingung auswählst – oder vielleicht _die, von der du
 
 \>> [Ich bin siliziumbasiert 🤖](https://flow.brainy.sh/docs.txt) <<
 
-![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
+![](https://raw.githubusercontent.com/skadaai/caskada/master/.github/media/divider.png)
 
 <!-- gitbook-ignore-end -->
 
@@ -72,7 +72,7 @@ Starte, indem du deine Bedingung auswählst – oder vielleicht _die, von der du
 Aktuelle LLM-Frameworks sind aufgebläht... Du brauchst tatsächlich nur 200 Zeilen für ein robustes LLM-Framework!
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/meme.jpg" width="500"/>
+  <img src="https://raw.githubusercontent.com/skadaai/caskada/main/.github/media/meme.jpg" width="500"/>
 
 |                                                                                                                                                                                                                | **Abstraktion** |                     **App-Spezifische Wrapper**                      |                       **Anbieter-Spezifische Wrapper**                       |                **Zeilen**                 |                  **Größe**                   |
 | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------: | :----------------------------------------------------------------: | :----------------------------------------------------------------------: | :--------------------------------------: | :-----------------------------------------: |
@@ -81,20 +81,20 @@ Aktuelle LLM-Frameworks sind aufgebläht... Du brauchst tatsächlich nur 200 Zei
 | SmolAgent                                                                                                                                                                                                      |      Agent      |   Einige <br><sup><sub>(z.B. CodeAgent, VisitWebTool)</sub></sup>   |  Einige <br><sup><sub>(z.B. DuckDuckGo, Hugging Face, etc.)</sub></sup>   |                    8K                    |                   +198MB                    |
 | LangGraph                                                                                                                                                                                                      |  Agent, Graph   |       Einige <br><sup><sub>(z.B. Semantische Suche)</sub></sup>       | Einige <br><sup><sub>(z.B. PostgresStore, SqliteSaver, etc.) </sub></sup> |                   37K                    |                    +51MB                    |
 | AutoGen                                                                                                                                                                                                        |      Agent      |   Einige <br><sup><sub>(z.B. Tool Agent, Chat Agent)</sub></sup>    | Viele <sup><sub>[Optional]<br> (z.B. OpenAI, Pinecone, etc.)</sub></sup> | 7K <br><sup><sub>(nur Kern)</sub></sup> | +26MB <br><sup><sub>(nur Kern)</sub></sup> |
-| **BrainyFlow** <!-- gitbook-ignore-start --><img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/typescript.svg" width="16" height="16" alt="Typescript-Logo"><!-- gitbook-ignore-end -->.ts |    **Graph**    |                              **Keine**                              |                                 **Keine**                                 |                 **300**                  |                 **wenige KB**                  |
-| **BrainyFlow** <!-- gitbook-ignore-start --><img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/python.svg" width="16" height="16" alt="Python-Logo"><!-- gitbook-ignore-end -->.py         |    **Graph**    |                              **Keine**                              |                                 **Keine**                                 |                 **200**                  |                 **wenige KB**                  |
+| **BrainyFlow** <!-- gitbook-ignore-start --><img src="https://github.com/skadaai/caskada/raw/main/.github/media/typescript.svg" width="16" height="16" alt="Typescript-Logo"><!-- gitbook-ignore-end -->.ts |    **Graph**    |                              **Keine**                              |                                 **Keine**                                 |                 **300**                  |                 **wenige KB**                  |
+| **BrainyFlow** <!-- gitbook-ignore-start --><img src="https://github.com/skadaai/caskada/raw/main/.github/media/python.svg" width="16" height="16" alt="Python-Logo"><!-- gitbook-ignore-end -->.py         |    **Graph**    |                              **Keine**                              |                                 **Keine**                                 |                 **200**                  |                 **wenige KB**                  |
 
 </div>
 
-![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
+![](https://raw.githubusercontent.com/skadaai/caskada/master/.github/media/divider.png)
 
 ## Wie funktioniert BrainyFlow?
 
-Die einzelne Datei in <a href="https://github.com/zvictor/BrainyFlow/blob/main/python/brainyflow.py"><!-- gitbook-ignore-start --><img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/python.svg" width="16" height="16" alt="Python-Logo" style="vertical-align: middle; margin: 0 2px;"> <!-- gitbook-ignore-end -->Python</a> oder <a href="https://github.com/zvictor/BrainyFlow/blob/main/typescript/brainyflow.ts"><!-- gitbook-ignore-start --><img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/typescript.svg" width="16" height="16" alt="Typescript-Logo" style="vertical-align: middle; margin: 0 2px;"> <!-- gitbook-ignore-end -->Typescript</a> erfasst die Kernabstraktion von LLM-Frameworks: Graph!
+Die einzelne Datei in <a href="https://github.com/skadaai/caskada/blob/main/python/brainyflow.py"><!-- gitbook-ignore-start --><img src="https://github.com/skadaai/caskada/raw/main/.github/media/python.svg" width="16" height="16" alt="Python-Logo" style="vertical-align: middle; margin: 0 2px;"> <!-- gitbook-ignore-end -->Python</a> oder <a href="https://github.com/skadaai/caskada/blob/main/typescript/brainyflow.ts"><!-- gitbook-ignore-start --><img src="https://github.com/skadaai/caskada/raw/main/.github/media/typescript.svg" width="16" height="16" alt="Typescript-Logo" style="vertical-align: middle; margin: 0 2px;"> <!-- gitbook-ignore-end -->Typescript</a> erfasst die Kernabstraktion von LLM-Frameworks: Graph!
 <br>
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/abstraction.jpg" width="1300"/>
+  <img src="https://raw.githubusercontent.com/skadaai/caskada/main/.github/media/abstraction.jpg" width="1300"/>
 </div>
 <br>
 
@@ -106,7 +106,7 @@ Von dort aus ist es einfach, alle beliebten Designmuster zu implementieren:
 <br>
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/design.jpg" width="1300"/>
+  <img src="https://raw.githubusercontent.com/skadaai/caskada/main/.github/media/design.jpg" width="1300"/>
 </div>
 <br>
 
@@ -117,7 +117,7 @@ Von dort aus ist es einfach, alle beliebten Designmuster zu implementieren:
 - [Structured Output](https://brainy.gitbook.io/flow/design_pattern/structure) formatiert Ausgaben konsistent.
 - [Multi-Agenten](https://brainy.gitbook.io/flow/design_pattern/multi_agent) koordinieren mehrere Agenten.
 
-![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
+![](https://raw.githubusercontent.com/skadaai/caskada/master/.github/media/divider.png)
 
 ## Tutorials
 
@@ -125,23 +125,23 @@ Von dort aus ist es einfach, alle beliebten Designmuster zu implementieren:
   
 |  Name  | Schwierigkeit    |  Beschreibung  |  
 | :-------------:  | :-------------: | :--------------------- |  
-| [Chat](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-chat) | ☆☆☆ <br> *Einfach*   | Ein einfacher Chat-Bot mit Konversationsverlauf |
-| [RAG](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-rag) | ☆☆☆ <br> *Einfach*   | Ein einfacher Retrieval-augmented Generation Prozess |
-| [Workflow](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-workflow) | ☆☆☆ <br> *Einfach*   | Ein Schreib-Workflow, der Inhalte gliedert, schreibt und formatiert |
-| [Map-Reduce](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-map-reduce) | ☆☆☆ <br> *Einfach* | Ein Lebenslauf-Qualifikationsprozessor, der das Map-Reduce-Muster für die Stapelauswertung verwendet |
-| [Agent](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-agent) | ☆☆☆ <br> *Einfach*   | Ein Forschungsagent, der das Web durchsuchen und Fragen beantworten kann |
-| [Streaming](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-llm-streaming) | ☆☆☆ <br> *Einfach*   | Eine Echtzeit-LLM-Streaming-Demo mit Unterbrechungsmöglichkeit durch den Benutzer |
-| [Multi-Agent](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-multi-agent) | ★☆☆ <br> *Anfänger* | Ein Tabu-Wortspiel für asynchrone Kommunikation zwischen zwei Agenten |
-| [Supervisor](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-supervisor) | ★☆☆ <br> *Anfänger* | Der Forschungsagent wird unzuverlässig... Lass uns einen Überwachungsprozess erstellen|
-| [Parallel](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-parallel-batch) | ★☆☆ <br> *Anfänger*   | Eine Parallelausführungs-Demo, die eine 3-fache Beschleunigung zeigt |
-| [Thinking](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-thinking) | ★☆☆ <br> *Anfänger*   | Löse komplexe Denkaufgaben durch Chain-of-Thought |
-| [Memory](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-chat-memory) | ★☆☆ <br> *Anfänger* | Ein Chat-Bot mit Kurzzeit- und Langzeitgedächtnis |
+| [Chat](https://github.com/skadaai/caskada/tree/main/cookbook/python-chat) | ☆☆☆ <br> *Einfach*   | Ein einfacher Chat-Bot mit Konversationsverlauf |
+| [RAG](https://github.com/skadaai/caskada/tree/main/cookbook/python-rag) | ☆☆☆ <br> *Einfach*   | Ein einfacher Retrieval-augmented Generation Prozess |
+| [Workflow](https://github.com/skadaai/caskada/tree/main/cookbook/python-workflow) | ☆☆☆ <br> *Einfach*   | Ein Schreib-Workflow, der Inhalte gliedert, schreibt und formatiert |
+| [Map-Reduce](https://github.com/skadaai/caskada/tree/main/cookbook/python-map-reduce) | ☆☆☆ <br> *Einfach* | Ein Lebenslauf-Qualifikationsprozessor, der das Map-Reduce-Muster für die Stapelauswertung verwendet |
+| [Agent](https://github.com/skadaai/caskada/tree/main/cookbook/python-agent) | ☆☆☆ <br> *Einfach*   | Ein Forschungsagent, der das Web durchsuchen und Fragen beantworten kann |
+| [Streaming](https://github.com/skadaai/caskada/tree/main/cookbook/python-llm-streaming) | ☆☆☆ <br> *Einfach*   | Eine Echtzeit-LLM-Streaming-Demo mit Unterbrechungsmöglichkeit durch den Benutzer |
+| [Multi-Agent](https://github.com/skadaai/caskada/tree/main/cookbook/python-multi-agent) | ★☆☆ <br> *Anfänger* | Ein Tabu-Wortspiel für asynchrone Kommunikation zwischen zwei Agenten |
+| [Supervisor](https://github.com/skadaai/caskada/tree/main/cookbook/python-supervisor) | ★☆☆ <br> *Anfänger* | Der Forschungsagent wird unzuverlässig... Lass uns einen Überwachungsprozess erstellen|
+| [Parallel](https://github.com/skadaai/caskada/tree/main/cookbook/python-parallel-batch) | ★☆☆ <br> *Anfänger*   | Eine Parallelausführungs-Demo, die eine 3-fache Beschleunigung zeigt |
+| [Thinking](https://github.com/skadaai/caskada/tree/main/cookbook/python-thinking) | ★☆☆ <br> *Anfänger*   | Löse komplexe Denkaufgaben durch Chain-of-Thought |
+| [Memory](https://github.com/skadaai/caskada/tree/main/cookbook/python-chat-memory) | ★☆☆ <br> *Anfänger* | Ein Chat-Bot mit Kurzzeit- und Langzeitgedächtnis |
 
 </div>
 
-Und viele mehr für alle Levels! [Schau sie dir alle an!](https://github.com/zvictor/BrainyFlow/tree/main/cookbook)
+Und viele mehr für alle Levels! [Schau sie dir alle an!](https://github.com/skadaai/caskada/tree/main/cookbook)
 
-![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
+![](https://raw.githubusercontent.com/skadaai/caskada/master/.github/media/divider.png)
 
 ## Schnellstart
 
@@ -151,7 +151,7 @@ Neu bei BrainyFlow? Schau dir unseren [Schnellstart](https://brainy.gitbook.io/f
 
 Schau dir die [Anleitung zum Agentic Coding](https://brainy.gitbook.io/flow/guides/agentic_coding) an, den schnellsten Weg, selbstcodierende LLM-Projekte mit BrainyFlow zu entwickeln!
 
-![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
+![](https://raw.githubusercontent.com/skadaai/caskada/master/.github/media/divider.png)
 
 ## Danksagung
 
@@ -166,7 +166,7 @@ Wir übernehmen keine Verantwortung für die Verwendung der generierten Ausgaben
 
 <p align="center">
   <a style="color: inherit" href="https://github.com/sponsors/zvictor?utm_source=brainyflow&utm_medium=sponsorship&utm_campaign=brainyflow&utm_id=brainyflow">
-    <img width="150" src="https://cdn.jsdelivr.net/gh/zvictor/brainyflow@main/.github/media/brain.png" alt="Brainyflows Logo" />
+    <img width="150" src="https://cdn.jsdelivr.net/gh/skadaai/caskada@main/.github/media/brain.png" alt="Brainyflows Logo" />
   </a><br /><br />
   BrainyFlow läuft mit 200 Codezeilen und deiner Großzügigkeit! 💰<br />
     <a style="color: inherit" href="https://github.com/sponsors/zvictor?utm_source=brainyflow&utm_medium=sponsorship&utm_campaign=brainyflow&utm_id=brainyflow">
@@ -176,4 +176,4 @@ Wir übernehmen keine Verantwortung für die Verwendung der generierten Ausgaben
   </a>
 </p>
 
-![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
+![](https://raw.githubusercontent.com/skadaai/caskada/master/.github/media/divider.png)

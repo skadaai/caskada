@@ -1,8 +1,8 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://cdn.jsdelivr.net/gh/zvictor/brainyflow@main/.github/media/logo-dark.png">
-    <source media="(prefers-color-scheme: light)" srcset="https://cdn.jsdelivr.net/gh/zvictor/brainyflow@main/.github/media/logo-light.png">
-    <img width="280" alt="Brainyflow 로고" src="https://cdn.jsdelivr.net/gh/zvictor/brainyflow@main/.github/media/logo-light.png">
+    <source media="(prefers-color-scheme: dark)" srcset="https://cdn.jsdelivr.net/gh/skadaai/caskada@main/.github/media/logo-dark.png">
+    <source media="(prefers-color-scheme: light)" srcset="https://cdn.jsdelivr.net/gh/skadaai/caskada@main/.github/media/logo-light.png">
+    <img width="280" alt="Brainyflow 로고" src="https://cdn.jsdelivr.net/gh/skadaai/caskada@main/.github/media/logo-light.png">
   </picture>
 <p>
 
@@ -26,8 +26,8 @@
   <a href="https://discord.gg/N9mVvxRXyH">
     <img src="https://img.shields.io/discord/1346833819172601907?logo=discord&style=flat-square" alt="Discord">
   </a>
-  <a href="https://github.com/zvictor/brainyflow">
-    <img src="https://img.shields.io/github/stars/zvictor/BrainyFlow?logo=github&style=flat-square" alt="GitHub 저장소">
+  <a href="https://github.com/skadaai/caskada">
+    <img src="https://img.shields.io/github/stars/skadaai/caskada?logo=github&style=flat-square" alt="GitHub 저장소">
   </a>
   <a href="https://github.com/sponsors/zvictor">
     <img src="https://img.shields.io/github/sponsors/zvictor?logo=github&style=flat-square" alt="GitHub 스폰서">
@@ -49,7 +49,7 @@ BrainyFlow는 강력한 추상화를 통해 '에이전트 중심 코딩'을 가�
 - **범용성 🌈**: 모든 LLM 제공자 또는 API와 호환
 - **다국어 지원 🌍**: Python과 Typescript 모두 지원
 
-![](https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/divider.png)
+![](https://raw.githubusercontent.com/skadaai/caskada/main/.github/media/divider.png)
 
 ## 문서
 
@@ -60,29 +60,29 @@ BrainyFlow는 강력한 추상화를 통해 '에이전트 중심 코딩'을 가�
 
 \>> [저는 실리콘 기반입니다 🤖](https://flow.brainy.sh/docs.txt) <<
 
-![](https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/divider.png)
+![](https://raw.githubusercontent.com/skadaai/caskada/main/.github/media/divider.png)
 
 ## 왜 Brainy Flow인가?
 
 현재 LLM 프레임워크는 너무 복잡합니다... 사실 견고한 LLM 프레임워크를 위해 필요한 건 단 200줄의 코드입니다!
 
-![](https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/abstraction.jpg)
+![](https://raw.githubusercontent.com/skadaai/caskada/main/.github/media/abstraction.jpg)
 
 ## 작동 방식
 
 BrainyFlow는 강력한 추상화를 통해 에이전트 중심 코딩을 가능하게 합니다.
 
-![](https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/design.jpg)
+![](https://raw.githubusercontent.com/skadaai/caskada/main/.github/media/design.jpg)
 
 ## 튜토리얼
 
 |  이름  | 난이도    |  설명  |  
 | :-------------:  | :-------------: | :--------------------- |  
-| [채팅](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-chat) | ☆☆☆ <br> *초보자*   | 대화 기록이 있는 기본 채팅 봇 |
-| [RAG](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-rag) | ☆☆☆ <br> *초보자*   | 간단한 검색 강화 생성 프로세스 |
-| [워크플로우](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-workflow) | ☆☆☆ <br> *초보자*   | 개요 작성, 콘텐츠 작성, 스타일 적용이 가능한 글쓰기 워크플로우 |
+| [채팅](https://github.com/skadaai/caskada/tree/main/cookbook/python-chat) | ☆☆☆ <br> *초보자*   | 대화 기록이 있는 기본 채팅 봇 |
+| [RAG](https://github.com/skadaai/caskada/tree/main/cookbook/python-rag) | ☆☆☆ <br> *초보자*   | 간단한 검색 강화 생성 프로세스 |
+| [워크플로우](https://github.com/skadaai/caskada/tree/main/cookbook/python-workflow) | ☆☆☆ <br> *초보자*   | 개요 작성, 콘텐츠 작성, 스타일 적용이 가능한 글쓰기 워크플로우 |
 
-![](https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/divider.png)
+![](https://raw.githubusercontent.com/skadaai/caskada/main/.github/media/divider.png)
 
 ## 빠른 시작
 
@@ -95,7 +95,7 @@ BrainyFlow는 "있는 그대로" 제공되며 어떠한 보증도 제공하지 �
 
 ## 스폰서
 
-![](https://cdn.jsdelivr.net/gh/zvictor/brainyflow@main/.github/media/brain.png)
+![](https://cdn.jsdelivr.net/gh/skadaai/caskada@main/.github/media/brain.png)
 
 BrainyFlow는 200줄의 코드와 여러분의 후원으로 운영됩니다! 💰
 ```

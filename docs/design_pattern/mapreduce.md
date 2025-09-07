@@ -3,7 +3,7 @@
 The MapReduce pattern is a powerful way to process large datasets by breaking down a complex task into two main phases: **Map** (processing individual items) and **Reduce** (aggregating results). BrainyFlow provides the perfect abstractions to implement this pattern efficiently, especially with its `ParallelFlow` for concurrent mapping.
 
 <div align="center">
-  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/mapreduce.png?raw=true" width="400"/>
+  <img src="https://github.com/skadaai/caskada/raw/main/.github/media/mapreduce.png?raw=true" width="400"/>
 </div>
 
 ## Core Components
@@ -130,7 +130,7 @@ export function mapreduce(iterate: Node | Flow): ParallelFlow {
 
 Let's create a flow to summarize multiple text files using the pattern we just created.
 
-For simplicity, these will be overly-simplified mock tools/nodes. For a more in-depth implementation, check the implementations in our cookbook for [Resume Qualification (Python)](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-map-reduce) - _more TypeScript examples coming soon ([PRs welcome](https://github.com/zvictor/BrainyFlow)!)_.
+For simplicity, these will be overly-simplified mock tools/nodes. For a more in-depth implementation, check the implementations in our cookbook for [Resume Qualification (Python)](https://github.com/skadaai/caskada/tree/main/cookbook/python-map-reduce) - _more TypeScript examples coming soon ([PRs welcome](https://github.com/skadaai/caskada)!)_.
 
 ### 1. Define Mapper Node (Summarizer)
 

@@ -58,11 +58,11 @@ Since BrainyFlow is lightweight and dependency-free, you can also install it by 
 
 {% tabs %}
 {% tab title="Python" %}
-Copy [`python/brainyflow.py`](https://github.com/zvictor/BrainyFlow/blob/main/python/brainyflow.py)
+Copy [`python/brainyflow.py`](https://github.com/skadaai/caskada/blob/main/python/brainyflow.py)
 {% endtab %}
 
 {% tab title="TypeScript" %}
-Copy [`typescript/brainyflow.ts`](https://github.com/zvictor/BrainyFlow/blob/main/typescript/brainyflow.ts)
+Copy [`typescript/brainyflow.ts`](https://github.com/skadaai/caskada/blob/main/typescript/brainyflow.ts)
 {% endtab %}
 {% endtabs %}
 

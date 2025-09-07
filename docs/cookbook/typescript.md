@@ -5,11 +5,11 @@ machine-display: false
 
 # TypeScript Examples
 
-All projects listed below can be found in our [cookbook directory](https://github.com/zvictor/brainyflow/tree/main/cookbook).
+All projects listed below can be found in our [cookbook directory](https://github.com/skadaai/caskada/tree/main/cookbook).
 
 They have been sorted by [complexity points](#the-complexity-points-system) - which are represented by the scale 🥚→🐣→🐥→🐓→🦕→🦖→☄️→🐭→🐒→🧠→⚙️→🤖→👾→🛸→🌌 - to help you easily find projects that suit your skills.
 
-## Terminal Chat Interface Example ([typescript-chat](https://github.com/zvictor/brainyflow/tree/main/cookbook/typescript-chat))
+## Terminal Chat Interface Example ([typescript-chat](https://github.com/skadaai/caskada/tree/main/cookbook/typescript-chat))
 Complexity Points: 3.5
 └🥚
 
@@ -53,7 +53,7 @@ flowchart LR
 
 </details>
 
-## Agent Example ([typescript-agent](https://github.com/zvictor/brainyflow/tree/main/cookbook/typescript-agent))
+## Agent Example ([typescript-agent](https://github.com/skadaai/caskada/tree/main/cookbook/typescript-agent))
 Complexity Points: 11
 └🐥🐥🐥
 
@@ -115,7 +115,7 @@ graph TD
 
 </details>
 
-![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
+![](https://raw.githubusercontent.com/skadaai/caskada/master/.github/media/divider.png)
 # The Complexity Points System
 All listed projects had their calculation automatically calculated.
 Click `Details` below for more information in the points system.

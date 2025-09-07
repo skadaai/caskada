@@ -3,7 +3,7 @@
 The Agent pattern provides a robust and flexible way to build autonomous AI systems that can reason, plan, and interact with their environment. It's particularly well-suited for tasks requiring multiple steps, tool use, and dynamic decision-making.
 
 <div align="center">
-  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/agent.png?raw=true" width="350"/>
+  <img src="https://github.com/skadaai/caskada/raw/main/.github/media/agent.png?raw=true" width="350"/>
 </div>
 
 ## Nodes of an Agent
@@ -66,7 +66,7 @@ This agent:
 2. If searches, loops back to decide if more search needed
 3. Answers when enough context gathered
 
-For simplicity, these will be overly-simplified mock tools/nodes. For a more in-depth implementation, check the implementations in our cookbook for [Python](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-agent) or [TypeScript](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/typescript-agent).
+For simplicity, these will be overly-simplified mock tools/nodes. For a more in-depth implementation, check the implementations in our cookbook for [Python](https://github.com/skadaai/caskada/tree/main/cookbook/python-agent) or [TypeScript](https://github.com/skadaai/caskada/tree/main/cookbook/typescript-agent).
 
 ### 1. Define Tool Nodes
 

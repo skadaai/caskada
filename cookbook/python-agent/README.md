@@ -6,7 +6,7 @@ complexity: 11.5
 
 This project demonstrates a simple yet powerful LLM-powered research agent.
 
-👉 Run the tutorial in your browser: [Try Google Colab Notebook](https://colab.research.google.com/github/zvictor/BrainyFlow/blob/main/cookbook/python-agent/demo.ipynb)
+👉 Run the tutorial in your browser: [Try Google Colab Notebook](https://colab.research.google.com/github/skadaai/caskada/blob/main/cookbook/python-agent/demo.ipynb)
 
 ## Features
 

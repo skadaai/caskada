@@ -12,7 +12,7 @@ This implementation is based on this tutorial for Pocketflow: [A2A Protocol Simp
 
 This project combines two main parts:
 
-1.  **BrainyFlow Agent Logic:** The original agent code ([`nodes.py`](nodes.py), [`utils.py`](utils.py), [`flow.py`](flow.py)) defines the internal workflow (Decide -> Search -> Answer). This code is taken directly from the [BrainyFlow Agent Tutorial](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-agent).
+1.  **BrainyFlow Agent Logic:** The original agent code ([`nodes.py`](nodes.py), [`utils.py`](utils.py), [`flow.py`](flow.py)) defines the internal workflow (Decide -> Search -> Answer). This code is taken directly from the [BrainyFlow Agent Tutorial](https://github.com/skadaai/caskada/tree/main/cookbook/python-agent).
 2.  **A2A Server Wrapper:** Code from the [google/A2A samples repository](https://github.com/google/A2A/tree/main/samples/python) (`common/` directory) provides the necessary infrastructure to host the agent as an A2A-compliant server. _Note: Minor modifications were made to the common server/client code to add detailed logging for educational purposes._
 3.  **The Bridge ([`task_manager.py`](task_manager.py)):** A custom `BrainyFlowTaskManager` class acts as the bridge. It receives A2A requests (like `tasks/send`), extracts the user query, runs the BrainyFlow `agent_flow`, takes the final result from the flow's shared state, and packages it back into an A2A `Task` object with the answer as an `Artifact`.
 

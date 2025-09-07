@@ -18,9 +18,9 @@
     "README.md"
   ],
   "homepage": "https://flow.brainy.sh",
-  "repository": "github:zvictor/brainyFlow",
+  "repository": "github:skadaai/caskada",
   "bugs": {
-    "url": "https://github.com/zvictor/brainyFlow/issues"
+    "url": "https://github.com/skadaai/caskada/issues"
   },
   "description": "Minimalist AI framework in 300 Lines. Enable LLMs to Program Themselves.",
   "keywords": [

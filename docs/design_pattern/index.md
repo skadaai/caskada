@@ -5,7 +5,7 @@ BrainyFlow supports a variety of design patterns that enable you to build comple
 ## Overview of Design Patterns
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/design.jpg" width="1300"/>
+  <img src="https://raw.githubusercontent.com/skadaai/caskada/main/.github/media/design.jpg" width="1300"/>
 </div>
 
 BrainyFlow's minimalist design allows it to support various high-level AI design paradigms:

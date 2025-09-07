@@ -5,7 +5,7 @@ In BrainyFlow, a **Node** is the fundamental building block of any application. 
 ## Node Lifecycle
 
 <div align="center">
-  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/node.jpg" width="400"/>
+  <img src="https://github.com/skadaai/caskada/raw/main/.github/media/node.jpg" width="400"/>
 </div>
 
 Every node follows a clear, three-phase lifecycle when executed: `prep` → `exec` → `post`. This separation of concerns ensures clean data handling, computation, and state management.

@@ -425,7 +425,7 @@ If you encounter issues during migration, you can:
 
 1. Check the [documentation](../index.md) for detailed explanations
 2. Look at the [examples](../examples/index.md) for reference implementations
-3. File an issue on [GitHub](https://github.com/zvictor/brainyflow/issues)
+3. File an issue on [GitHub](https://github.com/skadaai/caskada/issues)
 
 Always consult the specific release notes for the version you are migrating to for the most accurate and detailed list of changes.
 

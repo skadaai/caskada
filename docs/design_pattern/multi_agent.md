@@ -23,7 +23,7 @@ Most of time, you don't need Multi-Agents. Start with a simple solution first.
 
 Let's create a simple multi-agent system where agents communicate via a shared message queue.
 
-For simplicity, these will be overly-simplified mock tools/nodes. For a more in-depth implementation, check the implementations in our cookbook for [Multi-Agent Taboo Game (Python)](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-multi-agent) or [Agent with A2A Protocol (Python)](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-a2a) - _more TypeScript examples coming soon ([PRs welcome](https://github.com/zvictor/BrainyFlow)!)_.
+For simplicity, these will be overly-simplified mock tools/nodes. For a more in-depth implementation, check the implementations in our cookbook for [Multi-Agent Taboo Game (Python)](https://github.com/skadaai/caskada/tree/main/cookbook/python-multi-agent) or [Agent with A2A Protocol (Python)](https://github.com/skadaai/caskada/tree/main/cookbook/python-a2a) - _more TypeScript examples coming soon ([PRs welcome](https://github.com/skadaai/caskada)!)_.
 
 ### 1. Define Agent Node
 

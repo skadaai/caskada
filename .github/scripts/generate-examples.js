@@ -8,7 +8,7 @@
 import fs from 'fs/promises'
 import path from 'path'
 
-const REPOSITORY = 'https://github.com/zvictor/brainyflow'
+const REPOSITORY = 'https://github.com/skadaai/caskada'
 const COOKBOOK_DIR = 'cookbook'
 const OUTPUT_DIR = 'docs/cookbook' // Directory where generated files will be saved
 const PYTHON_EXAMPLES_FILE = path.join(OUTPUT_DIR, 'python.md')
@@ -166,7 +166,7 @@ function generateMarkdown(pageTitle, projects) {
     markdown += `</details>\n\n`
   })
 
-  markdown += `![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)\n`
+  markdown += `![](https://raw.githubusercontent.com/skadaai/caskada/master/.github/media/divider.png)\n`
   markdown += `# The Complexity Points System\n`
   markdown += `All listed projects had their calculation automatically calculated.\nClick \`Details\` below for more information in the points system.\n`
   markdown += `<details>\n<summary><strong>Details</strong></summary>\n\n`
