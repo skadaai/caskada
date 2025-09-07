@@ -13,7 +13,7 @@ setup(
     description="Minimalist AI framework in 300 Lines. Enable LLMs to Program Themselves.",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://flow.brainy.sh",
+    url="https://skada.ai/caskada/",
     license='MPL-2.0',
     classifiers=[
         'License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)',
