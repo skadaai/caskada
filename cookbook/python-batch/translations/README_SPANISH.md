@@ -155,7 +155,7 @@ Mira la [Guía de Programación Agéntica](https://brainy.gitbook.io/flow/guides
 
 ## Agradecimientos
 
-Queremos extender nuestro más profundo agradecimiento a los creadores y contribuyentes del framework PocketFlow, del cual brainyFlow se originó como un fork.
+Queremos extender nuestro más profundo agradecimiento a los creadores y contribuyentes del framework PocketFlow, del cual Caskada se originó como un fork.
 
 ## Descargo de Responsabilidad
 

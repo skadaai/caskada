@@ -167,7 +167,7 @@ Consultez le [Guide de Codage Agentique](https://brainy.gitbook.io/flow/guides/a
 
 ## Remerciements
 
-Nous tenons à exprimer notre profonde gratitude aux créateurs et contributeurs du framework PocketFlow, dont brainyFlow est issu en tant que fork.
+Nous tenons à exprimer notre profonde gratitude aux créateurs et contributeurs du framework PocketFlow, dont Caskada est issu en tant que fork.
 
 ## Clause de Non-Responsabilité
 

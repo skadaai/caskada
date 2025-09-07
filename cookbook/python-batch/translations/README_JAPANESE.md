@@ -155,7 +155,7 @@ Caskadaが初めてですか？[スタートガイド](https://brainy.gitbook.io
 
 ## 謝辞
 
-brainyFlowの元となったPocketFlowフレームワークの作成者と貢献者に深く感謝いたします。
+Caskadaの元となったPocketFlowフレームワークの作成者と貢献者に深く感謝いたします。
 
 ## 免責事項
 
