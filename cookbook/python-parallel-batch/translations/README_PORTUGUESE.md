@@ -44,7 +44,7 @@ Ele fornece uma interface simples para construir aplicativos complexos de IA bas
 - **Design minimalista ✨**: Abstrações principais em apenas (você ouviu direito!) 200 linhas de código
 - **Liberdade 🔓**: Sem bloat, dependências ou bloqueio de fornecedor
 - **Componível 🧩**: Construa sistemas complexos a partir de componentes simples e reutilizáveis
-- **Poderoso 🦾**: Suporta tudo o que você ama - ([Multi-](https://brainy.gitbook.io/flow/design_pattern/multi_agent))[Agentes](https://brainy.gitbook.io/flow/design_pattern/agent), [Fluxo de trabalho](https://brainy.gitbook.io/flow/design_pattern/workflow), [RAG](https://brainy.gitbook.io/flow/design_pattern/rag) e muito mais
+- **Poderoso 🦾**: Suporta tudo o que você ama - ([Multi-](https://skadaai.gitbook.io/caskada/design_pattern/multi_agent))[Agentes](https://skadaai.gitbook.io/caskada/design_pattern/agent), [Fluxo de trabalho](https://skadaai.gitbook.io/caskada/design_pattern/workflow), [RAG](https://skadaai.gitbook.io/caskada/design_pattern/rag) e muito mais
 - **Programação de agentes 🤖**: Projetado para desenvolvimento assistido por IA
 - **Universal 🌈**: Funciona com qualquer provedor ou API de LLM
 - **Poliglota 🌍**: <!-- gitbook-ignore-start --><a href="https://pypi.org/project/caskada"><img src="https://github.com/skadaai/caskada/raw/main/.github/media/python.svg" width="16" height="16" alt="Logo Python" style="vertical-align: middle; margin: 0 2px;"></a><!-- gitbook-ignore-end --> Python e <!-- gitbook-ignore-start --><a href="https://npmjs.com/packages/caskada"><img src="https://github.com/skadaai/caskada/raw/main/.github/media/typescript.svg" width="16" height="16" alt="Logo Typescript" style="vertical-align: middle; margin: 0 2px;"></a><!-- gitbook-ignore-end --> Typescript são suportados
@@ -58,7 +58,7 @@ Ele fornece uma interface simples para construir aplicativos complexos de IA bas
 Nossa documentação é inclusiva, adequada tanto para mentes biológicas quanto sintéticas.<br />
 Comece selecionando sua condição - ou talvez *aquela em que você foi condicionado a acreditar*:
 
-\>> [Eu sou baseado em carbono 🐥](https://brainy.gitbook.io/flow/introduction/getting_started) <<
+\>> [Eu sou baseado em carbono 🐥](https://skadaai.gitbook.io/caskada/introduction/getting_started) <<
 
 \>> [Eu sou baseado em silício 🤖](https://flow.brainy.sh/docs.txt) <<
 
@@ -97,9 +97,9 @@ O arquivo único em <a href="https://github.com/skadaai/caskada/blob/main/python
 </div>
 <br>
 
-- [Nó](https://brainy.gitbook.io/flow/core_abstraction/node) lida com tarefas simples (LLM) com um ciclo de vida claro (`prep` → `exec` → `post`).
-- [Fluxo](https://brainy.gitbook.io/flow/core_abstraction/flow) conecta nós por meio de **Ações** (borda rotulada), orquestrando a execução.
-- [Memória](https://brainy.gitbook.io/flow/core_abstraction/memory) gerencia estado compartilhado (`global`) e isolado (`local`), permitindo comunicação entre nós.
+- [Nó](https://skadaai.gitbook.io/caskada/core_abstraction/node) lida com tarefas simples (LLM) com um ciclo de vida claro (`prep` → `exec` → `post`).
+- [Fluxo](https://skadaai.gitbook.io/caskada/core_abstraction/flow) conecta nós por meio de **Ações** (borda rotulada), orquestrando a execução.
+- [Memória](https://skadaai.gitbook.io/caskada/core_abstraction/memory) gerencia estado compartilhado (`global`) e isolado (`local`), permitindo comunicação entre nós.
 
 A partir daí, é fácil implementar todos os padrões de design populares:
 <br>
@@ -109,12 +109,12 @@ A partir daí, é fácil implementar todos os padrões de design populares:
 </div>
 <br>
 
-- [Agente](https://brainy.gitbook.io/flow/design_pattern/agent) toma decisões autonomamente com base no contexto.
-- [Fluxo de trabalho](https://brainy.gitbook.io/flow/design_pattern/workflow) encadeia várias tarefas em um pipeline sequencial.
-- [RAG](https://brainy.gitbook.io/flow/design_pattern/rag) integra recuperação de dados com geração.
-- [Map Reduce](https://brainy.gitbook.io/flow/design_pattern/mapreduce) divide tarefas de dados em etapas de mapeamento e redução.
-- [Saída estruturada](https://brainy.gitbook.io/flow/design_pattern/structure) formata saídas de forma consistente.
-- [Multi-Agentes](https://brainy.gitbook.io/flow/design_pattern/multi_agent) coordena vários agentes.
+- [Agente](https://skadaai.gitbook.io/caskada/design_pattern/agent) toma decisões autonomamente com base no contexto.
+- [Fluxo de trabalho](https://skadaai.gitbook.io/caskada/design_pattern/workflow) encadeia várias tarefas em um pipeline sequencial.
+- [RAG](https://skadaai.gitbook.io/caskada/design_pattern/rag) integra recuperação de dados com geração.
+- [Map Reduce](https://skadaai.gitbook.io/caskada/design_pattern/mapreduce) divide tarefas de dados em etapas de mapeamento e redução.
+- [Saída estruturada](https://skadaai.gitbook.io/caskada/design_pattern/structure) formata saídas de forma consistente.
+- [Multi-Agentes](https://skadaai.gitbook.io/caskada/design_pattern/multi_agent) coordena vários agentes.
 
 ![](https://raw.githubusercontent.com/skadaai/caskada/main/.github/media/divider.png)
 

@@ -45,7 +45,7 @@ Il permet aux humains et aux assistants IA de collaborer efficacement sur la con
 - **Design Minimaliste ✨** : Abstractions principales en seulement (_vous avez bien entendu !_) 200 lignes de code
 - **Liberté 🔓** : Aucun encombrement, dépendances ou enfermement propriétaire
 - **Composable 🧩** : Construisez des systèmes complexes à partir de composants simples et réutilisables
-- **Puissant 🦾** : Prend en charge tout ce que vous aimez—([Multi-](https://brainy.gitbook.io/flow/design_pattern/multi_agent))[Agents](https://brainy.gitbook.io/flow/design_pattern/agent), [Workflow](https://brainy.gitbook.io/flow/design_pattern/workflow), [RAG](https://brainy.gitbook.io/flow/design_pattern/rag), et plus encore
+- **Puissant 🦾** : Prend en charge tout ce que vous aimez—([Multi-](https://skadaai.gitbook.io/caskada/design_pattern/multi_agent))[Agents](https://skadaai.gitbook.io/caskada/design_pattern/agent), [Workflow](https://skadaai.gitbook.io/caskada/design_pattern/workflow), [RAG](https://skadaai.gitbook.io/caskada/design_pattern/rag), et plus encore
 - **Codage Agentique 🤖** : Conçu pour le développement assisté par IA
 - **Universel 🌈** : Fonctionne avec n'importe quel fournisseur ou API LLM
 - **Polyglotte 🌍** : <!-- gitbook-ignore-start --><a href="https://pypi.org/project/caskada"><img src="https://github.com/skadaai/caskada/raw/main/.github/media/python.svg" width="16" height="16" alt="Logo Python" style="vertical-align: middle; margin: 0 2px;"></a><!-- gitbook-ignore-end --> Python et <!-- gitbook-ignore-start --><a href="https://npmjs.com/packages/caskada"><img src="https://github.com/skadaai/caskada/raw/main/.github/media/typescript.svg" width="16" height="16" alt="Logo Typescript" style="vertical-align: middle; margin: 0 2px;"></a><!-- gitbook-ignore-end --> Typescript sont tous deux supportés
@@ -59,7 +59,7 @@ Il permet aux humains et aux assistants IA de collaborer efficacement sur la con
 Notre documentation est inclusive, adaptée aux esprits biologiques et synthétiques.<br />
 Commencez par sélectionner votre condition - ou peut-être _celle que vous avez été conditionné à croire_ :
 
-\>> [Je suis à base de carbone 🐥](https://brainy.gitbook.io/flow/introduction/getting_started) <<
+\>> [Je suis à base de carbone 🐥](https://skadaai.gitbook.io/caskada/introduction/getting_started) <<
 
 \>> [Je suis à base de silicium 🤖](https://flow.brainy.sh/docs.txt) <<
 
@@ -98,9 +98,9 @@ Le fichier unique en <a href="https://github.com/skadaai/caskada/blob/main/pytho
 </div>
 <br>
 
-- [Node](https://brainy.gitbook.io/flow/core_abstraction/node) gère des tâches simples (LLM) avec un cycle de vie clair (`prep` → `exec` → `post`).
-- [Flow](https://brainy.gitbook.io/flow/core_abstraction/flow) connecte les nœuds via des **Actions** (arêtes étiquetées), orchestrant l'exécution.
-- [Memory](https://brainy.gitbook.io/flow/core_abstraction/memory) gère l'état partagé (`global`) et isolé (`local`), permettant la communication entre les nœuds.
+- [Node](https://skadaai.gitbook.io/caskada/core_abstraction/node) gère des tâches simples (LLM) avec un cycle de vie clair (`prep` → `exec` → `post`).
+- [Flow](https://skadaai.gitbook.io/caskada/core_abstraction/flow) connecte les nœuds via des **Actions** (arêtes étiquetées), orchestrant l'exécution.
+- [Memory](https://skadaai.gitbook.io/caskada/core_abstraction/memory) gère l'état partagé (`global`) et isolé (`local`), permettant la communication entre les nœuds.
 
 À partir de là, il est facile d'implémenter tous les modèles de conception populaires :
 <br>
@@ -110,12 +110,12 @@ Le fichier unique en <a href="https://github.com/skadaai/caskada/blob/main/pytho
 </div>
 <br>
 
-- [Agent](https://brainy.gitbook.io/flow/design_pattern/agent) prend des décisions autonomes basées sur le contexte.
-- [Workflow](https://brainy.gitbook.io/flow/design_pattern/workflow) enchaîne plusieurs tâches en pipelines séquentiels.
-- [RAG](https://brainy.gitbook.io/flow/design_pattern/rag) intègre la récupération de données avec la génération.
-- [Map Reduce](https://brainy.gitbook.io/flow/design_pattern/mapreduce) divise les tâches de données en étapes Map et Reduce.
-- [Structured Output](https://brainy.gitbook.io/flow/design_pattern/structure) formate les sorties de manière cohérente.
-- [Multi-Agents](https://brainy.gitbook.io/flow/design_pattern/multi_agent) coordonne plusieurs agents.
+- [Agent](https://skadaai.gitbook.io/caskada/design_pattern/agent) prend des décisions autonomes basées sur le contexte.
+- [Workflow](https://skadaai.gitbook.io/caskada/design_pattern/workflow) enchaîne plusieurs tâches en pipelines séquentiels.
+- [RAG](https://skadaai.gitbook.io/caskada/design_pattern/rag) intègre la récupération de données avec la génération.
+- [Map Reduce](https://skadaai.gitbook.io/caskada/design_pattern/mapreduce) divise les tâches de données en étapes Map et Reduce.
+- [Structured Output](https://skadaai.gitbook.io/caskada/design_pattern/structure) formate les sorties de manière cohérente.
+- [Multi-Agents](https://skadaai.gitbook.io/caskada/design_pattern/multi_agent) coordonne plusieurs agents.
 
 ![](https://raw.githubusercontent.com/skadaai/caskada/master/.github/media/divider.png)
 
@@ -151,17 +151,17 @@ Et bien d'autres disponibles pour tous les niveaux ! [Découvrez-les tous !](htt
 
 - Vous voulez apprendre le **Codage Agentique** ?
   - Pour configurer, lisez ce [post](https://zacharyhuang.substack.com/p/agentic-coding-the-most-fun-way-to) !
-  - Consultez [ma chaîne YouTube](https://www.youtube.com/@ZacharyLLM?sub_confirmation=1) ! Lisez ce [Guide](https://brainy.gitbook.io/flow/guides/agentic_coding) !
+  - Consultez [ma chaîne YouTube](https://www.youtube.com/@ZacharyLLM?sub_confirmation=1) ! Lisez ce [Guide](https://skadaai.gitbook.io/caskada/guides/agentic_coding) !
 
 ![](https://raw.githubusercontent.com/skadaai/caskada/master/.github/media/divider.png) -->
 
 ## Démarrage Rapide
 
-Nouveau sur Caskada ? Consultez notre guide [Démarrage Rapide](https://brainy.gitbook.io/flow/introduction/getting_started) pour construire votre premier flow en un rien de temps.
+Nouveau sur Caskada ? Consultez notre guide [Démarrage Rapide](https://skadaai.gitbook.io/caskada/introduction/getting_started) pour construire votre premier flow en un rien de temps.
 
 ## Prêt à Construire des Applications Auto-Codantes ?
 
-Consultez le [Guide de Codage Agentique](https://brainy.gitbook.io/flow/guides/agentic_coding), la manière la plus rapide de développer des projets LLM auto-codants avec Caskada !
+Consultez le [Guide de Codage Agentique](https://skadaai.gitbook.io/caskada/guides/agentic_coding), la manière la plus rapide de développer des projets LLM auto-codants avec Caskada !
 
 ![](https://raw.githubusercontent.com/skadaai/caskada/master/.github/media/divider.png)
 

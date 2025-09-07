@@ -45,7 +45,7 @@ Caskada - это каркас, обеспечивающий _Agentic Coding_ с 
 - **Минималистичный дизайн ✨**: Основные абстракции всего в (_вы слышали это правильно!_) 200 строках кода
 - **Свобода 🔓**: Нет лишнего кода, зависимостей или привязки к поставщику
 - **Компонуемость 🧩**: Создавайте сложные системы из простых, повторно используемых компонентов
-- **Мощный 🦾**: Поддерживает все, что вам нравится—([Multi-](https://brainy.gitbook.io/flow/design_pattern/multi_agent))[Агенты](https://brainy.gitbook.io/flow/design_pattern/agent), [Рабочий процесс](https://brainy.gitbook.io/flow/design_pattern/workflow), [RAG](https://brainy.gitbook.io/flow/design_pattern/rag) и многое другое
+- **Мощный 🦾**: Поддерживает все, что вам нравится—([Multi-](https://skadaai.gitbook.io/caskada/design_pattern/multi_agent))[Агенты](https://skadaai.gitbook.io/caskada/design_pattern/agent), [Рабочий процесс](https://skadaai.gitbook.io/caskada/design_pattern/workflow), [RAG](https://skadaai.gitbook.io/caskada/design_pattern/rag) и многое другое
 - **Agentic-Coding 🤖**: Разработан для разработки с помощью ИИ
 - **Универсальный 🌈**: Работает с любым поставщиком LLM или API
 - **Полиглот 🌍**: <!-- gitbook-ignore-start --><a href="https://pypi.org/project/caskada"><img src="https://github.com/skadaai/caskada/raw/main/.github/media/python.svg" width="16" height="16" alt="Логотип Python" style="vertical-align: middle; margin: 0 2px;"></a><!-- gitbook-ignore-end --> Python и <!-- gitbook-ignore-start --><a href="https://npmjs.com/packages/caskada"><img src="https://github.com/skadaai/caskada/raw/main/.github/media/typescript.svg" width="16" height="16" alt="Логотип Typescript" style="vertical-align: middle; margin: 0 2px;"></a><!-- gitbook-ignore-end --> Typescript поддерживаются
@@ -59,7 +59,7 @@ Caskada - это каркас, обеспечивающий _Agentic Coding_ с 
 Наша документация инклюзивна, подходит как для биологических, так и для синтетических умов.<br />
 Начните с выбора вашего состояния - или, возможно, _того, которое вам внушили_:
 
-\>> [Я основан на углероде 🐥](https://brainy.gitbook.io/flow/introduction/getting_started) <<
+\>> [Я основан на углероде 🐥](https://skadaai.gitbook.io/caskada/introduction/getting_started) <<
 
 \>> [Я основан на кремнии 🤖](https://flow.brainy.sh/docs.txt) <<
 
@@ -98,9 +98,9 @@ Caskada - это каркас, обеспечивающий _Agentic Coding_ с 
 </div>
 <br>
 
-- [Узел](https://brainy.gitbook.io/flow/core_abstraction/node) обрабатывает простые (LLM) задачи с четким жизненным циклом (`prep` → `exec` → `post`).
-- [Поток](https://brainy.gitbook.io/flow/core_abstraction/flow) соединяет узлы через **Действия** (помеченные ребра), координируя выполнение.
-- [Память](https://brainy.gitbook.io/flow/core_abstraction/memory) управляет общим (`глобальным`) и изолированным (`локальным`) состоянием, обеспечивая связь между узлами.
+- [Узел](https://skadaai.gitbook.io/caskada/core_abstraction/node) обрабатывает простые (LLM) задачи с четким жизненным циклом (`prep` → `exec` → `post`).
+- [Поток](https://skadaai.gitbook.io/caskada/core_abstraction/flow) соединяет узлы через **Действия** (помеченные ребра), координируя выполнение.
+- [Память](https://skadaai.gitbook.io/caskada/core_abstraction/memory) управляет общим (`глобальным`) и изолированным (`локальным`) состоянием, обеспечивая связь между узлами.
 
 Отсюда легко реализовать все популярные шаблоны проектирования:
 <br>
@@ -110,12 +110,12 @@ Caskada - это каркас, обеспечивающий _Agentic Coding_ с 
 </div>
 <br>
 
-- [Агент](https://brainy.gitbook.io/flow/design_pattern/agent) автономно принимает решения на основе контекста.
-- [Рабочий процесс](https://brainy.gitbook.io/flow/design_pattern/workflow) связывает несколько задач в последовательные конвейеры.
-- [RAG](https://brainy.gitbook.io/flow/design_pattern/rag) интегрирует извлечение данных с генерацией.
-- [Map Reduce](https://brainy.gitbook.io/flow/design_pattern/mapreduce) разделяет задачи данных на этапы Map и Reduce.
-- [Структурированный вывод](https://brainy.gitbook.io/flow/design_pattern/structure) форматирует выводы последовательно.
-- [Несколько агентов](https://brainy.gitbook.io/flow/design_pattern/multi_agent) координирует несколько агентов.
+- [Агент](https://skadaai.gitbook.io/caskada/design_pattern/agent) автономно принимает решения на основе контекста.
+- [Рабочий процесс](https://skadaai.gitbook.io/caskada/design_pattern/workflow) связывает несколько задач в последовательные конвейеры.
+- [RAG](https://skadaai.gitbook.io/caskada/design_pattern/rag) интегрирует извлечение данных с генерацией.
+- [Map Reduce](https://skadaai.gitbook.io/caskada/design_pattern/mapreduce) разделяет задачи данных на этапы Map и Reduce.
+- [Структурированный вывод](https://skadaai.gitbook.io/caskada/design_pattern/structure) форматирует выводы последовательно.
+- [Несколько агентов](https://skadaai.gitbook.io/caskada/design_pattern/multi_agent) координирует несколько агентов.
 
 ![](https://raw.githubusercontent.com/skadaai/caskada/master/.github/media/divider.png)
 
@@ -145,11 +145,11 @@ Caskada - это каркас, обеспечивающий _Agentic Coding_ с 
 
 ## Быстрый старт
 
-Новичок в Caskada? Ознакомьтесь с нашим [Руководством по началу работы](https://brainy.gitbook.io/flow/introduction/getting_started), чтобы создать свой первый поток в считанные минуты.
+Новичок в Caskada? Ознакомьтесь с нашим [Руководством по началу работы](https://skadaai.gitbook.io/caskada/introduction/getting_started), чтобы создать свой первый поток в считанные минуты.
 
 ## Готовы построить самокодирующиеся приложения?
 
-Проверьте [Руководство по Agentic Coding](https://brainy.gitbook.io/flow/guides/agentic_coding), самый быстрый способ разработать самокодирующиеся проекты LLM с Caskada!
+Проверьте [Руководство по Agentic Coding](https://skadaai.gitbook.io/caskada/guides/agentic_coding), самый быстрый способ разработать самокодирующиеся проекты LLM с Caskada!
 
 ![](https://raw.githubusercontent.com/skadaai/caskada/master/.github/media/divider.png)
 

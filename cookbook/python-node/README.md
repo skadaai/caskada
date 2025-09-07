@@ -86,6 +86,6 @@ This example demonstrates several key Caskada concepts:
 
 ## Additional Resources
 
-- [Caskada Documentation](https://brainy.gitbook.io/flow/)
-- [Node Concept Guide](https://brainy.gitbook.io/flow/core-abstraction/node)
-- [Flow Design Patterns](https://brainy.gitbook.io/flow/core-abstraction/flow)
+- [Caskada Documentation](https://skadaai.gitbook.io/caskada/)
+- [Node Concept Guide](https://skadaai.gitbook.io/caskada/core-abstraction/node)
+- [Flow Design Patterns](https://skadaai.gitbook.io/caskada/core-abstraction/flow)

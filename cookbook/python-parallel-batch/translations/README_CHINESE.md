@@ -44,7 +44,7 @@ Caskada是一个通过强大抽象实现_代理编程_的框架。
 - **极简设计 ✨**：核心抽象仅需（没错！）200行代码
 - **自由 🔓**：零冗余、零依赖、零厂商锁定
 - **可组合 🧩**：用简单可复用的组件构建复杂系统
-- **强大 🦾**：支持你喜爱的一切——([多](https://brainy.gitbook.io/flow/design_pattern/multi_agent))[代理](https://brainy.gitbook.io/flow/design_pattern/agent)、[工作流](https://brainy.gitbook.io/flow/design_pattern/workflow)、[RAG](https://brainy.gitbook.io/flow/design_pattern/rag)等
+- **强大 🦾**：支持你喜爱的一切——([多](https://skadaai.gitbook.io/caskada/design_pattern/multi_agent))[代理](https://skadaai.gitbook.io/caskada/design_pattern/agent)、[工作流](https://skadaai.gitbook.io/caskada/design_pattern/workflow)、[RAG](https://skadaai.gitbook.io/caskada/design_pattern/rag)等
 - **代理编程 🤖**：专为AI辅助开发设计
 - **通用 🌈**：兼容任何LLM提供商或API
 - **多语言 🌍**：<!-- gitbook-ignore-start --><a href="https://pypi.org/project/caskada"><img src="https://github.com/skadaai/caskada/raw/main/.github/media/python.svg" width="16" height="16" alt="Python Logo" style="vertical-align: middle; margin: 0 2px;"></a><!-- gitbook-ignore-end --> Python和<!-- gitbook-ignore-start --><a href="https://npmjs.com/packages/caskada"><img src="https://github.com/skadaai/caskada/raw/main/.github/media/typescript.svg" width="16" height="16" alt="Typescript Logo" style="vertical-align: middle; margin: 0 2px;"></a><!-- gitbook-ignore-end --> TypeScript皆支持
@@ -58,7 +58,7 @@ Caskada是一个通过强大抽象实现_代理编程_的框架。
 我们的文档包容性强，适合生物和合成智能体。<br />
 根据你（或你被设定的）认知起点选择：
 
-\>> [我是碳基生命 🐥](https://brainy.gitbook.io/flow/introduction/getting_started) <<
+\>> [我是碳基生命 🐥](https://skadaai.gitbook.io/caskada/introduction/getting_started) <<
 
 \>> [我是硅基生命 🤖](https://flow.brainy.sh/docs.txt) <<
 
@@ -97,9 +97,9 @@ Caskada是一个通过强大抽象实现_代理编程_的框架。
 </div>
 <br>
 
-- [节点](https://brainy.gitbook.io/flow/core_abstraction/node)处理简单的(LLM)任务，具有明确的生命周期(`准备` → `执行` → `后处理`)。
-- [流程](https://brainy.gitbook.io/flow/core_abstraction/flow)通过**动作**(标记边)连接节点，协调执行。
-- [内存](https://brainy.gitbook.io/flow/core_abstraction/memory)管理共享(`全局`)和隔离(`局部`)状态，促进节点间通信。
+- [节点](https://skadaai.gitbook.io/caskada/core_abstraction/node)处理简单的(LLM)任务，具有明确的生命周期(`准备` → `执行` → `后处理`)。
+- [流程](https://skadaai.gitbook.io/caskada/core_abstraction/flow)通过**动作**(标记边)连接节点，协调执行。
+- [内存](https://skadaai.gitbook.io/caskada/core_abstraction/memory)管理共享(`全局`)和隔离(`局部`)状态，促进节点间通信。
 
 基于此，可以轻松实现所有热门设计模式：
 <br>
@@ -109,12 +109,12 @@ Caskada是一个通过强大抽象实现_代理编程_的框架。
 </div>
 <br>
 
-- [代理](https://brainy.gitbook.io/flow/design_pattern/agent)根据上下文自主决策。
-- [工作流](https://brainy.gitbook.io/flow/design_pattern/workflow)将多个任务串联成顺序管道。
-- [RAG](https://brainy.gitbook.io/flow/design_pattern/rag)整合数据检索与生成。
-- [Map Reduce](https://brainy.gitbook.io/flow/design_pattern/mapreduce)将数据处理任务分解为映射和归约步骤。
-- [结构化输出](https://brainy.gitbook.io/flow/design_pattern/structure)规范化输出格式。
-- [多代理](https://brainy.gitbook.io/flow/design_pattern/multi_agent)协调多个代理协作。
+- [代理](https://skadaai.gitbook.io/caskada/design_pattern/agent)根据上下文自主决策。
+- [工作流](https://skadaai.gitbook.io/caskada/design_pattern/workflow)将多个任务串联成顺序管道。
+- [RAG](https://skadaai.gitbook.io/caskada/design_pattern/rag)整合数据检索与生成。
+- [Map Reduce](https://skadaai.gitbook.io/caskada/design_pattern/mapreduce)将数据处理任务分解为映射和归约步骤。
+- [结构化输出](https://skadaai.gitbook.io/caskada/design_pattern/structure)规范化输出格式。
+- [多代理](https://skadaai.gitbook.io/caskada/design_pattern/multi_agent)协调多个代理协作。
 
 ![](https://raw.githubusercontent.com/skadaai/caskada/master/.github/media/divider.png)
 
@@ -144,11 +144,11 @@ Caskada是一个通过强大抽象实现_代理编程_的框架。
 
 ## 快速开始
 
-初次使用Caskada? 查看[入门指南](https://brainy.gitbook.io/flow/introduction/getting_started)，快速构建你的第一个流程。
+初次使用Caskada? 查看[入门指南](https://skadaai.gitbook.io/caskada/introduction/getting_started)，快速构建你的第一个流程。
 
 ## 准备好构建自编程应用了吗？
 
-了解[代理编程指南](https://brainy.gitbook.io/flow/guides/agentic_coding)，用Caskada快速开发自编程LLM项目的最快方式！
+了解[代理编程指南](https://skadaai.gitbook.io/caskada/guides/agentic_coding)，用Caskada快速开发自编程LLM项目的最快方式！
 
 ![](https://raw.githubusercontent.com/skadaai/caskada/master/.github/media/divider.png)
 

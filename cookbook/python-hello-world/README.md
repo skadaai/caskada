@@ -46,4 +46,4 @@ python main.py
 
 ## Additional Resources
 
-- [Caskada Documentation](https://brainy.gitbook.io/flow/)
+- [Caskada Documentation](https://skadaai.gitbook.io/caskada/)

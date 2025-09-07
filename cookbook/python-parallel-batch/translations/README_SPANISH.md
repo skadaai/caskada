@@ -44,4 +44,4 @@ Proporciona una interfaz simple para construir aplicaciones de IA complejas basa
 - **Diseño minimalista ✨**: Abstracciones centrales en solo (¡sí, lo escuchaste bien!) 200 líneas de código
 - **Libertad 🔓**: Sin bloat, dependencias o bloqueos de proveedores
 - **Componible 🧩**: Construye sistemas complejos a partir de componentes simples y reutilizables
-- **Poderoso 🦾**: Soporta todo lo que amas: ([Multi-](https://brainy.gitbook.io/flow/design_pattern/multi_agent))[Agentes](https://brainy.gitbook.io/flow/design_pattern/agent), [Flujos de trabajo](https://brainy.gitbook.io/flow/design_pattern/workflow), [RAG](
+- **Poderoso 🦾**: Soporta todo lo que amas: ([Multi-](https://skadaai.gitbook.io/caskada/design_pattern/multi_agent))[Agentes](https://skadaai.gitbook.io/caskada/design_pattern/agent), [Flujos de trabajo](https://skadaai.gitbook.io/caskada/design_pattern/workflow), [RAG](

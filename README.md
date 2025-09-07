@@ -45,7 +45,7 @@ It enables both humans and AI assistants to collaborate effectively on designing
 - **Minimalist Design ✨**: Core abstractions in just (_you heard it right!_) 300 lines of code
 - **Freedom 🔓**: Zero bloat, dependencies, or vendor lock-in
 - **Composable 🧩**: Build complex systems from simple, reusable components
-- **Powerful 🦾**: Supports everything you love—([Multi-](https://brainy.gitbook.io/flow/design_pattern/multi_agent))[Agents](https://brainy.gitbook.io/flow/design_pattern/agent), [Workflow](https://brainy.gitbook.io/flow/design_pattern/workflow), [RAG](https://brainy.gitbook.io/flow/design_pattern/rag), and more
+- **Powerful 🦾**: Supports everything you love—([Multi-](https://skadaai.gitbook.io/caskada/design_pattern/multi_agent))[Agents](https://skadaai.gitbook.io/caskada/design_pattern/agent), [Workflow](https://skadaai.gitbook.io/caskada/design_pattern/workflow), [RAG](https://skadaai.gitbook.io/caskada/design_pattern/rag), and more
 - **Agentic-Coding 🤖**: Designed for AI-assisted development
 - **Universal 🌈**: Works with any LLM provider or API
 - **Polyglot 🌍**: <!-- gitbook-ignore-start --><a href="https://pypi.org/project/caskada"><img src="https://github.com/skadaai/caskada/raw/main/.github/media/python.svg" width="16" height="16" alt="Python Logo" style="vertical-align: middle; margin: 0 2px;"></a><!-- gitbook-ignore-end --> Python and <!-- gitbook-ignore-start --><a href="https://npmjs.com/packages/caskada"><img src="https://github.com/skadaai/caskada/raw/main/.github/media/typescript.svg" width="16" height="16" alt="Typescript Logo" style="vertical-align: middle; margin: 0 2px;"></a><!-- gitbook-ignore-end --> Typescript are both supported
@@ -59,7 +59,7 @@ It enables both humans and AI assistants to collaborate effectively on designing
 Our documentation is inclusive, suitable for both biological and synthetic minds.<br />
 Start by selecting your condition - or perhaps _the one you've been conditioned to believe_:
 
-\>> [I'm Carbon-Based 🐥](https://brainy.gitbook.io/flow/introduction/getting_started) <<
+\>> [I'm Carbon-Based 🐥](https://skadaai.gitbook.io/caskada/introduction/getting_started) <<
 
 \>> [I'm Silicon-Based 🤖](https://flow.brainy.sh/docs.txt) <<
 
@@ -98,9 +98,9 @@ The single file in <a href="https://github.com/skadaai/caskada/blob/main/python/
 </div>
 <br>
 
-- [Node](https://brainy.gitbook.io/flow/core_abstraction/node) handles simple (LLM) tasks with a clear lifecycle (`prep` → `exec` → `post`).
-- [Flow](https://brainy.gitbook.io/flow/core_abstraction/flow) connects nodes through **Actions** (labeled edges), orchestrating execution.
-- [Memory](https://brainy.gitbook.io/flow/core_abstraction/memory) manages shared (`global`) and isolated (`local`) state, enabling communication between nodes.
+- [Node](https://skadaai.gitbook.io/caskada/core_abstraction/node) handles simple (LLM) tasks with a clear lifecycle (`prep` → `exec` → `post`).
+- [Flow](https://skadaai.gitbook.io/caskada/core_abstraction/flow) connects nodes through **Actions** (labeled edges), orchestrating execution.
+- [Memory](https://skadaai.gitbook.io/caskada/core_abstraction/memory) manages shared (`global`) and isolated (`local`) state, enabling communication between nodes.
 
 From there, it's easy to implement all popular design patterns:
 <br>
@@ -110,12 +110,12 @@ From there, it's easy to implement all popular design patterns:
 </div>
 <br>
 
-- [Agent](https://brainy.gitbook.io/flow/design_pattern/agent) autonomously makes decisions based on context.
-- [Workflow](https://brainy.gitbook.io/flow/design_pattern/workflow) chains multiple tasks into sequential pipelines.
-- [RAG](https://brainy.gitbook.io/flow/design_pattern/rag) integrates data retrieval with generation.
-- [Map Reduce](https://brainy.gitbook.io/flow/design_pattern/mapreduce) splits data tasks into Map and Reduce steps.
-- [Structured Output](https://brainy.gitbook.io/flow/design_pattern/structure) formats outputs consistently.
-- [Multi-Agents](https://brainy.gitbook.io/flow/design_pattern/multi_agent) coordinate multiple agents.
+- [Agent](https://skadaai.gitbook.io/caskada/design_pattern/agent) autonomously makes decisions based on context.
+- [Workflow](https://skadaai.gitbook.io/caskada/design_pattern/workflow) chains multiple tasks into sequential pipelines.
+- [RAG](https://skadaai.gitbook.io/caskada/design_pattern/rag) integrates data retrieval with generation.
+- [Map Reduce](https://skadaai.gitbook.io/caskada/design_pattern/mapreduce) splits data tasks into Map and Reduce steps.
+- [Structured Output](https://skadaai.gitbook.io/caskada/design_pattern/structure) formats outputs consistently.
+- [Multi-Agents](https://skadaai.gitbook.io/caskada/design_pattern/multi_agent) coordinate multiple agents.
 
 ![](https://raw.githubusercontent.com/skadaai/caskada/master/.github/media/divider.png)
 
@@ -151,17 +151,17 @@ And many more available for all levels! [Check them all out!](https://github.com
 
 - Want to learn **Agentic Coding**?
   - To setup, read this [post](https://zacharyhuang.substack.com/p/agentic-coding-the-most-fun-way-to)!
-  - Check out [my YouTube](https://www.youtube.com/@ZacharyLLM?sub_confirmation=1)! Read this [Guide](https://brainy.gitbook.io/flow/guides/agentic_coding)!
+  - Check out [my YouTube](https://www.youtube.com/@ZacharyLLM?sub_confirmation=1)! Read this [Guide](https://skadaai.gitbook.io/caskada/guides/agentic_coding)!
 
 ![](https://raw.githubusercontent.com/skadaai/caskada/master/.github/media/divider.png) -->
 
 ## Quick Start
 
-New to Caskada? Check out our [Getting Started](https://brainy.gitbook.io/flow/introduction/getting_started) guide to build your first flow in no time.
+New to Caskada? Check out our [Getting Started](https://skadaai.gitbook.io/caskada/introduction/getting_started) guide to build your first flow in no time.
 
 ## Ready to Build Self-Coding Apps?
 
-Check out [Agentic Coding Guidance](https://brainy.gitbook.io/flow/guides/agentic_coding), the fastest way to develop self-coding LLM projects with Caskada!
+Check out [Agentic Coding Guidance](https://skadaai.gitbook.io/caskada/guides/agentic_coding), the fastest way to develop self-coding LLM projects with Caskada!
 
 ![](https://raw.githubusercontent.com/skadaai/caskada/master/.github/media/divider.png)
 

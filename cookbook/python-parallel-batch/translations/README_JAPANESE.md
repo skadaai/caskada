@@ -45,7 +45,7 @@ Caskadaは、強力な抽象化を通じて_エージェンシックコーディ
 - **ミニマルデザイン ✨**: コア抽象化はたった（驚くべきことに！）200行のコード
 - **自由 🔓**: 余計な機能、依存関係、ベンダーロックインなし
 - **構成可能 🧩**: シンプルで再利用可能なコンポーネントから複雑なシステムを構築
-- **強力 🦾**: お気に入りのすべてをサポート（[マルチ](https://brainy.gitbook.io/flow/design_pattern/multi_agent)）[エージェント](https://brainy.gitbook.io/flow/design_pattern/agent)、[ワークフロー](https://brainy.gitbook.io/flow/design_pattern/workflow)、[RAG](https://brainy.gitbook.io/flow/design_pattern/rag)など
+- **強力 🦾**: お気に入りのすべてをサポート（[マルチ](https://skadaai.gitbook.io/caskada/design_pattern/multi_agent)）[エージェント](https://skadaai.gitbook.io/caskada/design_pattern/agent)、[ワークフロー](https://skadaai.gitbook.io/caskada/design_pattern/workflow)、[RAG](https://skadaai.gitbook.io/caskada/design_pattern/rag)など
 - **エージェンシックコーディング 🤖**: AI支援開発向けに設計
 - **ユニバーサル 🌈**: 任意のLLMプロバイダーまたはAPIと連携
 - **多言語対応 🌍**: <!-- gitbook-ignore-start --><a href="https://pypi.org/project/caskada"><img src="https://github.com/skadaai/caskada/raw/main/.github/media/python.svg" width="16" height="16" alt="Pythonロゴ" style="vertical-align: middle; margin: 0 2px;"></a><!-- gitbook-ignore-end --> Pythonと<!-- gitbook-ignore-start --><a href="https://npmjs.com/packages/caskada"><img src="https://github.com/skadaai/caskada/raw/main/.github/media/typescript.svg" width="16" height="16" alt="Typescriptロゴ" style="vertical-align: middle; margin: 0 2px;"></a><!-- gitbook-ignore-end --> Typescriptの両方をサポート
@@ -59,7 +59,7 @@ Caskadaは、強力な抽象化を通じて_エージェンシックコーディ
 私たちのドキュメントは包括的で、生物学的および合成のマインドの両方に適しています。<br />
 あなたの状態、あるいは_信じ込まされている状態_を選択してください:
 
-\>> [私は炭素ベースです 🐥](https://brainy.gitbook.io/flow/introduction/getting_started) <<
+\>> [私は炭素ベースです 🐥](https://skadaai.gitbook.io/caskada/introduction/getting_started) <<
 
 \>> [私はシリコンベースです 🤖](https://flow.brainy.sh/docs.txt) <<
 
@@ -98,9 +98,9 @@ Caskadaは、強力な抽象化を通じて_エージェンシックコーディ
 </div>
 <br>
 
-- [ノード](https://brainy.gitbook.io/flow/core_abstraction/node)は明確なライフサイクル（`prep` → `exec` → `post`）を持つシンプルな（LLM）タスクを処理します。
-- [フロー](https://brainy.gitbook.io/flow/core_abstraction/flow)は**アクション**（ラベル付きエッジ）を通じてノードを接続し、実行を調整します。
-- [メモリ](https://brainy.gitbook.io/flow/core_abstraction/memory)は共有（`global`）および隔離（`local`）状態を管理し、ノード間の通信を可能にします。
+- [ノード](https://skadaai.gitbook.io/caskada/core_abstraction/node)は明確なライフサイクル（`prep` → `exec` → `post`）を持つシンプルな（LLM）タスクを処理します。
+- [フロー](https://skadaai.gitbook.io/caskada/core_abstraction/flow)は**アクション**（ラベル付きエッジ）を通じてノードを接続し、実行を調整します。
+- [メモリ](https://skadaai.gitbook.io/caskada/core_abstraction/memory)は共有（`global`）および隔離（`local`）状態を管理し、ノード間の通信を可能にします。
 
 そこから、すべての人気デザインパターンを簡単に実装できます:
 <br>
@@ -110,12 +110,12 @@ Caskadaは、強力な抽象化を通じて_エージェンシックコーディ
 </div>
 <br>
 
-- [エージェント](https://brainy.gitbook.io/flow/design_pattern/agent)はコンテキストに基づいて自律的に決定を行います。
-- [ワークフロー](https://brainy.gitbook.io/flow/design_pattern/workflow)は複数のタスクを順次パイプラインに連結します。
-- [RAG](https://brainy.gitbook.io/flow/design_pattern/rag)はデータ検索と生成を統合します。
-- [Map Reduce](https://brainy.gitbook.io/flow/design_pattern/mapreduce)はデータタスクをMapとReduceのステップに分割します。
-- [構造化出力](https://brainy.gitbook.io/flow/design_pattern/structure)は出力を一貫した形式に整えます。
-- [マルチエージェント](https://brainy.gitbook.io/flow/design_pattern/multi_agent)は複数のエージェントを調整します。
+- [エージェント](https://skadaai.gitbook.io/caskada/design_pattern/agent)はコンテキストに基づいて自律的に決定を行います。
+- [ワークフロー](https://skadaai.gitbook.io/caskada/design_pattern/workflow)は複数のタスクを順次パイプラインに連結します。
+- [RAG](https://skadaai.gitbook.io/caskada/design_pattern/rag)はデータ検索と生成を統合します。
+- [Map Reduce](https://skadaai.gitbook.io/caskada/design_pattern/mapreduce)はデータタスクをMapとReduceのステップに分割します。
+- [構造化出力](https://skadaai.gitbook.io/caskada/design_pattern/structure)は出力を一貫した形式に整えます。
+- [マルチエージェント](https://skadaai.gitbook.io/caskada/design_pattern/multi_agent)は複数のエージェントを調整します。
 
 ![](https://raw.githubusercontent.com/skadaai/caskada/master/.github/media/divider.png)
 
@@ -151,17 +151,17 @@ Caskadaは、強力な抽象化を通じて_エージェンシックコーディ
 
 - **エージェンシックコーディング**を学びたいですか？
   - セットアップ方法は、この[ポスト](https://zacharyhuang.substack.com/p/agentic-coding-the-most-fun-way-to)を読んでください！
-  - [私のYouTube](https://www.youtube.com/@ZacharyLLM?sub_confirmation=1)をチェック！ この[ガイド](https://brainy.gitbook.io/flow/guides/agentic_coding)を読んでください！
+  - [私のYouTube](https://www.youtube.com/@ZacharyLLM?sub_confirmation=1)をチェック！ この[ガイド](https://skadaai.gitbook.io/caskada/guides/agentic_coding)を読んでください！
 
 ![](https://raw.githubusercontent.com/skadaai/caskada/master/.github/media/divider.png) -->
 
 ## クイックスタート
 
-Caskadaが初めてですか？ [はじめに](https://brainy.gitbook.io/flow/introduction/getting_started)ガイドをチェックして、すぐに最初のフローを構築しましょう。
+Caskadaが初めてですか？ [はじめに](https://skadaai.gitbook.io/caskada/introduction/getting_started)ガイドをチェックして、すぐに最初のフローを構築しましょう。
 
 ## 自己コーディングアプリを構築する準備はできましたか？
 
-Caskadaを使用した自己コーディングLLMプロジェクトを最速で開発する方法である[エージェンシックコーディングガイダンス](https://brainy.gitbook.io/flow/guides/agentic_coding)をチェックしてください！
+Caskadaを使用した自己コーディングLLMプロジェクトを最速で開発する方法である[エージェンシックコーディングガイダンス](https://skadaai.gitbook.io/caskada/guides/agentic_coding)をチェックしてください！
 
 ![](https://raw.githubusercontent.com/skadaai/caskada/master/.github/media/divider.png)
 

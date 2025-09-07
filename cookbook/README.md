@@ -61,7 +61,7 @@ python main.py
 
 ## Additional Resources
 
-- [Caskada Documentation](https://brainy.gitbook.io/flow/)
+- [Caskada Documentation](https://skadaai.gitbook.io/caskada/)
 
 
 </details>
@@ -158,9 +158,9 @@ This example demonstrates several key Caskada concepts:
 
 ## Additional Resources
 
-- [Caskada Documentation](https://brainy.gitbook.io/flow/)
-- [Node Concept Guide](https://brainy.gitbook.io/flow/core-abstraction/node)
-- [Flow Design Patterns](https://brainy.gitbook.io/flow/core-abstraction/flow)
+- [Caskada Documentation](https://skadaai.gitbook.io/caskada/)
+- [Node Concept Guide](https://skadaai.gitbook.io/caskada/core-abstraction/node)
+- [Flow Design Patterns](https://skadaai.gitbook.io/caskada/core-abstraction/flow)
 
 
 </details>
@@ -169,13 +169,13 @@ This example demonstrates several key Caskada concepts:
 Complexity Points: 3
 └🥚
 
-A minimal demo application showing how to use Caskada to extract structured data from a resume using direct prompting and YAML formatting. Why YAML? Check out the [doc](https://brainy.gitbook.io/flow/design-patterns/structure) or [Why JSON Costs More Than TSV](https://david-gilbertson.medium.com/llm-output-formats-why-json-costs-more-than-tsv-ebaf590bd541).<details>
+A minimal demo application showing how to use Caskada to extract structured data from a resume using direct prompting and YAML formatting. Why YAML? Check out the [doc](https://skadaai.gitbook.io/caskada/design-patterns/structure) or [Why JSON Costs More Than TSV](https://david-gilbertson.medium.com/llm-output-formats-why-json-costs-more-than-tsv-ebaf590bd541).<details>
 <summary><strong>Details</strong></summary>
 
 
 # Structured Output Demo
 
-A minimal demo application showing how to use Caskada to extract structured data from a resume using direct prompting and YAML formatting. Why YAML? Check out the [doc](https://brainy.gitbook.io/flow/design-patterns/structure) or [Why JSON Costs More Than TSV](https://david-gilbertson.medium.com/llm-output-formats-why-json-costs-more-than-tsv-ebaf590bd541).
+A minimal demo application showing how to use Caskada to extract structured data from a resume using direct prompting and YAML formatting. Why YAML? Check out the [doc](https://skadaai.gitbook.io/caskada/design-patterns/structure) or [Why JSON Costs More Than TSV](https://david-gilbertson.medium.com/llm-output-formats-why-json-costs-more-than-tsv-ebaf590bd541).
 
 This implementation is based on this tutorial (for Pocketflow): [Structured Output for Beginners: 3 Must-Know Prompting Tips](https://zacharyhuang.substack.com/p/structured-output-for-beginners-3).
 
@@ -779,13 +779,13 @@ export OPENAI_API_KEY="your-api-key-here"
 Complexity Points: 5
 └🐥🐥🐥
 
-This example demonstrates the [Memory](https://brainy.gitbook.io/flow/core-abstraction/memory) concept in Caskada, specifically focusing on the Shared Store pattern.<details>
+This example demonstrates the [Memory](https://skadaai.gitbook.io/caskada/core-abstraction/memory) concept in Caskada, specifically focusing on the Shared Store pattern.<details>
 <summary><strong>Details</strong></summary>
 
 
 # Shared Store Communication
 
-This example demonstrates the [Memory](https://brainy.gitbook.io/flow/core-abstraction/memory) concept in Caskada, specifically focusing on the Shared Store pattern.
+This example demonstrates the [Memory](https://skadaai.gitbook.io/caskada/core-abstraction/memory) concept in Caskada, specifically focusing on the Shared Store pattern.
 
 ## Overview
 

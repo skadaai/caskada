@@ -45,7 +45,7 @@ Es ermöglicht sowohl Menschen als auch AI-Assistenten, effektiv bei der Entwick
 - **Minimalistisches Design ✨**: Kernabstraktionen in nur (_Sie hörten es richtig!_) 200 Zeilen Code
 - **Freiheit 🔓**: Kein unnötiger Ballast, Abhängigkeiten oder Herstellerbindung
 - **Komponierbar 🧩**: Entwickeln Sie komplexe Systeme aus einfachen, wiederverwendbaren Komponenten
-- **Leistungsstark 🦾**: Unterstützt alles, was Sie lieben—([Multi-](https://brainy.gitbook.io/flow/design_pattern/multi_agent))[Agenten](https://brainy.gitbook.io/flow/design_pattern/agent), [Workflow](https://brainy.gitbook.io/flow/design_pattern/workflow), [RAG](https://brainy.gitbook.io/flow/design_pattern/rag) und mehr
+- **Leistungsstark 🦾**: Unterstützt alles, was Sie lieben—([Multi-](https://skadaai.gitbook.io/caskada/design_pattern/multi_agent))[Agenten](https://skadaai.gitbook.io/caskada/design_pattern/agent), [Workflow](https://skadaai.gitbook.io/caskada/design_pattern/workflow), [RAG](https://skadaai.gitbook.io/caskada/design_pattern/rag) und mehr
 - **Agentic-Coding 🤖**: Entwickelt für die AI-unterstützte Entwicklung
 - **Universell 🌈**: Funktioniert mit jedem LLM-Anbieter oder API
 - **Polyglot 🌍**: <!-- gitbook-ignore-start --><a href="https://pypi.org/project/caskada"><img src="https://github.com/skadaai/caskada/raw/main/.github/media/python.svg" width="16" height="16" alt="Python-Logo" style="vertical-align: middle; margin: 0 2px;"></a><!-- gitbook-ignore-end --> Python und <!-- gitbook-ignore-start --><a href="https://npmjs.com/packages/caskada"><img src="https://github.com/skadaai/caskada/raw/main/.github/media/typescript.svg" width="16" height="16" alt="Typescript-Logo" style="vertical-align: middle; margin: 0 2px;"></a><!-- gitbook-ignore-end --> Typescript werden beide unterstützt
@@ -59,7 +59,7 @@ Es ermöglicht sowohl Menschen als auch AI-Assistenten, effektiv bei der Entwick
 Unsere Dokumentation ist inklusiv, geeignet für biologische und synthetische Gehirne.<br />
 Beginnen Sie, indem Sie Ihre Bedingung auswählen - oder vielleicht _die, an die Sie glauben sollen_:
 
-\>> [Ich bin kohlenstoffbasiert 🐥](https://brainy.gitbook.io/flow/introduction/getting_started) <<
+\>> [Ich bin kohlenstoffbasiert 🐥](https://skadaai.gitbook.io/caskada/introduction/getting_started) <<
 
 \>> [Ich bin siliziumbasiert 🤖](https://flow.brainy.sh/docs.txt) <<
 
@@ -98,9 +98,9 @@ Die einzelne Datei in <a href="https://github.com/skadaai/caskada/blob/main/pyth
 </div>
 <br>
 
-- [Knoten](https://brainy.gitbook.io/flow/core_abstraction/node) verarbeiten einfache (LLM-)Aufgaben mit einem klaren Lebenszyklus (`prep` → `exec` → `post`).
-- [Fluss](https://brainy.gitbook.io/flow/core_abstraction/flow) verbindet Knoten durch **Aktionen** (markierte Kanten), die die Ausführung orchestrieren.
-- [Speicher](https://brainy.gitbook.io/flow/core_abstraction/memory) verwaltet gemeinsamen (`global`) und isolierten (`lokal`) Zustand, ermöglicht die Kommunikation zwischen Knoten.
+- [Knoten](https://skadaai.gitbook.io/caskada/core_abstraction/node) verarbeiten einfache (LLM-)Aufgaben mit einem klaren Lebenszyklus (`prep` → `exec` → `post`).
+- [Fluss](https://skadaai.gitbook.io/caskada/core_abstraction/flow) verbindet Knoten durch **Aktionen** (markierte Kanten), die die Ausführung orchestrieren.
+- [Speicher](https://skadaai.gitbook.io/caskada/core_abstraction/memory) verwaltet gemeinsamen (`global`) und isolierten (`lokal`) Zustand, ermöglicht die Kommunikation zwischen Knoten.
 
 Von dort aus ist es einfach, alle beliebten Designmuster zu implementieren:
 <br>
@@ -110,12 +110,12 @@ Von dort aus ist es einfach, alle beliebten Designmuster zu implementieren:
 </div>
 <br>
 
-- [Agent](https://brainy.gitbook.io/flow/design_pattern/agent) trifft autonome Entscheidungen auf der Grundlage des Kontexts.
-- [Workflow](https://brainy.gitbook.io/flow/design_pattern/workflow) verkettet mehrere Aufgaben in sequenzielle Pipelines.
-- [RAG](https://brainy.gitbook.io/flow/design_pattern/rag) integriert Datenbeschaffung mit Generierung.
-- [Map Reduce](https://brainy.gitbook.io/flow/design_pattern/mapreduce) teilt Datenaufgaben in Map- und Reduce-Schritte auf.
-- [Strukturierte Ausgabe](https://brainy.gitbook.io/flow/design_pattern/structure) formatiert Ausgaben konsistent.
-- [Multi-Agenten](https://brainy.gitbook.io/flow/design_pattern/multi_agent) koordiniert mehrere Agenten.
+- [Agent](https://skadaai.gitbook.io/caskada/design_pattern/agent) trifft autonome Entscheidungen auf der Grundlage des Kontexts.
+- [Workflow](https://skadaai.gitbook.io/caskada/design_pattern/workflow) verkettet mehrere Aufgaben in sequenzielle Pipelines.
+- [RAG](https://skadaai.gitbook.io/caskada/design_pattern/rag) integriert Datenbeschaffung mit Generierung.
+- [Map Reduce](https://skadaai.gitbook.io/caskada/design_pattern/mapreduce) teilt Datenaufgaben in Map- und Reduce-Schritte auf.
+- [Strukturierte Ausgabe](https://skadaai.gitbook.io/caskada/design_pattern/structure) formatiert Ausgaben konsistent.
+- [Multi-Agenten](https://skadaai.gitbook.io/caskada/design_pattern/multi_agent) koordiniert mehrere Agenten.
 
 ![](https://raw.githubusercontent.com/skadaai/caskada/master/.github/media/divider.png)
 
@@ -145,11 +145,11 @@ Und viele weitere für alle Niveaus verfügbar! [Sehen Sie sich alle an!](https:
 
 ## Schnellstart
 
-Neu bei Caskada? Sehen Sie sich unseren [Schnellstart](https://brainy.gitbook.io/flow/introduction/getting_started) an, um Ihren ersten Fluss in kürzester Zeit zu entwickeln.
+Neu bei Caskada? Sehen Sie sich unseren [Schnellstart](https://skadaai.gitbook.io/caskada/introduction/getting_started) an, um Ihren ersten Fluss in kürzester Zeit zu entwickeln.
 
 ## Bereit, selbstkodierende Apps zu entwickeln?
 
-Sehen Sie sich die [Agentic-Coding-Anleitung](https://brainy.gitbook.io/flow/guides/agentic_coding) an, die schnellste Möglichkeit, selbstkodierende LLM-Projekte mit Caskada zu entwickeln!
+Sehen Sie sich die [Agentic-Coding-Anleitung](https://skadaai.gitbook.io/caskada/guides/agentic_coding) an, die schnellste Möglichkeit, selbstkodierende LLM-Projekte mit Caskada zu entwickeln!
 
 ![](https://raw.githubusercontent.com/skadaai/caskada/master/.github/media/divider.png)
 
