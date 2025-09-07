@@ -12,7 +12,8 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     permissions:
-      contents: write # Required to push tags and commit version updates
+      contents: write        # Required to push tags and commit version updates
+      id-token: write        # Required for npm Trusted Publishing (OIDC)
     environment: npm
 
     steps:
@@ -24,8 +25,11 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '23'
+          node-version: '24'
           registry-url: 'https://registry.npmjs.org'
+
+      - name: Upgrade npm (Trusted Publishing requires npm >= 11.5.1)
+        run: npm install -g npm@latest
 
       - name: Install pnpm
         run: npm install -g pnpm
@@ -43,8 +47,8 @@ jobs:
         id: current_version
         working-directory: typescript
         run: |
-          CURRENT_VERSION=$(cat package.json | jq -r '.version')
-          echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          CURRENT_VERSION=$(jq -r '.version' package.json)
+          echo "current_version=$CURRENT_VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Apply Version Updates
         id: version
@@ -52,22 +56,24 @@ jobs:
         run: |
           # Force pnpm workspace recognition @ https://www.perplexity.ai/search/github-workflows-typescript-pu-2CcFkyNPSJ.fnCXbNF47RQ#0
           touch pnpm-workspace.yaml
+
           # Ensure package.json exists
           if [ ! -f "package.json" ]; then
             echo "Missing package.json file."
             exit 1
           fi
+
           pnpm dlx @changesets/cli version
 
-          NEW_VERSION=$(cat package.json | jq -r '.version')
-          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          NEW_VERSION=$(jq -r '.version' package.json)
+          echo "new_version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
 
           if [ "${{ steps.current_version.outputs.current_version }}" == "$NEW_VERSION" ]; then
             echo "No version change detected."
-            echo "has_changes=false" >> $GITHUB_OUTPUT
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
           else
             echo "Version changed from ${{ steps.current_version.outputs.current_version }} to $NEW_VERSION"
-            echo "has_changes=true" >> $GITHUB_OUTPUT
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Build Project
@@ -75,12 +81,10 @@ jobs:
         working-directory: typescript
         run: pnpm build
 
-      - name: Publish to npm
+      - name: Publish to npm (OIDC)
         if: steps.version.outputs.has_changes == 'true'
         working-directory: typescript
-        run: pnpm publish --filter ./ --no-git-checks
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish
 
       - name: Commit and push version bump
         if: steps.version.outputs.has_changes == 'true'
@@ -96,11 +100,10 @@ jobs:
         id: changelog_text
         run: |
           CHANGELOG_CONTENT=$(node .github/scripts/extract-changelog-text.js typescript ${{ steps.version.outputs.new_version }})
-          echo "$CHANGELOG_CONTENT"
-          echo "content<<EOF" >> $GITHUB_OUTPUT
-          echo "$CHANGELOG_CONTENT" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-          echo $GITHUB_OUTPUT
+          # Proper multiline output
+          echo 'changelog<<EOF' >> "$GITHUB_OUTPUT"
+          echo "$CHANGELOG_CONTENT" >> "$GITHUB_OUTPUT"
+          echo 'EOF' >> "$GITHUB_OUTPUT"
 
       - name: Create GitHub Release
         if: steps.version.outputs.has_changes == 'true'
@@ -122,6 +125,7 @@ jobs:
             yarn add caskada@${{ steps.version.outputs.new_version }}
 
             ### NPM Package
+
             📦 [View on NPM](https://www.npmjs.com/package/caskada/v/${{ steps.version.outputs.new_version }})
           draft: false
           prerelease: false
