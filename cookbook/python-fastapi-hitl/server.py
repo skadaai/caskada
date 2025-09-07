@@ -9,7 +9,7 @@ from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field # Import Pydantic for request/response models
 from typing import Dict, Any, Literal # For type hinting
 
-from flow import create_feedback_flow # BrainyFlow imports
+from flow import create_feedback_flow # Caskada imports
 
 # --- Configuration ---
 app = FastAPI(title="Minimal Feedback Loop API")
@@ -56,7 +56,7 @@ async def run_flow_background(task_id: str, flow, shared: Dict[str, Any]):
     final_status = "unknown"
     error_message = None
     try:
-        # Execute the potentially long-running BrainyFlow
+        # Execute the potentially long-running Caskada
         await flow.run(shared)
 
         # Determine final status based on shared state after flow completion

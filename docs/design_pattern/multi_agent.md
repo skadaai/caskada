@@ -4,7 +4,7 @@ machine-display: false
 
 # Multi-Agent Systems
 
-Multi-agent systems involve multiple autonomous agents (or sub-flows) that interact and collaborate to achieve a common goal. BrainyFlow's modularity and flexible communication mechanisms make it well-suited for building such systems.
+Multi-agent systems involve multiple autonomous agents (or sub-flows) that interact and collaborate to achieve a common goal. Caskada's modularity and flexible communication mechanisms make it well-suited for building such systems.
 
 {% hint style="success" %}
 Most of time, you don't need Multi-Agents. Start with a simple solution first.
@@ -23,7 +23,7 @@ Most of time, you don't need Multi-Agents. Start with a simple solution first.
 
 Let's create a simple multi-agent system where agents communicate via a shared message queue.
 
-For simplicity, these will be overly-simplified mock tools/nodes. For a more in-depth implementation, check the implementations in our cookbook for [Multi-Agent Taboo Game (Python)](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-multi-agent) or [Agent with A2A Protocol (Python)](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-a2a) - _more TypeScript examples coming soon ([PRs welcome](https://github.com/zvictor/BrainyFlow)!)_.
+For simplicity, these will be overly-simplified mock tools/nodes. For a more in-depth implementation, check the implementations in our cookbook for [Multi-Agent Taboo Game (Python)](https://github.com/skadaai/caskada/tree/main/cookbook/python-multi-agent) or [Agent with A2A Protocol (Python)](https://github.com/skadaai/caskada/tree/main/cookbook/python-a2a) - _more TypeScript examples coming soon ([PRs welcome](https://github.com/skadaai/caskada)!)_.
 
 ### 1. Define Agent Node
 
@@ -34,7 +34,7 @@ This node represents an individual agent that processes messages from a queue.
 
 ```python
 import asyncio
-from brainyflow import Node
+from caskada import Node
 
 class AgentNode(Node):
     async def prep(self, memory):
@@ -71,7 +71,7 @@ class AgentNode(Node):
 {% tab title="TypeScript" %}
 
 ```typescript
-import { Flow, Node } from 'brainyflow'
+import { Flow, Node } from 'caskada'
 
 class AgentNode extends Node {
   // We'll store the queue in global memory for simplicity here,
@@ -192,7 +192,7 @@ We create a flow where the `AgentNode` loops back to itself to continuously chec
 
 ```python
 import asyncio
-from brainyflow import Flow, Memory
+from caskada import Flow, Memory
 
 # Instantiate agent node
 agent_node = AgentNode()
@@ -225,7 +225,7 @@ if __name__ == "__main__":
 {% tab title="TypeScript" %}
 
 ```typescript
-import { Flow, Memory, Node } from 'brainyflow'
+import { Flow, Memory, Node } from 'caskada'
 
 // (AgentNode and AsyncQueue definitions as above)
 

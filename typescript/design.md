@@ -1,10 +1,10 @@
-# Brainyflow TypeScript Library Design
+# Caskada TypeScript Library Design
 
-This document describes the design and implementation of the Brainyflow TypeScript library (`brainyflow.ts`).
+This document describes the design and implementation of the Caskada TypeScript library (`caskada.ts`).
 
 ## 1. High-Level Purpose
 
-The Brainyflow library provides a structured framework for defining, managing, and executing complex processes modeled as computational graphs. Key goals include:
+The Caskada library provides a structured framework for defining, managing, and executing complex processes modeled as computational graphs. Key goals include:
 
 - **Modularity:** Breaking down processes into reusable, independent units of work (Nodes).
 - **Flow Control:** Defining clear execution paths, including sequential, conditional (action-based), and parallel flows.
@@ -117,4 +117,4 @@ The library is built around several key abstractions:
 ### 3.7. Browser Compatibility
 
 - A simple check (`typeof window !== 'undefined'`) detects browser environments.
-- If in a browser and `globalThis.brainyflow` is not already defined, the main classes (`BaseNode`, `Node`, `Flow`, `ParallelFlow`) are attached to `globalThis.brainyflow` for easy access without module loaders.
+- If in a browser and `globalThis.caskada` is not already defined, the main classes (`BaseNode`, `Node`, `Flow`, `ParallelFlow`) are attached to `globalThis.caskada` for easy access without module loaders.

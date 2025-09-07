@@ -13,7 +13,7 @@ async def run_chat_memory_demo():
     """
     
     print("=" * 50)
-    print("BrainyFlow Chat with Memory")
+    print("Caskada Chat with Memory")
     print("=" * 50)
     print("This chat keeps your 3 most recent conversations")
     print("and brings back relevant past conversations when helpful")

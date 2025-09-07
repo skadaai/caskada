@@ -2,14 +2,14 @@
 complexity: 3
 ---
 
-# OpenAI Embeddings with BrainyFlow
+# OpenAI Embeddings with Caskada
 
-This example demonstrates how to properly integrate OpenAI's text embeddings API with BrainyFlow, focusing on:
+This example demonstrates how to properly integrate OpenAI's text embeddings API with Caskada, focusing on:
 
 1. Clean code organization with separation of concerns:
 
    - Tools layer for API interactions (`tools/embeddings.py`)
-   - Node implementation for BrainyFlow integration (`nodes.py`)
+   - Node implementation for Caskada integration (`nodes.py`)
    - Flow configuration (`flow.py`)
    - Centralized environment configuration (`utils/call_llm.py`)
 
@@ -21,18 +21,18 @@ This example demonstrates how to properly integrate OpenAI's text embeddings API
 
 3. Proper project structure:
    - Modular code organization
-   - Clear separation between tools and BrainyFlow components
+   - Clear separation between tools and Caskada components
    - Reusable OpenAI client configuration
 
 ## Project Structure
 
 ```
-brainyflow-tool-embeddings/
+python-tool-embeddings/
 ├── tools/
 │   └── embeddings.py     # OpenAI embeddings API wrapper
 ├── utils/
 │   └── call_llm.py      # Centralized OpenAI client configuration
-├── nodes.py             # BrainyFlow node implementation
+├── nodes.py             # Caskada node implementation
 ├── flow.py             # Flow configuration
 └── main.py             # Example usage
 ```
@@ -77,7 +77,7 @@ python main.py
 This will:
 
 1. Load the OpenAI API key from environment
-2. Create a BrainyFlow node to handle embedding generation
+2. Create a Caskada node to handle embedding generation
 3. Process a sample text and generate its embedding
 4. Display the embedding dimension and first few values
 
@@ -90,11 +90,11 @@ This will:
 
 2. **Code Organization**
 
-   - Clear separation between tools and BrainyFlow components
+   - Clear separation between tools and Caskada components
    - Reusable OpenAI client configuration
    - Modular project structure
 
-3. **BrainyFlow Integration**
+3. **Caskada Integration**
    - Node implementation with prep->exec->post lifecycle
    - Flow configuration
    - Shared store usage for data passing

@@ -3,7 +3,7 @@
 The Agent pattern provides a robust and flexible way to build autonomous AI systems that can reason, plan, and interact with their environment. It's particularly well-suited for tasks requiring multiple steps, tool use, and dynamic decision-making.
 
 <div align="center">
-  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/agent.png?raw=true" width="350"/>
+  <img src="https://github.com/skadaai/caskada/raw/main/.github/media/agent.png?raw=true" width="350"/>
 </div>
 
 ## Nodes of an Agent
@@ -66,7 +66,7 @@ This agent:
 2. If searches, loops back to decide if more search needed
 3. Answers when enough context gathered
 
-For simplicity, these will be overly-simplified mock tools/nodes. For a more in-depth implementation, check the implementations in our cookbook for [Python](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-agent) or [TypeScript](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/typescript-agent).
+For simplicity, these will be overly-simplified mock tools/nodes. For a more in-depth implementation, check the implementations in our cookbook for [Python](https://github.com/skadaai/caskada/tree/main/cookbook/python-agent) or [TypeScript](https://github.com/skadaai/caskada/tree/main/cookbook/typescript-agent).
 
 ### 1. Define Tool Nodes
 
@@ -76,7 +76,7 @@ First, we define (mock) our tool nodes.
 {% tab title="Python" %}
 
 ```python
-from brainyflow import Node
+from caskada import Node
 
 # Mock tool: Search
 class SearchTool(Node):
@@ -102,7 +102,7 @@ class SearchTool(Node):
 {% tab title="TypeScript" %}
 
 ```typescript
-import { Node } from 'brainyflow'
+import { Node } from 'caskada'
 
 // Mock tool: Search
 class SearchTool extends Node {
@@ -137,7 +137,7 @@ class SearchTool extends Node {
 {% tab title="Python" %}
 
 ````python
-from brainyflow import Node, Memory
+from caskada import Node, Memory
 
 class DecideAction(Node):
     async def prep(self, shared):
@@ -214,7 +214,7 @@ if __name__ == "__main__":
 
 ```````typescript
 import { parse } from 'yaml'
-import { Node, Flow } from './brainyflow'
+import { Node, Flow } from './caskada'
 
 class DecideAction extends Node {
   async prep(memory) {
@@ -298,5 +298,5 @@ main();
 {% endtab %}
 {% endtabs %}
 
-This example demonstrates how BrainyFlow's core abstractions (Nodes, Flows, Memory) can be combined to build a simple agent that exhibits planning and tool-use capabilities. The `Memory` object is crucial for maintaining state across the different steps of the agent's execution.
+This example demonstrates how Caskada's core abstractions (Nodes, Flows, Memory) can be combined to build a simple agent that exhibits planning and tool-use capabilities. The `Memory` object is crucial for maintaining state across the different steps of the agent's execution.
 ```````

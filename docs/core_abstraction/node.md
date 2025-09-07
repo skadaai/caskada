@@ -1,11 +1,11 @@
 # Node: The Basic Unit of Work
 
-In BrainyFlow, a **Node** is the fundamental building block of any application. It represents a discrete, self-contained unit of work within a larger flow. Nodes are designed to be reusable, testable, and fault-tolerant.
+In Caskada, a **Node** is the fundamental building block of any application. It represents a discrete, self-contained unit of work within a larger flow. Nodes are designed to be reusable, testable, and fault-tolerant.
 
 ## Node Lifecycle
 
 <div align="center">
-  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/node.jpg" width="400"/>
+  <img src="https://github.com/skadaai/caskada/raw/main/.github/media/node.jpg" width="400"/>
 </div>
 
 Every node follows a clear, three-phase lifecycle when executed: `prep` → `exec` → `post`. This separation of concerns ensures clean data handling, computation, and state management.
@@ -55,7 +55,7 @@ To create a custom node, extend the `Node` class and implement the lifecycle met
 {% tab title="Python" %}
 
 ```python
-from brainyflow import Node, Memory
+from caskada import Node, Memory
 
 class TextProcessorNode(Node):
     async def prep(self, memory) -> str:
@@ -79,7 +79,7 @@ class TextProcessorNode(Node):
 {% tab title="TypeScript" %}
 
 ```typescript
-import { Memory, Node } from 'brainyflow'
+import { Memory, Node } from 'caskada'
 
 class TextProcessorNode extends Node {
   async prep(memory): Promise<string> {
@@ -129,7 +129,7 @@ The `error` object passed to `execFallback` will be an instance of `NodeError` a
 {% tab title="Python" %}
 
 ```python
-from brainyflow import Node, NodeError, Flow
+from caskada import Node, NodeError, Flow
 
 class CustomErrorHandlingNode(Node):
     async def exec(self, prep_res):
@@ -161,7 +161,7 @@ await flow.run({})
 {% tab title="TypeScript" %}
 
 ```typescript
-import { Node, NodeError } from 'brainyflow'
+import { Node, NodeError } from 'caskada'
 
 const myNodeInstance = new CustomErrorHandlingNode({ maxRetries: 3, wait: 5 })
 
@@ -191,7 +191,7 @@ class CustomErrorHandlingNode extends Node {
 }
 
 // Example usage
-// import { Flow, createMemory } from 'brainyflow';
+// import { Flow, createMemory } from 'caskada';
 const node = new CustomErrorHandlingNode({ maxRetries: 3, wait: 5 }) // Will retry twice, then fallback
 const flow = new Flow(node)
 await flow.run({})
@@ -326,7 +326,7 @@ A common pattern is a "router" node that determines the next step based on some 
 
 ```python
 import asyncio
-from brainyflow import Flow, Node, DEFAULT_ACTION
+from caskada import Flow, Node, DEFAULT_ACTION
 
 async def detect_language(content: str) -> str:
     if "hello" in content.lower(): return "english"
@@ -382,7 +382,7 @@ asyncio.run(run_flow())
 {% tab title="TypeScript" %}
 
 ```typescript
-import { Flow, Memory, Node, SharedStore } from 'brainyflow'
+import { Flow, Memory, Node, SharedStore } from 'caskada'
 
 function detectLanguage(content: string): Promise<'english' | 'spanish' | 'unknown'> {
   if ('hello' in content.toLowerCase()) return 'english'
@@ -491,7 +491,7 @@ async node.run(memory: Memory | GlobalStore, propagate: true): Promise<List<Tupl
 ```python
 from typing import List, Tuple, Optional
 from typing_extensions import Literal
-from brainyflow import Memory, GlobalStore, Action, ExecResult
+from caskada import Memory, GlobalStore, Action, ExecResult
 
 # Run with propagate=False (default) - returns ExecResult
 async def run(self, memory: Union[Memory, GlobalStore], propagate: Literal[False] = False) -> Optional[ExecResult]: ...

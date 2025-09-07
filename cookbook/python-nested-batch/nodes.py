@@ -1,5 +1,5 @@
 import os
-from brainyflow import Node
+from caskada import Node
 
 class LoadGrades(Node):
     """Node that loads grades from a student's file."""

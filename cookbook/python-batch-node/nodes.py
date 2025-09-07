@@ -1,5 +1,5 @@
 import pandas as pd
-from brainyflow import Node
+from caskada import Node
 
 class CSVTrigger(Node):
     """Node that triggers the batch processing of a large CSV file."""

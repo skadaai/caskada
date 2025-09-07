@@ -6,13 +6,13 @@ machine-display: false
 
 {% hint style="warning" %}
 
-**BrainyFlow does NOT provide built-in utilities**
+**Caskada does NOT provide built-in utilities**
 
 Instead, we offer examples that you can implement yourself. This approach gives you [more flexibility and control](../utility_function/index.md#why-not-built-in) over your project's dependencies and functionality.
 
 {% endhint %}
 
-Understanding the execution flow of your BrainyFlow application is crucial for debugging and optimization. The primary mechanism BrainyFlow provides for this is the `ExecutionTree` returned by `Flow.run()`.
+Understanding the execution flow of your Caskada application is crucial for debugging and optimization. The primary mechanism Caskada provides for this is the `ExecutionTree` returned by `Flow.run()`.
 
 Similar to LLM wrappers, we **don't** provide built-in visualization and debugging. Here, we recommend some _minimal_ (and incomplete) implementations. These examples can serve as a starting point for your own tooling.
 
@@ -66,7 +66,7 @@ While the `ExecutionTree` provides a structural log, you can complement it with 
 ```python
 import logging
 import json
-from brainyflow import Node, Memory, Flow
+from caskada import Node, Memory, Flow
 
 # ... (setup logger, define nodes as in previous Python logging example) ...
 
@@ -315,7 +315,7 @@ def to_mermaid(tree_node, parent_id=None, edge_label=None):
 
 This script would output Mermaid syntax representing the actual path taken during that specific `flow.run()`.
 
-By combining structured logging (from your nodes) with the `ExecutionTree`, you gain powerful tools for understanding, debugging, and monitoring your BrainyFlow applications.
+By combining structured logging (from your nodes) with the `ExecutionTree`, you gain powerful tools for understanding, debugging, and monitoring your Caskada applications.
 
 
 

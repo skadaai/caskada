@@ -14,12 +14,12 @@ async def run_rag_demo():
 
     # Sample texts - specialized/fictional content that benefits from RAG
     texts = [
-        # BrainyFlow framework
-        """BrainyFlow is a 300-line minimalist LLM framework
+        # Caskada framework
+        """Caskada is a 300-line minimalist LLM framework
         Lightweight: Just 300 lines. Zero bloat, zero dependencies, zero vendor lock-in.
         Expressive: Everything you love—(Multi-)Agents, Workflow, RAG, and more.
         Agentic Coding: Let AI Agents (e.g., Cursor AI) build Agents—10x productivity boost!
-        To install, pip install brainyflow or just copy the source code (only 300 lines).""",
+        To install, pip install caskada or just copy the source code (only 300 lines).""",
         
         # Fictional medical device
         """NeurAlign M7 is a revolutionary non-invasive neural alignment device.
@@ -51,11 +51,11 @@ async def run_rag_demo():
     ]
     
     print("=" * 50)
-    print("BrainyFlow RAG Document Retrieval")
+    print("Caskada RAG Document Retrieval")
     print("=" * 50)
     
     # Default query about the fictional technology
-    default_query = "How to install BrainyFlow?"
+    default_query = "How to install Caskada?"
     
     # Get query from command line if provided with --
     query = default_query

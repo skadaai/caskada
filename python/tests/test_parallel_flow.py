@@ -2,7 +2,7 @@ import pytest
 import asyncio
 import time
 from unittest.mock import Mock, AsyncMock
-from brainyflow import Memory, Node, Flow, ParallelFlow, DEFAULT_ACTION, BaseNode, ExecutionTree
+from caskada import Memory, Node, Flow, ParallelFlow, DEFAULT_ACTION, BaseNode, ExecutionTree
 
 # Helper sleep function for async tests
 async def async_sleep(seconds: float):

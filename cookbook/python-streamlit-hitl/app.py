@@ -2,7 +2,7 @@ import streamlit as st
 import asyncio
 from flow import create_initial_processing_flow, create_finalization_flow
 
-st.title("BrainyFlow HITL with Streamlit")
+st.title("Caskada HITL with Streamlit")
 
 # Initialize session state variables if they don't exist
 if 'stage' not in st.session_state:

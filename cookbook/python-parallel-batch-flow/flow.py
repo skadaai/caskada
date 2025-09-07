@@ -1,6 +1,6 @@
 """Flow definitions for parallel image processing."""
 
-from brainyflow import Flow, ParallelFlow
+from caskada import Flow, ParallelFlow
 from nodes import LoadImage, ApplyFilter, SaveImage
 
 def create_base_flow():

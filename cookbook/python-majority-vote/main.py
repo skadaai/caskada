@@ -1,5 +1,5 @@
 import argparse
-from brainyflow import Node, Flow
+from caskada import Node, Flow
 import collections
 from utils import call_llm
 import yaml

@@ -1,4 +1,4 @@
-from brainyflow import Flow, Node
+from caskada import Flow, Node
 from nodes import LoadImage, ApplyFilter, SaveImage
 
 def create_base_flow():

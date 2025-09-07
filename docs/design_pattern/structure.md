@@ -59,7 +59,7 @@ When prompting the LLM to produce **structured** output:
 
 ````python
 import yaml
-from brainyflow import Node, Memory
+from caskada import Node, Memory
 
 # Assume call_llm is defined elsewhere
 # async def call_llm(prompt: str) -> str: ...
@@ -116,7 +116,7 @@ summary:
 {% tab title="TypeScript" %}
 
 ````typescript
-import { Memory, Node } from 'brainyflow'
+import { Memory, Node } from 'caskada'
 
 // Assuming callLLM and a YAML parser are available
 declare function callLLM(prompt: string): Promise<string>

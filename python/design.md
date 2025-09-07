@@ -1,10 +1,10 @@
-# BrainyFlow Python Library Design
+# Caskada Python Library Design
 
-This document outlines the design of the BrainyFlow Python library, a framework for building and executing computational graphs, particularly suited for asynchronous workflows like AI agent interactions or complex data processing pipelines.
+This document outlines the design of the Caskada Python library, a framework for building and executing computational graphs, particularly suited for asynchronous workflows like AI agent interactions or complex data processing pipelines.
 
 ## Core Concepts
 
-BrainyFlow is built around the concepts of Nodes, Flows, and Memory management.
+Caskada is built around the concepts of Nodes, Flows, and Memory management.
 
 - **Nodes:** Represent individual units of computation or logic within the graph.
 - **Flows:** Orchestrate the execution sequence of connected nodes.
@@ -12,7 +12,7 @@ BrainyFlow is built around the concepts of Nodes, Flows, and Memory management.
 
 ## Components
 
-### 1. Memory (`brainyflow.Memory`)
+### 1. Memory (`caskada.Memory`)
 
 Manages the state accessible to nodes during execution.
 
@@ -25,7 +25,7 @@ Manages the state accessible to nodes during execution.
 - **Local Property:** The `local` property provides direct read access to the `_local` dictionary.
 - **Cloning:** The `clone(forking_data=None)` method creates a new `Memory` instance. The global store is shared by reference, while the local store is deep-copied. Optional `forking_data` can be provided to initialize or update the new local store. This is crucial for branching and parallel execution to ensure state isolation where needed.
 
-### 2. BaseNode (`brainyflow.BaseNode`)
+### 2. BaseNode (`caskada.BaseNode`)
 
 The abstract base class for all nodes in the graph.
 
@@ -48,7 +48,7 @@ The abstract base class for all nodes in the graph.
 - **Cloning:** `clone(seen=None)` method for deep copying the node and its successor graph, handling cycles using the `seen` dictionary.
 - **Identification:** Each node instance gets a unique, sequential `_node_order` ID upon creation.
 
-### 3. Node (`brainyflow.Node`)
+### 3. Node (`caskada.Node`)
 
 A concrete implementation of `BaseNode` that adds retry logic.
 
@@ -60,7 +60,7 @@ A concrete implementation of `BaseNode` that adds retry logic.
   - `exec_fallback(prep_res, error)`: An asynchronous method called if all retry attempts fail. The default implementation re-raises the final error (wrapped in `NodeError` which includes the `retry_count`). Subclasses can override this for custom fallback behavior.
 - **Execution:** Implements `exec_runner` to incorporate the retry logic around calling the node's `exec` method.
 
-### 4. Flow (`brainyflow.Flow`)
+### 4. Flow (`caskada.Flow`)
 
 Orchestrates the execution of a graph of connected nodes sequentially. Inherits from `BaseNode` but overrides execution logic.
 
@@ -74,7 +74,7 @@ Orchestrates the execution of a graph of connected nodes sequentially. Inherits 
 - **Cycle Detection:** Uses `visit_counts` and `options['max_visits']` (default 5) to prevent infinite loops by limiting the number of times any single node (identified by `_node_order`) can be visited during a flow execution. Raises `RuntimeError` if the limit is exceeded.
 - **Result:** Returns a nested dictionary structure where keys are actions and values are lists of results from the branches corresponding to those actions. Example: `{'default': [{'action1': [...]}, {'action2': [...]}]}`.
 
-### 5. ParallelFlow (`brainyflow.ParallelFlow`)
+### 5. ParallelFlow (`caskada.ParallelFlow`)
 
 A subclass of `Flow` that enables parallel execution of branches.
 

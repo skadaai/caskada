@@ -4,7 +4,7 @@ complexity: 8
 
 # Multi-Agent Taboo Game
 
-A BrainyFlow example that demonstrates how to implement asynchronous multi-agent communication using the Taboo word guessing game.
+A Caskada example that demonstrates how to implement asynchronous multi-agent communication using the Taboo word guessing game.
 
 ## Features
 

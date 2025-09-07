@@ -1,4 +1,4 @@
-from brainyflow import Node, Flow
+from caskada import Node, Flow
 from utils import call_llm
 
 class ChatNode(Node):

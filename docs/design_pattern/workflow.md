@@ -3,7 +3,7 @@
 Many real-world tasks are too complex for one LLM call. The solution is **Task Decomposition**: decompose them into a [chain](../core_abstraction/flow.md) of multiple Nodes.
 
 <div align="center">
-  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/workflow.png?raw=true" width="400"/>
+  <img src="https://github.com/skadaai/caskada/raw/main/.github/media/workflow.png?raw=true" width="400"/>
 </div>
 
 {% hint style="success" %}
@@ -20,7 +20,7 @@ You usually need multiple _iterations_ to find the _sweet spot_. If the task has
 
 ```python
 import asyncio
-from brainyflow import Node, Flow, Memory
+from caskada import Node, Flow, Memory
 
 # Assume call_llm is defined elsewhere
 # async def call_llm(prompt: str) -> str: ...
@@ -70,7 +70,7 @@ if __name__ == "__main__":
 {% tab title="TypeScript" %}
 
 ```typescript
-import { Flow, Memory, Node } from 'brainyflow'
+import { Flow, Memory, Node } from 'caskada'
 
 // Assuming callLLM is defined elsewhere
 declare function callLLM(prompt: string): Promise<string>

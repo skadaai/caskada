@@ -1,4 +1,4 @@
-from brainyflow import Node, Flow
+from caskada import Node, Flow
 from utils.call_llm import call_llm
 
 # An example node and flow

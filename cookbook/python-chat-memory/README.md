@@ -4,7 +4,7 @@ complexity: 10.5
 
 # Chat with Memory Retrieval
 
-A chat application with memory retrieval using BrainyFlow. This example maintains a sliding window of recent conversations while retrieving relevant past conversations based on context.
+A chat application with memory retrieval using Caskada. This example maintains a sliding window of recent conversations while retrieving relevant past conversations based on context.
 
 ## Features
 
@@ -58,7 +58,7 @@ The chat application uses:
 
 ```
 ==================================================
-BrainyFlow Chat with Memory
+Caskada Chat with Memory
 ==================================================
 This chat keeps your 3 most recent conversations
 and brings back relevant past conversations when helpful

@@ -1,14 +1,14 @@
 # Design Patterns
 
-BrainyFlow supports a variety of design patterns that enable you to build complex AI applications. These patterns leverage the core abstractions of nodes, flows, and shared store to implement common AI system architectures.
+Caskada supports a variety of design patterns that enable you to build complex AI applications. These patterns leverage the core abstractions of nodes, flows, and shared store to implement common AI system architectures.
 
 ## Overview of Design Patterns
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/design.jpg" width="1300"/>
+  <img src="https://raw.githubusercontent.com/skadaai/caskada/main/.github/media/design.jpg" width="1300"/>
 </div>
 
-BrainyFlow's minimalist design allows it to support various high-level AI design paradigms:
+Caskada's minimalist design allows it to support various high-level AI design paradigms:
 
 | Pattern                             | Description                                                     | Use Cases                                       |
 | ----------------------------------- | --------------------------------------------------------------- | ----------------------------------------------- |
@@ -60,7 +60,7 @@ flowchart TD
 
 ## Pattern Composition
 
-BrainyFlow's nested flow capability allows you to compose multiple patterns. For instance:
+Caskada's nested flow capability allows you to compose multiple patterns. For instance:
 
 ```mermaid
 graph TD
@@ -89,13 +89,13 @@ Other examples include:
 
 ## Implementation Examples
 
-Each pattern can be implemented using BrainyFlow's core abstractions. Here's a simple example of the agent pattern:
+Each pattern can be implemented using Caskada's core abstractions. Here's a simple example of the agent pattern:
 
 {% tabs %}
 {% tab title="Python" %}
 
 ```python
-from brainyflow import Flow, Node
+from caskada import Flow, Node
 
 # Define the agent's components (assuming these classes exist)
 perceive = PerceiveNode()
@@ -114,7 +114,7 @@ agent_flow = Flow(start=perceive)
 {% tab title="TypeScript" %}
 
 ```typescript
-import { Flow, Node } from 'brainyflow'
+import { Flow, Node } from 'caskada'
 
 // Define the agent's components (assuming these classes exist)
 const perceive = new PerceiveNode()

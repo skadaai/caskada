@@ -55,7 +55,7 @@ This implementation is based on this tutorial (for Pocketflow): [Build Chain-of-
 
 ## How It Works
 
-The implementation uses a self-looping BrainyFlow node (`ChainOfThoughtNode`) that guides an LLM through a structured problem-solving process:
+The implementation uses a self-looping Caskada node (`ChainOfThoughtNode`) that guides an LLM through a structured problem-solving process:
 
 ```mermaid
 flowchart LR

@@ -8,7 +8,7 @@ title: 'Agentic Coding'
 If you are an AI agents involved in building LLM Systems, read this guide **VERY, VERY** carefully! This is the most important chapter in the entire document. Throughout development, you should always (1) start with a small and simple solution, (2) design at a high level (`docs/design.md`) before implementation, and (3) frequently ask humans for feedback and clarification.
 {% endhint %}
 
-BrainyFlow embraces a collaborative approach to AI system development where humans and AI assistants work together iteratively, leveraging their complementary strengths to create robust, maintainable solutions.
+Caskada embraces a collaborative approach to AI system development where humans and AI assistants work together iteratively, leveraging their complementary strengths to create robust, maintainable solutions.
 
 ## The Human-AI Co-Design Philosophy
 
@@ -283,7 +283,7 @@ The human identifies necessary external tools and APIs while the AI helps implem
 
 Utility functions serve as the interface between your LLM application and external systems:
 
-<div align="center"><img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/utility.png?raw=true" width="400"/></div>
+<div align="center"><img src="https://github.com/skadaai/caskada/raw/main/.github/media/utility.png?raw=true" width="400"/></div>
 
 **Categories of Utilities:**
 
@@ -432,7 +432,7 @@ The AI assistant transforms the design into working code:
 {% hint style="success" %}
 **You'll likely iterate a lot!** Expect to repeat Steps 3–6 numerous times.
 
-<div align="center"><img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/success.png?raw=true" width="400"/></div>
+<div align="center"><img src="https://github.com/skadaai/caskada/raw/main/.github/media/success.png?raw=true" width="400"/></div>
 {% endhint %}
 
 The human evaluates the system's performance while the AI suggests improvements.

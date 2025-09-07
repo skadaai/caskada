@@ -1,4 +1,4 @@
-from brainyflow import Node
+from caskada import Node
 from utils.process_task import process_task
 
 class InitialInputNode(Node):

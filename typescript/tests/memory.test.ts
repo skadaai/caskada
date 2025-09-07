@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { beforeEach, describe, it } from 'node:test'
 
-import { createMemory, Memory, SharedStore } from '../brainyflow'
+import { createMemory, Memory, SharedStore } from '../caskada'
 
 describe('Memory Factory Function (`createMemory`)', () => {
   describe('Initialization', () => {

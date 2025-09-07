@@ -21,7 +21,7 @@ if __name__ == "__main__":
     print("Testing Text-to-Speech API...")
     # The OpenAI client will raise an error if API key is not found or invalid.
     # No explicit check here to keep it minimal.
-    text = "Hello from BrainyFlow! This is a test of the text-to-speech functionality."
+    text = "Hello from Caskada! This is a test of the text-to-speech functionality."
     audio_bytes, rate = text_to_speech_api(text)
     if audio_bytes and rate:
         print(f"Successfully converted text to speech. Audio data length: {len(audio_bytes)} bytes, Sample rate: {rate} Hz.")

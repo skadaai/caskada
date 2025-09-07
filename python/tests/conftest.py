@@ -3,7 +3,7 @@ import warnings
 import logging
 import asyncio
 from unittest.mock import AsyncMock
-from brainyflow import Memory, Node, Flow, DEFAULT_ACTION
+from caskada import Memory, Node, Flow, DEFAULT_ACTION
 
 @pytest.fixture(autouse=True)
 def capture_warnings(caplog):

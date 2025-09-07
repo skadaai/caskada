@@ -1,9 +1,9 @@
 # MapReduce Design Pattern
 
-The MapReduce pattern is a powerful way to process large datasets by breaking down a complex task into two main phases: **Map** (processing individual items) and **Reduce** (aggregating results). BrainyFlow provides the perfect abstractions to implement this pattern efficiently, especially with its `ParallelFlow` for concurrent mapping.
+The MapReduce pattern is a powerful way to process large datasets by breaking down a complex task into two main phases: **Map** (processing individual items) and **Reduce** (aggregating results). Caskada provides the perfect abstractions to implement this pattern efficiently, especially with its `ParallelFlow` for concurrent mapping.
 
 <div align="center">
-  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/mapreduce.png?raw=true" width="400"/>
+  <img src="https://github.com/skadaai/caskada/raw/main/.github/media/mapreduce.png?raw=true" width="400"/>
 </div>
 
 ## Core Components
@@ -39,7 +39,7 @@ We use a `ParallelFlow` for the mapping phase for performance gain.
 {% tab title="Python" %}
 
 ```python
-from brainyflow import Node, Flow, ParallelFlow
+from caskada import Node, Flow, ParallelFlow
 
 class Trigger(Node):
     async def prep(self, memory):
@@ -72,7 +72,7 @@ def mapreduce(iterate: Node | Flow):
 {% tab title="TypeScript" %}
 
 ```typescript
-import { Flow, Node, ParallelFlow } from 'brainyflow'
+import { Flow, Node, ParallelFlow } from 'caskada'
 
 class Trigger extends Node {
   async prep(memory): Promise<any[] | Record<string, any>> {
@@ -130,7 +130,7 @@ export function mapreduce(iterate: Node | Flow): ParallelFlow {
 
 Let's create a flow to summarize multiple text files using the pattern we just created.
 
-For simplicity, these will be overly-simplified mock tools/nodes. For a more in-depth implementation, check the implementations in our cookbook for [Resume Qualification (Python)](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-map-reduce) - _more TypeScript examples coming soon ([PRs welcome](https://github.com/zvictor/BrainyFlow)!)_.
+For simplicity, these will be overly-simplified mock tools/nodes. For a more in-depth implementation, check the implementations in our cookbook for [Resume Qualification (Python)](https://github.com/skadaai/caskada/tree/main/cookbook/python-map-reduce) - _more TypeScript examples coming soon ([PRs welcome](https://github.com/skadaai/caskada)!)_.
 
 ### 1. Define Mapper Node (Summarizer)
 
@@ -140,7 +140,7 @@ This node will summarize a single file.
 {% tab title="Python" %}
 
 ```python
-from brainyflow import Node
+from caskada import Node
 
 # Assume call_llm is defined elsewhere
 class SummarizeFileNode(Node):
@@ -162,7 +162,7 @@ class SummarizeFileNode(Node):
 {% tab title="TypeScript" %}
 
 ```typescript
-import { Node } from 'brainyflow'
+import { Node } from 'caskada'
 
 // Assume callLLM is defined elsewhere
 declare function callLLM(prompt: string): Promise<string>
@@ -196,7 +196,7 @@ This node will combine all individual summaries.
 {% tab title="Python" %}
 
 ```python
-from brainyflow import Node
+from caskada import Node
 
 class AggregateSummariesNode(Node):
     async def prep(self, memory):
@@ -217,7 +217,7 @@ class AggregateSummariesNode(Node):
 {% tab title="TypeScript" %}
 
 ```typescript
-import { Node } from 'brainyflow'
+import { Node } from 'caskada'
 
 class AggregateSummariesNode extends Node {
   async prep(memory): Promise<string[]> {
@@ -247,7 +247,7 @@ class AggregateSummariesNode extends Node {
 
 ```python
 import asyncio
-from brainyflow import Flow
+from caskada import Flow
 
 # (mapreduce, SummarizeFileNode and AggregateSummariesNode definitions as above)
 
@@ -283,7 +283,7 @@ if __name__ == "__main__":
 {% tab title="TypeScript" %}
 
 ```typescript
-import { Flow, Memory, Node } from 'brainyflow'
+import { Flow, Memory, Node } from 'caskada'
 
 // Assume callLLM is defined elsewhere
 declare function callLLM(prompt: string): Promise<string>
@@ -320,4 +320,4 @@ main().catch(console.error)
 {% endtab %}
 {% endtabs %}
 
-This example demonstrates how to implement a MapReduce pattern using BrainyFlow, leveraging `ParallelFlow` for concurrent processing of the map phase and the `Memory` object for collecting results before the reduce phase.
+This example demonstrates how to implement a MapReduce pattern using Caskada, leveraging `ParallelFlow` for concurrent processing of the map phase and the `Memory` object for collecting results before the reduce phase.

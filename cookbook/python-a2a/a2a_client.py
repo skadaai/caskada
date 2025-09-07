@@ -46,7 +46,7 @@ def colorize(color, text):
 @click.option(
     "--agent-url",
     default="http://localhost:10003", # Default to the port used in server __main__
-    help="URL of the BrainyFlow A2A agent server.",
+    help="URL of the Caskada A2A agent server.",
 )
 async def cli(agent_url: str):
     """Minimal CLI client to interact with an A2A agent."""
@@ -54,7 +54,7 @@ async def cli(agent_url: str):
     print(colorize(C_BRIGHT_MAGENTA, f"Connecting to agent at: {agent_url}"))
 
     # Instantiate the client - only URL is needed if not fetching card first
-    # Note: The BrainyFlow wrapper doesn't expose much via the AgentCard,
+    # Note: The Caskada wrapper doesn't expose much via the AgentCard,
     # so we skip fetching it for this minimal client.
     client = A2AClient(url=agent_url)
 
@@ -115,7 +115,7 @@ async def cli(agent_url: str):
                 print(colorize(C_GREEN, f"Task {task_result.id} finished with state: {task_result.status.state}"))
 
                 final_answer = "Agent did not provide a final artifact."
-                # Extract answer from artifacts (as implemented in BrainyFlowTaskManager)
+                # Extract answer from artifacts (as implemented in CaskadaTaskManager)
                 if task_result.artifacts:
                     try:
                         # Find the first text part in the first artifact

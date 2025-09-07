@@ -1,6 +1,6 @@
-# BrainyFlow TypeScript Test Plan
+# Caskada TypeScript Test Plan
 
-This document outlines the testing strategy for the `brainyflow.ts` library using Node.js's native test runner (`node:test`).
+This document outlines the testing strategy for the `caskada.ts` library using Node.js's native test runner (`node:test`).
 
 ## 1. Goals
 

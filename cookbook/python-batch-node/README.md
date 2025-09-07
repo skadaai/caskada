@@ -4,7 +4,7 @@ complexity: 4.5
 
 # Batch Node Example
 
-This example demonstrates the batch Node concept in BrainyFlow by implementing a CSV processor that handles large files by processing them in chunks.
+This example demonstrates the batch Node concept in Caskada by implementing a CSV processor that handles large files by processing them in chunks.
 
 ## What this Example Demonstrates
 

@@ -1,4 +1,4 @@
-from brainyflow import Flow
+from caskada import Flow
 from nodes import Map, ReadResumesNode, EvaluateResumesNode, Reduce, ResultsNode
 
 def create_resume_processing_flow():

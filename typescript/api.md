@@ -1,6 +1,6 @@
-# BrainyFlow TypeScript API Reference
+# Caskada TypeScript API Reference
 
-This document lists the classes, methods, types, and constants available in the `brainyflow.ts` module.
+This document lists the classes, methods, types, and constants available in the `caskada.ts` module.
 
 ## Constants
 
@@ -68,4 +68,4 @@ Orchestrates parallel execution of node graph branches, extending `Flow`.
 
 ## Browser Compatibility
 
-- If run in a browser environment (`typeof window !== 'undefined'`), the core classes (`BaseNode`, `Node`, `Flow`, `ParallelFlow`) are exposed on `globalThis.brainyflow`.
+- If run in a browser environment (`typeof window !== 'undefined'`), the core classes (`BaseNode`, `Node`, `Flow`, `ParallelFlow`) are exposed on `globalThis.caskada`.

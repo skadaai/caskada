@@ -1,4 +1,4 @@
-from brainyflow import Flow, Node
+from caskada import Flow, Node
 from nodes import GetSchema, GenerateSQL, ExecuteSQL, DebugSQL
 
 def create_text_to_sql_flow():

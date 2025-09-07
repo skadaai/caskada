@@ -1,7 +1,7 @@
 import sqlite3
 import time
 import yaml # Import yaml here as nodes use it
-from brainyflow import Node
+from caskada import Node
 from utils import call_llm
 
 class GetSchema(Node):

@@ -4,7 +4,7 @@ complexity: 4
 
 # Text Converter Flow
 
-This project demonstrates an interactive text transformation tool built with BrainyFlow.
+This project demonstrates an interactive text transformation tool built with Caskada.
 
 ## Features
 
@@ -52,7 +52,7 @@ Here's what each part does:
 Welcome to Text Converter!
 =========================
 
-Enter text to convert: BrainyFlow is a 100-line LLM framework
+Enter text to convert: Caskada is a 100-line LLM framework
 
 Choose transformation:
 1. Convert to UPPERCASE
@@ -63,7 +63,7 @@ Choose transformation:
 
 Your choice (1-5): 1
 
-Result: BRAINYFLOW IS A 100-LINE LLM FRAMEWORK
+Result: CASKADA IS A 100-LINE LLM FRAMEWORK
 
 Convert another text? (y/n): n
 

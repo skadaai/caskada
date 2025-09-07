@@ -25,10 +25,10 @@ jobs:
 
       - name: Generate docs/index.md from README.md
         run: |
-          printf -- "---\ntitle: 'BrainyFlow'\nmachine-display: false\n---\n" > docs/index.md
+          printf -- "---\ntitle: 'Caskada'\nmachine-display: false\n---\n" > docs/index.md
           perl -0777 -pe 's/<!-- gitbook-ignore-start -->.*?<!-- gitbook-ignore-end -->//gs' README.md \
-            | perl -pe 's{(https://brainy\.gitbook\.io/flow/[^)\s]+)}{$1.md}g' \
-            | sed 's|https://brainy.gitbook.io/flow|.|g' \
+            | perl -pe 's{(https://skadaai\.gitbook\.io/caskada/[^)\s]+)}{$1.md}g' \
+            | sed 's|https://skadaai.gitbook.io/caskada|.|g' \
             | sed 's/alt\s*=\s*"[^"]*"//g; s/alt\s*=\s*'\''[^'\'']*'\''//g' \
             >> docs/index.md
 

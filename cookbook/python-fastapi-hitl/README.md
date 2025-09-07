@@ -4,7 +4,7 @@ complexity: 9
 
 # Web Human-in-the-Loop (HITL) Feedback Service
 
-This project demonstrates a minimal web application for human-in-the-loop workflows using BrainyFlow, FastAPI, and Server-Sent Events (SSE). Users can submit text, have it processed (simulated), review the output, and approve or reject it, potentially triggering reprocessing until approved.
+This project demonstrates a minimal web application for human-in-the-loop workflows using Caskada, FastAPI, and Server-Sent Events (SSE). Users can submit text, have it processed (simulated), review the output, and approve or reject it, potentially triggering reprocessing until approved.
 
 <p align="center">
   <img 
@@ -15,7 +15,7 @@ This project demonstrates a minimal web application for human-in-the-loop workfl
 ## Features
 
 - **Web UI:** Simple interface for submitting tasks and providing feedback.
-- **BrainyFlow Workflow:** Manages the process -> review -> result/reprocess logic.
+- **Caskada Workflow:** Manages the process -> review -> result/reprocess logic.
 - **FastAPI Backend:** Serves the UI and handles API requests asynchronously.
 - **Server-Sent Events (SSE):** Provides real-time status updates to the client without polling.
 
@@ -47,9 +47,9 @@ This project demonstrates a minimal web application for human-in-the-loop workfl
 
 ## How It Works
 
-The application uses BrainyFlow to define and execute the feedback loop workflow. FastAPI handles web requests and manages the real-time SSE communication.
+The application uses Caskada to define and execute the feedback loop workflow. FastAPI handles web requests and manages the real-time SSE communication.
 
-**BrainyFlow Workflow:**
+**Caskada Workflow:**
 
 The core logic is orchestrated by a `Flow` defined in `flow.py`:
 
@@ -71,19 +71,19 @@ flowchart TD
 
 **FastAPI & SSE Integration:**
 
-- The `/submit` endpoint creates a unique task, initializes the BrainyFlow `shared` state (including an `asyncio.Event` for review and an `asyncio.Queue` for SSE), and schedules the flow execution using `BackgroundTasks`.
+- The `/submit` endpoint creates a unique task, initializes the Caskada `shared` state (including an `asyncio.Event` for review and an `asyncio.Queue` for SSE), and schedules the flow execution using `BackgroundTasks`.
 - Nodes within the flow (specifically `ReviewNode`'s prep logic) put status updates onto the task-specific `sse_queue`.
 - The `/stream/{task_id}` endpoint uses `StreamingResponse` to read from the task's `sse_queue` and push formatted status updates to the connected client via Server-Sent Events.
 - The `/feedback/{task_id}` endpoint receives the human's decision, updates the `shared` state, and sets the `asyncio.Event` to unblock the waiting `ReviewNode`.
 
-This setup allows for a decoupled workflow logic (BrainyFlow) and web interaction layer (FastAPI), with efficient real-time updates pushed to the user.
+This setup allows for a decoupled workflow logic (Caskada) and web interaction layer (FastAPI), with efficient real-time updates pushed to the user.
 
 ## Files
 
 - [`server.py`](./server.py): The main FastAPI application handling HTTP requests, SSE, state management, and background task scheduling.
-- [`nodes.py`](./nodes.py): Defines the BrainyFlow `Node` classes (`ProcessNode`, `ReviewNode`, `ResultNode`) for the workflow steps.
-- [`flow.py`](./flow.py): Defines the BrainyFlow `Flow` that connects the nodes into the feedback loop.
+- [`nodes.py`](./nodes.py): Defines the Caskada `Node` classes (`ProcessNode`, `ReviewNode`, `ResultNode`) for the workflow steps.
+- [`flow.py`](./flow.py): Defines the Caskada `Flow` that connects the nodes into the feedback loop.
 - [`utils/process_task.py`](./utils/process_task.py): Contains the minimal simulation function for task processing.
 - [`templates/index.html`](./templates/index.html): The HTML structure for the frontend user interface.
 - [`static/style.css`](./static/style.css): Basic CSS for styling the frontend.
-- [`requirements.txt`](./requirements.txt): Project dependencies (FastAPI, Uvicorn, Jinja2, BrainyFlow).
+- [`requirements.txt`](./requirements.txt): Project dependencies (FastAPI, Uvicorn, Jinja2, Caskada).

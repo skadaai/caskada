@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { beforeEach, describe, it, mock } from 'node:test'
-import { BaseNode, createMemory, DEFAULT_ACTION, ExecutionTree, Flow, Memory, Node, ParallelFlow, SharedStore } from '../brainyflow'
+import { BaseNode, createMemory, DEFAULT_ACTION, ExecutionTree, Flow, Memory, Node, ParallelFlow, SharedStore } from '../caskada'
 
 // --- Helper Nodes ---
 class TestNode<

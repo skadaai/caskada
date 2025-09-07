@@ -1,4 +1,4 @@
-from brainyflow import Node
+from caskada import Node
 from utils.vector_index import create_index, add_vector, search_vectors
 from utils.call_llm import call_llm
 from utils.get_embedding import get_embedding

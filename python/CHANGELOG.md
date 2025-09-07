@@ -1,4 +1,4 @@
-# brainyflow
+# caskada
 
 ## 2.1.0
 
@@ -6,7 +6,7 @@
 
 - 83cb809: ## Automatic Triggers Propagation
 
-  Since v2.0, Brainyflow propagates triggers from **terminal nodes** (i.e. _nodes missing successors_) to subsequent flows. This let you permeate an action from a node directly to outside of the parent flow, skipping the need to explicitly re-trigger the actions at the end of every flow execution.
+  Since v2.0, Caskada propagates triggers from **terminal nodes** (i.e. _nodes missing successors_) to subsequent flows. This let you permeate an action from a node directly to outside of the parent flow, skipping the need to explicitly re-trigger the actions at the end of every flow execution.
 
   This allows for more fluid and permeable flows, and effectively stops the parent flow from being a rigid barrier in the graph execution.
   Think about it as "_handing over unfinished tasks in a flow to the first node in the next flow_".
@@ -35,7 +35,7 @@
   - **Flow as Node - Trigger Propagation**: When a sub-flow (acting as a node) has an internal node triggering an action for which the sub-flow has no defined successor, this action now correctly propagates as a trigger from the sub-flow node itself in the parent flow's `ExecutionTree`.
   - **Simplified Generic Type Hints**: The generic type hints for `Flow` and `Node` have been simplified, removing the `L` (i.e. `LocalMemory`) type parameter and moving the `ActionT` to the end of the list as it is rarely used. Before: `Node[G, L, ActionT, PrepResultT, ExecResultT]`; Now: `Node[G, PrepResultT, ExecResultT, ActionT]`.
   - **NodeError**: Changed from an `Exception` subclass to a `Protocol` (`runtime_checkable`). This affects how `NodeError` might be caught or checked, promoting structural typing and fixing the double-raising of the exception.
-  - **New License**: Brainyflow is now licensed under the Mozilla Public License 2.0.
+  - **New License**: Caskada is now licensed under the Mozilla Public License 2.0.
 
   Rarely used other than internally, but still breaking changes:
 
@@ -89,4 +89,4 @@
   - **`.envrc`**: Added `dotenv_if_exists`.
   - **`.gitignore`**: Added `python/README.md` (if it's auto-generated and shouldn't be committed).
 
-  This release significantly modernizes the Python BrainyFlow library, especially its state management capabilities and execution tracking, while enhancing type safety and the overall development experience.
+  This release significantly modernizes the Python Caskada library, especially its state management capabilities and execution tracking, while enhancing type safety and the overall development experience.

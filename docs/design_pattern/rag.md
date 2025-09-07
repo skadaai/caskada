@@ -7,7 +7,7 @@ machine-display: false
 For certain LLM tasks like answering questions, providing relevant context is essential. One common architecture is a **two-stage** RAG pipeline:
 
 <div align="center">
-  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/rag.png?raw=true" width="400"/>
+  <img src="https://github.com/skadaai/caskada/raw/main/.github/media/rag.png?raw=true" width="400"/>
 </div>
 
 1. **Offline stage**: Preprocess and index documents ("building the index").
@@ -29,7 +29,7 @@ We create three Nodes:
 ```python
 import asyncio
 import os # Assuming file operations
-from brainyflow import Node, Flow, Memory, ParallelFlow
+from caskada import Node, Flow, Memory, ParallelFlow
 
 # Assume get_embedding, create_index, search_index are defined elsewhere
 # async def get_embedding(text: str) -> list[float]: ...
@@ -135,7 +135,7 @@ class EmbedChunkNode(Node):
 
 ```typescript
 import * as fs from 'fs'
-import { Flow, Memory, Node, ParallelFlow } from 'brainyflow'
+import { Flow, Memory, Node, ParallelFlow } from 'caskada'
 
 // Assume getEmbedding and createIndex/searchIndex are defined elsewhere
 declare function getEmbedding(text: string): Promise<number[]>

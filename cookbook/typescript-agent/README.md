@@ -4,7 +4,7 @@ complexity: 11
 
 # Agent Example
 
-This example demonstrates how to build a question-answering agent using TypeScript and BrainyFlow. The agent can search the web for information and provide answers based on the search results.
+This example demonstrates how to build a question-answering agent using TypeScript and Caskada. The agent can search the web for information and provide answers based on the search results.
 
 ## Overview
 
@@ -17,7 +17,7 @@ This agent demonstrates the following capabilities:
 ### Step and Usage
 
 ```bash
-# from BrainyFlow root directory
+# from Caskada root directory
 cd cookbook/typescript-agent
 
 cp .env.example .env # add your API key

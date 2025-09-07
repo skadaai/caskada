@@ -1,4 +1,4 @@
-from brainyflow import Flow, Node
+from caskada import Flow, Node
 from nodes import CSVProcessor, CSVTrigger
 
 class ShowStats(Node):

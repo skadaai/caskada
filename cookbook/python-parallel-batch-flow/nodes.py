@@ -2,7 +2,7 @@ import os
 import asyncio
 from PIL import Image, ImageFilter
 import numpy as np
-from brainyflow import Node
+from caskada import Node
 
 class LoadImage(Node):
     """Node that loads an image from file."""

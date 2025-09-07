@@ -1,7 +1,7 @@
 import asyncio
 import time
 import os
-from brainyflow import ParallelFlow, Node
+from caskada import ParallelFlow, Node
 from utils import call_llm
 
 # --- Node Definitions ---

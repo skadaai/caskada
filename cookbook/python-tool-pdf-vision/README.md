@@ -4,7 +4,7 @@ complexity: 9
 
 # Tool Calling: PDF Vision
 
-A BrainyFlow example project demonstrating PDF processing with OpenAI's Vision API for OCR and text extraction.
+A Caskada example project demonstrating PDF processing with OpenAI's Vision API for OCR and text extraction.
 
 ## Features
 
@@ -38,14 +38,14 @@ A BrainyFlow example project demonstrating PDF processing with OpenAI's Vision A
 ## Project Structure
 
 ```
-brainyflow-tool-pdf-vision/
+python-tool-pdf-vision/
 ├── pdfs/           # Directory for PDF files to process
 ├── tools/
 │   ├── pdf.py     # PDF to image conversion
 │   └── vision.py  # Vision API integration
 ├── utils/
 │   └── call_llm.py # OpenAI client config
-├── nodes.py       # BrainyFlow nodes
+├── nodes.py       # Caskada nodes
 ├── flow.py        # Flow configuration
 └── main.py        # Example usage
 ```

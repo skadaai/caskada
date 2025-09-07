@@ -6,6 +6,6 @@ export const tsup: Options = {
   format: ['cjs', 'esm'],
   minify: true,
   bundle: true,
-  entryPoints: ['brainyflow.ts'],
+  entryPoints: ['caskada.ts'],
   outDir: 'dist',
 }

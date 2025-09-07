@@ -1,26 +1,26 @@
 {
-  "name": "brainyflow",
+  "name": "caskada",
   "version": "2.1.0",
   "type": "module",
-  "types": "./dist/brainyflow.d.ts",
+  "types": "./dist/caskada.d.ts",
   "exports": {
     ".": {
       "types": {
-        "import": "./dist/brainyflow.d.ts",
-        "require": "./dist/brainyflow.d.cts"
+        "import": "./dist/caskada.d.ts",
+        "require": "./dist/caskada.d.cts"
       },
-      "import": "./dist/brainyflow.js",
-      "require": "./dist/brainyflow.cjs"
+      "import": "./dist/caskada.js",
+      "require": "./dist/caskada.cjs"
     }
   },
   "files": [
     "dist",
     "README.md"
   ],
-  "homepage": "https://flow.brainy.sh",
-  "repository": "github:zvictor/brainyFlow",
+  "homepage": "https://skada.ai/caskada/",
+  "repository": "github:skadaai/caskada",
   "bugs": {
-    "url": "https://github.com/zvictor/brainyFlow/issues"
+    "url": "https://github.com/skadaai/caskada/issues"
   },
   "description": "Minimalist AI framework in 300 Lines. Enable LLMs to Program Themselves.",
   "keywords": [

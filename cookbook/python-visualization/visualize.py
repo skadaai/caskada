@@ -13,7 +13,7 @@ import sys
 from pathlib import Path
 from typing import Any, Optional, Tuple, Union
 
-from brainyflow import Flow
+from caskada import Flow
 
 from async_flow import order_pipeline
 
@@ -210,7 +210,7 @@ def create_d3_visualization(
     json_data,
     output_dir="./viz",
     filename="flow_viz",
-    html_title="BrainyFlow Visualization",
+    html_title="Caskada Visualization",
 ):
     """Create a D3.js visualization from JSON data.
 
@@ -855,7 +855,7 @@ def visualize_flow(
 
     # Use flow_name as the HTML title if not specified
     if html_title is None:
-        html_title = f"BrainyFlow: {flow_name}"
+        html_title = f"Caskada: {flow_name}"
 
     html_path = create_d3_visualization(
         json_data,
@@ -894,7 +894,7 @@ def load_flow_from_module(module_path: str, flow_variable: str) -> Flow:
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(description="Visualize a BrainyFlow flow")
+    parser = argparse.ArgumentParser(description="Visualize a Caskada flow")
     parser.add_argument(
         "--module", default="async_flow", help="Module containing the flow"
     )

@@ -1,4 +1,4 @@
-from brainyflow import Node, Flow
+from caskada import Node, Flow
 import asyncio
 
 

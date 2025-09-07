@@ -1,16 +1,16 @@
-# Getting Started with BrainyFlow
+# Getting Started with Caskada
 
-Welcome to BrainyFlow! This framework helps you build powerful, modular AI applications using a simple yet expressive abstraction based on nested directed graphs.
+Welcome to Caskada! This framework helps you build powerful, modular AI applications using a simple yet expressive abstraction based on nested directed graphs.
 
 ## 1. Installation
 
-First, ensure you have BrainyFlow installed:
+First, ensure you have Caskada installed:
 
 {% tabs %}
 {% tab title="Python" %}
 
 ```bash
-pip install brainyflow
+pip install caskada
 ```
 
 {% endtab %}
@@ -18,7 +18,7 @@ pip install brainyflow
 {% tab title="TypeScript" %}
 
 ```bash
-npm install brainyflow # or pnpm/yarn
+npm install caskada # or pnpm/yarn
 ```
 
 {% endtab %}
@@ -28,7 +28,7 @@ For more installation options, see the [Installation Guide](./installation.md).
 
 ## 2. Core Concepts
 
-BrainyFlow is built around a minimalist yet powerful abstraction that separates data flow from computation:
+Caskada is built around a minimalist yet powerful abstraction that separates data flow from computation:
 
 - **[Node](./core_abstraction/node.md)**: The fundamental building block that performs a single task with a clear lifecycle (`prep` → `exec` → `post`).
 - **[Flow](./core_abstraction/flow.md)**: Orchestrates nodes in a directed graph, supporting branching, looping, and nesting.
@@ -36,7 +36,7 @@ BrainyFlow is built around a minimalist yet powerful abstraction that separates 
 
 ## 3. Your First Flow
 
-Let's build a simple Question-Answering flow to demonstrate BrainyFlow's core concepts:
+Let's build a simple Question-Answering flow to demonstrate Caskada's core concepts:
 
 ### Step 1: Design Your Flow
 
@@ -57,7 +57,7 @@ graph LR
 
 ```python
 import asyncio
-from brainyflow import Node, Flow, Memory
+from caskada import Node, Flow, Memory
 from utils import call_llm  # Your LLM implementation
 
 class GetQuestionNode(Node):
@@ -87,7 +87,7 @@ class AnswerNode(Node):
 {% tab title="TypeScript" %}
 
 ```typescript
-import { Flow, Memory, Node } from 'brainyflow'
+import { Flow, Memory, Node } from 'caskada'
 import { input } from '@inquirer/prompts'
 import { callLLM } from './utils/callLLM'
 
@@ -138,7 +138,7 @@ class AnswerNode extends Node<QAGlobalStore> {
 
 ```python
 from .nodes import GetQuestionNode, AnswerNode # defined in the previous step
-from brainyflow import Flow
+from caskada import Flow
 
 def create_qa_flow():
     get_question_node = GetQuestionNode()
@@ -157,7 +157,7 @@ def create_qa_flow():
 
 ```typescript
 // import { GetQuestionNode, AnswerNode } from './nodes'; // defined in the previous step
-import { Flow } from 'brainyflow'
+import { Flow } from 'caskada'
 
 function createQaFlow(): Flow {
   const getQuestionNode = new GetQuestionNode()
@@ -253,7 +253,7 @@ main().catch(console.error)
 
 ## 4. Key Design Principles
 
-BrainyFlow follows these core design principles:
+Caskada follows these core design principles:
 
 1. **Separation of Concerns**: Data storage (the `memory` object managing global/local stores) is separate from computation logic (`Node` classes).
 2. **Explicit Data Flow**: Data dependencies between steps are clear and traceable through `memory` access in `prep`/`post` and the results passed between `prep` → `exec` → `post`.

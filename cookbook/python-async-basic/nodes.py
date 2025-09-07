@@ -1,4 +1,4 @@
-from brainyflow import Node
+from caskada import Node
 from utils import fetch_recipes, call_llm_async, get_user_input
 
 class FetchRecipes(Node):

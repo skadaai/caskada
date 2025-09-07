@@ -5,21 +5,21 @@ machine-display: false
 
 # Cookbook
 
-All projects listed below can be found in our [cookbook directory](https://github.com/zvictor/brainyflow/tree/main/cookbook).
+All projects listed below can be found in our [cookbook directory](https://github.com/skadaai/caskada/tree/main/cookbook).
 
 They have been sorted by [complexity points](#the-complexity-points-system) - which are represented by the scale 🥚→🐣→🐥→🐓→🦕→🦖→☄️→🐭→🐒→🧠→⚙️→🤖→👾→🛸→🌌 - to help you easily find projects that suit your skills.
 
-## BrainyFlow Hello World ([python-hello-world](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-hello-world))
+## Caskada Hello World ([python-hello-world](https://github.com/skadaai/caskada/tree/main/cookbook/python-hello-world))
 Complexity Points: 2.5
 └🥚
 
-Your first BrainyFlow application! This simple example demonstrates how to create a basic BrainyFlow app from scratch.<details>
+Your first Caskada application! This simple example demonstrates how to create a basic Caskada app from scratch.<details>
 <summary><strong>Details</strong></summary>
 
 
-# BrainyFlow Hello World
+# Caskada Hello World
 
-Your first BrainyFlow application! This simple example demonstrates how to create a basic BrainyFlow app from scratch.
+Your first Caskada application! This simple example demonstrates how to create a basic Caskada app from scratch.
 
 ## Project Structure
 
@@ -27,7 +27,7 @@ Your first BrainyFlow application! This simple example demonstrates how to creat
 .
 ├── docs/          # Documentation files
 ├── utils/         # Utility functions
-├── flow.py        # BrainyFlow implementation
+├── flow.py        # Caskada implementation
 ├── main.py        # Main application entry point
 └── README.md      # Project documentation
 ```
@@ -55,35 +55,35 @@ python main.py
 
 ## What This Example Demonstrates
 
-- How to create your first BrainyFlow application
-- Basic BrainyFlow concepts and usage
-- Simple example of BrainyFlow's capabilities
+- How to create your first Caskada application
+- Basic Caskada concepts and usage
+- Simple example of Caskada's capabilities
 
 ## Additional Resources
 
-- [BrainyFlow Documentation](https://brainy.gitbook.io/flow/)
+- [Caskada Documentation](https://skadaai.gitbook.io/caskada/)
 
 
 </details>
 
-## Text Summarization ([python-node](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-node))
+## Text Summarization ([python-node](https://github.com/skadaai/caskada/tree/main/cookbook/python-node))
 Complexity Points: 3
 └🥚
 
-A practical example demonstrating how to use BrainyFlow to build a robust text summarization tool with error handling and retries. This example showcases core BrainyFlow concepts in a real-world application.<details>
+A practical example demonstrating how to use Caskada to build a robust text summarization tool with error handling and retries. This example showcases core Caskada concepts in a real-world application.<details>
 <summary><strong>Details</strong></summary>
 
 
 # Text Summarization
 
-A practical example demonstrating how to use BrainyFlow to build a robust text summarization tool with error handling and retries. This example showcases core BrainyFlow concepts in a real-world application.
+A practical example demonstrating how to use Caskada to build a robust text summarization tool with error handling and retries. This example showcases core Caskada concepts in a real-world application.
 
 ## Features
 
 - Text summarization using LLMs (Large Language Models)
 - Automatic retry mechanism (up to 3 attempts) on API failures
 - Graceful error handling with fallback responses
-- Clean separation of concerns using BrainyFlow's Node architecture
+- Clean separation of concerns using Caskada's Node architecture
 
 ## Project Structure
 
@@ -91,7 +91,7 @@ A practical example demonstrating how to use BrainyFlow to build a robust text s
 .
 ├── docs/          # Documentation files
 ├── utils/         # Utility functions (LLM API wrapper)
-├── flow.py        # BrainyFlow implementation with Summarize Node
+├── flow.py        # Caskada implementation with Summarize Node
 ├── main.py        # Main application entry point
 └── README.md      # Project documentation
 ```
@@ -139,7 +139,7 @@ python main.py
 
 ## Example Usage
 
-The example comes with a sample text about BrainyFlow, but you can modify `main.py` to summarize your own text:
+The example comes with a sample text about Caskada, but you can modify `main.py` to summarize your own text:
 
 ```python
 shared = {"data": "Your text to summarize here..."}
@@ -149,33 +149,33 @@ print("Summary:", shared["summary"])
 
 ## What You'll Learn
 
-This example demonstrates several key BrainyFlow concepts:
+This example demonstrates several key Caskada concepts:
 
 - **Node Architecture**: How to structure LLM tasks using prep/exec/post pattern
 - **Error Handling**: Implementing retry mechanisms and fallbacks
 - **Shared Store**: Using shared storage for data flow between steps
-- **Flow Creation**: Setting up a basic BrainyFlow workflow
+- **Flow Creation**: Setting up a basic Caskada workflow
 
 ## Additional Resources
 
-- [BrainyFlow Documentation](https://brainy.gitbook.io/flow/)
-- [Node Concept Guide](https://brainy.gitbook.io/flow/core-abstraction/node)
-- [Flow Design Patterns](https://brainy.gitbook.io/flow/core-abstraction/flow)
+- [Caskada Documentation](https://skadaai.gitbook.io/caskada/)
+- [Node Concept Guide](https://skadaai.gitbook.io/caskada/core-abstraction/node)
+- [Flow Design Patterns](https://skadaai.gitbook.io/caskada/core-abstraction/flow)
 
 
 </details>
 
-## Structured Output Demo ([python-structured-output](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-structured-output))
+## Structured Output Demo ([python-structured-output](https://github.com/skadaai/caskada/tree/main/cookbook/python-structured-output))
 Complexity Points: 3
 └🥚
 
-A minimal demo application showing how to use BrainyFlow to extract structured data from a resume using direct prompting and YAML formatting. Why YAML? Check out the [doc](https://brainy.gitbook.io/flow/design-patterns/structure) or [Why JSON Costs More Than TSV](https://david-gilbertson.medium.com/llm-output-formats-why-json-costs-more-than-tsv-ebaf590bd541).<details>
+A minimal demo application showing how to use Caskada to extract structured data from a resume using direct prompting and YAML formatting. Why YAML? Check out the [doc](https://skadaai.gitbook.io/caskada/design-patterns/structure) or [Why JSON Costs More Than TSV](https://david-gilbertson.medium.com/llm-output-formats-why-json-costs-more-than-tsv-ebaf590bd541).<details>
 <summary><strong>Details</strong></summary>
 
 
 # Structured Output Demo
 
-A minimal demo application showing how to use BrainyFlow to extract structured data from a resume using direct prompting and YAML formatting. Why YAML? Check out the [doc](https://brainy.gitbook.io/flow/design-patterns/structure) or [Why JSON Costs More Than TSV](https://david-gilbertson.medium.com/llm-output-formats-why-json-costs-more-than-tsv-ebaf590bd541).
+A minimal demo application showing how to use Caskada to extract structured data from a resume using direct prompting and YAML formatting. Why YAML? Check out the [doc](https://skadaai.gitbook.io/caskada/design-patterns/structure) or [Why JSON Costs More Than TSV](https://david-gilbertson.medium.com/llm-output-formats-why-json-costs-more-than-tsv-ebaf590bd541).
 
 This implementation is based on this tutorial (for Pocketflow): [Structured Output for Beginners: 3 Must-Know Prompting Tips](https://zacharyhuang.substack.com/p/structured-output-for-beginners-3).
 
@@ -266,22 +266,22 @@ skill_indexes: [0, 1, 2, 3, 4]
 
 </details>
 
-## OpenAI Embeddings with BrainyFlow ([python-tool-embeddings](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-tool-embeddings))
+## OpenAI Embeddings with Caskada ([python-tool-embeddings](https://github.com/skadaai/caskada/tree/main/cookbook/python-tool-embeddings))
 Complexity Points: 3
 └🥚
 
-This example demonstrates how to properly integrate OpenAI's text embeddings API with BrainyFlow, focusing on:<details>
+This example demonstrates how to properly integrate OpenAI's text embeddings API with Caskada, focusing on:<details>
 <summary><strong>Details</strong></summary>
 
 
-# OpenAI Embeddings with BrainyFlow
+# OpenAI Embeddings with Caskada
 
-This example demonstrates how to properly integrate OpenAI's text embeddings API with BrainyFlow, focusing on:
+This example demonstrates how to properly integrate OpenAI's text embeddings API with Caskada, focusing on:
 
 1. Clean code organization with separation of concerns:
 
    - Tools layer for API interactions (`tools/embeddings.py`)
-   - Node implementation for BrainyFlow integration (`nodes.py`)
+   - Node implementation for Caskada integration (`nodes.py`)
    - Flow configuration (`flow.py`)
    - Centralized environment configuration (`utils/call_llm.py`)
 
@@ -293,18 +293,18 @@ This example demonstrates how to properly integrate OpenAI's text embeddings API
 
 3. Proper project structure:
    - Modular code organization
-   - Clear separation between tools and BrainyFlow components
+   - Clear separation between tools and Caskada components
    - Reusable OpenAI client configuration
 
 ## Project Structure
 
 ```
-brainyflow-tool-embeddings/
+python-tool-embeddings/
 ├── tools/
 │   └── embeddings.py     # OpenAI embeddings API wrapper
 ├── utils/
 │   └── call_llm.py      # Centralized OpenAI client configuration
-├── nodes.py             # BrainyFlow node implementation
+├── nodes.py             # Caskada node implementation
 ├── flow.py             # Flow configuration
 └── main.py             # Example usage
 ```
@@ -349,7 +349,7 @@ python main.py
 This will:
 
 1. Load the OpenAI API key from environment
-2. Create a BrainyFlow node to handle embedding generation
+2. Create a Caskada node to handle embedding generation
 3. Process a sample text and generate its embedding
 4. Display the embedding dimension and first few values
 
@@ -362,11 +362,11 @@ This will:
 
 2. **Code Organization**
 
-   - Clear separation between tools and BrainyFlow components
+   - Clear separation between tools and Caskada components
    - Reusable OpenAI client configuration
    - Modular project structure
 
-3. **BrainyFlow Integration**
+3. **Caskada Integration**
    - Node implementation with prep->exec->post lifecycle
    - Flow configuration
    - Shared store usage for data passing
@@ -374,23 +374,23 @@ This will:
 
 </details>
 
-## Simple Chat ([python-chat](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-chat))
+## Simple Chat ([python-chat](https://github.com/skadaai/caskada/tree/main/cookbook/python-chat))
 Complexity Points: 3.5
 └🐣🐣
 
-A basic chat application using BrainyFlow with OpenAI's GPT-4o model.<details>
+A basic chat application using Caskada with OpenAI's GPT-4o model.<details>
 <summary><strong>Details</strong></summary>
 
 
 # Simple Chat
 
-A basic chat application using BrainyFlow with OpenAI's GPT-4o model.
+A basic chat application using Caskada with OpenAI's GPT-4o model.
 
 ## Features
 
 - Conversational chat interface in the terminal
 - Maintains full conversation history for context
-- Simple implementation demonstrating BrainyFlow's node and flow concepts
+- Simple implementation demonstrating Caskada's node and flow concepts
 
 ## Run It
 
@@ -431,7 +431,7 @@ The chat application uses:
 
 </details>
 
-## Terminal Chat Interface Example ([typescript-chat](https://github.com/zvictor/brainyflow/tree/main/cookbook/typescript-chat))
+## Terminal Chat Interface Example ([typescript-chat](https://github.com/skadaai/caskada/tree/main/cookbook/typescript-chat))
 Complexity Points: 3.5
 └🐣🐣
 
@@ -446,7 +446,7 @@ A simple command-line chat interface for interacting with OpenAI models using No
 ### Step and Usage
 
 ```bash
-# from BrainyFlow root directory
+# from Caskada root directory
 cd cookbook/typescript-chat
 
 cp .env.example .env # add your API key
@@ -475,17 +475,17 @@ flowchart LR
 
 </details>
 
-## Text Converter Flow ([python-flow](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-flow))
+## Text Converter Flow ([python-flow](https://github.com/skadaai/caskada/tree/main/cookbook/python-flow))
 Complexity Points: 4
 └🐣🐣
 
-This project demonstrates an interactive text transformation tool built with BrainyFlow.<details>
+This project demonstrates an interactive text transformation tool built with Caskada.<details>
 <summary><strong>Details</strong></summary>
 
 
 # Text Converter Flow
 
-This project demonstrates an interactive text transformation tool built with BrainyFlow.
+This project demonstrates an interactive text transformation tool built with Caskada.
 
 ## Features
 
@@ -533,7 +533,7 @@ Here's what each part does:
 Welcome to Text Converter!
 =========================
 
-Enter text to convert: BrainyFlow is a 100-line LLM framework
+Enter text to convert: Caskada is a 100-line LLM framework
 
 Choose transformation:
 1. Convert to UPPERCASE
@@ -544,7 +544,7 @@ Choose transformation:
 
 Your choice (1-5): 1
 
-Result: BRAINYFLOW IS A 100-LINE LLM FRAMEWORK
+Result: CASKADA IS A 100-LINE LLM FRAMEWORK
 
 Convert another text? (y/n): n
 
@@ -560,7 +560,7 @@ Thank you for using Text Converter!
 
 </details>
 
-## Batch Translation Process ([python-batch](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-batch))
+## Batch Translation Process ([python-batch](https://github.com/skadaai/caskada/tree/main/cookbook/python-batch))
 Complexity Points: 4.5
 └🐥🐥🐥
 
@@ -639,17 +639,17 @@ The translations are saved to the `translations` directory, with each file named
 
 </details>
 
-## Batch Node Example ([python-batch-node](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-batch-node))
+## Batch Node Example ([python-batch-node](https://github.com/skadaai/caskada/tree/main/cookbook/python-batch-node))
 Complexity Points: 4.5
 └🐥🐥🐥
 
-This example demonstrates the batch Node concept in BrainyFlow by implementing a CSV processor that handles large files by processing them in chunks.<details>
+This example demonstrates the batch Node concept in Caskada by implementing a CSV processor that handles large files by processing them in chunks.<details>
 <summary><strong>Details</strong></summary>
 
 
 # Batch Node Example
 
-This example demonstrates the batch Node concept in BrainyFlow by implementing a CSV processor that handles large files by processing them in chunks.
+This example demonstrates the batch Node concept in Caskada by implementing a CSV processor that handles large files by processing them in chunks.
 
 ## What this Example Demonstrates
 
@@ -715,7 +715,7 @@ Final Statistics:
 
 </details>
 
-## LLM Streaming and Interruption ([python-llm-streaming](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-llm-streaming))
+## LLM Streaming and Interruption ([python-llm-streaming](https://github.com/skadaai/caskada/tree/main/cookbook/python-llm-streaming))
 Complexity Points: 4.5
 └🐥🐥🐥
 
@@ -775,17 +775,17 @@ export OPENAI_API_KEY="your-api-key-here"
 
 </details>
 
-## Shared Store Communication ([python-communication](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-communication))
+## Shared Store Communication ([python-communication](https://github.com/skadaai/caskada/tree/main/cookbook/python-communication))
 Complexity Points: 5
 └🐥🐥🐥
 
-This example demonstrates the [Memory](https://brainy.gitbook.io/flow/core-abstraction/memory) concept in BrainyFlow, specifically focusing on the Shared Store pattern.<details>
+This example demonstrates the [Memory](https://skadaai.gitbook.io/caskada/core-abstraction/memory) concept in Caskada, specifically focusing on the Shared Store pattern.<details>
 <summary><strong>Details</strong></summary>
 
 
 # Shared Store Communication
 
-This example demonstrates the [Memory](https://brainy.gitbook.io/flow/core-abstraction/memory) concept in BrainyFlow, specifically focusing on the Shared Store pattern.
+This example demonstrates the [Memory](https://skadaai.gitbook.io/caskada/core-abstraction/memory) concept in Caskada, specifically focusing on the Shared Store pattern.
 
 ## Overview
 
@@ -840,17 +840,17 @@ This demonstrates how nodes can share and maintain state using the shared store 
 
 </details>
 
-## Web Search with Analysis ([python-tool-search](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-tool-search))
+## Web Search with Analysis ([python-tool-search](https://github.com/skadaai/caskada/tree/main/cookbook/python-tool-search))
 Complexity Points: 6
 └🐓🐓🐓🐓
 
-A web search tool built with BrainyFlow that performs searches using SerpAPI and analyzes results using LLM.<details>
+A web search tool built with Caskada that performs searches using SerpAPI and analyzes results using LLM.<details>
 <summary><strong>Details</strong></summary>
 
 
 # Web Search with Analysis
 
-A web search tool built with BrainyFlow that performs searches using SerpAPI and analyzes results using LLM.
+A web search tool built with Caskada that performs searches using SerpAPI and analyzes results using LLM.
 
 ## Features
 
@@ -897,13 +897,13 @@ The tool will then:
 ## Project Structure
 
 ```
-brainyflow-tool-search/
+python-tool-search/
 ├── tools/
 │   ├── search.py      # SerpAPI search functionality
 │   └── parser.py      # Result analysis using LLM
 ├── utils/
 │   └── call_llm.py    # LLM API wrapper
-├── nodes.py           # BrainyFlow nodes
+├── nodes.py           # Caskada nodes
 ├── flow.py           # Flow configuration
 ├── main.py           # Main script
 └── requirements.txt   # Dependencies
@@ -918,7 +918,7 @@ brainyflow-tool-search/
 
 ## Dependencies
 
-- brainyflow: Flow-based processing
+- caskada: Flow-based processing
 - google-search-results: SerpAPI client
 - openai: GPT-4 API access
 - pyyaml: YAML processing
@@ -926,7 +926,7 @@ brainyflow-tool-search/
 
 </details>
 
-## Majority Vote Reasoning ([python-majority-vote](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-majority-vote))
+## Majority Vote Reasoning ([python-majority-vote](https://github.com/skadaai/caskada/tree/main/cookbook/python-majority-vote))
 Complexity Points: 6.5
 └🐓🐓🐓🐓
 
@@ -1022,23 +1022,23 @@ This shows that 4 out of 5 attempts yielded the same answer (0.333), which is ch
 
 </details>
 
-## Streamlit Human-in-the-Loop (HITL) Application ([python-streamlit-hitl](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-streamlit-hitl))
+## Streamlit Human-in-the-Loop (HITL) Application ([python-streamlit-hitl](https://github.com/skadaai/caskada/tree/main/cookbook/python-streamlit-hitl))
 Complexity Points: 6.5
 └🐓🐓🐓🐓
 
-Minimal Human-in-the-Loop (HITL) web application using BrainyFlow and Streamlit. Submit text, review processed output, and approve/reject.<details>
+Minimal Human-in-the-Loop (HITL) web application using Caskada and Streamlit. Submit text, review processed output, and approve/reject.<details>
 <summary><strong>Details</strong></summary>
 
 
 # Streamlit Human-in-the-Loop (HITL) Application
 
-Minimal Human-in-the-Loop (HITL) web application using BrainyFlow and Streamlit. Submit text, review processed output, and approve/reject.
+Minimal Human-in-the-Loop (HITL) web application using Caskada and Streamlit. Submit text, review processed output, and approve/reject.
 
 ## Features
 
 - **Streamlit UI:** Simple, interactive interface for submitting tasks and providing feedback, built entirely in Python.
-- **BrainyFlow Workflow:** Manages distinct processing stages (initial processing, finalization) using synchronous BrainyFlow `Flow`s.
-- **Session State Management:** Utilizes Streamlit's `st.session_state` to manage the current stage of the workflow and to act as the `shared` data store for BrainyFlow.
+- **Caskada Workflow:** Manages distinct processing stages (initial processing, finalization) using synchronous Caskada `Flow`s.
+- **Session State Management:** Utilizes Streamlit's `st.session_state` to manage the current stage of the workflow and to act as the `shared` data store for Caskada.
 - **Iterative Feedback Loop:** Allows users to reject processed output and resubmit, facilitating refinement.
 
 ## How to Run
@@ -1061,8 +1061,8 @@ Minimal Human-in-the-Loop (HITL) web application using BrainyFlow and Streamlit.
 ## Files
 
 - [`app.py`](./app.py): Main Streamlit application logic and UI.
-- [`nodes.py`](./nodes.py): BrainyFlow `Node` definitions.
-- [`flows.py`](./flows.py): BrainyFlow `Flow` construction.
+- [`nodes.py`](./nodes.py): Caskada `Node` definitions.
+- [`flows.py`](./flows.py): Caskada `Flow` construction.
 - [`utils/process_task.py`](./utils/process_task.py): Simulated task processing utility.
 - [`requirements.txt`](./requirements.txt): Project dependencies.
 - [`README.md`](./README.md): This file.
@@ -1070,22 +1070,22 @@ Minimal Human-in-the-Loop (HITL) web application using BrainyFlow and Streamlit.
 
 </details>
 
-## SQLite Database with BrainyFlow ([python-tool-database](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-tool-database))
+## SQLite Database with Caskada ([python-tool-database](https://github.com/skadaai/caskada/tree/main/cookbook/python-tool-database))
 Complexity Points: 6.5
 └🐓🐓🐓🐓
 
-This example demonstrates how to properly integrate SQLite database operations with BrainyFlow, focusing on:<details>
+This example demonstrates how to properly integrate SQLite database operations with Caskada, focusing on:<details>
 <summary><strong>Details</strong></summary>
 
 
-# SQLite Database with BrainyFlow
+# SQLite Database with Caskada
 
-This example demonstrates how to properly integrate SQLite database operations with BrainyFlow, focusing on:
+This example demonstrates how to properly integrate SQLite database operations with Caskada, focusing on:
 
 1. Clean code organization with separation of concerns:
 
    - Tools layer for database operations (`tools/database.py`)
-   - Node implementation for BrainyFlow integration (`nodes.py`)
+   - Node implementation for Caskada integration (`nodes.py`)
    - Flow configuration (`flow.py`)
    - Safe SQL query execution with parameter binding
 
@@ -1105,10 +1105,10 @@ This example demonstrates how to properly integrate SQLite database operations w
 ## Project Structure
 
 ```
-brainyflow-tool-database/
+python-tool-database/
 ├── tools/
 │   └── database.py    # SQLite database operations
-├── nodes.py          # BrainyFlow node implementation
+├── nodes.py          # Caskada node implementation
 ├── flow.py          # Flow configuration
 └── main.py          # Example usage
 ```
@@ -1153,11 +1153,11 @@ This will:
 
 2. **Code Organization**
 
-   - Clear separation between database operations and BrainyFlow components
+   - Clear separation between database operations and Caskada components
    - Modular project structure
    - Type hints and documentation
 
-3. **BrainyFlow Integration**
+3. **Caskada Integration**
    - Node implementation with prep->exec->post lifecycle
    - Flow configuration
    - Shared store usage for data passing
@@ -1171,7 +1171,7 @@ Task Status: Task created successfully
 All Tasks:
 - ID: 1
   Title: Example Task
-  Description: This is an example task created using BrainyFlow
+  Description: This is an example task created using Caskada
   Status: pending
   Created: 2024-03-02 12:34:56
 ```
@@ -1179,17 +1179,17 @@ All Tasks:
 
 </details>
 
-## Article Writing Workflow ([python-workflow](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-workflow))
+## Article Writing Workflow ([python-workflow](https://github.com/skadaai/caskada/tree/main/cookbook/python-workflow))
 Complexity Points: 6.5
 └🐓🐓🐓🐓
 
-A BrainyFlow example that demonstrates an article writing workflow using a sequence of LLM calls.<details>
+A Caskada example that demonstrates an article writing workflow using a sequence of LLM calls.<details>
 <summary><strong>Details</strong></summary>
 
 
 # Article Writing Workflow
 
-A BrainyFlow example that demonstrates an article writing workflow using a sequence of LLM calls.
+A Caskada example that demonstrates an article writing workflow using a sequence of LLM calls.
 
 ## Features
 
@@ -1316,17 +1316,17 @@ Final Article Length: 2266 characters
 
 </details>
 
-## Batch Flow Example ([python-batch-flow](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-batch-flow))
+## Batch Flow Example ([python-batch-flow](https://github.com/skadaai/caskada/tree/main/cookbook/python-batch-flow))
 Complexity Points: 7
 └🦕🦕🦕🦕🦕
 
-This example demonstrates the batch Flow concept in BrainyFlow by implementing an image processor that applies different filters to multiple images.<details>
+This example demonstrates the batch Flow concept in Caskada by implementing an image processor that applies different filters to multiple images.<details>
 <summary><strong>Details</strong></summary>
 
 
 # Batch Flow Example
 
-This example demonstrates the batch Flow concept in BrainyFlow by implementing an image processor that applies different filters to multiple images.
+This example demonstrates the batch Flow concept in Caskada by implementing an image processor that applies different filters to multiple images.
 
 ## What this Example Demonstrates
 
@@ -1339,7 +1339,7 @@ This example demonstrates the batch Flow concept in BrainyFlow by implementing a
 ## Project Structure
 
 ```
-brainyflow-batch-flow/
+python-batch-flow/
 ├── README.md
 ├── requirements.txt
 ├── images/
@@ -1402,17 +1402,17 @@ Check the 'output' directory for results.
 
 </details>
 
-## Travel Advisor Chat with Guardrails ([python-chat-guardrail](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-chat-guardrail))
+## Travel Advisor Chat with Guardrails ([python-chat-guardrail](https://github.com/skadaai/caskada/tree/main/cookbook/python-chat-guardrail))
 Complexity Points: 7
 └🦕🦕🦕🦕🦕
 
-A travel-focused chat application using BrainyFlow with OpenAI's GPT-4o model, enhanced with input validation to ensure only travel-related queries are processed.<details>
+A travel-focused chat application using Caskada with OpenAI's GPT-4o model, enhanced with input validation to ensure only travel-related queries are processed.<details>
 <summary><strong>Details</strong></summary>
 
 
 # Travel Advisor Chat with Guardrails
 
-A travel-focused chat application using BrainyFlow with OpenAI's GPT-4o model, enhanced with input validation to ensure only travel-related queries are processed.
+A travel-focused chat application using Caskada with OpenAI's GPT-4o model, enhanced with input validation to ensure only travel-related queries are processed.
 
 ## Features
 
@@ -1488,7 +1488,7 @@ Goodbye! Safe travels!
 
 </details>
 
-## Chain-of-Thought ([python-thinking](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-thinking))
+## Chain-of-Thought ([python-thinking](https://github.com/skadaai/caskada/tree/main/cookbook/python-thinking))
 Complexity Points: 7
 └🦕🦕🦕🦕🦕
 
@@ -1549,7 +1549,7 @@ This implementation is based on this tutorial (for Pocketflow): [Build Chain-of-
 
 ## How It Works
 
-The implementation uses a self-looping BrainyFlow node (`ChainOfThoughtNode`) that guides an LLM through a structured problem-solving process:
+The implementation uses a self-looping Caskada node (`ChainOfThoughtNode`) that guides an LLM through a structured problem-solving process:
 
 ```mermaid
 flowchart LR
@@ -2162,23 +2162,23 @@ This probability is slightly greater than 1/2, meaning it's slightly more likely
 
 </details>
 
-## BrainyFlow Visualization ([python-visualization](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-visualization))
+## Caskada Visualization ([python-visualization](https://github.com/skadaai/caskada/tree/main/cookbook/python-visualization))
 Complexity Points: 7
 └🦕🦕🦕🦕🦕
 
-This directory contains tools for visualizing BrainyFlow workflow graphs using interactive D3.js visualizations.<details>
+This directory contains tools for visualizing Caskada workflow graphs using interactive D3.js visualizations.<details>
 <summary><strong>Details</strong></summary>
 
 
-# BrainyFlow Visualization
+# Caskada Visualization
 
-This directory contains tools for visualizing BrainyFlow workflow graphs using interactive D3.js visualizations.
+This directory contains tools for visualizing Caskada workflow graphs using interactive D3.js visualizations.
 
 ## Overview
 
 The visualization tools allow you to:
 
-1. View BrainyFlow nodes and flows as an interactive graph
+1. View Caskada nodes and flows as an interactive graph
 2. See how different flows connect to each other
 3. Understand the relationships between nodes within flows
 
@@ -2198,7 +2198,7 @@ The visualization tools allow you to:
 
 ### 1. Basic Visualization
 
-To visualize a BrainyFlow graph, you can use the `visualize_flow` function in `visualize.py`:
+To visualize a Caskada graph, you can use the `visualize_flow` function in `visualize.py`:
 
 ```python
 from visualize import visualize_flow
@@ -2273,7 +2273,7 @@ Adjust the CSS styles in the HTML template inside `create_d3_visualization` func
 
 The visualization process consists of three main steps:
 
-1. **Flow to JSON Conversion**: The `flow_to_json` function traverses the BrainyFlow graph and converts it to a structure with nodes, links, and group information.
+1. **Flow to JSON Conversion**: The `flow_to_json` function traverses the Caskada graph and converts it to a structure with nodes, links, and group information.
 
 2. **D3.js Visualization**: The JSON data is used to create an interactive D3.js visualization with:
 
@@ -2313,17 +2313,17 @@ The visualization displays:
 
 </details>
 
-## Multi-Agent Taboo Game ([python-multi-agent](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-multi-agent))
+## Multi-Agent Taboo Game ([python-multi-agent](https://github.com/skadaai/caskada/tree/main/cookbook/python-multi-agent))
 Complexity Points: 8
 └🦕🦕🦕🦕🦕
 
-A BrainyFlow example that demonstrates how to implement asynchronous multi-agent communication using the Taboo word guessing game.<details>
+A Caskada example that demonstrates how to implement asynchronous multi-agent communication using the Taboo word guessing game.<details>
 <summary><strong>Details</strong></summary>
 
 
 # Multi-Agent Taboo Game
 
-A BrainyFlow example that demonstrates how to implement asynchronous multi-agent communication using the Taboo word guessing game.
+A Caskada example that demonstrates how to implement asynchronous multi-agent communication using the Taboo word guessing game.
 
 ## Features
 
@@ -2408,19 +2408,19 @@ Game Over - Correct guess!
 
 </details>
 
-## Parallel Batch Translation Process ([python-parallel-batch](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-parallel-batch))
+## Parallel Batch Translation Process ([python-parallel-batch](https://github.com/skadaai/caskada/tree/main/cookbook/python-parallel-batch))
 Complexity Points: 8
 └🦕🦕🦕🦕🦕
 
-This project demonstrates using BrainyFlow's async and parallel features (`ParallelFlow`, `Node`) to translate a document into multiple languages concurrently.<details>
+This project demonstrates using Caskada's async and parallel features (`ParallelFlow`, `Node`) to translate a document into multiple languages concurrently.<details>
 <summary><strong>Details</strong></summary>
 
 
 # Parallel Batch Translation Process
 
-This project demonstrates using BrainyFlow's async and parallel features (`ParallelFlow`, `Node`) to translate a document into multiple languages concurrently.
+This project demonstrates using Caskada's async and parallel features (`ParallelFlow`, `Node`) to translate a document into multiple languages concurrently.
 
-- Check out the [Substack Post Tutorial](https://brainyflow.substack.com/p/parallel-llm-calls-from-scratch-tutorial) for more!
+- Check out the [Substack Post Tutorial](https://pocketflow.substack.com/p/parallel-llm-calls-from-scratch-tutorial) for more!
 
 ## Goal
 
@@ -2475,7 +2475,7 @@ This approach leverages `asyncio` and parallel execution to speed up I/O-bound t
 Running this parallel version significantly reduces the total time compared to a sequential approach:
 
 ```
-# --- Sequential Run Output (from brainyflow-batch) ---
+# --- Sequential Run Output (from python-batch) ---
 Starting sequential translation into 8 languages...
 Translated Chinese text
 ...
@@ -2520,17 +2520,17 @@ _(Actual times will vary based on API response speed and system.)_
 
 </details>
 
-## Web Human-in-the-Loop (HITL) Feedback Service ([python-fastapi-hitl](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-fastapi-hitl))
+## Web Human-in-the-Loop (HITL) Feedback Service ([python-fastapi-hitl](https://github.com/skadaai/caskada/tree/main/cookbook/python-fastapi-hitl))
 Complexity Points: 9
 └🦖🦖🦖🦖🦖🦖
 
-This project demonstrates a minimal web application for human-in-the-loop workflows using BrainyFlow, FastAPI, and Server-Sent Events (SSE). Users can submit text, have it processed (simulated), review the output, and approve or reject it, potentially triggering reprocessing until approved.<details>
+This project demonstrates a minimal web application for human-in-the-loop workflows using Caskada, FastAPI, and Server-Sent Events (SSE). Users can submit text, have it processed (simulated), review the output, and approve or reject it, potentially triggering reprocessing until approved.<details>
 <summary><strong>Details</strong></summary>
 
 
 # Web Human-in-the-Loop (HITL) Feedback Service
 
-This project demonstrates a minimal web application for human-in-the-loop workflows using BrainyFlow, FastAPI, and Server-Sent Events (SSE). Users can submit text, have it processed (simulated), review the output, and approve or reject it, potentially triggering reprocessing until approved.
+This project demonstrates a minimal web application for human-in-the-loop workflows using Caskada, FastAPI, and Server-Sent Events (SSE). Users can submit text, have it processed (simulated), review the output, and approve or reject it, potentially triggering reprocessing until approved.
 
 <p align="center">
   <img 
@@ -2541,7 +2541,7 @@ This project demonstrates a minimal web application for human-in-the-loop workfl
 ## Features
 
 - **Web UI:** Simple interface for submitting tasks and providing feedback.
-- **BrainyFlow Workflow:** Manages the process -> review -> result/reprocess logic.
+- **Caskada Workflow:** Manages the process -> review -> result/reprocess logic.
 - **FastAPI Backend:** Serves the UI and handles API requests asynchronously.
 - **Server-Sent Events (SSE):** Provides real-time status updates to the client without polling.
 
@@ -2573,9 +2573,9 @@ This project demonstrates a minimal web application for human-in-the-loop workfl
 
 ## How It Works
 
-The application uses BrainyFlow to define and execute the feedback loop workflow. FastAPI handles web requests and manages the real-time SSE communication.
+The application uses Caskada to define and execute the feedback loop workflow. FastAPI handles web requests and manages the real-time SSE communication.
 
-**BrainyFlow Workflow:**
+**Caskada Workflow:**
 
 The core logic is orchestrated by a `Flow` defined in `flow.py`:
 
@@ -2597,37 +2597,37 @@ flowchart TD
 
 **FastAPI & SSE Integration:**
 
-- The `/submit` endpoint creates a unique task, initializes the BrainyFlow `shared` state (including an `asyncio.Event` for review and an `asyncio.Queue` for SSE), and schedules the flow execution using `BackgroundTasks`.
+- The `/submit` endpoint creates a unique task, initializes the Caskada `shared` state (including an `asyncio.Event` for review and an `asyncio.Queue` for SSE), and schedules the flow execution using `BackgroundTasks`.
 - Nodes within the flow (specifically `ReviewNode`'s prep logic) put status updates onto the task-specific `sse_queue`.
 - The `/stream/{task_id}` endpoint uses `StreamingResponse` to read from the task's `sse_queue` and push formatted status updates to the connected client via Server-Sent Events.
 - The `/feedback/{task_id}` endpoint receives the human's decision, updates the `shared` state, and sets the `asyncio.Event` to unblock the waiting `ReviewNode`.
 
-This setup allows for a decoupled workflow logic (BrainyFlow) and web interaction layer (FastAPI), with efficient real-time updates pushed to the user.
+This setup allows for a decoupled workflow logic (Caskada) and web interaction layer (FastAPI), with efficient real-time updates pushed to the user.
 
 ## Files
 
 - [`server.py`](./server.py): The main FastAPI application handling HTTP requests, SSE, state management, and background task scheduling.
-- [`nodes.py`](./nodes.py): Defines the BrainyFlow `Node` classes (`ProcessNode`, `ReviewNode`, `ResultNode`) for the workflow steps.
-- [`flow.py`](./flow.py): Defines the BrainyFlow `Flow` that connects the nodes into the feedback loop.
+- [`nodes.py`](./nodes.py): Defines the Caskada `Node` classes (`ProcessNode`, `ReviewNode`, `ResultNode`) for the workflow steps.
+- [`flow.py`](./flow.py): Defines the Caskada `Flow` that connects the nodes into the feedback loop.
 - [`utils/process_task.py`](./utils/process_task.py): Contains the minimal simulation function for task processing.
 - [`templates/index.html`](./templates/index.html): The HTML structure for the frontend user interface.
 - [`static/style.css`](./static/style.css): Basic CSS for styling the frontend.
-- [`requirements.txt`](./requirements.txt): Project dependencies (FastAPI, Uvicorn, Jinja2, BrainyFlow).
+- [`requirements.txt`](./requirements.txt): Project dependencies (FastAPI, Uvicorn, Jinja2, Caskada).
 
 
 </details>
 
-## Tool Calling: PDF Vision ([python-tool-pdf-vision](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-tool-pdf-vision))
+## Tool Calling: PDF Vision ([python-tool-pdf-vision](https://github.com/skadaai/caskada/tree/main/cookbook/python-tool-pdf-vision))
 Complexity Points: 9
 └🦖🦖🦖🦖🦖🦖
 
-A BrainyFlow example project demonstrating PDF processing with OpenAI's Vision API for OCR and text extraction.<details>
+A Caskada example project demonstrating PDF processing with OpenAI's Vision API for OCR and text extraction.<details>
 <summary><strong>Details</strong></summary>
 
 
 # Tool Calling: PDF Vision
 
-A BrainyFlow example project demonstrating PDF processing with OpenAI's Vision API for OCR and text extraction.
+A Caskada example project demonstrating PDF processing with OpenAI's Vision API for OCR and text extraction.
 
 ## Features
 
@@ -2661,14 +2661,14 @@ A BrainyFlow example project demonstrating PDF processing with OpenAI's Vision A
 ## Project Structure
 
 ```
-brainyflow-tool-pdf-vision/
+python-tool-pdf-vision/
 ├── pdfs/           # Directory for PDF files to process
 ├── tools/
 │   ├── pdf.py     # PDF to image conversion
 │   └── vision.py  # Vision API integration
 ├── utils/
 │   └── call_llm.py # OpenAI client config
-├── nodes.py       # BrainyFlow nodes
+├── nodes.py       # Caskada nodes
 ├── flow.py        # Flow configuration
 └── main.py        # Example usage
 ```
@@ -2703,7 +2703,7 @@ MIT
 
 </details>
 
-## Nested Batch Flow Example ([python-nested-batch](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-nested-batch))
+## Nested Batch Flow Example ([python-nested-batch](https://github.com/skadaai/caskada/tree/main/cookbook/python-nested-batch))
 Complexity Points: 9.5
 └🦖🦖🦖🦖🦖🦖
 
@@ -2760,17 +2760,17 @@ School Average: 8.15
 
 </details>
 
-## Web Crawler with Content Analysis ([python-tool-crawler](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-tool-crawler))
+## Web Crawler with Content Analysis ([python-tool-crawler](https://github.com/skadaai/caskada/tree/main/cookbook/python-tool-crawler))
 Complexity Points: 9.5
 └🦖🦖🦖🦖🦖🦖
 
-A web crawler tool built with BrainyFlow that crawls websites and analyzes content using LLM.<details>
+A web crawler tool built with Caskada that crawls websites and analyzes content using LLM.<details>
 <summary><strong>Details</strong></summary>
 
 
 # Web Crawler with Content Analysis
 
-A web crawler tool built with BrainyFlow that crawls websites and analyzes content using LLM.
+A web crawler tool built with Caskada that crawls websites and analyzes content using LLM.
 
 ## Features
 
@@ -2817,13 +2817,13 @@ The tool will then:
 ## Project Structure
 
 ```
-brainyflow-tool-crawler/
+python-tool-crawler/
 ├── tools/
 │   ├── crawler.py     # Web crawling functionality
 │   └── parser.py      # Content analysis using LLM
 ├── utils/
 │   └── call_llm.py    # LLM API wrapper
-├── nodes.py           # BrainyFlow nodes
+├── nodes.py           # Caskada nodes
 ├── flow.py           # Flow configuration
 ├── main.py           # Main script
 └── requirements.txt   # Dependencies
@@ -2838,7 +2838,7 @@ brainyflow-tool-crawler/
 
 ## Dependencies
 
-- brainyflow: Flow-based processing
+- caskada: Flow-based processing
 - requests: HTTP requests
 - beautifulsoup4: HTML parsing
 - openai: GPT-4 API access
@@ -2846,17 +2846,17 @@ brainyflow-tool-crawler/
 
 </details>
 
-## Resume Qualification - Map Reduce Example ([python-map-reduce](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-map-reduce))
+## Resume Qualification - Map Reduce Example ([python-map-reduce](https://github.com/skadaai/caskada/tree/main/cookbook/python-map-reduce))
 Complexity Points: 10
 └☄️☄️☄️☄️☄️☄️☄️
 
-A BrainyFlow example that demonstrates how to implement a Map-Reduce pattern for processing and evaluating resumes.<details>
+A Caskada example that demonstrates how to implement a Map-Reduce pattern for processing and evaluating resumes.<details>
 <summary><strong>Details</strong></summary>
 
 
 # Resume Qualification - Map Reduce Example
 
-A BrainyFlow example that demonstrates how to implement a Map-Reduce pattern for processing and evaluating resumes.
+A Caskada example that demonstrates how to implement a Map-Reduce pattern for processing and evaluating resumes.
 
 ## Features
 
@@ -2924,7 +2924,7 @@ Resume processing complete!
 
 </details>
 
-## Async Recipe Finder ([python-async-basic](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-async-basic))
+## Async Recipe Finder ([python-async-basic](https://github.com/skadaai/caskada/tree/main/cookbook/python-async-basic))
 Complexity Points: 10.5
 └☄️☄️☄️☄️☄️☄️☄️
 
@@ -3032,17 +3032,17 @@ Great choice! Here's your recipe...
 
 </details>
 
-## Chat with Memory Retrieval ([python-chat-memory](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-chat-memory))
+## Chat with Memory Retrieval ([python-chat-memory](https://github.com/skadaai/caskada/tree/main/cookbook/python-chat-memory))
 Complexity Points: 10.5
 └☄️☄️☄️☄️☄️☄️☄️
 
-A chat application with memory retrieval using BrainyFlow. This example maintains a sliding window of recent conversations while retrieving relevant past conversations based on context.<details>
+A chat application with memory retrieval using Caskada. This example maintains a sliding window of recent conversations while retrieving relevant past conversations based on context.<details>
 <summary><strong>Details</strong></summary>
 
 
 # Chat with Memory Retrieval
 
-A chat application with memory retrieval using BrainyFlow. This example maintains a sliding window of recent conversations while retrieving relevant past conversations based on context.
+A chat application with memory retrieval using Caskada. This example maintains a sliding window of recent conversations while retrieving relevant past conversations based on context.
 
 ## Features
 
@@ -3096,7 +3096,7 @@ The chat application uses:
 
 ```
 ==================================================
-BrainyFlow Chat with Memory
+Caskada Chat with Memory
 ==================================================
 This chat keeps your 3 most recent conversations
 and brings back relevant past conversations when helpful
@@ -3150,7 +3150,7 @@ Assistant: Your cat's name is Whiskers.
 
 </details>
 
-## Parallel Image Processor ([python-parallel-batch-flow](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-parallel-batch-flow))
+## Parallel Image Processor ([python-parallel-batch-flow](https://github.com/skadaai/caskada/tree/main/cookbook/python-parallel-batch-flow))
 Complexity Points: 10.5
 └☄️☄️☄️☄️☄️☄️☄️
 
@@ -3224,17 +3224,17 @@ Processing complete! Check the output/ directory for results.
 
 </details>
 
-## Agent Example ([typescript-agent](https://github.com/zvictor/brainyflow/tree/main/cookbook/typescript-agent))
+## Agent Example ([typescript-agent](https://github.com/skadaai/caskada/tree/main/cookbook/typescript-agent))
 Complexity Points: 11
 └🐭🐭🐭🐭🐭🐭🐭🐭
 
-This example demonstrates how to build a question-answering agent using TypeScript and BrainyFlow. The agent can search the web for information and provide answers based on the search results.<details>
+This example demonstrates how to build a question-answering agent using TypeScript and Caskada. The agent can search the web for information and provide answers based on the search results.<details>
 <summary><strong>Details</strong></summary>
 
 
 # Agent Example
 
-This example demonstrates how to build a question-answering agent using TypeScript and BrainyFlow. The agent can search the web for information and provide answers based on the search results.
+This example demonstrates how to build a question-answering agent using TypeScript and Caskada. The agent can search the web for information and provide answers based on the search results.
 
 ## Overview
 
@@ -3247,7 +3247,7 @@ This agent demonstrates the following capabilities:
 ### Step and Usage
 
 ```bash
-# from BrainyFlow root directory
+# from Caskada root directory
 cd cookbook/typescript-agent
 
 cp .env.example .env # add your API key
@@ -3286,7 +3286,7 @@ graph TD
 
 </details>
 
-## Research Agent ([python-agent](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-agent))
+## Research Agent ([python-agent](https://github.com/skadaai/caskada/tree/main/cookbook/python-agent))
 Complexity Points: 11.5
 └🐭🐭🐭🐭🐭🐭🐭🐭
 
@@ -3298,7 +3298,7 @@ This project demonstrates a simple yet powerful LLM-powered research agent.<deta
 
 This project demonstrates a simple yet powerful LLM-powered research agent.
 
-👉 Run the tutorial in your browser: [Try Google Colab Notebook](https://colab.research.google.com/github/zvictor/BrainyFlow/blob/main/cookbook/python-agent/demo.ipynb)
+👉 Run the tutorial in your browser: [Try Google Colab Notebook](https://colab.research.google.com/github/skadaai/caskada/blob/main/cookbook/python-agent/demo.ipynb)
 
 ## Features
 
@@ -3367,17 +3367,17 @@ Here's what's in each file:
 
 </details>
 
-## MCP Demo ([python-mcp](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-mcp))
+## MCP Demo ([python-mcp](https://github.com/skadaai/caskada/tree/main/cookbook/python-mcp))
 Complexity Points: 11.5
 └🐭🐭🐭🐭🐭🐭🐭🐭
 
-This project shows how to build an agent that performs addition using BrainyFlow and Model Context Protocol (MCP). It presents a comparison between using MCP and basic function calling approaches.<details>
+This project shows how to build an agent that performs addition using Caskada and Model Context Protocol (MCP). It presents a comparison between using MCP and basic function calling approaches.<details>
 <summary><strong>Details</strong></summary>
 
 
 # MCP Demo
 
-This project shows how to build an agent that performs addition using BrainyFlow and Model Context Protocol (MCP). It presents a comparison between using MCP and basic function calling approaches.
+This project shows how to build an agent that performs addition using Caskada and Model Context Protocol (MCP). It presents a comparison between using MCP and basic function calling approaches.
 
 This implementation is based on this tutorial (for Pocketflow): [MCP Simply Explained: Function Calling Rebranded or Genuine Breakthrough?](https://zacharyhuang.substack.com/p/mcp-simply-explained-function-calling)
 
@@ -3436,7 +3436,7 @@ flowchart LR
     decide -->|execute| execute[ExecuteToolNode]
 ```
 
-The agent uses BrainyFlow to create a workflow where:
+The agent uses Caskada to create a workflow where:
 
 1. It takes user input about numbers
 2. Connects to the MCP server for mathematical operations (or uses local functions based on the `MCP` flag)
@@ -3444,26 +3444,26 @@ The agent uses BrainyFlow to create a workflow where:
 
 ## Files
 
-- [`main.py`](./main.py): Implementation of the addition agent using BrainyFlow
+- [`main.py`](./main.py): Implementation of the addition agent using Caskada
 - [`utils.py`](./utils.py): Helper functions for API calls and MCP integration
 - [`simple_server.py`](./simple_server.py): MCP server that provides the addition tool
 
 
 </details>
 
-## Voice Chat ([python-voice-chat](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-voice-chat))
+## Voice Chat ([python-voice-chat](https://github.com/skadaai/caskada/tree/main/cookbook/python-voice-chat))
 Complexity Points: 11.5
 └🐭🐭🐭🐭🐭🐭🐭🐭
 
-This project demonstrates a voice-based interactive chat application built with BrainyFlow. Users can speak their queries, and the system will respond with spoken answers from an LLM, maintaining conversation history.<details>
+This project demonstrates a voice-based interactive chat application built with Caskada. Users can speak their queries, and the system will respond with spoken answers from an LLM, maintaining conversation history.<details>
 <summary><strong>Details</strong></summary>
 
 
 # Voice Chat
 
-This project demonstrates a voice-based interactive chat application built with BrainyFlow. Users can speak their queries, and the system will respond with spoken answers from an LLM, maintaining conversation history.
+This project demonstrates a voice-based interactive chat application built with Caskada. Users can speak their queries, and the system will respond with spoken answers from an LLM, maintaining conversation history.
 
-- Check out the [Substack Post Tutorial](https://brainyflow.substack.com/p/build-your-own-voice-chatbot-from) for more!
+- Check out the [Substack Post Tutorial](https://pocketflow.substack.com/p/build-your-own-voice-chatbot-from) for more!
 
 ## Features
 
@@ -3491,7 +3491,7 @@ This project demonstrates a voice-based interactive chat application built with 
     pip install -r requirements.txt
     ```
 
-    This will install libraries such as `openai`, `brainyflow`, `sounddevice`, `numpy`, `scipy`, and `soundfile`.
+    This will install libraries such as `openai`, `caskada`, `sounddevice`, `numpy`, `scipy`, and `soundfile`.
 
     **Note for Linux users**: `sounddevice` may require PortAudio. If you encounter issues, you might need to install it first:
 
@@ -3507,7 +3507,7 @@ This project demonstrates a voice-based interactive chat application built with 
 
 ## How It Works
 
-The application uses a BrainyFlow workflow to manage the conversation steps:
+The application uses a Caskada workflow to manage the conversation steps:
 
 ```mermaid
 flowchart TD
@@ -3530,7 +3530,7 @@ When you run `main.py`:
 
 1.  The console will display:
     ```
-    Starting BrainyFlow Voice Chat...
+    Starting Caskada Voice Chat...
     Speak your query after 'Listening for your query...' appears.
     ...
     ```
@@ -3553,17 +3553,17 @@ The conversation continues in this manner. To stop the application, you typicall
 
 </details>
 
-## Text-to-SQL Workflow ([python-text2sql](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-text2sql))
+## Text-to-SQL Workflow ([python-text2sql](https://github.com/skadaai/caskada/tree/main/cookbook/python-text2sql))
 Complexity Points: 12
 └🐭🐭🐭🐭🐭🐭🐭🐭
 
-A BrainyFlow example demonstrating a text-to-SQL workflow that converts natural language questions into executable SQL queries for an SQLite database, including an LLM-powered debugging loop for failed queries.<details>
+A Caskada example demonstrating a text-to-SQL workflow that converts natural language questions into executable SQL queries for an SQLite database, including an LLM-powered debugging loop for failed queries.<details>
 <summary><strong>Details</strong></summary>
 
 
 # Text-to-SQL Workflow
 
-A BrainyFlow example demonstrating a text-to-SQL workflow that converts natural language questions into executable SQL queries for an SQLite database, including an LLM-powered debugging loop for failed queries.
+A Caskada example demonstrating a text-to-SQL workflow that converts natural language questions into executable SQL queries for an SQLite database, including an LLM-powered debugging loop for failed queries.
 
 - Check out the [Substack Post Tutorial](https://zacharyhuang.substack.com/p/text-to-sql-from-scratch-tutorial) (for Pocketflow) for more!
 
@@ -3652,7 +3652,7 @@ graph LR
 ## Files
 
 - [`main.py`](./main.py): Main entry point to run the workflow. Handles command-line arguments for the query.
-- [`flow.py`](./flow.py): Defines the BrainyFlow `Flow` connecting the different nodes, including the debug loop logic.
+- [`flow.py`](./flow.py): Defines the Caskada `Flow` connecting the different nodes, including the debug loop logic.
 - [`nodes.py`](./nodes.py): Contains the `Node` classes for each step (`GetSchema`, `GenerateSQL`, `ExecuteSQL`, `DebugSQL`).
 - [`utils.py`](./utils.py): Contains the minimal `call_llm` utility function.
 - [`populate_db.py`](./populate_db.py): Script to create and populate the sample `ecommerce.db` SQLite database.
@@ -3736,17 +3736,17 @@ Sports | 1
 
 </details>
 
-## Research Supervisor ([python-supervisor](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-supervisor))
+## Research Supervisor ([python-supervisor](https://github.com/skadaai/caskada/tree/main/cookbook/python-supervisor))
 Complexity Points: 13
 └🐒🐒🐒🐒🐒🐒🐒🐒🐒
 
-This project demonstrates a supervisor that oversees an unreliable [research agent](../brainyflow-agent) to ensure high-quality answers.<details>
+This project demonstrates a supervisor that oversees an unreliable [research agent](../python-agent) to ensure high-quality answers.<details>
 <summary><strong>Details</strong></summary>
 
 
 # Research Supervisor
 
-This project demonstrates a supervisor that oversees an unreliable [research agent](../brainyflow-agent) to ensure high-quality answers.
+This project demonstrates a supervisor that oversees an unreliable [research agent](../python-agent) to ensure high-quality answers.
 
 ## Features
 
@@ -3846,7 +3846,7 @@ The Nobel Prize in Physics for 2024 was awarded jointly to John J. Hopfield and 
 
 </details>
 
-## Retrieval Augmented Generation (RAG) ([python-rag](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-rag))
+## Retrieval Augmented Generation (RAG) ([python-rag](https://github.com/skadaai/caskada/tree/main/cookbook/python-rag))
 Complexity Points: 16
 └🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖
 
@@ -3895,7 +3895,7 @@ This project demonstrates a simplified RAG system that retrieves relevant docume
 
 ## How It Works
 
-The magic happens through a two-phase pipeline implemented with BrainyFlow:
+The magic happens through a two-phase pipeline implemented with Caskada:
 
 ```mermaid
 graph TD
@@ -3924,33 +3924,33 @@ Here's what each part does:
 ✅ Created 5 document embeddings
 🔍 Creating search index...
 ✅ Index created with 5 vectors
-🔍 Embedding query: How to install BrainyFlow?
+🔍 Embedding query: How to install Caskada?
 🔎 Searching for relevant documents...
 📄 Retrieved document (index: 0, distance: 0.3427)
-📄 Most relevant text: "BrainyFlow is a 300-line minimalist LLM framework
+📄 Most relevant text: "Caskada is a 300-line minimalist LLM framework
         Lightweight: Just 300 lines. Zero bloat, zero dependencies, zero vendor lock-in.
         Expressive: Everything you love—(Multi-)Agents, Workflow, RAG, and more.
         Agentic Coding: Let AI Agents (e.g., Cursor AI) build Agents—10x productivity boost!
-        To install, pip install brainyflow or just copy the source code (only 300 lines)."
+        To install, pip install caskada or just copy the source code (only 300 lines)."
 
 🤖 Generated Answer:
-To install BrainyFlow, use the command `pip install brainyflow` or simply copy its 300 lines of source code.
+To install Caskada, use the command `pip install caskada` or simply copy its 300 lines of source code.
 ```
 
 
 </details>
 
-## Agent-to-Agent with A2A Protocol ([python-a2a](https://github.com/zvictor/brainyflow/tree/main/cookbook/python-a2a))
+## Agent-to-Agent with A2A Protocol ([python-a2a](https://github.com/skadaai/caskada/tree/main/cookbook/python-a2a))
 Complexity Points: 20.5
 └🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌🌌
 
-This project demonstrates how to take an existing agent built with the BrainyFlow library and make it accessible to other agents using the **Agent-to-Agent (A2A) communication protocol**.<details>
+This project demonstrates how to take an existing agent built with the Caskada library and make it accessible to other agents using the **Agent-to-Agent (A2A) communication protocol**.<details>
 <summary><strong>Details</strong></summary>
 
 
 # Agent-to-Agent with A2A Protocol
 
-This project demonstrates how to take an existing agent built with the BrainyFlow library and make it accessible to other agents using the **Agent-to-Agent (A2A) communication protocol**.
+This project demonstrates how to take an existing agent built with the Caskada library and make it accessible to other agents using the **Agent-to-Agent (A2A) communication protocol**.
 
 This implementation is based on this tutorial for Pocketflow: [A2A Protocol Simply Explained: Here are 3 key differences to MCP!](https://zacharyhuang.substack.com/p/a2a-protocol-simply-explained-here)
 
@@ -3958,9 +3958,9 @@ This implementation is based on this tutorial for Pocketflow: [A2A Protocol Simp
 
 This project combines two main parts:
 
-1.  **BrainyFlow Agent Logic:** The original agent code ([`nodes.py`](nodes.py), [`utils.py`](utils.py), [`flow.py`](flow.py)) defines the internal workflow (Decide -> Search -> Answer). This code is taken directly from the [BrainyFlow Agent Tutorial](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-agent).
+1.  **Caskada Agent Logic:** The original agent code ([`nodes.py`](nodes.py), [`utils.py`](utils.py), [`flow.py`](flow.py)) defines the internal workflow (Decide -> Search -> Answer). This code is taken directly from the [Caskada Agent Tutorial](https://github.com/skadaai/caskada/tree/main/cookbook/python-agent).
 2.  **A2A Server Wrapper:** Code from the [google/A2A samples repository](https://github.com/google/A2A/tree/main/samples/python) (`common/` directory) provides the necessary infrastructure to host the agent as an A2A-compliant server. _Note: Minor modifications were made to the common server/client code to add detailed logging for educational purposes._
-3.  **The Bridge ([`task_manager.py`](task_manager.py)):** A custom `BrainyFlowTaskManager` class acts as the bridge. It receives A2A requests (like `tasks/send`), extracts the user query, runs the BrainyFlow `agent_flow`, takes the final result from the flow's shared state, and packages it back into an A2A `Task` object with the answer as an `Artifact`.
+3.  **The Bridge ([`task_manager.py`](task_manager.py)):** A custom `CaskadaTaskManager` class acts as the bridge. It receives A2A requests (like `tasks/send`), extracts the user query, runs the Caskada `agent_flow`, takes the final result from the flow's shared state, and packages it back into an A2A `Task` object with the answer as an `Artifact`.
 
 This demonstrates how a non-A2A agent framework can be exposed over the A2A protocol by implementing a specific `TaskManager`.
 
@@ -3973,7 +3973,7 @@ sequenceDiagram
 
     Note over Client: User enters question
     Client->>+Server: POST / (JSON-RPC Request: tasks/send)
-    Note over Server: Processes request internally (runs BrainyFlow)
+    Note over Server: Processes request internally (runs Caskada)
     Server-->>-Client: HTTP 200 OK (JSON-RPC Response: result=Task)
     Note over Client: Displays final answer
 ```
@@ -4023,10 +4023,10 @@ sequenceDiagram
 
 ## Example Interaction Logs
 
-**(Server Log - showing internal BrainyFlow steps)**
+**(Server Log - showing internal Caskada steps)**
 
 ```
-2025-04-12 17:20:40,893 - __main__ - INFO - Starting BrainyFlow A2A server on http://localhost:10003
+2025-04-12 17:20:40,893 - __main__ - INFO - Starting Caskada A2A server on http://localhost:10003
 INFO:     Started server process [677223]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
@@ -4056,7 +4056,7 @@ INFO:     Uvicorn running on http://localhost:10003 (Press CTRL+C to quit)
 }
 2025-04-12 17:20:57,647 - task_manager - INFO - Received task send request: 46c3ce7b941a4fff9b8e3b644d6db5f4
 2025-04-12 17:20:57,647 - common.server.task_manager - INFO - Upserting task 46c3ce7b941a4fff9b8e3b644d6db5f4
-2025-04-12 17:20:57,647 - task_manager - INFO - Running BrainyFlow for task 46c3ce7b941a4fff9b8e3b644d6db5f4...
+2025-04-12 17:20:57,647 - task_manager - INFO - Running Caskada for task 46c3ce7b941a4fff9b8e3b644d6db5f4...
 🤔 Agent deciding what to do next...
 2025-04-12 17:20:59,213 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
 🔍 Agent decided to search for: 2024 Nobel Prize in Physics winner
@@ -4069,7 +4069,7 @@ INFO:     Uvicorn running on http://localhost:10003 (Press CTRL+C to quit)
 ✍️ Crafting final answer...
 2025-04-12 17:21:03,833 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
 ✅ Answer generated successfully
-2025-04-12 17:21:03,834 - task_manager - INFO - BrainyFlow completed for task 46c3ce7b941a4fff9b8e3b644d6db5f4
+2025-04-12 17:21:03,834 - task_manager - INFO - Caskada completed for task 46c3ce7b941a4fff9b8e3b644d6db5f4
 2025-04-12 17:21:03,834 - A2AServer - INFO - -> Response (ID: d3f3fb93350d47d9a94ca12bb62b656b):
 {
   "jsonrpc": "2.0",
@@ -4163,26 +4163,26 @@ The 2024 Nobel Prize in Physics was awarded to John J. Hopfield and Geoffrey Hin
 
 ## Key A2A Integration Points
 
-To make the BrainyFlow agent A2A-compatible, the following were essential:
+To make the Caskada agent A2A-compatible, the following were essential:
 
 1.  **A2A Server ([`common/server/server.py`](common/server/server.py)):** An ASGI application (using Starlette/Uvicorn) that listens for HTTP POST requests, parses JSON-RPC, and routes requests based on the `method` field.
 2.  **A2A Data Types ([`common/types.py`](common/types.py)):** Pydantic models defining the structure of A2A messages, tasks, artifacts, errors, and the agent card, ensuring compliance with the `a2a.json` specification.
-3.  **Task Manager ([`task_manager.py`](task_manager.py)):** A custom class (`BrainyFlowTaskManager`) inheriting from the common `InMemoryTaskManager`. Its primary role is implementing the `on_send_task` method (and potentially others like `on_send_task_subscribe` if streaming were supported). This method:
+3.  **Task Manager ([`task_manager.py`](task_manager.py)):** A custom class (`CaskadaTaskManager`) inheriting from the common `InMemoryTaskManager`. Its primary role is implementing the `on_send_task` method (and potentially others like `on_send_task_subscribe` if streaming were supported). This method:
     - Receives the validated A2A `SendTaskRequest`.
     - Extracts the user's query (`TextPart`) from the request's `message`.
-    - Initializes the BrainyFlow `shared_data` dictionary.
-    - Creates and runs the BrainyFlow `agent_flow`.
+    - Initializes the Caskada `shared_data` dictionary.
+    - Creates and runs the Caskada `agent_flow`.
     - Retrieves the final answer from the `shared_data` dictionary _after_ the flow completes.
     - Updates the task's state (e.g., to `COMPLETED` or `FAILED`) in the `InMemoryTaskManager`'s store.
     - Packages the final answer into an A2A `Artifact` containing a `TextPart`.
     - Constructs the final A2A `Task` object for the response.
 4.  **Agent Card ([`a2a_server.py`](a2a_server.py)):** A Pydantic model (`AgentCard`) defining the agent's metadata (name, description, URL, capabilities, skills) served at `/.well-known/agent.json`.
-5.  **Server Entry Point ([`a2a_server.py`](a2a_server.py)):** A script that initializes the `AgentCard`, the `BrainyFlowTaskManager`, and the `A2AServer`, then starts the Uvicorn server process.
+5.  **Server Entry Point ([`a2a_server.py`](a2a_server.py)):** A script that initializes the `AgentCard`, the `CaskadaTaskManager`, and the `A2AServer`, then starts the Uvicorn server process.
 
 
 </details>
 
-![](https://raw.githubusercontent.com/zvictor/brainyflow/master/.github/media/divider.png)
+![](https://raw.githubusercontent.com/skadaai/caskada/master/.github/media/divider.png)
 # The Complexity Points System
 All listed projects had their calculation automatically calculated.
 Click `Details` below for more information in the points system.
@@ -4190,13 +4190,13 @@ Click `Details` below for more information in the points system.
 <summary><strong>Details</strong></summary>
 
 
-## Brainyflow Cookbook: Project Complexity Point System
+## Caskada Cookbook: Project Complexity Point System
 
-This document outlines a revised point system to categorize projects within the Brainyflow cookbook by complexity. This system aims for simplicity, generalizability, and clear guidance for learners.
+This document outlines a revised point system to categorize projects within the Caskada cookbook by complexity. This system aims for simplicity, generalizability, and clear guidance for learners.
 
-### I. Core Brainyflow Structure & Flow
+### I. Core Caskada Structure & Flow
 
-Evaluates the fundamental Brainyflow constructs.
+Evaluates the fundamental Caskada constructs.
 
 * **A. Node Usage**:  
   * **0.5 points per distinct Node class** implemented and used in the primary flow logic. (e.g., 4 unique Node classes \= 2 points).  
@@ -4211,7 +4211,7 @@ Evaluates the fundamental Brainyflow constructs.
 
 ### II. Code & Logic Complexity
 
-Assesses the custom code beyond basic Brainyflow definitions.
+Assesses the custom code beyond basic Caskada definitions.
 
 * **A. Logic within Node Methods** (prep, exec, post):  
   * **0.5 points per node** that contains minor custom logic (e.g., simple data transformation, formatting beyond direct pass-through).  
@@ -4246,7 +4246,7 @@ Points for incorporating external services, APIs, or complex data handling.
 * **D. Implemented "Tool" Modules for LLM/Agent**:  
   * **1.5 points per distinct, non-trivial Python/TypeScript module** designed as a reusable "tool" for an agent (e.g., crawler.py in python-tool-crawler, a custom PDF processor tool). This is distinct from general helper utilities (II.B) and focuses on agent-callable tools. (Max 4.5 points for this category).
 
-### IV. Advanced Brainyflow Patterns & User Interaction
+### IV. Advanced Caskada Patterns & User Interaction
 
 Markers for sophisticated architectural patterns or user interfaces.
 
@@ -4274,7 +4274,7 @@ Markers for sophisticated architectural patterns or user interfaces.
 
 Based on the total points, projects can be categorized into tiers:
 
-* **Beginner (1-7 points)**: Introduces fundamental Brainyflow concepts.  
+* **Beginner (1-7 points)**: Introduces fundamental Caskada concepts.  
 * **Intermediate (8-16 points)**: Covers more complex flow structures, basic patterns, and integrations.  
 * **Advanced (17-25 points)**: Deals with sophisticated patterns, UI integrations, or complex tool building.  
 * **Expert (26+ points)**: Combines multiple advanced features, involves intricate system design.

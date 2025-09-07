@@ -1,4 +1,4 @@
-from brainyflow import Flow
+from caskada import Flow
 from nodes import ProcessChunkDocumentsNode, EmbedDocumentsNode, CreateIndexNode, EmbedQueryNode, ReduceChunksAndEmbeddingsNode, RetrieveDocumentNode, GenerateAnswerNode
 from mapreduce import mapreduce
 

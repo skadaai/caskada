@@ -4,7 +4,7 @@ complexity: 5
 
 # Shared Store Communication
 
-This example demonstrates the [Memory](https://brainy.gitbook.io/flow/core-abstraction/memory) concept in BrainyFlow, specifically focusing on the Shared Store pattern.
+This example demonstrates the [Memory](https://skadaai.gitbook.io/caskada/core-abstraction/memory) concept in Caskada, specifically focusing on the Shared Store pattern.
 
 ## Overview
 

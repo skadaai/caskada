@@ -1,4 +1,4 @@
-from brainyflow import Node, Flow, ParallelFlow
+from caskada import Node, Flow, ParallelFlow
 
 class MapReduceFlow(ParallelFlow):
     pass

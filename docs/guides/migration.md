@@ -2,9 +2,9 @@
 machine-display: false
 ---
 
-# Migrating Between BrainyFlow Versions
+# Migrating Between Caskada Versions
 
-This guide helps you update your BrainyFlow applications when migrating from older versions to newer ones. We strive for backward compatibility, but major refactors sometimes introduce breaking changes for significant improvements.
+This guide helps you update your Caskada applications when migrating from older versions to newer ones. We strive for backward compatibility, but major refactors sometimes introduce breaking changes for significant improvements.
 
 ## General Advice
 
@@ -259,7 +259,7 @@ class TranslateTextBatchNode(BatchNode):
 ```python
 # After (v1.0) - Using Flow Patterns with ParallelFlow
 
-from brainyflow import Node, Memory
+from caskada import Node, Memory
 
 # 1. Trigger Node (Fans out work)
 class TriggerTranslationsNode(Node):
@@ -328,7 +328,7 @@ class TranslateTextBatchNode extends BatchNode<any, any, any, [string, string], 
 ```typescript
 // After (v1.0) - Using Flow Patterns with ParallelFlow
 
-import { Memory, Node } from 'brainyflow'
+import { Memory, Node } from 'caskada'
 
 // Define Memory structure (optional but recommended)
 interface TranslationGlobalStore {
@@ -425,7 +425,7 @@ If you encounter issues during migration, you can:
 
 1. Check the [documentation](../index.md) for detailed explanations
 2. Look at the [examples](../examples/index.md) for reference implementations
-3. File an issue on [GitHub](https://github.com/zvictor/brainyflow/issues)
+3. File an issue on [GitHub](https://github.com/skadaai/caskada/issues)
 
 Always consult the specific release notes for the version you are migrating to for the most accurate and detailed list of changes.
 

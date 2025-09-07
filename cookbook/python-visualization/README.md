@@ -2,15 +2,15 @@
 complexity: 7
 ---
 
-# BrainyFlow Visualization
+# Caskada Visualization
 
-This directory contains tools for visualizing BrainyFlow workflow graphs using interactive D3.js visualizations.
+This directory contains tools for visualizing Caskada workflow graphs using interactive D3.js visualizations.
 
 ## Overview
 
 The visualization tools allow you to:
 
-1. View BrainyFlow nodes and flows as an interactive graph
+1. View Caskada nodes and flows as an interactive graph
 2. See how different flows connect to each other
 3. Understand the relationships between nodes within flows
 
@@ -30,7 +30,7 @@ The visualization tools allow you to:
 
 ### 1. Basic Visualization
 
-To visualize a BrainyFlow graph, you can use the `visualize_flow` function in `visualize.py`:
+To visualize a Caskada graph, you can use the `visualize_flow` function in `visualize.py`:
 
 ```python
 from visualize import visualize_flow
@@ -105,7 +105,7 @@ Adjust the CSS styles in the HTML template inside `create_d3_visualization` func
 
 The visualization process consists of three main steps:
 
-1. **Flow to JSON Conversion**: The `flow_to_json` function traverses the BrainyFlow graph and converts it to a structure with nodes, links, and group information.
+1. **Flow to JSON Conversion**: The `flow_to_json` function traverses the Caskada graph and converts it to a structure with nodes, links, and group information.
 
 2. **D3.js Visualization**: The JSON data is used to create an interactive D3.js visualization with:
 

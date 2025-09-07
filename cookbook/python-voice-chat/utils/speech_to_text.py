@@ -14,7 +14,7 @@ def speech_to_text_api(audio_data: bytes, sample_rate: int):
         model="gpt-4o-transcribe",
         file=audio_file
         # language="en" # Optional: specify language ISO-639-1 code
-        # prompt="BrainyFlow, LLM" # Optional: provide a prompt to guide the model
+        # prompt="Caskada, LLM" # Optional: provide a prompt to guide the model
     )
     return transcript.text
 

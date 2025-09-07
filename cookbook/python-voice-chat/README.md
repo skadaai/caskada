@@ -4,9 +4,9 @@ complexity: 11.5
 
 # Voice Chat
 
-This project demonstrates a voice-based interactive chat application built with BrainyFlow. Users can speak their queries, and the system will respond with spoken answers from an LLM, maintaining conversation history.
+This project demonstrates a voice-based interactive chat application built with Caskada. Users can speak their queries, and the system will respond with spoken answers from an LLM, maintaining conversation history.
 
-- Check out the [Substack Post Tutorial](https://brainyflow.substack.com/p/build-your-own-voice-chatbot-from) for more!
+- Check out the [Substack Post Tutorial](https://pocketflow.substack.com/p/build-your-own-voice-chatbot-from) for more!
 
 ## Features
 
@@ -34,7 +34,7 @@ This project demonstrates a voice-based interactive chat application built with 
     pip install -r requirements.txt
     ```
 
-    This will install libraries such as `openai`, `brainyflow`, `sounddevice`, `numpy`, `scipy`, and `soundfile`.
+    This will install libraries such as `openai`, `caskada`, `sounddevice`, `numpy`, `scipy`, and `soundfile`.
 
     **Note for Linux users**: `sounddevice` may require PortAudio. If you encounter issues, you might need to install it first:
 
@@ -50,7 +50,7 @@ This project demonstrates a voice-based interactive chat application built with 
 
 ## How It Works
 
-The application uses a BrainyFlow workflow to manage the conversation steps:
+The application uses a Caskada workflow to manage the conversation steps:
 
 ```mermaid
 flowchart TD
@@ -73,7 +73,7 @@ When you run `main.py`:
 
 1.  The console will display:
     ```
-    Starting BrainyFlow Voice Chat...
+    Starting Caskada Voice Chat...
     Speak your query after 'Listening for your query...' appears.
     ...
     ```

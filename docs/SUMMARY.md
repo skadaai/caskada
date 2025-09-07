@@ -2,7 +2,7 @@
 
 ## Introduction
 
-- [What is BrainyFlow?](index.md)
+- [What is Caskada?](index.md)
 - [Installation](installation.md)
 - [Getting Started](getting_started.md)
 - [Comparison](comparison.md)

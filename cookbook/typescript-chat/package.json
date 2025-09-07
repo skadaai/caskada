@@ -11,7 +11,7 @@
   "description": "",
   "devDependencies": {
     "@types/node": "^22.15.21",
-    "brainyflow": "^1.0.0",
+    "caskada": "^2.1.0",
     "tsx": "^4.19.4",
     "typescript": "^5.8.3"
   },

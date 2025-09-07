@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import AsyncMock, ANY
-from brainyflow import Memory, Node, Flow, ParallelFlow, DEFAULT_ACTION, BaseNode
+from caskada import Memory, Node, Flow, ParallelFlow, DEFAULT_ACTION, BaseNode
 
 # --- Helper Node Implementations ---
 class BaseTestNode(Node):

@@ -2,7 +2,7 @@
 
 import os
 from PIL import Image, ImageEnhance, ImageFilter
-from brainyflow import Node
+from caskada import Node
 
 class LoadImage(Node):
     """Node that loads an image file."""

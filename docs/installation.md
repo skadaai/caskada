@@ -4,14 +4,14 @@ machine-display: false
 
 # Installation
 
-BrainyFlow is currently available for both Python and TypeScript.
+Caskada is currently available for both Python and TypeScript.
 
 {% tabs %}
 {% tab title="Python" %}
 You can install the Python package using pip:
 
 ```bash
-pip install brainyflow
+pip install caskada
 ```
 
 {% endtab %}
@@ -20,11 +20,11 @@ pip install brainyflow
 You can install the TypeScript package using pnpm (or npm/yarn):
 
 ```bash
-pnpm add brainyflow
+pnpm add caskada
 # or
-npm install brainyflow
+npm install caskada
 # or
-yarn add brainyflow
+yarn add caskada
 ```
 
 {% endtab %}
@@ -34,18 +34,18 @@ You can import the JavaScript file directly in the browser using a `<script>` ta
 
 ```html
 <script type="module">
-  import * as brainyflow from 'https://unpkg.com/brainyflow@latest/dist/brainyflow.js'
+  import * as caskada from 'https://unpkg.com/caskada@latest/dist/caskada.js'
 
-  new brainyflow.Node(...)
+  new caskada.Node(...)
 </script>
 ```
 
 or
 
 ```html
-<script type="module" src="https://unpkg.com/brainyflow@latest/dist/brainyflow.js"></script>
+<script type="module" src="https://unpkg.com/caskada@latest/dist/caskada.js"></script>
 <script>
-  new globalThis.brainyflow.Node(...)
+  new globalThis.caskada.Node(...)
 </script>
 ```
 
@@ -54,18 +54,18 @@ or
 
 ## Alternative: Copy the Source Code
 
-Since BrainyFlow is lightweight and dependency-free, you can also install it by simply copying the source code file directly into your project:
+Since Caskada is lightweight and dependency-free, you can also install it by simply copying the source code file directly into your project:
 
 {% tabs %}
 {% tab title="Python" %}
-Copy [`python/brainyflow.py`](https://github.com/zvictor/BrainyFlow/blob/main/python/brainyflow.py)
+Copy [`python/caskada.py`](https://github.com/skadaai/caskada/blob/main/python/caskada.py)
 {% endtab %}
 
 {% tab title="TypeScript" %}
-Copy [`typescript/brainyflow.ts`](https://github.com/zvictor/BrainyFlow/blob/main/typescript/brainyflow.ts)
+Copy [`typescript/caskada.ts`](https://github.com/skadaai/caskada/blob/main/typescript/caskada.ts)
 {% endtab %}
 {% endtabs %}
 
 ## Next Steps
 
-Once you have BrainyFlow installed, check out the [Getting Started](./getting_started.md) guide to build your first flow, or explore the [Core Abstractions](./core_abstraction/node.md) to understand the framework's fundamental concepts.
+Once you have Caskada installed, check out the [Getting Started](./getting_started.md) guide to build your first flow, or explore the [Core Abstractions](./core_abstraction/node.md) to understand the framework's fundamental concepts.

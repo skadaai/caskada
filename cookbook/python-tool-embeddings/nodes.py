@@ -1,4 +1,4 @@
-from brainyflow import Node
+from caskada import Node
 from tools.embeddings import get_embedding
 
 class EmbeddingNode(Node):

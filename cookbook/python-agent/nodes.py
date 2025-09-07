@@ -1,4 +1,4 @@
-from brainyflow import Node
+from caskada import Node
 from utils import call_llm, search_web_duckduckgo
 import yaml
 

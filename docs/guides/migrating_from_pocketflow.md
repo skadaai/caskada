@@ -2,19 +2,19 @@
 machine-display: false
 ---
 
-# Migrating from PocketFlow to BrainyFlow
+# Migrating from PocketFlow to Caskada
 
-BrainyFlow originated as a fork of PocketFlow, aiming to refine its core concepts, enhance type safety (in both language ports), and improve the developer experience for building agentic systems. If you have an existing PocketFlow application, migrating to BrainyFlow involves several key changes.
-This guide focuses on migrating from typical PocketFlow patterns to the modern BrainyFlow (v2.0+).
+Caskada originated as a fork of PocketFlow, aiming to refine its core concepts, enhance type safety (in both language ports), and improve the developer experience for building agentic systems. If you have an existing PocketFlow application, migrating to Caskada involves several key changes.
+This guide focuses on migrating from typical PocketFlow patterns to the modern Caskada (v2.0+).
 
 ## Key Conceptual Differences & Changes
 
-- **`Async*` Classes Removed**: BrainyFlow's `Node` and `Flow` are inherently async-capable in both Python and TypeScript. All `AsyncNode`, `AsyncFlow`, etc., from PocketFlow are removed. Simply make your `prep`, `exec`, `post` methods `async` and use `await` where appropriate.
+- **`Async*` Classes Removed**: Caskada's `Node` and `Flow` are inherently async-capable in both Python and TypeScript. All `AsyncNode`, `AsyncFlow`, etc., from PocketFlow are removed. Simply make your `prep`, `exec`, `post` methods `async` and use `await` where appropriate.
 - **`Memory` Object**:
-  - BrainyFlow's `Memory` object is more central and refined.
+  - Caskada's `Memory` object is more central and refined.
   - PocketFlow's `Params` concept is absorbed into the `Memory` object's local store, typically populated via `forkingData`.
 - **Triggering Actions**: In `post`, instead of `return "action_name"`, you **must** use `self.trigger("action_name", forking_data={...})` (Python) or `this.trigger("action_name", { ... })` (TypeScript).
-- **Batch Processing (`*BatchNode` / `*BatchFlow` Removal)**: PocketFlow's specialized batch classes are **removed**. BrainyFlow handles batching via a "fan-out" pattern: a standard `Node` calls `trigger` multiple times in its `post` method, each call typically including item-specific `forkingData`. This is then orchestrated by a `Flow` (for sequential batching) or `ParallelFlow` (for concurrent batching).
+- **Batch Processing (`*BatchNode` / `*BatchFlow` Removal)**: PocketFlow's specialized batch classes are **removed**. Caskada handles batching via a "fan-out" pattern: a standard `Node` calls `trigger` multiple times in its `post` method, each call typically including item-specific `forkingData`. This is then orchestrated by a `Flow` (for sequential batching) or `ParallelFlow` (for concurrent batching).
 - **`Flow.run()` Result**: Returns a structured `ExecutionTree` detailing the execution path, rather than a simple dictionary of results.
 
 ## Why Async?
@@ -30,16 +30,16 @@ The move to async brings several benefits:
 
 ### Step 1: Update Imports and Dependencies
 
-- Replace all `from pocketflow import ...` with `from brainyflow import ...` (Python) or `import { ... } from 'brainyflow'` (TypeScript).
+- Replace all `from pocketflow import ...` with `from caskada import ...` (Python) or `import { ... } from 'caskada'` (TypeScript).
 ```python
 # Before
 from pocketflow import Node, Flow, BatchNode # ... etc
 
 # After
 import asyncio
-from brainyflow import Node, Flow # ... etc
+from caskada import Node, Flow # ... etc
 ```
-- Update your `requirements.txt` or `package.json` to use `brainyflow`.
+- Update your `requirements.txt` or `package.json` to use `caskada`.
 
 ### Step 2: Convert to Async and Update Method Signatures
 
@@ -107,7 +107,7 @@ In all `Node` subclasses, within the `post` method:
 
 ### Step 4: Update Batch Processing Implementation (`*BatchNode` / `*BatchFlow` Removal)
 
-BrainyFlow **removes all specialized `BatchNode` and `BatchFlow` classes**. Batch functionality is achieved using standard `Node`s and `Flow`s combined with the "fan-out/fan-in" trigger pattern.
+Caskada **removes all specialized `BatchNode` and `BatchFlow` classes**. Batch functionality is achieved using standard `Node`s and `Flow`s combined with the "fan-out/fan-in" trigger pattern.
 
 The batch functionality is now achieved using standard `Node`s and `Flow`s combined with a specific pattern:
 
@@ -129,14 +129,14 @@ The batch functionality is now achieved using standard `Node`s and `Flow`s combi
 
 2.  **Choose the Right Flow**:
 
-    - Wrap the `TriggerNode` and `ProcessorNode` in a standard `brainyflow.Flow` if you need items processed **sequentially**.
+    - Wrap the `TriggerNode` and `ProcessorNode` in a standard `caskada.Flow` if you need items processed **sequentially**.
     - Wrap them in a `ParallelFlow` if you need items processed **concurrently**.
 
 3.  **Rename All Classes**:
 
     - Replace `AsyncParallelBatchFlow` with `ParallelFlow`.
     - Replace `AsyncParallelBatchNode`, `ParallelBatchNode`, `AsyncBatchNode`, `BatchNode` with the standard `Node`.
-    - Replace `AsyncBatchFlow`, `BatchFlow` with `brainyflow.Flow`.
+    - Replace `AsyncBatchFlow`, `BatchFlow` with `caskada.Flow`.
     - Remember to make `prep`, `exec`, `post` methods `async` as per Step 2.
 
 ### Step 6: Python `NodeError` Protocol
@@ -151,7 +151,7 @@ Ensure your main application entry point uses `asyncio.run()` (Python) or `Promi
 import asyncio
 
 async def main():
-    # ... setup your BrainyFlow nodes/flows ...
+    # ... setup your Caskada nodes/flows ...
     memory = {}
     result = await my_flow.run(memory) # Use await and pass memory object
     print(result)
@@ -163,7 +163,7 @@ if __name__ == "__main__":
 
 **Summary of Key Migration Points:**
 
-1.  Updating imports to `brainyflow` and adding `import asyncio`.
+1.  Updating imports to `caskada` and adding `import asyncio`.
 2.  Adding `async` to your Node/Flow method definitions (`prep`, `exec`, `post`, `exec_fallback`) and removing any `_async` suffix from the method names.
 3.  Replacing any `return action` in `post()` with `self.trigger(action, forking_data={...})` (Python) or `this.trigger(action, { ... })` (TypeScript).
 4.  Using `await` when calling `run()` methods and any other asynchronous operations within your methods.

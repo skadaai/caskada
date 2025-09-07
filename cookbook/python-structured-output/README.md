@@ -4,7 +4,7 @@ complexity: 3
 
 # Structured Output Demo
 
-A minimal demo application showing how to use BrainyFlow to extract structured data from a resume using direct prompting and YAML formatting. Why YAML? Check out the [doc](https://brainy.gitbook.io/flow/design-patterns/structure) or [Why JSON Costs More Than TSV](https://david-gilbertson.medium.com/llm-output-formats-why-json-costs-more-than-tsv-ebaf590bd541).
+A minimal demo application showing how to use Caskada to extract structured data from a resume using direct prompting and YAML formatting. Why YAML? Check out the [doc](https://skadaai.gitbook.io/caskada/design-patterns/structure) or [Why JSON Costs More Than TSV](https://david-gilbertson.medium.com/llm-output-formats-why-json-costs-more-than-tsv-ebaf590bd541).
 
 This implementation is based on this tutorial (for Pocketflow): [Structured Output for Beginners: 3 Must-Know Prompting Tips](https://zacharyhuang.substack.com/p/structured-output-for-beginners-3).
 
