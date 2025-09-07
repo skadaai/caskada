@@ -1,5 +1,5 @@
 <p align="center">
-  <img id="logo" width="320px" src="https://raw.githubusercontent.com/skadaai/caskada/main/.github/media/logo-dark.png" alt="brainyflow's logo" />
+  <img id="logo" width="320px" src="https://raw.githubusercontent.com/skadaai/caskada/main/.github/media/logo-dark.png" alt="caskada's logo" />
 <p>
 
 <h1 style="max-width: 700px; margin: auto;">More AI, with less coding! 🚀</h1>
@@ -11,8 +11,8 @@
 <nav align="center">
   <a href="https://brainy.gitbook.io/flow/introduction/getting_started">Get Started Now ✨ 🐣</a>
   <a href="https://github.com/skadaai/caskada/tree/master/cookbook">Examples 🌈 </a>
-  <a href="https://pypi.org/project/brainyflow">PyPI <img src="https://github.com/skadaai/caskada/raw/main/.github/media/python.svg" width="17" height="17" alt="Python Logo" style="vertical-align: sub; margin: 0 2px;"></a>
-  <a href="https://www.npmjs.com/package/brainyflow">NPM <img src="https://github.com/skadaai/caskada/raw/main/.github/media/typescript.svg" width="17" height="17" alt="Typescript Logo" style="vertical-align: sub; margin: 0 2px;"></a>
+  <a href="https://pypi.org/project/caskada">PyPI <img src="https://github.com/skadaai/caskada/raw/main/.github/media/python.svg" width="17" height="17" alt="Python Logo" style="vertical-align: sub; margin: 0 2px;"></a>
+  <a href="https://www.npmjs.com/package/caskada">NPM <img src="https://github.com/skadaai/caskada/raw/main/.github/media/typescript.svg" width="17" height="17" alt="Typescript Logo" style="vertical-align: sub; margin: 0 2px;"></a>
   <a href="https://discord.gg/N9mVvxRXyH">Chat <img src="https://cdn.prod.website-files.com/6257adef93867e50d84d30e2/66e3d80db9971f10a9757c99_Symbol.svg" width="17" height="17" alt="Discord Logo" style="vertical-align: sub; margin: 0 2px;"></a>
   <a href="https://github.com/skadaai/caskada">Github <img src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/github-white-icon.svg" width="17" height="17" alt="Github Logo" style="vertical-align: sub; margin: 0 2px;"></a>
   <!-- Dropdown container -->
@@ -190,9 +190,9 @@
 </style> -->
 
 <div class="glass">
-  <p style="font-size: 1.2em; font-weight: bolder; margin: 10px 0">What is <em>BrainyFlow</em>?</p>
+  <p style="font-size: 1.2em; font-weight: bolder; margin: 10px 0">What is <em>Caskada</em>?</p>
   <p>
-    BrainyFlow is a <strong>radically minimalist AI framework</strong> (just 300 lines in Python!) enabling <em>Agentic Coding</em> through powerful, intuitive graph abstractions.<br />Build complex AI systems with unparalleled simplicity and freedom.
+    Caskada is a <strong>radically minimalist AI framework</strong> (just 300 lines in Python!) enabling <em>Agentic Coding</em> through powerful, intuitive graph abstractions.<br />Build complex AI systems with unparalleled simplicity and freedom.
   </p>
   <strong>Key Features:</strong>
   <ul>
