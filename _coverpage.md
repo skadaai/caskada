@@ -9,7 +9,7 @@
 <!-- <img src="https://raw.githubusercontent.com/skadaai/caskada/main/.github/media/divider.png" alt="divider" width="100%" style="max-width: 920px"> -->
 
 <nav align="center">
-  <a href="https://brainy.gitbook.io/flow/introduction/getting_started">Get Started Now ✨ 🐣</a>
+  <a href="https://skadaai.gitbook.io/caskada/introduction/getting_started">Get Started Now ✨ 🐣</a>
   <a href="https://github.com/skadaai/caskada/tree/master/cookbook">Examples 🌈 </a>
   <a href="https://pypi.org/project/caskada">PyPI <img src="https://github.com/skadaai/caskada/raw/main/.github/media/python.svg" width="17" height="17" alt="Python Logo" style="vertical-align: sub; margin: 0 2px;"></a>
   <a href="https://www.npmjs.com/package/caskada">NPM <img src="https://github.com/skadaai/caskada/raw/main/.github/media/typescript.svg" width="17" height="17" alt="Typescript Logo" style="vertical-align: sub; margin: 0 2px;"></a>
@@ -205,5 +205,5 @@
     <li><strong>Universal 🌈</strong>: Works with any LLM provider.</li>
     <li><strong>Polyglot 🌍</strong>: Python & TypeScript supported.</li>
   </ul>
-  <p>See how simple it is? Check out the <a href="https://brainy.gitbook.io/flow/introduction/getting_started">Getting Started</a> guide or dive into <a href="https://brainy.gitbook.io/flow/guides/agentic_coding">Agentic Coding</a>!</p></div>
+  <p>See how simple it is? Check out the <a href="https://skadaai.gitbook.io/caskada/introduction/getting_started">Getting Started</a> guide or dive into <a href="https://skadaai.gitbook.io/caskada/guides/agentic_coding">Agentic Coding</a>!</p></div>
 </div>
