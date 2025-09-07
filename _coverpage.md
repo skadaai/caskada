@@ -1,20 +1,20 @@
 <p align="center">
-  <img id="logo" width="320px" src="https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/logo-dark.png" alt="brainyflow's logo" />
+  <img id="logo" width="320px" src="https://raw.githubusercontent.com/skadaai/caskada/main/.github/media/logo-dark.png" alt="brainyflow's logo" />
 <p>
 
 <h1 style="max-width: 700px; margin: auto;">More AI, with less coding! 🚀</h1>
 <h2>Build Powerful AI Agents with Minimal Code, Maximum Freedom.</h2>
 <p>Zero bloat, dependencies, or vendor lock-in.</p>
 
-<!-- <img src="https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/divider.png" alt="divider" width="100%" style="max-width: 920px"> -->
+<!-- <img src="https://raw.githubusercontent.com/skadaai/caskada/main/.github/media/divider.png" alt="divider" width="100%" style="max-width: 920px"> -->
 
 <nav align="center">
   <a href="https://brainy.gitbook.io/flow/introduction/getting_started">Get Started Now ✨ 🐣</a>
-  <a href="https://github.com/zvictor/brainyflow/tree/master/cookbook">Examples 🌈 </a>
-  <a href="https://pypi.org/project/brainyflow">PyPI <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/python.svg" width="17" height="17" alt="Python Logo" style="vertical-align: sub; margin: 0 2px;"></a>
-  <a href="https://www.npmjs.com/package/brainyflow">NPM <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/typescript.svg" width="17" height="17" alt="Typescript Logo" style="vertical-align: sub; margin: 0 2px;"></a>
+  <a href="https://github.com/skadaai/caskada/tree/master/cookbook">Examples 🌈 </a>
+  <a href="https://pypi.org/project/brainyflow">PyPI <img src="https://github.com/skadaai/caskada/raw/main/.github/media/python.svg" width="17" height="17" alt="Python Logo" style="vertical-align: sub; margin: 0 2px;"></a>
+  <a href="https://www.npmjs.com/package/brainyflow">NPM <img src="https://github.com/skadaai/caskada/raw/main/.github/media/typescript.svg" width="17" height="17" alt="Typescript Logo" style="vertical-align: sub; margin: 0 2px;"></a>
   <a href="https://discord.gg/N9mVvxRXyH">Chat <img src="https://cdn.prod.website-files.com/6257adef93867e50d84d30e2/66e3d80db9971f10a9757c99_Symbol.svg" width="17" height="17" alt="Discord Logo" style="vertical-align: sub; margin: 0 2px;"></a>
-  <a href="https://github.com/zvictor/brainyflow">Github <img src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/github-white-icon.svg" width="17" height="17" alt="Github Logo" style="vertical-align: sub; margin: 0 2px;"></a>
+  <a href="https://github.com/skadaai/caskada">Github <img src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/github-white-icon.svg" width="17" height="17" alt="Github Logo" style="vertical-align: sub; margin: 0 2px;"></a>
   <!-- Dropdown container -->
   <div id="docs-dropdown-container">
     <!-- Trigger link -->
@@ -22,10 +22,10 @@
     <!-- Dropdown content -->
     <div class="dropdown-content">
       <a href="/docs.python.txt"> <!-- Python Link -->
-        <img class="dropdown-icon" src="https://github.com/zvictor/brainyflow/raw/main/.github/media/python.svg" width="17" height="17" alt="Python Logo">docs.<em>python</em>.txt
+        <img class="dropdown-icon" src="https://github.com/skadaai/caskada/raw/main/.github/media/python.svg" width="17" height="17" alt="Python Logo">docs.<em>python</em>.txt
       </a>
       <a href="/docs.typescript.txt"> <!-- Typescript Link -->
-        <img class="dropdown-icon" src="https://github.com/zvictor/brainyflow/raw/main/.github/media/typescript.svg" width="17" height="17" alt="Typescript Logo">docs.<em>typescript</em>.txt
+        <img class="dropdown-icon" src="https://github.com/skadaai/caskada/raw/main/.github/media/typescript.svg" width="17" height="17" alt="Typescript Logo">docs.<em>typescript</em>.txt
       </a>
       <a href="/docs.txt"> <!-- All Docs Link -->
         📜 docs.txt (<em>all</em>)
