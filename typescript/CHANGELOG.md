@@ -1,5 +1,11 @@
 # caskada
 
+## 2.2.0
+
+### Minor Changes
+
+- 1643a98: Package has been renamed from `brainyflow` to `caskada`
+
 ## 2.1.0
 
 ### Minor Changes
