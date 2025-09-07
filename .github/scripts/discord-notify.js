@@ -7,7 +7,7 @@ export async function notifyDiscord(webhookUrl, releaseInfo) {
   const { packageName, version, changelog, repositoryUrl } = releaseInfo
 
   const embed = {
-    title: `🚀 Brainyflow ${packageName} v${version} Released!`,
+    title: `🚀 Caskada ${packageName} v${version} Released!`,
     description: changelog.substring(0, 2000), // Discord embed description limit
     color: packageName.toLowerCase() === 'typescript' ? 0x3178c6 : 0x3776ab, // TS blue or Python blue
     fields: [

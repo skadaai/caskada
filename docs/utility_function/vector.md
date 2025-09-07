@@ -543,7 +543,7 @@ def create_weaviate_collection_if_not_exists(client: weaviate.Client, class_name
 # Example Usage:
 # client = init_weaviate_client()
 # if client:
-#     collection_name = "BrainyflowArticle" # Class names must be capitalized
+#     collection_name = "CaskadaArticle" # Class names must be capitalized
 #     dimension = 128
 #     create_weaviate_collection_if_not_exists(client, collection_name, dimension)
 
@@ -661,7 +661,7 @@ async function weaviateExample() {
     const client = initWeaviateClient();
     if (!client) return;
 
-    const collectionName = "BrainyflowArticleTs"; // Class names must be capitalized
+    const collectionName = "CaskadaArticleTs"; // Class names must be capitalized
     const dimension = 128;
     await createWeaviateCollectionIfNotExists(client, collectionName, dimension);
 

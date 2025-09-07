@@ -123,13 +123,13 @@ Click `Details` below for more information in the points system.
 <summary><strong>Details</strong></summary>
 
 
-## Brainyflow Cookbook: Project Complexity Point System
+## Caskada Cookbook: Project Complexity Point System
 
-This document outlines a revised point system to categorize projects within the Brainyflow cookbook by complexity. This system aims for simplicity, generalizability, and clear guidance for learners.
+This document outlines a revised point system to categorize projects within the Caskada cookbook by complexity. This system aims for simplicity, generalizability, and clear guidance for learners.
 
-### I. Core Brainyflow Structure & Flow
+### I. Core Caskada Structure & Flow
 
-Evaluates the fundamental Brainyflow constructs.
+Evaluates the fundamental Caskada constructs.
 
 * **A. Node Usage**:  
   * **0.5 points per distinct Node class** implemented and used in the primary flow logic. (e.g., 4 unique Node classes \= 2 points).  
@@ -144,7 +144,7 @@ Evaluates the fundamental Brainyflow constructs.
 
 ### II. Code & Logic Complexity
 
-Assesses the custom code beyond basic Brainyflow definitions.
+Assesses the custom code beyond basic Caskada definitions.
 
 * **A. Logic within Node Methods** (prep, exec, post):  
   * **0.5 points per node** that contains minor custom logic (e.g., simple data transformation, formatting beyond direct pass-through).  
@@ -179,7 +179,7 @@ Points for incorporating external services, APIs, or complex data handling.
 * **D. Implemented "Tool" Modules for LLM/Agent**:  
   * **1.5 points per distinct, non-trivial Python/TypeScript module** designed as a reusable "tool" for an agent (e.g., crawler.py in python-tool-crawler, a custom PDF processor tool). This is distinct from general helper utilities (II.B) and focuses on agent-callable tools. (Max 4.5 points for this category).
 
-### IV. Advanced Brainyflow Patterns & User Interaction
+### IV. Advanced Caskada Patterns & User Interaction
 
 Markers for sophisticated architectural patterns or user interfaces.
 
@@ -207,7 +207,7 @@ Markers for sophisticated architectural patterns or user interfaces.
 
 Based on the total points, projects can be categorized into tiers:
 
-* **Beginner (1-7 points)**: Introduces fundamental Brainyflow concepts.  
+* **Beginner (1-7 points)**: Introduces fundamental Caskada concepts.  
 * **Intermediate (8-16 points)**: Covers more complex flow structures, basic patterns, and integrations.  
 * **Advanced (17-25 points)**: Deals with sophisticated patterns, UI integrations, or complex tool building.  
 * **Expert (26+ points)**: Combines multiple advanced features, involves intricate system design.
