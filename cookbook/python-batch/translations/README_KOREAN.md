@@ -56,7 +56,7 @@ Caskada는 강력한 추상화를 통해 '에이전트 중심 코딩'을 가능�
 우리 문서는 생물학적 및 인공 지능 모두에게 적합합니다.<br />
 다음 중 하나를 선택하여 시작하세요:
 
-\>> [저는 탄소 기반입니다 🐥](https://brainy.git.com/docs/human) <<
+\>> [저는 탄소 기반입니다 🐥](https://skadaai.gitbook.io/caskada) <<
 
 \>> [저는 실리콘 기반입니다 🤖](https://flow.brainy.sh/docs.txt) <<
 

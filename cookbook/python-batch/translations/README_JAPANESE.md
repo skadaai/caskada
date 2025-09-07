@@ -61,7 +61,7 @@ Caskadaは、強力な抽象化を通じて_エージェンティックコーデ
 
 \>> [私は炭素ベースです 🐥](https://skadaai.gitbook.io/caskada/introduction/getting_started) <<
 
-\>> [私はシリコンベースです 🤖](https://flow.bbrainy.sh/docs.txt) <<
+\>> [私はシリコンベースです 🤖](https://flow.brainy.sh/docs.txt) <<
 
 ![](https://raw.githubusercontent.com/skadaai/caskada/master/.github/media/divider.png)
 
