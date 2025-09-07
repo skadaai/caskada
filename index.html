@@ -323,6 +323,63 @@
     <!-- <script src="//unpkg.com/prismjs@1/components/prism-graphql.min.js"></script> -->
     <script src="//unpkg.com/prismjs@1/components/prism-typescript.min.js"></script>
     <script>
+      // Ensure links behave correctly when embedded in an iframe
+      (function () {
+        var isInIframe = (function () {
+          try {
+            return window.self !== window.top;
+          } catch (e) {
+            // Cross-origin access error still means we're in an iframe
+            return true;
+          }
+        })();
+
+        function fixLinks(root) {
+          if (!root) return;
+          var anchors = root.querySelectorAll('a[href]');
+          anchors.forEach(function (a) {
+            var href = a.getAttribute('href');
+            if (!href) return;
+            // Skip dropdown trigger to preserve its behavior
+            if (a.classList && a.classList.contains('docs-dropdown-trigger')) return;
+
+            var isHash = href[0] === '#';
+            var isMailOrTel = /^mailto:|^tel:/i.test(href);
+            var isExternal = /^https?:\/\//i.test(href);
+
+            if (isExternal) {
+              // Always open true external links in a new tab
+              a.setAttribute('target', '_blank');
+              a.setAttribute('rel', 'noopener noreferrer');
+            } else if (!isHash && !isMailOrTel) {
+              // For internal links, make sure we don't try to escape the iframe
+              // Remove any explicit target that could attempt to break out
+              a.removeAttribute('target');
+            }
+          });
+        }
+
+        // Hook into Docsify lifecycle to fix links after each render
+        window.$docsify = window.$docsify || {};
+        var userPlugins = (window.$docsify.plugins || []).slice();
+        var iframeLinkFixer = function (hook, vm) {
+          hook.doneEach(function () {
+            fixLinks(document);
+          });
+        };
+        window.$docsify.plugins = userPlugins.concat(iframeLinkFixer);
+
+        // Also run once on initial load (e.g., for coverpage markup)
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', function () {
+            fixLinks(document);
+          });
+        } else {
+          fixLinks(document);
+        }
+      })();
+    </script>
+    <script>
       (function () {
         var colors = [
           "#6ec25a", // Green
