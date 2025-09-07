@@ -2376,7 +2376,7 @@ This project demonstrates using Caskada's async and parallel features (`Parallel
 
 This project demonstrates using Caskada's async and parallel features (`ParallelFlow`, `Node`) to translate a document into multiple languages concurrently.
 
-- Check out the [Substack Post Tutorial](https://brainyflow.substack.com/p/parallel-llm-calls-from-scratch-tutorial) for more!
+- Check out the [Substack Post Tutorial](https://pocketflow.substack.com/p/parallel-llm-calls-from-scratch-tutorial) for more!
 
 ## Goal
 
@@ -3357,7 +3357,7 @@ This project demonstrates a voice-based interactive chat application built with 
 
 This project demonstrates a voice-based interactive chat application built with Caskada. Users can speak their queries, and the system will respond with spoken answers from an LLM, maintaining conversation history.
 
-- Check out the [Substack Post Tutorial](https://brainyflow.substack.com/p/build-your-own-voice-chatbot-from) for more!
+- Check out the [Substack Post Tutorial](https://pocketflow.substack.com/p/build-your-own-voice-chatbot-from) for more!
 
 ## Features
 

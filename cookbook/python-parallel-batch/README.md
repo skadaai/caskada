@@ -6,7 +6,7 @@ complexity: 8
 
 This project demonstrates using Caskada's async and parallel features (`ParallelFlow`, `Node`) to translate a document into multiple languages concurrently.
 
-- Check out the [Substack Post Tutorial](https://brainyflow.substack.com/p/parallel-llm-calls-from-scratch-tutorial) for more!
+- Check out the [Substack Post Tutorial](https://pocketflow.substack.com/p/parallel-llm-calls-from-scratch-tutorial) for more!
 
 ## Goal
 
