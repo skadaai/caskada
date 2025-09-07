@@ -51,7 +51,7 @@ The tool will then:
 ## Project Structure
 
 ```
-brainyflow-tool-search/
+python-tool-search/
 ├── tools/
 │   ├── search.py      # SerpAPI search functionality
 │   └── parser.py      # Result analysis using LLM

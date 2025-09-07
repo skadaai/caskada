@@ -61,7 +61,7 @@ This approach leverages `asyncio` and parallel execution to speed up I/O-bound t
 Running this parallel version significantly reduces the total time compared to a sequential approach:
 
 ```
-# --- Sequential Run Output (from brainyflow-batch) ---
+# --- Sequential Run Output (from python-batch) ---
 Starting sequential translation into 8 languages...
 Translated Chinese text
 ...

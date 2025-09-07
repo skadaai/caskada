@@ -17,7 +17,7 @@ This example demonstrates the batch Flow concept in BrainyFlow by implementing a
 ## Project Structure
 
 ```
-brainyflow-batch-flow/
+python-batch-flow/
 ├── README.md
 ├── requirements.txt
 ├── images/

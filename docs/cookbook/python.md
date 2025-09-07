@@ -299,7 +299,7 @@ This example demonstrates how to properly integrate OpenAI's text embeddings API
 ## Project Structure
 
 ```
-brainyflow-tool-embeddings/
+python-tool-embeddings/
 ├── tools/
 │   └── embeddings.py     # OpenAI embeddings API wrapper
 ├── utils/
@@ -853,7 +853,7 @@ The tool will then:
 ## Project Structure
 
 ```
-brainyflow-tool-search/
+python-tool-search/
 ├── tools/
 │   ├── search.py      # SerpAPI search functionality
 │   └── parser.py      # Result analysis using LLM
@@ -1061,7 +1061,7 @@ This example demonstrates how to properly integrate SQLite database operations w
 ## Project Structure
 
 ```
-brainyflow-tool-database/
+python-tool-database/
 ├── tools/
 │   └── database.py    # SQLite database operations
 ├── nodes.py          # BrainyFlow node implementation
@@ -1295,7 +1295,7 @@ This example demonstrates the batch Flow concept in BrainyFlow by implementing a
 ## Project Structure
 
 ```
-brainyflow-batch-flow/
+python-batch-flow/
 ├── README.md
 ├── requirements.txt
 ├── images/
@@ -2431,7 +2431,7 @@ This approach leverages `asyncio` and parallel execution to speed up I/O-bound t
 Running this parallel version significantly reduces the total time compared to a sequential approach:
 
 ```
-# --- Sequential Run Output (from brainyflow-batch) ---
+# --- Sequential Run Output (from python-batch) ---
 Starting sequential translation into 8 languages...
 Translated Chinese text
 ...
@@ -2617,7 +2617,7 @@ A BrainyFlow example project demonstrating PDF processing with OpenAI's Vision A
 ## Project Structure
 
 ```
-brainyflow-tool-pdf-vision/
+python-tool-pdf-vision/
 ├── pdfs/           # Directory for PDF files to process
 ├── tools/
 │   ├── pdf.py     # PDF to image conversion
@@ -2773,7 +2773,7 @@ The tool will then:
 ## Project Structure
 
 ```
-brainyflow-tool-crawler/
+python-tool-crawler/
 ├── tools/
 │   ├── crawler.py     # Web crawling functionality
 │   └── parser.py      # Content analysis using LLM
@@ -3634,13 +3634,13 @@ Sports | 1
 Complexity Points: 13
 └🐒🐒🐒🐒🐒🐒🐒🐒🐒
 
-This project demonstrates a supervisor that oversees an unreliable [research agent](../brainyflow-agent) to ensure high-quality answers.<details>
+This project demonstrates a supervisor that oversees an unreliable [research agent](../python-agent) to ensure high-quality answers.<details>
 <summary><strong>Details</strong></summary>
 
 
 # Research Supervisor
 
-This project demonstrates a supervisor that oversees an unreliable [research agent](../brainyflow-agent) to ensure high-quality answers.
+This project demonstrates a supervisor that oversees an unreliable [research agent](../python-agent) to ensure high-quality answers.
 
 ## Features
 

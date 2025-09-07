@@ -27,7 +27,7 @@ This example demonstrates how to properly integrate OpenAI's text embeddings API
 ## Project Structure
 
 ```
-brainyflow-tool-embeddings/
+python-tool-embeddings/
 ├── tools/
 │   └── embeddings.py     # OpenAI embeddings API wrapper
 ├── utils/

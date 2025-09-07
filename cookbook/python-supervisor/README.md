@@ -4,7 +4,7 @@ complexity: 13
 
 # Research Supervisor
 
-This project demonstrates a supervisor that oversees an unreliable [research agent](../brainyflow-agent) to ensure high-quality answers.
+This project demonstrates a supervisor that oversees an unreliable [research agent](../python-agent) to ensure high-quality answers.
 
 ## Features
 

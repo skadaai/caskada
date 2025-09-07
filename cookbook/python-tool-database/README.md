@@ -29,7 +29,7 @@ This example demonstrates how to properly integrate SQLite database operations w
 ## Project Structure
 
 ```
-brainyflow-tool-database/
+python-tool-database/
 ├── tools/
 │   └── database.py    # SQLite database operations
 ├── nodes.py          # BrainyFlow node implementation

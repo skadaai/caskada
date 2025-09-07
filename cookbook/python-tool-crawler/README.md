@@ -51,7 +51,7 @@ The tool will then:
 ## Project Structure
 
 ```
-brainyflow-tool-crawler/
+python-tool-crawler/
 ├── tools/
 │   ├── crawler.py     # Web crawling functionality
 │   └── parser.py      # Content analysis using LLM

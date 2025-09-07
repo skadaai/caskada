@@ -38,7 +38,7 @@ A BrainyFlow example project demonstrating PDF processing with OpenAI's Vision A
 ## Project Structure
 
 ```
-brainyflow-tool-pdf-vision/
+python-tool-pdf-vision/
 ├── pdfs/           # Directory for PDF files to process
 ├── tools/
 │   ├── pdf.py     # PDF to image conversion
