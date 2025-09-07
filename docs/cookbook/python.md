@@ -500,7 +500,7 @@ Choose transformation:
 
 Your choice (1-5): 1
 
-Result: BRAINYFLOW IS A 100-LINE LLM FRAMEWORK
+Result: CASKADA IS A 100-LINE LLM FRAMEWORK
 
 Convert another text? (y/n): n
 
