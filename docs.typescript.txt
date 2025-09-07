@@ -3,23 +3,23 @@
 ================================================
 File: docs/getting_started.md
 ================================================
-# Getting Started with BrainyFlow
+# Getting Started with Caskada
 
-Welcome to BrainyFlow! This framework helps you build powerful, modular AI applications using a simple yet expressive abstraction based on nested directed graphs.
+Welcome to Caskada! This framework helps you build powerful, modular AI applications using a simple yet expressive abstraction based on nested directed graphs.
 
 ## 1. Installation
 
-First, ensure you have BrainyFlow installed:
+First, ensure you have Caskada installed:
 
 ```bash
-npm install brainyflow # or pnpm/yarn
+npm install caskada # or pnpm/yarn
 ```
 
 For more installation options, see the [Installation Guide](./installation.md).
 
 ## 2. Core Concepts
 
-BrainyFlow is built around a minimalist yet powerful abstraction that separates data flow from computation:
+Caskada is built around a minimalist yet powerful abstraction that separates data flow from computation:
 
 - **[Node](./core_abstraction/node.md)**: The fundamental building block that performs a single task with a clear lifecycle (`prep` → `exec` → `post`).
 - **[Flow](./core_abstraction/flow.md)**: Orchestrates nodes in a directed graph, supporting branching, looping, and nesting.
@@ -27,7 +27,7 @@ BrainyFlow is built around a minimalist yet powerful abstraction that separates 
 
 ## 3. Your First Flow
 
-Let's build a simple Question-Answering flow to demonstrate BrainyFlow's core concepts:
+Let's build a simple Question-Answering flow to demonstrate Caskada's core concepts:
 
 ### Step 1: Design Your Flow
 
@@ -44,7 +44,7 @@ graph LR
 ### Step 2: Implement the Nodes
 
 ```typescript
-import { Flow, Memory, Node } from 'brainyflow'
+import { Flow, Memory, Node } from 'caskada'
 import { input } from '@inquirer/prompts'
 import { callLLM } from './utils/callLLM'
 
@@ -89,7 +89,7 @@ class AnswerNode extends Node<QAGlobalStore> {
 
 ```typescript
 // import { GetQuestionNode, AnswerNode } from './nodes'; // defined in the previous step
-import { Flow } from 'brainyflow'
+import { Flow } from 'caskada'
 
 function createQaFlow(): Flow {
   const getQuestionNode = new GetQuestionNode()
@@ -149,7 +149,7 @@ main().catch(console.error)
 
 ## 4. Key Design Principles
 
-BrainyFlow follows these core design principles:
+Caskada follows these core design principles:
 
 1. **Separation of Concerns**: Data storage (the `memory` object managing global/local stores) is separate from computation logic (`Node` classes).
 2. **Explicit Data Flow**: Data dependencies between steps are clear and traceable through `memory` access in `prep`/`post` and the results passed between `prep` → `exec` → `post`.
@@ -175,17 +175,17 @@ If you prefer, jump straight into our example projects:
 ================================================
 File: docs/core_abstraction/index.md
 ================================================
-# Understanding BrainyFlow's Core Abstractions
+# Understanding Caskada's Core Abstractions
 
-BrainyFlow is built around a simple yet powerful abstraction: the **nested directed graph with shared store**. This mental model separates _data flow_ from _computation_, making complex LLM applications more maintainable and easier to reason about.
+Caskada is built around a simple yet powerful abstraction: the **nested directed graph with shared store**. This mental model separates _data flow_ from _computation_, making complex LLM applications more maintainable and easier to reason about.
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/abstraction.jpg" width="1300"/>
+  <img src="https://raw.githubusercontent.com/skadaai/caskada/main/.github/media/abstraction.jpg" width="1300"/>
 </div>
 
 ## Core Philosophy
 
-BrainyFlow follows these fundamental principles:
+Caskada follows these fundamental principles:
 
 1. **Modularity & Composability**: Build complex systems from simple, reusable components that are easy to build, test, and maintain
 2. **Explicitness**: Make data dependencies between steps clear and traceable
@@ -195,7 +195,7 @@ BrainyFlow follows these fundamental principles:
 
 ## The Graph + Shared Store Pattern
 
-The fundamental pattern in BrainyFlow combines two key elements:
+The fundamental pattern in Caskada combines two key elements:
 
 - **Computation Graph**: A directed graph where nodes represent discrete units of work and edges represent the flow of control.
 - **Shared `Memory` Object**: A state management store that enables communication between nodes, separating `global` and `local` state.
@@ -209,7 +209,7 @@ This pattern offers several advantages:
 
 ## Key Components
 
-BrainyFlow's architecture is based on these fundamental building blocks:
+Caskada's architecture is based on these fundamental building blocks:
 
 | Component             | Description                                    | Key Features                                                                                                |
 | --------------------- | ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
@@ -240,7 +240,7 @@ BrainyFlow's architecture is based on these fundamental building blocks:
 
 ## Getting Started
 
-If you're new to BrainyFlow, we recommend exploring these core abstractions in the following order:
+If you're new to Caskada, we recommend exploring these core abstractions in the following order:
 
 1. [Node](./node.md) - Understand the basic building block
 2. [Flow](./flow.md) - Learn how to connect nodes together
@@ -256,12 +256,12 @@ File: docs/core_abstraction/node.md
 ================================================
 # Node: The Basic Unit of Work
 
-In BrainyFlow, a **Node** is the fundamental building block of any application. It represents a discrete, self-contained unit of work within a larger flow. Nodes are designed to be reusable, testable, and fault-tolerant.
+In Caskada, a **Node** is the fundamental building block of any application. It represents a discrete, self-contained unit of work within a larger flow. Nodes are designed to be reusable, testable, and fault-tolerant.
 
 ## Node Lifecycle
 
 <div align="center">
-  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/node.jpg" width="400"/>
+  <img src="https://github.com/skadaai/caskada/raw/main/.github/media/node.jpg" width="400"/>
 </div>
 
 Every node follows a clear, three-phase lifecycle when executed: `prep` → `exec` → `post`. This separation of concerns ensures clean data handling, computation, and state management.
@@ -308,7 +308,7 @@ sequenceDiagram
 To create a custom node, extend the `Node` class and implement the lifecycle methods:
 
 ```typescript
-import { Memory, Node } from 'brainyflow'
+import { Memory, Node } from 'caskada'
 
 class TextProcessorNode extends Node {
   async prep(memory): Promise<string> {
@@ -352,7 +352,7 @@ By default, `execFallback` just re-raises the exception. You can override it to 
 The `error` object passed to `execFallback` will be an instance of `NodeError` and will include a `retryCount` property indicating the number of retries performed.
 
 ```typescript
-import { Node, NodeError } from 'brainyflow'
+import { Node, NodeError } from 'caskada'
 
 const myNodeInstance = new CustomErrorHandlingNode({ maxRetries: 3, wait: 5 })
 
@@ -382,7 +382,7 @@ class CustomErrorHandlingNode extends Node {
 }
 
 // Example usage
-// import { Flow, createMemory } from 'brainyflow';
+// import { Flow, createMemory } from 'caskada';
 const node = new CustomErrorHandlingNode({ maxRetries: 3, wait: 5 }) // Will retry twice, then fallback
 const flow = new Flow(node)
 await flow.run({})
@@ -443,7 +443,7 @@ These methods are typically called when constructing your `Flow`. See the [Flow 
 A common pattern is a "router" node that determines the next step based on some condition (e.g., language detection, data validation result).
 
 ```typescript
-import { Flow, Memory, Node, SharedStore } from 'brainyflow'
+import { Flow, Memory, Node, SharedStore } from 'caskada'
 
 function detectLanguage(content: string): Promise<'english' | 'spanish' | 'unknown'> {
   if ('hello' in content.toLowerCase()) return 'english'
@@ -567,7 +567,7 @@ They manage the execution order, handle data flow between nodes, and provide err
 A Flow begins with a **start node**, a memory state, and follows the [action-based transitions defined by the nodes](./nodes.md) until it reaches a node with no matching transition for its returned action.
 
 ```typescript
-import { Flow, Memory, Node } from 'brainyflow'
+import { Flow, Memory, Node } from 'caskada'
 
 // Define nodes and transitions (placeholders for actual node classes)
 // const node_a = new YourActualNode();
@@ -617,7 +617,7 @@ Flows support complex patterns like branching (conditionally following different
 Here's a simple expense approval flow that demonstrates branching and looping:
 
 ```typescript
-import { Flow, Node } from 'brainyflow'
+import { Flow, Node } from 'caskada'
 
 // Define the nodes first (placeholders for actual node classes)
 // const review = new ReviewExpenseNode()
@@ -681,7 +681,7 @@ This allows you to:
 Here's a practical example that breaks down order processing into nested flows:
 
 ```typescript
-import { Flow, Node } from 'brainyflow'
+import { Flow, Node } from 'caskada'
 
 // Payment processing sub-flow
 validatePayment.next(processPayment).next(paymentConfirmation)
@@ -753,7 +753,7 @@ Besides being capable of triggering actions like any other `Node`, a `Flow` also
 These terms can often be used interchangeably, with a subtle distinction:
 
 - **Leaf Node (Graph Theory Term):** A leaf node is a node with no children (no outgoing edges).
-- **Terminal Node (in BrainyFlow context):** A node that, for a _specific triggered action_, has no defined successor _within the current Flow_.
+- **Terminal Node (in Caskada context):** A node that, for a _specific triggered action_, has no defined successor _within the current Flow_.
 
 Thus,
 
@@ -839,7 +839,7 @@ When using `ParallelFlow`, be mindful of potential race conditions if multiple p
 For more advanced control over how triggered branches are executed, you can extend `Flow` (or `ParallelFlow`) and override the `runTasks` method. This method receives a list of functions, where each function, when called, will execute one triggered branch.
 
 ```typescript
-import { Flow, Memory } from 'brainyflow'
+import { Flow, Memory } from 'caskada'
 
 declare function sleep(ms: number): Promise<void>
 
@@ -859,7 +859,7 @@ class CustomExecutionFlow<GS extends Record<string, any>> extends Flow<GS> {
 
 ## Batch Processing (Fan-Out Pattern)
 
-The standard way to process multiple items (sequentially or in parallel) in BrainyFlow is using the "fan-out" pattern. This involves a node that triggers multiple instances of processing for individual items.
+The standard way to process multiple items (sequentially or in parallel) in Caskada is using the "fan-out" pattern. This involves a node that triggers multiple instances of processing for individual items.
 
 1.  **Trigger Node**:
     - A standard `Node` whose `post` method iterates through your items.
@@ -954,14 +954,14 @@ File: docs/core_abstraction/memory.md
 ================================================
 # Memory: Managing State Between Nodes
 
-In BrainyFlow, the `Memory` object is the central mechanism for state management and communication between nodes in a flow. It's designed to be flexible yet robust, providing both shared global state and isolated local state for different execution paths.
+In Caskada, the `Memory` object is the central mechanism for state management and communication between nodes in a flow. It's designed to be flexible yet robust, providing both shared global state and isolated local state for different execution paths.
 
 ## Creating Memory
 
 The proxied memory instance is automatically created when you pass the initial memory object to a Flow. Alternatively, you can explicitly create it using the `createMemory` function (in TypeScript) or the standard constructor `Memory()` (in Python):
 
 ```typescript
-import { createMemory, Memory, SharedStore } from 'brainyflow'
+import { createMemory, Memory, SharedStore } from 'caskada'
 
 interface MyGlobal extends SharedStore {
   initial_config?: string
@@ -979,7 +979,7 @@ const memoryInstance: Memory = createMemory(globalStore, localStoreForStartNode)
 
 ## Memory Scopes: Global vs. Local
 
-BrainyFlow's `Memory` object manages two distinct scopes:
+Caskada's `Memory` object manages two distinct scopes:
 
 1.  **Global Store (`memory`)**: A single object shared across _all_ nodes within a single `flow.run()` execution. Changes made here persist throughout the flow. Think of it as the main shared state.
 2.  **Local Store (`memory.local`)**: An object specific to a particular execution path within the flow. It's created when a node `trigger`s a successor. Changes here are isolated to that specific branch and its descendants.
@@ -1010,7 +1010,7 @@ Nodes access data stored in either scope through the `memory` proxy instance pas
 2.  If the property is not found locally, it checks the **global store (`memory`)**.
 
 ```typescript
-import { Memory, Node } from 'brainyflow'
+import { Memory, Node } from 'caskada'
 
 interface MyGlobal {
   config?: object
@@ -1067,7 +1067,7 @@ async post(memory: Memory<MyGlobal, MyLocal>, /*...*/) {
 - **`'key' in memory.local`**: Checks if `'key'` exists _only_ in the local store.
 
 ```typescript
-import { Memory, Node } from 'brainyflow'
+import { Memory, Node } from 'caskada'
 
 interface MyGlobal {
   fileList?: string[]
@@ -1131,7 +1131,7 @@ class FileProcessorNode extends Node<MyGlobal, MyLocal> {
 
 ## Technical Concepts
 
-The memory system in BrainyFlow implements several established computer science patterns:
+The memory system in Caskada implements several established computer science patterns:
 
 - **Lexical Scoping**: Local memory "shadows" global memory, similar to how local variables in functions can shadow global variables
 - **Context Propagation**: Local memory propagates down the execution tree, similar to how context flows in React or middleware systems
@@ -1150,7 +1150,7 @@ The memory system in BrainyFlow implements several established computer science 
 
 The `memory.clone(forkingData?)` method is primarily used internally by the `Flow` execution logic when transitioning between nodes. However, you can also use it manually if you need to create a new `Memory` instance that shares the same global store but has an independent, optionally modified, local store.
 
-This cloning mechanism is fundamental to how BrainyFlow isolates state between different branches of execution within a flow.
+This cloning mechanism is fundamental to how Caskada isolates state between different branches of execution within a flow.
 
 
 
@@ -1160,15 +1160,15 @@ File: docs/design_pattern/index.md
 ================================================
 # Design Patterns
 
-BrainyFlow supports a variety of design patterns that enable you to build complex AI applications. These patterns leverage the core abstractions of nodes, flows, and shared store to implement common AI system architectures.
+Caskada supports a variety of design patterns that enable you to build complex AI applications. These patterns leverage the core abstractions of nodes, flows, and shared store to implement common AI system architectures.
 
 ## Overview of Design Patterns
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/zvictor/brainyflow/main/.github/media/design.jpg" width="1300"/>
+  <img src="https://raw.githubusercontent.com/skadaai/caskada/main/.github/media/design.jpg" width="1300"/>
 </div>
 
-BrainyFlow's minimalist design allows it to support various high-level AI design paradigms:
+Caskada's minimalist design allows it to support various high-level AI design paradigms:
 
 | Pattern                             | Description                                                     | Use Cases                                       |
 | ----------------------------------- | --------------------------------------------------------------- | ----------------------------------------------- |
@@ -1220,7 +1220,7 @@ flowchart TD
 
 ## Pattern Composition
 
-BrainyFlow's nested flow capability allows you to compose multiple patterns. For instance:
+Caskada's nested flow capability allows you to compose multiple patterns. For instance:
 
 ```mermaid
 graph TD
@@ -1249,10 +1249,10 @@ Other examples include:
 
 ## Implementation Examples
 
-Each pattern can be implemented using BrainyFlow's core abstractions. Here's a simple example of the agent pattern:
+Each pattern can be implemented using Caskada's core abstractions. Here's a simple example of the agent pattern:
 
 ```typescript
-import { Flow, Node } from 'brainyflow'
+import { Flow, Node } from 'caskada'
 
 // Define the agent's components (assuming these classes exist)
 const perceive = new PerceiveNode()
@@ -1289,7 +1289,7 @@ File: docs/design_pattern/agent.md
 The Agent pattern provides a robust and flexible way to build autonomous AI systems that can reason, plan, and interact with their environment. It's particularly well-suited for tasks requiring multiple steps, tool use, and dynamic decision-making.
 
 <div align="center">
-  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/agent.png?raw=true" width="350"/>
+  <img src="https://github.com/skadaai/caskada/raw/main/.github/media/agent.png?raw=true" width="350"/>
 </div>
 
 ## Nodes of an Agent
@@ -1352,14 +1352,14 @@ This agent:
 2. If searches, loops back to decide if more search needed
 3. Answers when enough context gathered
 
-For simplicity, these will be overly-simplified mock tools/nodes. For a more in-depth implementation, check the implementations in our cookbook for [Python](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-agent) or [TypeScript](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/typescript-agent).
+For simplicity, these will be overly-simplified mock tools/nodes. For a more in-depth implementation, check the implementations in our cookbook for [Python](https://github.com/skadaai/caskada/tree/main/cookbook/python-agent) or [TypeScript](https://github.com/skadaai/caskada/tree/main/cookbook/typescript-agent).
 
 ### 1. Define Tool Nodes
 
 First, we define (mock) our tool nodes.
 
 ```typescript
-import { Node } from 'brainyflow'
+import { Node } from 'caskada'
 
 // Mock tool: Search
 class SearchTool extends Node {
@@ -1389,7 +1389,7 @@ class SearchTool extends Node {
 
 ```````typescript
 import { parse } from 'yaml'
-import { Node, Flow } from './brainyflow'
+import { Node, Flow } from './caskada'
 
 class DecideAction extends Node {
   async prep(memory) {
@@ -1471,7 +1471,7 @@ async function main() {
 main();
 ```
 
-This example demonstrates how BrainyFlow's core abstractions (Nodes, Flows, Memory) can be combined to build a simple agent that exhibits planning and tool-use capabilities. The `Memory` object is crucial for maintaining state across the different steps of the agent's execution.
+This example demonstrates how Caskada's core abstractions (Nodes, Flows, Memory) can be combined to build a simple agent that exhibits planning and tool-use capabilities. The `Memory` object is crucial for maintaining state across the different steps of the agent's execution.
 ```````
 
 
@@ -1485,7 +1485,7 @@ File: docs/design_pattern/workflow.md
 Many real-world tasks are too complex for one LLM call. The solution is **Task Decomposition**: decompose them into a [chain](../core_abstraction/flow.md) of multiple Nodes.
 
 <div align="center">
-  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/workflow.png?raw=true" width="400"/>
+  <img src="https://github.com/skadaai/caskada/raw/main/.github/media/workflow.png?raw=true" width="400"/>
 </div>
 
 {% hint style="success" %}
@@ -1498,7 +1498,7 @@ You usually need multiple _iterations_ to find the _sweet spot_. If the task has
 ### Example: Article Writing
 
 ```typescript
-import { Flow, Memory, Node } from 'brainyflow'
+import { Flow, Memory, Node } from 'caskada'
 
 // Assuming callLLM is defined elsewhere
 declare function callLLM(prompt: string): Promise<string>
@@ -1582,10 +1582,10 @@ File: docs/design_pattern/mapreduce.md
 ================================================
 # MapReduce Design Pattern
 
-The MapReduce pattern is a powerful way to process large datasets by breaking down a complex task into two main phases: **Map** (processing individual items) and **Reduce** (aggregating results). BrainyFlow provides the perfect abstractions to implement this pattern efficiently, especially with its `ParallelFlow` for concurrent mapping.
+The MapReduce pattern is a powerful way to process large datasets by breaking down a complex task into two main phases: **Map** (processing individual items) and **Reduce** (aggregating results). Caskada provides the perfect abstractions to implement this pattern efficiently, especially with its `ParallelFlow` for concurrent mapping.
 
 <div align="center">
-  <img src="https://github.com/zvictor/brainyflow/raw/main/.github/media/mapreduce.png?raw=true" width="400"/>
+  <img src="https://github.com/skadaai/caskada/raw/main/.github/media/mapreduce.png?raw=true" width="400"/>
 </div>
 
 ## Core Components
@@ -1618,7 +1618,7 @@ graph TD
 We use a `ParallelFlow` for the mapping phase for performance gain.
 
 ```typescript
-import { Flow, Node, ParallelFlow } from 'brainyflow'
+import { Flow, Node, ParallelFlow } from 'caskada'
 
 class Trigger extends Node {
   async prep(memory): Promise<any[] | Record<string, any>> {
@@ -1673,14 +1673,14 @@ export function mapreduce(iterate: Node | Flow): ParallelFlow {
 
 Let's create a flow to summarize multiple text files using the pattern we just created.
 
-For simplicity, these will be overly-simplified mock tools/nodes. For a more in-depth implementation, check the implementations in our cookbook for [Resume Qualification (Python)](https://github.com/zvictor/BrainyFlow/tree/main/cookbook/python-map-reduce) - _more TypeScript examples coming soon ([PRs welcome](https://github.com/zvictor/BrainyFlow)!)_.
+For simplicity, these will be overly-simplified mock tools/nodes. For a more in-depth implementation, check the implementations in our cookbook for [Resume Qualification (Python)](https://github.com/skadaai/caskada/tree/main/cookbook/python-map-reduce) - _more TypeScript examples coming soon ([PRs welcome](https://github.com/skadaai/caskada)!)_.
 
 ### 1. Define Mapper Node (Summarizer)
 
 This node will summarize a single file.
 
 ```typescript
-import { Node } from 'brainyflow'
+import { Node } from 'caskada'
 
 // Assume callLLM is defined elsewhere
 declare function callLLM(prompt: string): Promise<string>
@@ -1708,7 +1708,7 @@ class SummarizeFileNode extends Node {
 This node will combine all individual summaries.
 
 ```typescript
-import { Node } from 'brainyflow'
+import { Node } from 'caskada'
 
 class AggregateSummariesNode extends Node {
   async prep(memory): Promise<string[]> {
@@ -1731,7 +1731,7 @@ class AggregateSummariesNode extends Node {
 ### 3. Assemble the Flow
 
 ```typescript
-import { Flow, Memory, Node } from 'brainyflow'
+import { Flow, Memory, Node } from 'caskada'
 
 // Assume callLLM is defined elsewhere
 declare function callLLM(prompt: string): Promise<string>
@@ -1765,7 +1765,7 @@ async function main() {
 main().catch(console.error)
 ```
 
-This example demonstrates how to implement a MapReduce pattern using BrainyFlow, leveraging `ParallelFlow` for concurrent processing of the map phase and the `Memory` object for collecting results before the reduce phase.
+This example demonstrates how to implement a MapReduce pattern using Caskada, leveraging `ParallelFlow` for concurrent processing of the map phase and the `Memory` object for collecting results before the reduce phase.
 
 
 
@@ -1779,7 +1779,7 @@ machine-display: true
 
 # Utility Functions
 
-BrainyFlow does not provide built-in utilities. Instead, we offer examples that you can implement yourself. This approach gives you more flexibility and control over your project's dependencies and functionality.
+Caskada does not provide built-in utilities. Instead, we offer examples that you can implement yourself. This approach gives you more flexibility and control over your project's dependencies and functionality.
 
 ## Available Utility Function Examples
 
@@ -1800,7 +1800,7 @@ We believe it's a bad practice to include vendor-specific APIs in a general fram
 
 ## Implementing Utility Functions
 
-When implementing utility functions for your BrainyFlow project:
+When implementing utility functions for your Caskada project:
 
 1. Create a separate file for each utility function in the `utils/` directory.
 2. Include a simple test or example usage in each file.
@@ -1825,9 +1825,9 @@ By following this approach, you can easily maintain and update your utility func
 ================================================
 File: docs/guides/best_practices.md
 ================================================
-# Best Practices for BrainyFlow Development
+# Best Practices for Caskada Development
 
-Developing robust and maintainable applications with BrainyFlow involves adhering to certain best practices. These guidelines help ensure your flows are clear, efficient, and easy to debug and extend.
+Developing robust and maintainable applications with Caskada involves adhering to certain best practices. These guidelines help ensure your flows are clear, efficient, and easy to debug and extend.
 
 ## General Principles
 
@@ -1935,7 +1935,7 @@ my_complex_project/
 ================================================
 File: docs/guides/agentic_coding.md
 ================================================
-# Agentic Coding with BrainyFlow
+# Agentic Coding with Caskada
 
 <details>
 
@@ -1958,7 +1958,7 @@ Use the design document as your single source of truth. Never proceed to code wi
 
 In the context of Human-AI Co-Design, agentic coding involves humans providing high-level guidance while AI agents handle implementation details:
 It represents a powerful approach to software development where humans are freed up to focus solely in strategic decisions.
-This guide will help you create effective design documents that enable successful BrainyFlow implementations.
+This guide will help you create effective design documents that enable successful Caskada implementations.
 
 ## The AI Implementation Brief
 
@@ -1997,7 +1997,7 @@ team review contracts 70% faster.
 
 ### 2. Flow Design
 
-Outline the high-level architecture using BrainyFlow's nested directed graph abstraction:
+Outline the high-level architecture using Caskada's nested directed graph abstraction:
 
 - **Flow Diagram**: Create a mermaid diagram showing node connections
 - **Processing Stages**: Describe each major stage in the flow
@@ -2090,7 +2090,7 @@ interface OutputStore {
 // Combine interfaces for the complete global store (if using nested structure conceptually)
 interface GlobalStore extends InputStore, ProcessingStore, OutputStore {}
 
-// Or define a flat global store interface (more common in BrainyFlow usage)
+// Or define a flat global store interface (more common in Caskada usage)
 interface FlatGlobalStore {
   document_path?: string
   document_text?: string
@@ -2118,7 +2118,7 @@ const memoryConceptual: FlatGlobalStore = {
   storage_id: '',
 }
 
-// Note: In BrainyFlow, you'd typically pass an object conforming to
+// Note: In Caskada, you'd typically pass an object conforming to
 // FlatGlobalStore (or a relevant subset) to flow.run() and access
 // properties directly, e.g., memory.document_text = "...", const entities = memory.entities;
 ```
@@ -2168,7 +2168,7 @@ Go back to working and finish it! Do not stop until you are done.
 Be sure you **always** strictly follow these instructions:
 
 1. **Be Patient**: Do not start the implementation until the design document is approved.
-2. **Be Brainy**: Import `brainyflow` and use its archictecture to implement the design document! Adhere to the proposed flow, node and shared store design.
+2. **Be Brainy**: Import `caskada` and use its archictecture to implement the design document! Adhere to the proposed flow, node and shared store design.
 3. **Focus on What Matters**: Do not fix types or edge cases until you are certain the core implementation is working as intended.
 4. **Be Adaptive**: Continuously refine the design document based on feedback and changes in the implementation, but keep it clear and concise.
 5. **Be Compliant**: You must always write code that is compliant with the design document and the system's architecture. Remember to stick to the flow, node and shared store design:
@@ -2191,7 +2191,7 @@ Be sure you **always** strictly follow these instructions:
 
 ## Conclusion: Precision Through Structure
 
-This approach ensures all BrainyFlow solutions maintain:
+This approach ensures all Caskada solutions maintain:
 
 - **Human Focus:** Strategic requirements and validation
 
@@ -2201,7 +2201,7 @@ This approach ensures all BrainyFlow solutions maintain:
 
 By enforcing these four pillars through adaptive dialogue rather than rigid templates, we achieve flexible yet reliable AI system development. The design document becomes a living contract between human intent and AI execution.
 
-You provide your AI assistant with the clear direction needed to implement an effective BrainyFlow solution while maintaining human oversight of the critical design decisions.
+You provide your AI assistant with the clear direction needed to implement an effective Caskada solution while maintaining human oversight of the critical design decisions.
 
 Remember: The quality of your design document directly impacts the quality of the implementation. Invest time in creating a comprehensive brief to ensure successful outcomes.
 
