@@ -4,7 +4,7 @@ complexity: 7
 
 # Batch Flow Example
 
-This example demonstrates the batch Flow concept in BrainyFlow by implementing an image processor that applies different filters to multiple images.
+This example demonstrates the batch Flow concept in Caskada by implementing an image processor that applies different filters to multiple images.
 
 ## What this Example Demonstrates
 

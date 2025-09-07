@@ -34,7 +34,7 @@
   </a>
 </p>
 
-BrainyFlow es un marco que permite la *programación de agentes* mediante abstracciones poderosas.
+Caskada es un marco que permite la *programación de agentes* mediante abstracciones poderosas.
 
 Proporciona una interfaz simple para construir aplicaciones de IA complejas basadas en *grafos dirigidos anidados* con estado compartido. Permite que tanto humanos como asistentes de IA colaboren de manera efectiva en el diseño e implementación de sistemas de IA.
 

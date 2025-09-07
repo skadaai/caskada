@@ -4,7 +4,7 @@ machine-display: false
 
 # Rate Limiting and Throttling
 
-Effective rate limiting is crucial when working with external APIs and services. This guide covers patterns for implementing throttling in BrainyFlow applications.
+Effective rate limiting is crucial when working with external APIs and services. This guide covers patterns for implementing throttling in Caskada applications.
 
 This is particularly important when:
 
@@ -335,7 +335,7 @@ async function callApi() {
 4. **Cache Responses**: Cache frequent identical requests to reduce API calls
 5. **Batch Requests**: Combine multiple requests into single API calls when possible
 
-## Integration with BrainyFlow
+## Integration with Caskada
 
 ### Throttled LLM Node
 

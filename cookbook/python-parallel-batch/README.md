@@ -4,7 +4,7 @@ complexity: 8
 
 # Parallel Batch Translation Process
 
-This project demonstrates using BrainyFlow's async and parallel features (`ParallelFlow`, `Node`) to translate a document into multiple languages concurrently.
+This project demonstrates using Caskada's async and parallel features (`ParallelFlow`, `Node`) to translate a document into multiple languages concurrently.
 
 - Check out the [Substack Post Tutorial](https://brainyflow.substack.com/p/parallel-llm-calls-from-scratch-tutorial) for more!
 

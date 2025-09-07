@@ -4,7 +4,7 @@
 
 *   **Goal:** Create a web service for task submission, processing, human review (Approve/Reject loop via UI), and finalization.
 *   **Interface:** Simple web UI (HTML/JS) for input, status display, and feedback buttons.
-*   **Backend:** FastAPI using BrainyFlow for workflow management.
+*   **Backend:** FastAPI using Caskada for workflow management.
 *   **Real-time Updates:** Use Server-Sent Events (SSE) to push status changes (pending, running, waiting_for_review, completed, failed) and intermediate results to the client without page reloads.
 *   **State:** Use in-memory storage for task state (Warning: Not suitable for production).
 
@@ -23,7 +23,7 @@
     *   `final_result`: The approved output.
     *   `current_attempt`: Tracks reprocessing count.
     *   `task_id`: Unique identifier for the task.
-*   **SSE Communication:** An `asyncio.Queue` (stored alongside the `shared` store in the server's global `tasks` dict, *not directly in BrainyFlow's shared store*) is used per task. Nodes (or wrapper code) put status updates onto this queue. The `/stream` endpoint reads from the queue and sends SSE messages.
+*   **SSE Communication:** An `asyncio.Queue` (stored alongside the `shared` store in the server's global `tasks` dict, *not directly in Caskada's shared store*) is used per task. Nodes (or wrapper code) put status updates onto this queue. The `/stream` endpoint reads from the queue and sends SSE messages.
 *   **Mermaid Diagram:**
 
 ```mermaid

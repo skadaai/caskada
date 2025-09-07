@@ -1,6 +1,6 @@
 # MapReduce Design Pattern
 
-The MapReduce pattern is a powerful way to process large datasets by breaking down a complex task into two main phases: **Map** (processing individual items) and **Reduce** (aggregating results). BrainyFlow provides the perfect abstractions to implement this pattern efficiently, especially with its `ParallelFlow` for concurrent mapping.
+The MapReduce pattern is a powerful way to process large datasets by breaking down a complex task into two main phases: **Map** (processing individual items) and **Reduce** (aggregating results). Caskada provides the perfect abstractions to implement this pattern efficiently, especially with its `ParallelFlow` for concurrent mapping.
 
 <div align="center">
   <img src="https://github.com/skadaai/caskada/raw/main/.github/media/mapreduce.png?raw=true" width="400"/>
@@ -320,4 +320,4 @@ main().catch(console.error)
 {% endtab %}
 {% endtabs %}
 
-This example demonstrates how to implement a MapReduce pattern using BrainyFlow, leveraging `ParallelFlow` for concurrent processing of the map phase and the `Memory` object for collecting results before the reduce phase.
+This example demonstrates how to implement a MapReduce pattern using Caskada, leveraging `ParallelFlow` for concurrent processing of the map phase and the `Memory` object for collecting results before the reduce phase.

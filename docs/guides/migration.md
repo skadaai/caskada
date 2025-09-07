@@ -2,9 +2,9 @@
 machine-display: false
 ---
 
-# Migrating Between BrainyFlow Versions
+# Migrating Between Caskada Versions
 
-This guide helps you update your BrainyFlow applications when migrating from older versions to newer ones. We strive for backward compatibility, but major refactors sometimes introduce breaking changes for significant improvements.
+This guide helps you update your Caskada applications when migrating from older versions to newer ones. We strive for backward compatibility, but major refactors sometimes introduce breaking changes for significant improvements.
 
 ## General Advice
 

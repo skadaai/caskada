@@ -4,13 +4,13 @@ complexity: 3.5
 
 # Simple Chat
 
-A basic chat application using BrainyFlow with OpenAI's GPT-4o model.
+A basic chat application using Caskada with OpenAI's GPT-4o model.
 
 ## Features
 
 - Conversational chat interface in the terminal
 - Maintains full conversation history for context
-- Simple implementation demonstrating BrainyFlow's node and flow concepts
+- Simple implementation demonstrating Caskada's node and flow concepts
 
 ## Run It
 

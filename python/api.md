@@ -1,4 +1,4 @@
-# BrainyFlow Python API Reference
+# Caskada Python API Reference
 
 This document lists the classes and methods available in the `brainyflow.py` module.
 

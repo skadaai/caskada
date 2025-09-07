@@ -89,4 +89,4 @@
   - **`.envrc`**: Added `dotenv_if_exists`.
   - **`.gitignore`**: Added `python/README.md` (if it's auto-generated and shouldn't be committed).
 
-  This release significantly modernizes the Python BrainyFlow library, especially its state management capabilities and execution tracking, while enhancing type safety and the overall development experience.
+  This release significantly modernizes the Python Caskada library, especially its state management capabilities and execution tracking, while enhancing type safety and the overall development experience.

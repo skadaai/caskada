@@ -6,7 +6,7 @@ machine-display: false
 
 {% hint style="warning" %}
 
-**BrainyFlow does NOT provide built-in utilities**
+**Caskada does NOT provide built-in utilities**
 
 Instead, we offer examples that you can implement yourself. This approach gives you [more flexibility and control](./index.md#why-not-built-in) over your project's dependencies and functionality.
 
@@ -738,7 +738,7 @@ def create_milvus_collection_if_not_exists(collection_name: str, dimension: int)
             FieldSchema(name="pk", dtype=DataType.INT64, is_primary=True, auto_id=True), # Auto-incrementing ID
             FieldSchema(name="embeddings", dtype=DataType.FLOAT_VECTOR, dim=dimension)
         ]
-        schema = CollectionSchema(fields, description="BrainyFlow Milvus Demo")
+        schema = CollectionSchema(fields, description="Caskada Milvus Demo")
         collection = Collection(name=collection_name, schema=schema, using=alias)
         print(f"Collection '{collection_name}' created.")
         # Create an index for the embedding field for efficient search

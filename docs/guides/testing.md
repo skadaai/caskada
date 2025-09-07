@@ -2,13 +2,13 @@
 machine-display: false
 ---
 
-# Testing and Debugging BrainyFlow Applications
+# Testing and Debugging Caskada Applications
 
 Effective testing and debugging are essential for building reliable applications. This guide covers strategies for testing and debugging complex flows, and monitoring applications in production.
 
 ## Testing Approaches
 
-BrainyFlow supports multiple testing approaches to ensure your applications work correctly:
+Caskada supports multiple testing approaches to ensure your applications work correctly:
 
 ### Unit Testing (Nodes)
 
@@ -763,7 +763,7 @@ describe('Flow Path Testing', () => {
 2. **Test Flows as Integration Tests**: Ensure nodes work together as expected
 3. **Mock External Dependencies**: Use mocks for LLMs, APIs, and databases to ensure consistent testing
 4. **Test Error Handling**: Explicitly test how your application handles failures
-5. **Automate Tests**: Include BrainyFlow tests in your CI/CD pipeline
+5. **Automate Tests**: Include Caskada tests in your CI/CD pipeline
 
 ### Debugging Best Practices
 
@@ -782,4 +782,4 @@ describe('Flow Path Testing', () => {
 5. **Log Judiciously**: Log important events without overwhelming storage
 6. **Implement Distributed Tracing**: Use tracing for complex, distributed applications
 
-By applying these testing techniques, you can ensure your BrainyFlow applications are reliable and maintainable.
+By applying these testing techniques, you can ensure your Caskada applications are reliable and maintainable.

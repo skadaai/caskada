@@ -4,7 +4,7 @@ complexity: 7
 
 # Travel Advisor Chat with Guardrails
 
-A travel-focused chat application using BrainyFlow with OpenAI's GPT-4o model, enhanced with input validation to ensure only travel-related queries are processed.
+A travel-focused chat application using Caskada with OpenAI's GPT-4o model, enhanced with input validation to ensure only travel-related queries are processed.
 
 ## Features
 

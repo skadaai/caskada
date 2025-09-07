@@ -1,6 +1,6 @@
 # Node: The Basic Unit of Work
 
-In BrainyFlow, a **Node** is the fundamental building block of any application. It represents a discrete, self-contained unit of work within a larger flow. Nodes are designed to be reusable, testable, and fault-tolerant.
+In Caskada, a **Node** is the fundamental building block of any application. It represents a discrete, self-contained unit of work within a larger flow. Nodes are designed to be reusable, testable, and fault-tolerant.
 
 ## Node Lifecycle
 

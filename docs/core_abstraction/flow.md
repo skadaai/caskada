@@ -301,7 +301,7 @@ Besides being capable of triggering actions like any other `Node`, a `Flow` also
 These terms can often be used interchangeably, with a subtle distinction:
 
 - **Leaf Node (Graph Theory Term):** A leaf node is a node with no children (no outgoing edges).
-- **Terminal Node (in BrainyFlow context):** A node that, for a _specific triggered action_, has no defined successor _within the current Flow_.
+- **Terminal Node (in Caskada context):** A node that, for a _specific triggered action_, has no defined successor _within the current Flow_.
 
 Thus,
 
@@ -407,7 +407,7 @@ class CustomExecutionFlow<GS extends Record<string, any>> extends Flow<GS> {
 
 ## Batch Processing (Fan-Out Pattern)
 
-The standard way to process multiple items (sequentially or in parallel) in BrainyFlow is using the "fan-out" pattern. This involves a node that triggers multiple instances of processing for individual items.
+The standard way to process multiple items (sequentially or in parallel) in Caskada is using the "fan-out" pattern. This involves a node that triggers multiple instances of processing for individual items.
 
 1.  **Trigger Node**:
     - A standard `Node` whose `post` method iterates through your items.

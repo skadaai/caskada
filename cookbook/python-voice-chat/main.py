@@ -2,8 +2,8 @@ import asyncio
 from flow import create_voice_chat_flow
 
 async def main():
-    """Runs the BrainyFlow Voice Chat application."""
-    print("Starting BrainyFlow Voice Chat...")
+    """Runs the Caskada Voice Chat application."""
+    print("Starting Caskada Voice Chat...")
     print("Speak your query after 'Listening for your query...' appears.")
     print("The conversation will continue until an error occurs or the loop is intentionally stopped.")
     print("To attempt to stop, you might need to cause an error (e.g., silence during capture if not handled by VAD to end gracefully) or modify shared[\"continue_conversation\"] if a mechanism is added.")

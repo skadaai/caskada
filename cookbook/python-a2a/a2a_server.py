@@ -7,7 +7,7 @@ from common.server import A2AServer
 from common.types import AgentCard, AgentCapabilities, AgentSkill, MissingAPIKeyError
 
 # Import your custom TaskManager (which now imports from your original files)
-from task_manager import BrainyFlowTaskManager
+from task_manager import CaskadaTaskManager
 
 # --- Configure logging ---
 # Set level to INFO to see server start, requests, responses
@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 @click.option("--host", "host", default="localhost")
 @click.option("--port", "port", default=10003) # Use a different port from other agents
 def main(host, port):
-    """Starts the BrainyFlow A2A Agent server."""
+    """Starts the Caskada A2A Agent server."""
     try:
         # Check for necessary API keys (add others if needed)
         if not os.getenv("OPENAI_API_KEY"):
@@ -37,7 +37,7 @@ def main(host, port):
         capabilities = AgentCapabilities(
             streaming=False, # This simple implementation is synchronous
             pushNotifications=False,
-            stateTransitionHistory=False # BrainyFlow state isn't exposed via A2A history
+            stateTransitionHistory=False # Caskada state isn't exposed via A2A history
         )
         skill = AgentSkill(
             id="web_research_qa",
@@ -50,12 +50,12 @@ def main(host, port):
                 "Summarize the latest news about AI.",
             ],
             # Input/Output modes defined in the TaskManager
-            inputModes=BrainyFlowTaskManager.SUPPORTED_CONTENT_TYPES,
-            outputModes=BrainyFlowTaskManager.SUPPORTED_CONTENT_TYPES,
+            inputModes=CaskadaTaskManager.SUPPORTED_CONTENT_TYPES,
+            outputModes=CaskadaTaskManager.SUPPORTED_CONTENT_TYPES,
         )
         agent_card = AgentCard(
-            name="BrainyFlow Research Agent (A2A Wrapped)",
-            description="A simple research agent based on BrainyFlow, made accessible via A2A.",
+            name="Caskada Research Agent (A2A Wrapped)",
+            description="A simple research agent based on Caskada, made accessible via A2A.",
             url=f"http://{host}:{port}/", # The endpoint A2A clients will use
             version="0.1.0-a2a",
             capabilities=capabilities,
@@ -63,12 +63,12 @@ def main(host, port):
             # Assuming no specific provider or auth for this example
             provider=None,
             authentication=None,
-            defaultInputModes=BrainyFlowTaskManager.SUPPORTED_CONTENT_TYPES,
-            defaultOutputModes=BrainyFlowTaskManager.SUPPORTED_CONTENT_TYPES,
+            defaultInputModes=CaskadaTaskManager.SUPPORTED_CONTENT_TYPES,
+            defaultOutputModes=CaskadaTaskManager.SUPPORTED_CONTENT_TYPES,
         )
 
         # --- Initialize and Start Server ---
-        task_manager = BrainyFlowTaskManager() # Instantiate your custom manager
+        task_manager = CaskadaTaskManager() # Instantiate your custom manager
         server = A2AServer(
             agent_card=agent_card,
             task_manager=task_manager,
@@ -76,7 +76,7 @@ def main(host, port):
             port=port,
         )
 
-        logger.info(f"Starting BrainyFlow A2A server on http://{host}:{port}")
+        logger.info(f"Starting Caskada A2A server on http://{host}:{port}")
         server.start()
 
     except MissingAPIKeyError as e:

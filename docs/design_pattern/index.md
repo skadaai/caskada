@@ -1,6 +1,6 @@
 # Design Patterns
 
-BrainyFlow supports a variety of design patterns that enable you to build complex AI applications. These patterns leverage the core abstractions of nodes, flows, and shared store to implement common AI system architectures.
+Caskada supports a variety of design patterns that enable you to build complex AI applications. These patterns leverage the core abstractions of nodes, flows, and shared store to implement common AI system architectures.
 
 ## Overview of Design Patterns
 
@@ -8,7 +8,7 @@ BrainyFlow supports a variety of design patterns that enable you to build comple
   <img src="https://raw.githubusercontent.com/skadaai/caskada/main/.github/media/design.jpg" width="1300"/>
 </div>
 
-BrainyFlow's minimalist design allows it to support various high-level AI design paradigms:
+Caskada's minimalist design allows it to support various high-level AI design paradigms:
 
 | Pattern                             | Description                                                     | Use Cases                                       |
 | ----------------------------------- | --------------------------------------------------------------- | ----------------------------------------------- |
@@ -60,7 +60,7 @@ flowchart TD
 
 ## Pattern Composition
 
-BrainyFlow's nested flow capability allows you to compose multiple patterns. For instance:
+Caskada's nested flow capability allows you to compose multiple patterns. For instance:
 
 ```mermaid
 graph TD
@@ -89,7 +89,7 @@ Other examples include:
 
 ## Implementation Examples
 
-Each pattern can be implemented using BrainyFlow's core abstractions. Here's a simple example of the agent pattern:
+Each pattern can be implemented using Caskada's core abstractions. Here's a simple example of the agent pattern:
 
 {% tabs %}
 {% tab title="Python" %}

@@ -34,7 +34,7 @@
   </a>
 </p>
 
-BrainyFlow est un framework permettant le _Codage Agentique_ grâce à des abstractions puissantes.
+Caskada est un framework permettant le _Codage Agentique_ grâce à des abstractions puissantes.
 
 Il fournit une interface simple pour construire des applications IA complexes basées sur des _graphes orientés imbriqués_ avec un état partagé.
 Il permet aux humains et aux assistants IA de collaborer efficacement sur la conception et la mise en œuvre de systèmes IA.
@@ -81,14 +81,14 @@ Les frameworks LLM actuels sont encombrés... Vous n'avez en réalité besoin qu
 | SmolAgent                                                                                                                                                                                                      |      Agent      |   Quelques <br><sup><sub>(ex : CodeAgent, VisitWebTool)</sub></sup>   |  Quelques <br><sup><sub>(ex : DuckDuckGo, Hugging Face, etc.)</sub></sup>   |                    8K                    |                   +198MB                    |
 | LangGraph                                                                                                                                                                                                      |  Agent, Graphe  |       Quelques <br><sup><sub>(ex : Recherche Sémantique)</sub></sup>       | Quelques <br><sup><sub>(ex : PostgresStore, SqliteSaver, etc.) </sub></sup> |                   37K                    |                    +51MB                    |
 | AutoGen                                                                                                                                                                                                        |      Agent      |   Quelques <br><sup><sub>(ex : Tool Agent, Chat Agent)</sub></sup>    | Beaucoup <sup><sub>[Optionnel]<br> (ex : OpenAI, Pinecone, etc.)</sub></sup> | 7K <br><sup><sub>(core uniquement)</sub></sup> | +26MB <br><sup><sub>(core uniquement)</sub></sup> |
-| **BrainyFlow** <!-- gitbook-ignore-start --><img src="https://github.com/skadaai/caskada/raw/main/.github/media/typescript.svg" width="16" height="16" alt="Logo Typescript"><!-- gitbook-ignore-end -->.ts |    **Graphe**    |                              **Aucun**                              |                                 **Aucun**                                 |                 **300**                  |                 **quelques KB**                  |
-| **BrainyFlow** <!-- gitbook-ignore-start --><img src="https://github.com/skadaai/caskada/raw/main/.github/media/python.svg" width="16" height="16" alt="Logo Python"><!-- gitbook-ignore-end -->.py         |    **Graphe**    |                              **Aucun**                              |                                 **Aucun**                                 |                 **200**                  |                 **quelques KB**                  |
+| **Caskada** <!-- gitbook-ignore-start --><img src="https://github.com/skadaai/caskada/raw/main/.github/media/typescript.svg" width="16" height="16" alt="Logo Typescript"><!-- gitbook-ignore-end -->.ts |    **Graphe**    |                              **Aucun**                              |                                 **Aucun**                                 |                 **300**                  |                 **quelques KB**                  |
+| **Caskada** <!-- gitbook-ignore-start --><img src="https://github.com/skadaai/caskada/raw/main/.github/media/python.svg" width="16" height="16" alt="Logo Python"><!-- gitbook-ignore-end -->.py         |    **Graphe**    |                              **Aucun**                              |                                 **Aucun**                                 |                 **200**                  |                 **quelques KB**                  |
 
 </div>
 
 ![](https://raw.githubusercontent.com/skadaai/caskada/master/.github/media/divider.png)
 
-## Comment fonctionne BrainyFlow ?
+## Comment fonctionne Caskada ?
 
 Le fichier unique en <a href="https://github.com/skadaai/caskada/blob/main/python/brainyflow.py"><!-- gitbook-ignore-start --><img src="https://github.com/skadaai/caskada/raw/main/.github/media/python.svg" width="16" height="16" alt="Logo Python" style="vertical-align: middle; margin: 0 2px;"> <!-- gitbook-ignore-end -->Python</a> ou <a href="https://github.com/skadaai/caskada/blob/main/typescript/brainyflow.ts"><!-- gitbook-ignore-start --><img src="https://github.com/skadaai/caskada/raw/main/.github/media/typescript.svg" width="16" height="16" alt="Logo Typescript" style="vertical-align: middle; margin: 0 2px;"> <!-- gitbook-ignore-end -->Typescript</a> capture l'abstraction centrale des frameworks LLM : le Graphe !
 <br>
@@ -157,11 +157,11 @@ Et bien d'autres disponibles pour tous les niveaux ! [Découvrez-les tous !](htt
 
 ## Démarrage Rapide
 
-Nouveau sur BrainyFlow ? Consultez notre guide [Démarrage Rapide](https://brainy.gitbook.io/flow/introduction/getting_started) pour construire votre premier flow en un rien de temps.
+Nouveau sur Caskada ? Consultez notre guide [Démarrage Rapide](https://brainy.gitbook.io/flow/introduction/getting_started) pour construire votre premier flow en un rien de temps.
 
 ## Prêt à Construire des Applications Auto-Codantes ?
 
-Consultez le [Guide de Codage Agentique](https://brainy.gitbook.io/flow/guides/agentic_coding), la manière la plus rapide de développer des projets LLM auto-codants avec BrainyFlow !
+Consultez le [Guide de Codage Agentique](https://brainy.gitbook.io/flow/guides/agentic_coding), la manière la plus rapide de développer des projets LLM auto-codants avec Caskada !
 
 ![](https://raw.githubusercontent.com/skadaai/caskada/master/.github/media/divider.png)
 
@@ -171,7 +171,7 @@ Nous tenons à exprimer notre profonde gratitude aux créateurs et contributeurs
 
 ## Clause de Non-Responsabilité
 
-BrainyFlow est fourni "tel quel" sans aucune garantie.  
+Caskada est fourni "tel quel" sans aucune garantie.  
 Nous ne sommes pas responsables de l'utilisation qui est faite des sorties générées, y compris mais sans s'y limiter, leur exactitude, leur légalité ou toute conséquence potentielle découlant de leur utilisation.
 
 ## Sponsors
@@ -180,7 +180,7 @@ Nous ne sommes pas responsables de l'utilisation qui est faite des sorties gén�
   <a style="color: inherit" href="https://github.com/sponsors/zvictor?utm_source=brainyflow&utm_medium=sponsorship&utm_campaign=brainyflow&utm_id=brainyflow">
     <img width="150" src="https://cdn.jsdelivr.net/gh/skadaai/caskada@main/.github/media/brain.png" alt="Logo de Brainyflow" />
   </a><br /><br />
-  BrainyFlow fonctionne avec 200 lignes de code et votre générosité ! 💰<br />
+  Caskada fonctionne avec 200 lignes de code et votre générosité ! 💰<br />
     <a style="color: inherit" href="https://github.com/sponsors/zvictor?utm_source=brainyflow&utm_medium=sponsorship&utm_campaign=brainyflow&utm_id=brainyflow">
       Aidez-nous à fournir plus d'IA avec moins de code (mais peut-être plus de caféine)
     </a> ☕<br /><br />

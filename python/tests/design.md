@@ -1,4 +1,4 @@
-# BrainyFlow Python Test Plan
+# Caskada Python Test Plan
 
 This document outlines the testing strategy for the Python port of the `brainyflow` library, ensuring parity with the TypeScript implementation.
 
@@ -7,7 +7,7 @@ This document outlines the testing strategy for the Python port of the `brainyfl
 - Ensure the Python implementation maintains complete feature parity with the TypeScript implementation
 - Verify core abstractions (`Memory`, `BaseNode`, `Node`, `Flow`, `ParallelFlow`) function identically to their TypeScript counterparts
 - Validate state management, flow control, error handling, and composition work as expected
-- Guarantee compatibility between Python and TypeScript versions of BrainyFlow
+- Guarantee compatibility between Python and TypeScript versions of Caskada
 - Provide a comprehensive test suite that developers can use to verify changes
 
 ## 2. Testing Framework
@@ -117,7 +117,7 @@ This document outlines the testing strategy for the Python port of the `brainyfl
 
 ## 4. Test Structure
 
-The test suite will be organized into modules corresponding to the main components of BrainyFlow:
+The test suite will be organized into modules corresponding to the main components of Caskada:
 
 ```
 python/tests/

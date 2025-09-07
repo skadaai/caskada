@@ -9,7 +9,7 @@ A simple command-line chat interface for interacting with OpenAI models using No
 ### Step and Usage
 
 ```bash
-# from BrainyFlow root directory
+# from Caskada root directory
 cd cookbook/typescript-chat
 
 cp .env.example .env # add your API key

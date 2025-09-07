@@ -14,13 +14,13 @@ from common.types import (
 )
 import common.server.utils as server_utils
 
-# Import directly from your original BrainyFlow files
+# Import directly from your original Caskada files
 from flow import create_agent_flow
 
 logger = logging.getLogger(__name__)
 
-class BrainyFlowTaskManager(InMemoryTaskManager):
-    """ TaskManager implementation that runs the BrainyFlow agent. """
+class CaskadaTaskManager(InMemoryTaskManager):
+    """ TaskManager implementation that runs the Caskada agent. """
 
     SUPPORTED_CONTENT_TYPES = ["text", "text/plain"] # Define what the agent accepts/outputs
 
@@ -45,7 +45,7 @@ class BrainyFlowTaskManager(InMemoryTaskManager):
         await self.update_store(request.params.id, TaskStatus(state=TaskState.WORKING), [])
 
 
-        # --- Run the BrainyFlow logic ---
+        # --- Run the Caskada logic ---
         task_params: TaskSendParams = request.params
         query = self._get_user_query(task_params)
         if query is None:
@@ -57,13 +57,13 @@ class BrainyFlowTaskManager(InMemoryTaskManager):
         agent_flow = create_agent_flow() # Create the flow instance
 
         try:
-            # Run the synchronous BrainyFlow
+            # Run the synchronous Caskada
             # In a real async server, you might run this in a separate thread/process
             # executor to avoid blocking the event loop. For simplicity here, we run it directly.
             # Consider adding a timeout if flows can hang.
-            logger.info(f"Running BrainyFlow for task {task_params.id}...")
+            logger.info(f"Running Caskada for task {task_params.id}...")
             await agent_flow.run(shared_data) # Run the flow, modifying shared_data in place
-            logger.info(f"BrainyFlow completed for task {task_params.id}")
+            logger.info(f"Caskada completed for task {task_params.id}")
             # Access the original shared_data dictionary, which was modified by the flow
             answer_text = shared_data.get("answer", "Agent did not produce a final answer text.")
 
@@ -82,7 +82,7 @@ class BrainyFlowTaskManager(InMemoryTaskManager):
             return SendTaskResponse(id=request.id, result=task_result)
 
         except Exception as e:
-            logger.error(f"Error executing BrainyFlow for task {task_params.id}: {e}", exc_info=True)
+            logger.error(f"Error executing Caskada for task {task_params.id}: {e}", exc_info=True)
             # Update task state to FAILED
             fail_status = TaskStatus(
                 state=TaskState.FAILED,
@@ -95,7 +95,7 @@ class BrainyFlowTaskManager(InMemoryTaskManager):
         self, request: SendTaskStreamingRequest
     ) -> Union[AsyncIterable[SendTaskStreamingResponse], JSONRPCResponse]:
         """Handles streaming requests - Not implemented for this synchronous agent."""
-        logger.warning(f"Streaming requested for task {request.params.id}, but not supported by this BrainyFlow agent implementation.")
+        logger.warning(f"Streaming requested for task {request.params.id}, but not supported by this Caskada agent implementation.")
         # Return an error indicating streaming is not supported
         return JSONRPCResponse(id=request.id, error=UnsupportedOperationError(message="Streaming not supported by this agent"))
 

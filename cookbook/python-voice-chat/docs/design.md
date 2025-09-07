@@ -1,4 +1,4 @@
-# Design Doc: BrainyFlow Voice Chat
+# Design Doc: Caskada Voice Chat
 
 > Please DON'T remove notes for AI
 

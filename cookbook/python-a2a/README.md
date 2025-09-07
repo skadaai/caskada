@@ -4,7 +4,7 @@ complexity: 20.5
 
 # Agent-to-Agent with A2A Protocol
 
-This project demonstrates how to take an existing agent built with the BrainyFlow library and make it accessible to other agents using the **Agent-to-Agent (A2A) communication protocol**.
+This project demonstrates how to take an existing agent built with the Caskada library and make it accessible to other agents using the **Agent-to-Agent (A2A) communication protocol**.
 
 This implementation is based on this tutorial for Pocketflow: [A2A Protocol Simply Explained: Here are 3 key differences to MCP!](https://zacharyhuang.substack.com/p/a2a-protocol-simply-explained-here)
 
@@ -12,9 +12,9 @@ This implementation is based on this tutorial for Pocketflow: [A2A Protocol Simp
 
 This project combines two main parts:
 
-1.  **BrainyFlow Agent Logic:** The original agent code ([`nodes.py`](nodes.py), [`utils.py`](utils.py), [`flow.py`](flow.py)) defines the internal workflow (Decide -> Search -> Answer). This code is taken directly from the [BrainyFlow Agent Tutorial](https://github.com/skadaai/caskada/tree/main/cookbook/python-agent).
+1.  **Caskada Agent Logic:** The original agent code ([`nodes.py`](nodes.py), [`utils.py`](utils.py), [`flow.py`](flow.py)) defines the internal workflow (Decide -> Search -> Answer). This code is taken directly from the [Caskada Agent Tutorial](https://github.com/skadaai/caskada/tree/main/cookbook/python-agent).
 2.  **A2A Server Wrapper:** Code from the [google/A2A samples repository](https://github.com/google/A2A/tree/main/samples/python) (`common/` directory) provides the necessary infrastructure to host the agent as an A2A-compliant server. _Note: Minor modifications were made to the common server/client code to add detailed logging for educational purposes._
-3.  **The Bridge ([`task_manager.py`](task_manager.py)):** A custom `BrainyFlowTaskManager` class acts as the bridge. It receives A2A requests (like `tasks/send`), extracts the user query, runs the BrainyFlow `agent_flow`, takes the final result from the flow's shared state, and packages it back into an A2A `Task` object with the answer as an `Artifact`.
+3.  **The Bridge ([`task_manager.py`](task_manager.py)):** A custom `CaskadaTaskManager` class acts as the bridge. It receives A2A requests (like `tasks/send`), extracts the user query, runs the Caskada `agent_flow`, takes the final result from the flow's shared state, and packages it back into an A2A `Task` object with the answer as an `Artifact`.
 
 This demonstrates how a non-A2A agent framework can be exposed over the A2A protocol by implementing a specific `TaskManager`.
 
@@ -27,7 +27,7 @@ sequenceDiagram
 
     Note over Client: User enters question
     Client->>+Server: POST / (JSON-RPC Request: tasks/send)
-    Note over Server: Processes request internally (runs BrainyFlow)
+    Note over Server: Processes request internally (runs Caskada)
     Server-->>-Client: HTTP 200 OK (JSON-RPC Response: result=Task)
     Note over Client: Displays final answer
 ```
@@ -77,10 +77,10 @@ sequenceDiagram
 
 ## Example Interaction Logs
 
-**(Server Log - showing internal BrainyFlow steps)**
+**(Server Log - showing internal Caskada steps)**
 
 ```
-2025-04-12 17:20:40,893 - __main__ - INFO - Starting BrainyFlow A2A server on http://localhost:10003
+2025-04-12 17:20:40,893 - __main__ - INFO - Starting Caskada A2A server on http://localhost:10003
 INFO:     Started server process [677223]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
@@ -110,7 +110,7 @@ INFO:     Uvicorn running on http://localhost:10003 (Press CTRL+C to quit)
 }
 2025-04-12 17:20:57,647 - task_manager - INFO - Received task send request: 46c3ce7b941a4fff9b8e3b644d6db5f4
 2025-04-12 17:20:57,647 - common.server.task_manager - INFO - Upserting task 46c3ce7b941a4fff9b8e3b644d6db5f4
-2025-04-12 17:20:57,647 - task_manager - INFO - Running BrainyFlow for task 46c3ce7b941a4fff9b8e3b644d6db5f4...
+2025-04-12 17:20:57,647 - task_manager - INFO - Running Caskada for task 46c3ce7b941a4fff9b8e3b644d6db5f4...
 🤔 Agent deciding what to do next...
 2025-04-12 17:20:59,213 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
 🔍 Agent decided to search for: 2024 Nobel Prize in Physics winner
@@ -123,7 +123,7 @@ INFO:     Uvicorn running on http://localhost:10003 (Press CTRL+C to quit)
 ✍️ Crafting final answer...
 2025-04-12 17:21:03,833 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
 ✅ Answer generated successfully
-2025-04-12 17:21:03,834 - task_manager - INFO - BrainyFlow completed for task 46c3ce7b941a4fff9b8e3b644d6db5f4
+2025-04-12 17:21:03,834 - task_manager - INFO - Caskada completed for task 46c3ce7b941a4fff9b8e3b644d6db5f4
 2025-04-12 17:21:03,834 - A2AServer - INFO - -> Response (ID: d3f3fb93350d47d9a94ca12bb62b656b):
 {
   "jsonrpc": "2.0",
@@ -217,18 +217,18 @@ The 2024 Nobel Prize in Physics was awarded to John J. Hopfield and Geoffrey Hin
 
 ## Key A2A Integration Points
 
-To make the BrainyFlow agent A2A-compatible, the following were essential:
+To make the Caskada agent A2A-compatible, the following were essential:
 
 1.  **A2A Server ([`common/server/server.py`](common/server/server.py)):** An ASGI application (using Starlette/Uvicorn) that listens for HTTP POST requests, parses JSON-RPC, and routes requests based on the `method` field.
 2.  **A2A Data Types ([`common/types.py`](common/types.py)):** Pydantic models defining the structure of A2A messages, tasks, artifacts, errors, and the agent card, ensuring compliance with the `a2a.json` specification.
-3.  **Task Manager ([`task_manager.py`](task_manager.py)):** A custom class (`BrainyFlowTaskManager`) inheriting from the common `InMemoryTaskManager`. Its primary role is implementing the `on_send_task` method (and potentially others like `on_send_task_subscribe` if streaming were supported). This method:
+3.  **Task Manager ([`task_manager.py`](task_manager.py)):** A custom class (`CaskadaTaskManager`) inheriting from the common `InMemoryTaskManager`. Its primary role is implementing the `on_send_task` method (and potentially others like `on_send_task_subscribe` if streaming were supported). This method:
     - Receives the validated A2A `SendTaskRequest`.
     - Extracts the user's query (`TextPart`) from the request's `message`.
-    - Initializes the BrainyFlow `shared_data` dictionary.
-    - Creates and runs the BrainyFlow `agent_flow`.
+    - Initializes the Caskada `shared_data` dictionary.
+    - Creates and runs the Caskada `agent_flow`.
     - Retrieves the final answer from the `shared_data` dictionary _after_ the flow completes.
     - Updates the task's state (e.g., to `COMPLETED` or `FAILED`) in the `InMemoryTaskManager`'s store.
     - Packages the final answer into an A2A `Artifact` containing a `TextPart`.
     - Constructs the final A2A `Task` object for the response.
 4.  **Agent Card ([`a2a_server.py`](a2a_server.py)):** A Pydantic model (`AgentCard`) defining the agent's metadata (name, description, URL, capabilities, skills) served at `/.well-known/agent.json`.
-5.  **Server Entry Point ([`a2a_server.py`](a2a_server.py)):** A script that initializes the `AgentCard`, the `BrainyFlowTaskManager`, and the `A2AServer`, then starts the Uvicorn server process.
+5.  **Server Entry Point ([`a2a_server.py`](a2a_server.py)):** A script that initializes the `AgentCard`, the `CaskadaTaskManager`, and the `A2AServer`, then starts the Uvicorn server process.

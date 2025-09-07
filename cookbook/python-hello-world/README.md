@@ -2,9 +2,9 @@
 complexity: 2.5
 ---
 
-# BrainyFlow Hello World
+# Caskada Hello World
 
-Your first BrainyFlow application! This simple example demonstrates how to create a basic BrainyFlow app from scratch.
+Your first Caskada application! This simple example demonstrates how to create a basic Caskada app from scratch.
 
 ## Project Structure
 
@@ -12,7 +12,7 @@ Your first BrainyFlow application! This simple example demonstrates how to creat
 .
 ├── docs/          # Documentation files
 ├── utils/         # Utility functions
-├── flow.py        # BrainyFlow implementation
+├── flow.py        # Caskada implementation
 ├── main.py        # Main application entry point
 └── README.md      # Project documentation
 ```
@@ -40,10 +40,10 @@ python main.py
 
 ## What This Example Demonstrates
 
-- How to create your first BrainyFlow application
-- Basic BrainyFlow concepts and usage
-- Simple example of BrainyFlow's capabilities
+- How to create your first Caskada application
+- Basic Caskada concepts and usage
+- Simple example of Caskada's capabilities
 
 ## Additional Resources
 
-- [BrainyFlow Documentation](https://brainy.gitbook.io/flow/)
+- [Caskada Documentation](https://brainy.gitbook.io/flow/)

@@ -4,7 +4,7 @@ complexity: 6
 
 # Web Search with Analysis
 
-A web search tool built with BrainyFlow that performs searches using SerpAPI and analyzes results using LLM.
+A web search tool built with Caskada that performs searches using SerpAPI and analyzes results using LLM.
 
 ## Features
 
@@ -57,7 +57,7 @@ python-tool-search/
 │   └── parser.py      # Result analysis using LLM
 ├── utils/
 │   └── call_llm.py    # LLM API wrapper
-├── nodes.py           # BrainyFlow nodes
+├── nodes.py           # Caskada nodes
 ├── flow.py           # Flow configuration
 ├── main.py           # Main script
 └── requirements.txt   # Dependencies

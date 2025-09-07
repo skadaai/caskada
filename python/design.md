@@ -1,10 +1,10 @@
-# BrainyFlow Python Library Design
+# Caskada Python Library Design
 
-This document outlines the design of the BrainyFlow Python library, a framework for building and executing computational graphs, particularly suited for asynchronous workflows like AI agent interactions or complex data processing pipelines.
+This document outlines the design of the Caskada Python library, a framework for building and executing computational graphs, particularly suited for asynchronous workflows like AI agent interactions or complex data processing pipelines.
 
 ## Core Concepts
 
-BrainyFlow is built around the concepts of Nodes, Flows, and Memory management.
+Caskada is built around the concepts of Nodes, Flows, and Memory management.
 
 - **Nodes:** Represent individual units of computation or logic within the graph.
 - **Flows:** Orchestrate the execution sequence of connected nodes.

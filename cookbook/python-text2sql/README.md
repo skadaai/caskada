@@ -4,7 +4,7 @@ complexity: 12
 
 # Text-to-SQL Workflow
 
-A BrainyFlow example demonstrating a text-to-SQL workflow that converts natural language questions into executable SQL queries for an SQLite database, including an LLM-powered debugging loop for failed queries.
+A Caskada example demonstrating a text-to-SQL workflow that converts natural language questions into executable SQL queries for an SQLite database, including an LLM-powered debugging loop for failed queries.
 
 - Check out the [Substack Post Tutorial](https://zacharyhuang.substack.com/p/text-to-sql-from-scratch-tutorial) (for Pocketflow) for more!
 
@@ -93,7 +93,7 @@ graph LR
 ## Files
 
 - [`main.py`](./main.py): Main entry point to run the workflow. Handles command-line arguments for the query.
-- [`flow.py`](./flow.py): Defines the BrainyFlow `Flow` connecting the different nodes, including the debug loop logic.
+- [`flow.py`](./flow.py): Defines the Caskada `Flow` connecting the different nodes, including the debug loop logic.
 - [`nodes.py`](./nodes.py): Contains the `Node` classes for each step (`GetSchema`, `GenerateSQL`, `ExecuteSQL`, `DebugSQL`).
 - [`utils.py`](./utils.py): Contains the minimal `call_llm` utility function.
 - [`populate_db.py`](./populate_db.py): Script to create and populate the sample `ecommerce.db` SQLite database.

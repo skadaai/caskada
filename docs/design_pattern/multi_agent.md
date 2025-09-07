@@ -4,7 +4,7 @@ machine-display: false
 
 # Multi-Agent Systems
 
-Multi-agent systems involve multiple autonomous agents (or sub-flows) that interact and collaborate to achieve a common goal. BrainyFlow's modularity and flexible communication mechanisms make it well-suited for building such systems.
+Multi-agent systems involve multiple autonomous agents (or sub-flows) that interact and collaborate to achieve a common goal. Caskada's modularity and flexible communication mechanisms make it well-suited for building such systems.
 
 {% hint style="success" %}
 Most of time, you don't need Multi-Agents. Start with a simple solution first.

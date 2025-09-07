@@ -1,4 +1,4 @@
-# BrainyFlow TypeScript API Reference
+# Caskada TypeScript API Reference
 
 This document lists the classes, methods, types, and constants available in the `brainyflow.ts` module.
 

@@ -1,4 +1,4 @@
-# Agentic Coding with BrainyFlow
+# Agentic Coding with Caskada
 
 <details>
 
@@ -21,7 +21,7 @@ Use the design document as your single source of truth. Never proceed to code wi
 
 In the context of Human-AI Co-Design, agentic coding involves humans providing high-level guidance while AI agents handle implementation details:
 It represents a powerful approach to software development where humans are freed up to focus solely in strategic decisions.
-This guide will help you create effective design documents that enable successful BrainyFlow implementations.
+This guide will help you create effective design documents that enable successful Caskada implementations.
 
 ## The AI Implementation Brief
 
@@ -60,7 +60,7 @@ team review contracts 70% faster.
 
 ### 2. Flow Design
 
-Outline the high-level architecture using BrainyFlow's nested directed graph abstraction:
+Outline the high-level architecture using Caskada's nested directed graph abstraction:
 
 - **Flow Diagram**: Create a mermaid diagram showing node connections
 - **Processing Stages**: Describe each major stage in the flow
@@ -163,7 +163,7 @@ memory_conceptual = {
     "storage_id": ""                     # str
 }
 
-# Note: In BrainyFlow, you typically access these directly, e.g.,
+# Note: In Caskada, you typically access these directly, e.g.,
 # memory.document_text = "..."
 # entities = memory.entities
 # This conceptual breakdown helps in planning the data flow.
@@ -197,7 +197,7 @@ interface OutputStore {
 // Combine interfaces for the complete global store (if using nested structure conceptually)
 interface GlobalStore extends InputStore, ProcessingStore, OutputStore {}
 
-// Or define a flat global store interface (more common in BrainyFlow usage)
+// Or define a flat global store interface (more common in Caskada usage)
 interface FlatGlobalStore {
   document_path?: string
   document_text?: string
@@ -225,7 +225,7 @@ const memoryConceptual: FlatGlobalStore = {
   storage_id: '',
 }
 
-// Note: In BrainyFlow, you'd typically pass an object conforming to
+// Note: In Caskada, you'd typically pass an object conforming to
 // FlatGlobalStore (or a relevant subset) to flow.run() and access
 // properties directly, e.g., memory.document_text = "...", const entities = memory.entities;
 ```
@@ -301,7 +301,7 @@ Be sure you **always** strictly follow these instructions:
 
 ## Conclusion: Precision Through Structure
 
-This approach ensures all BrainyFlow solutions maintain:
+This approach ensures all Caskada solutions maintain:
 
 - **Human Focus:** Strategic requirements and validation
 
@@ -311,6 +311,6 @@ This approach ensures all BrainyFlow solutions maintain:
 
 By enforcing these four pillars through adaptive dialogue rather than rigid templates, we achieve flexible yet reliable AI system development. The design document becomes a living contract between human intent and AI execution.
 
-You provide your AI assistant with the clear direction needed to implement an effective BrainyFlow solution while maintaining human oversight of the critical design decisions.
+You provide your AI assistant with the clear direction needed to implement an effective Caskada solution while maintaining human oversight of the critical design decisions.
 
 Remember: The quality of your design document directly impacts the quality of the implementation. Invest time in creating a comprehensive brief to ensure successful outcomes.

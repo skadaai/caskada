@@ -139,7 +139,7 @@ jobs:
           tag_name: python-v${{ steps.version.outputs.new_version }}
           release_name: Python Package v${{ steps.version.outputs.new_version }}
           body: |
-            ## BrainyFlow Python Package v${{ steps.version.outputs.new_version }}
+            ## Caskada Python Package v${{ steps.version.outputs.new_version }}
 
             ${{ steps.changelog_text.outputs.changelog }}
 

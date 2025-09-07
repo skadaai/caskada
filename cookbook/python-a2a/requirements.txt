@@ -1,4 +1,4 @@
-# For BrainyFlow Agent Logic
+# For Caskada Agent Logic
 brainyflow>=1.0.0
 openai>=1.0.0
 duckduckgo-search>=7.5.2

@@ -1,6 +1,6 @@
 # Memory: Managing State Between Nodes
 
-In BrainyFlow, the `Memory` object is the central mechanism for state management and communication between nodes in a flow. It's designed to be flexible yet robust, providing both shared global state and isolated local state for different execution paths.
+In Caskada, the `Memory` object is the central mechanism for state management and communication between nodes in a flow. It's designed to be flexible yet robust, providing both shared global state and isolated local state for different execution paths.
 
 ## Creating Memory
 
@@ -44,7 +44,7 @@ const memoryInstance: Memory = createMemory(globalStore, localStoreForStartNode)
 
 ## Memory Scopes: Global vs. Local
 
-BrainyFlow's `Memory` object manages two distinct scopes:
+Caskada's `Memory` object manages two distinct scopes:
 
 1.  **Global Store (`memory`)**: A single object shared across _all_ nodes within a single `flow.run()` execution. Changes made here persist throughout the flow. Think of it as the main shared state.
 2.  **Local Store (`memory.local`)**: An object specific to a particular execution path within the flow. It's created when a node `trigger`s a successor. Changes here are isolated to that specific branch and its descendants.
@@ -252,7 +252,7 @@ class FileProcessorNode extends Node<MyGlobal, MyLocal> {
 
 ## Technical Concepts
 
-The memory system in BrainyFlow implements several established computer science patterns:
+The memory system in Caskada implements several established computer science patterns:
 
 - **Lexical Scoping**: Local memory "shadows" global memory, similar to how local variables in functions can shadow global variables
 - **Context Propagation**: Local memory propagates down the execution tree, similar to how context flows in React or middleware systems
@@ -271,4 +271,4 @@ The memory system in BrainyFlow implements several established computer science 
 
 The `memory.clone(forkingData?)` method is primarily used internally by the `Flow` execution logic when transitioning between nodes. However, you can also use it manually if you need to create a new `Memory` instance that shares the same global store but has an independent, optionally modified, local store.
 
-This cloning mechanism is fundamental to how BrainyFlow isolates state between different branches of execution within a flow.
+This cloning mechanism is fundamental to how Caskada isolates state between different branches of execution within a flow.

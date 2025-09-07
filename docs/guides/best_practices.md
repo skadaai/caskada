@@ -1,6 +1,6 @@
-# Best Practices for BrainyFlow Development
+# Best Practices for Caskada Development
 
-Developing robust and maintainable applications with BrainyFlow involves adhering to certain best practices. These guidelines help ensure your flows are clear, efficient, and easy to debug and extend.
+Developing robust and maintainable applications with Caskada involves adhering to certain best practices. These guidelines help ensure your flows are clear, efficient, and easy to debug and extend.
 
 ## General Principles
 

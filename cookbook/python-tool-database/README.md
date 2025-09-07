@@ -2,14 +2,14 @@
 complexity: 6.5
 ---
 
-# SQLite Database with BrainyFlow
+# SQLite Database with Caskada
 
-This example demonstrates how to properly integrate SQLite database operations with BrainyFlow, focusing on:
+This example demonstrates how to properly integrate SQLite database operations with Caskada, focusing on:
 
 1. Clean code organization with separation of concerns:
 
    - Tools layer for database operations (`tools/database.py`)
-   - Node implementation for BrainyFlow integration (`nodes.py`)
+   - Node implementation for Caskada integration (`nodes.py`)
    - Flow configuration (`flow.py`)
    - Safe SQL query execution with parameter binding
 
@@ -32,7 +32,7 @@ This example demonstrates how to properly integrate SQLite database operations w
 python-tool-database/
 ├── tools/
 │   └── database.py    # SQLite database operations
-├── nodes.py          # BrainyFlow node implementation
+├── nodes.py          # Caskada node implementation
 ├── flow.py          # Flow configuration
 └── main.py          # Example usage
 ```
@@ -77,11 +77,11 @@ This will:
 
 2. **Code Organization**
 
-   - Clear separation between database operations and BrainyFlow components
+   - Clear separation between database operations and Caskada components
    - Modular project structure
    - Type hints and documentation
 
-3. **BrainyFlow Integration**
+3. **Caskada Integration**
    - Node implementation with prep->exec->post lifecycle
    - Flow configuration
    - Shared store usage for data passing
@@ -95,7 +95,7 @@ Task Status: Task created successfully
 All Tasks:
 - ID: 1
   Title: Example Task
-  Description: This is an example task created using BrainyFlow
+  Description: This is an example task created using Caskada
   Status: pending
   Created: 2024-03-02 12:34:56
 ```

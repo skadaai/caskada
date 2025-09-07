@@ -34,7 +34,7 @@
   </a>
 </p>
 
-BrainyFlowは、強力な抽象化を通じて_エージェンティックコーディング_を可能にするフレームワークです。
+Caskadaは、強力な抽象化を通じて_エージェンティックコーディング_を可能にするフレームワークです。
 
 共有状態を持つ_ネストされた有向グラフ_に基づいて複雑なAIアプリケーションを構築するためのシンプルなインターフェースを提供します。
 人間とAIアシスタントが効果的に協力してAIシステムを設計・実装することを可能にします。
@@ -81,14 +81,14 @@ BrainyFlowは、強力な抽象化を通じて_エージェンティックコー
 | SmolAgent                                                                                                                                                                                                      |      エージェント      |   一部 <br><sub>(例: CodeAgent, VisitWebTool)</sub></sup>   |  一部 <br><sub>(例: DuckDuckGo, Hugging Faceなど)</sub></sup>   |                    8K                    |                   +198MB                    |
 | LangGraph                                                                                                                                                                                                      |  エージェント, グラフ |       一部 <br><sub>(例: セマンティック検索)</sub></sup>       | 一部 <br><sub>(例: PostgresStore, SqliteSaverなど)</sub></sup> |                   37K                    |                    +51MB                    |
 | AutoGen                                                                                                                                                                                                        |      エージェント      |   一部 <br><sub>(例: ツールエージェント, チャットエージェント)</sub></sup>    | 多数 <sub>[オプション]<br> (例: OpenAI, Pineconeなど)</sub></sup> | 7K <br><sub>(コアのみ)</sub></sup> | +26MB <br><sub>(コアのみ)</sub></sup> |
-| **BrainyFlow** <!-- gitbook-ignore-start --><img src="https://github.com/skadaai/caskada/raw/main/.github/media/typescript.svg" width="16" height="16" alt="Typescriptロゴ"><!-- gitbook-ignore-end -->.ts |    **グラフ**    |                              **なし**                              |                                 **なし**                                 |                 **300**                  |                 **数KB**                  |
-| **BrainyFlow** <!-- gitbook-ignore-start --><img src="https://github.com/skadaai/caskada/raw/main/.github/media/python.svg" width="16" height="16" alt="Pythonロゴ"><!-- gitbook-ignore-end -->.py         |    **グラフ**    |                              **なし**                              |                                 **なし**                                 |                 **200**                  |                 **数KB**                  |
+| **Caskada** <!-- gitbook-ignore-start --><img src="https://github.com/skadaai/caskada/raw/main/.github/media/typescript.svg" width="16" height="16" alt="Typescriptロゴ"><!-- gitbook-ignore-end -->.ts |    **グラフ**    |                              **なし**                              |                                 **なし**                                 |                 **300**                  |                 **数KB**                  |
+| **Caskada** <!-- gitbook-ignore-start --><img src="https://github.com/skadaai/caskada/raw/main/.github/media/python.svg" width="16" height="16" alt="Pythonロゴ"><!-- gitbook-ignore-end -->.py         |    **グラフ**    |                              **なし**                              |                                 **なし**                                 |                 **200**                  |                 **数KB**                  |
 
 </div>
 
 ![](https://raw.githubusercontent.com/skadaai/caskada/master/.github/media/divider.png)
 
-## BrainyFlowの仕組み
+## Caskadaの仕組み
 
 <a href="https://github.com/skadaai/caskada/blob/main/python/brainyflow.py"><!-- gitbook-ignore-start --><img src="https://github.com/skadaai/caskada/raw/main/.github/media/python.svg" width="16" height="16" alt="Pythonロゴ" style="vertical-align: middle; margin: 0 2px;"> <!-- gitbook-ignore-end -->Python</a>または<a href="https://github.com/skadaai/caskada/blob/main/typescript/brainyflow.ts"><!-- gitbook-ignore-start --><img src="https://github.com/skadaai/caskada/raw/main/.github/media/typescript.svg" width="16" height="16" alt="Typescriptロゴ" style="vertical-align: middle; margin: 0 2px;"> <!-- gitbook-ignore-end -->Typescript</a>の単一ファイルがLLMフレームワークの核心的な抽象化であるグラフを実装しています！
 <br>
@@ -145,11 +145,11 @@ BrainyFlowは、強力な抽象化を通じて_エージェンティックコー
 
 ## クイックスタート
 
-BrainyFlowが初めてですか？[スタートガイド](https://brainy.gitbook.io/flow/introduction/getting_started)をチェックして、すぐに最初のフローを構築しましょう。
+Caskadaが初めてですか？[スタートガイド](https://brainy.gitbook.io/flow/introduction/getting_started)をチェックして、すぐに最初のフローを構築しましょう。
 
 ## 自動コーディングアプリを構築する準備は？
 
-[エージェンティックコーディングガイド](https://brainy.gitbook.io/flow/guides/agentic_coding)をチェックし、BrainyFlowで自動コーディングLLMプロジェクトを最速で開発しましょう！
+[エージェンティックコーディングガイド](https://brainy.gitbook.io/flow/guides/agentic_coding)をチェックし、Caskadaで自動コーディングLLMプロジェクトを最速で開発しましょう！
 
 ![](https://raw.githubusercontent.com/skadaai/caskada/master/.github/media/divider.png)
 
@@ -159,7 +159,7 @@ brainyFlowの元となったPocketFlowフレームワークの作成者と貢献
 
 ## 免責事項
 
-BrainyFlowは「現状のまま」提供され、いかなる保証もありません。  
+Caskadaは「現状のまま」提供され、いかなる保証もありません。  
 生成された出力の使用方法、正確性、合法性、またはその使用から生じる可能性のある結果について、私たちは責任を負いません。
 
 ## スポンサー
@@ -168,11 +168,11 @@ BrainyFlowは「現状のまま」提供され、いかなる保証もありま�
   <a style="color: inherit" href="https://github.com/sponsors/zvictor?utm_source=brainyflow&utm_medium=sponsorship&utm_campaign=brainyflow&utm_id=brainyflow">
     <img width="150" src="https://cdn.jsdelivr.net/gh/skadaai/caskada@main/.github/media/brain.png" alt="Brainyflowのロゴ" />
   </a><br /><br />
-  BrainyFlowは200行のコードとあなたの寛大さで動いています！ 💰<br />
+  Caskadaは200行のコードとあなたの寛大さで動いています！ 💰<br />
     <a style="color: inherit" href="https://github.com/sponsors/zvictor?utm_source=brainyflow&utm_medium=sponsorship&utm_campaign=brainyflow&utm_id=brainyflow">
       より少ないコードでより多くのAIを届けるのを支援してください（ただしカフェインは多めに必要かも）
     </a> ☕<br /><br />
-    <a style="color: inherit" href="https://github.com/sponsors/zvictor?utm_source=brainyflow&utm_medium=sponsorship&utm_campaign=brainyflow&utm_id=brainyflow">あなたの支援</a>がBrainyFlowをミニマルで強力、依存関係なしで保ちます！ 🚀
+    <a style="color: inherit" href="https://github.com/sponsors/zvictor?utm_source=brainyflow&utm_medium=sponsorship&utm_campaign=brainyflow&utm_id=brainyflow">あなたの支援</a>がCaskadaをミニマルで強力、依存関係なしで保ちます！ 🚀
   </a>
 </p>
 

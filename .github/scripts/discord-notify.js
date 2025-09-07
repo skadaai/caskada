@@ -23,7 +23,7 @@ export async function notifyDiscord(webhookUrl, releaseInfo) {
       },
     ],
     footer: {
-      text: 'BrainyFlow Release Bot',
+      text: 'Caskada Release Bot',
     },
     timestamp: new Date().toISOString(),
   }

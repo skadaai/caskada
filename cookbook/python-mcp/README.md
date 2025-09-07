@@ -4,7 +4,7 @@ complexity: 11.5
 
 # MCP Demo
 
-This project shows how to build an agent that performs addition using BrainyFlow and Model Context Protocol (MCP). It presents a comparison between using MCP and basic function calling approaches.
+This project shows how to build an agent that performs addition using Caskada and Model Context Protocol (MCP). It presents a comparison between using MCP and basic function calling approaches.
 
 This implementation is based on this tutorial (for Pocketflow): [MCP Simply Explained: Function Calling Rebranded or Genuine Breakthrough?](https://zacharyhuang.substack.com/p/mcp-simply-explained-function-calling)
 
@@ -63,7 +63,7 @@ flowchart LR
     decide -->|execute| execute[ExecuteToolNode]
 ```
 
-The agent uses BrainyFlow to create a workflow where:
+The agent uses Caskada to create a workflow where:
 
 1. It takes user input about numbers
 2. Connects to the MCP server for mathematical operations (or uses local functions based on the `MCP` flag)
@@ -71,6 +71,6 @@ The agent uses BrainyFlow to create a workflow where:
 
 ## Files
 
-- [`main.py`](./main.py): Implementation of the addition agent using BrainyFlow
+- [`main.py`](./main.py): Implementation of the addition agent using Caskada
 - [`utils.py`](./utils.py): Helper functions for API calls and MCP integration
 - [`simple_server.py`](./simple_server.py): MCP server that provides the addition tool

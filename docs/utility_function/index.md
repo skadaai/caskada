@@ -4,7 +4,7 @@ machine-display: true
 
 # Utility Functions
 
-BrainyFlow does not provide built-in utilities. Instead, we offer examples that you can implement yourself. This approach gives you more flexibility and control over your project's dependencies and functionality.
+Caskada does not provide built-in utilities. Instead, we offer examples that you can implement yourself. This approach gives you more flexibility and control over your project's dependencies and functionality.
 
 ## Available Utility Function Examples
 
@@ -25,7 +25,7 @@ We believe it's a bad practice to include vendor-specific APIs in a general fram
 
 ## Implementing Utility Functions
 
-When implementing utility functions for your BrainyFlow project:
+When implementing utility functions for your Caskada project:
 
 1. Create a separate file for each utility function in the `utils/` directory.
 2. Include a simple test or example usage in each file.

@@ -111,7 +111,7 @@ jobs:
           tag_name: typescript-v${{ steps.version.outputs.new_version }}
           release_name: TypeScript Package v${{ steps.version.outputs.new_version }}
           body: |
-            ## BrainyFlow TypeScript Package v${{ steps.version.outputs.new_version }}
+            ## Caskada TypeScript Package v${{ steps.version.outputs.new_version }}
 
             ${{ steps.changelog_text.outputs.changelog }}
 

@@ -34,7 +34,7 @@
   </a>
 </p>
 
-BrainyFlow是一个通过强大抽象实现_代理编程_的框架。
+Caskada是一个通过强大抽象实现_代理编程_的框架。
 
 它提供了一个简单的接口，用于构建基于_嵌套有向图_和共享状态的复杂AI应用。它使得人类和AI助手能够高效协作，共同设计和实现AI系统。
 
@@ -80,14 +80,14 @@ BrainyFlow是一个通过强大抽象实现_代理编程_的框架。
 | SmolAgent                                                                                                                                                                                                      |      代理      |   部分 <br><sup><sub>(如代码代理、网页访问工具)</sub></sup>    |  部分 <br><sup><sub>(如DuckDuckGo、Hugging Face等)</sub></sup>   |                    8K                    |                   +198MB                    |
 | LangGraph                                                                                                                                                                                                      |  代理, 图结构  |       部分 <br><sup><sub>(如语义搜索)</sub></sup>        | 部分 <br><sup><sub>(如Postgres存储、Sqlite存储等)</sub></sup> |                   37K                    |                    +51MB                    |
 | AutoGen                                                                                                                                                                                                        |      代理      |   部分 <br><sup><sub>(如工具代理、聊天代理)</sub></sup>     | 大量 <sup><sub>[可选]<br> (如OpenAI、Pinecone等)</sub></sup> | 7K <br><sup><sub>(仅核心)</sub></sup> | +26MB <br><sup><sub>(仅核心)</sub></sup> |
-| **BrainyFlow** <!-- gitbook-ignore-start --><img src="https://github.com/skadaai/caskada/raw/main/.github/media/typescript.svg" width="16" height="16" alt="Typescript Logo"><!-- gitbook-ignore-end -->.ts |    **图结构**    |                              **无**                              |                                 **无**                                 |                 **300**                  |                 **几KB**                  |
-| **BrainyFlow** <!-- gitbook-ignore-start --><img src="https://github.com/skadaai/caskada/raw/main/.github/media/python.svg" width="16" height="16" alt="Python Logo"><!-- gitbook-ignore-end -->.py         |    **图结构**    |                              **无**                              |                                 **无**                                 |                 **200**                  |                 **几KB**                  |
+| **Caskada** <!-- gitbook-ignore-start --><img src="https://github.com/skadaai/caskada/raw/main/.github/media/typescript.svg" width="16" height="16" alt="Typescript Logo"><!-- gitbook-ignore-end -->.ts |    **图结构**    |                              **无**                              |                                 **无**                                 |                 **300**                  |                 **几KB**                  |
+| **Caskada** <!-- gitbook-ignore-start --><img src="https://github.com/skadaai/caskada/raw/main/.github/media/python.svg" width="16" height="16" alt="Python Logo"><!-- gitbook-ignore-end -->.py         |    **图结构**    |                              **无**                              |                                 **无**                                 |                 **200**                  |                 **几KB**                  |
 
 </div>
 
 ![](https://raw.githubusercontent.com/skadaai/caskada/master/.github/media/divider.png)
 
-## BrainyFlow如何工作?
+## Caskada如何工作?
 
 <a href="https://github.com/skadaai/caskada/blob/main/python/brainyflow.py"><!-- gitbook-ignore-start --><img src="https://github.com/skadaai/caskada/raw/main/.github/media/python.svg" width="16" height="16" alt="Python Logo" style="vertical-align: middle; margin: 0 2px;"> <!-- gitbook-ignore-end -->Python</a>或<a href="https://github.com/skadaai/caskada/blob/main/typescript/brainyflow.ts"><!-- gitbook-ignore-start --><img src="https://github.com/skadaai/caskada/raw/main/.github/media/typescript.svg" width="16" height="16" alt="Typescript Logo" style="vertical-align: middle; margin: 0 2px;"> <!-- gitbook-ignore-end -->TypeScript</a>的单文件封装了LLM框架的核心抽象：图结构！
 <br>
@@ -144,21 +144,21 @@ BrainyFlow是一个通过强大抽象实现_代理编程_的框架。
 
 ## 快速开始
 
-初次使用BrainyFlow? 查看[入门指南](https://brainy.gitbook.io/flow/introduction/getting_started)，快速构建你的第一个流程。
+初次使用Caskada? 查看[入门指南](https://brainy.gitbook.io/flow/introduction/getting_started)，快速构建你的第一个流程。
 
 ## 准备好构建自编程应用了吗？
 
-了解[代理编程指南](https://brainy.gitbook.io/flow/guides/agentic_coding)，用BrainyFlow快速开发自编程LLM项目的最快方式！
+了解[代理编程指南](https://brainy.gitbook.io/flow/guides/agentic_coding)，用Caskada快速开发自编程LLM项目的最快方式！
 
 ![](https://raw.githubusercontent.com/skadaai/caskada/master/.github/media/divider.png)
 
 ## 致谢
 
-我们衷心感谢PocketFlow框架的创建者和贡献者，BrainyFlow最初是从其分支发展而来。
+我们衷心感谢PocketFlow框架的创建者和贡献者，Caskada最初是从其分支发展而来。
 
 ## 免责声明
 
-BrainyFlow按"原样"提供，不附带任何保证。<br />
+Caskada按"原样"提供，不附带任何保证。<br />
 我们对生成输出的使用方式不承担责任，包括但不限于其准确性、合法性或使用可能产生的任何后果。
 
 ## 赞助商
@@ -167,7 +167,7 @@ BrainyFlow按"原样"提供，不附带任何保证。<br />
   <a style="color: inherit" href="https://github.com/sponsors/zvictor?utm_source=brainyflow&utm_medium=sponsorship&utm_campaign=brainyflow&utm_id=brainyflow">
     <img width="150" src="https://cdn.jsdelivr.net/gh/skadaai/caskada@main/.github/media/brain.png" alt="Brainyflow的Logo" />
   </a><br /><br />
-  BrainyFlow运行在200行代码和您的慷慨之上！💰<br />
+  Caskada运行在200行代码和您的慷慨之上！💰<br />
     <a style="color: inherit" href="https://github.com/sponsors/zvictor?utm_source=brainyflow&utm_medium=sponsorship&utm_campaign=brainyflow&utm_id=brainyflow">
       帮助我们用更少的代码(也许需要更多咖啡)交付更多AI
     </a> ☕<br /><br />

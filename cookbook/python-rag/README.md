@@ -43,7 +43,7 @@ This project demonstrates a simplified RAG system that retrieves relevant docume
 
 ## How It Works
 
-The magic happens through a two-phase pipeline implemented with BrainyFlow:
+The magic happens through a two-phase pipeline implemented with Caskada:
 
 ```mermaid
 graph TD
@@ -72,15 +72,15 @@ Here's what each part does:
 ✅ Created 5 document embeddings
 🔍 Creating search index...
 ✅ Index created with 5 vectors
-🔍 Embedding query: How to install BrainyFlow?
+🔍 Embedding query: How to install Caskada?
 🔎 Searching for relevant documents...
 📄 Retrieved document (index: 0, distance: 0.3427)
-📄 Most relevant text: "BrainyFlow is a 300-line minimalist LLM framework
+📄 Most relevant text: "Caskada is a 300-line minimalist LLM framework
         Lightweight: Just 300 lines. Zero bloat, zero dependencies, zero vendor lock-in.
         Expressive: Everything you love—(Multi-)Agents, Workflow, RAG, and more.
         Agentic Coding: Let AI Agents (e.g., Cursor AI) build Agents—10x productivity boost!
         To install, pip install brainyflow or just copy the source code (only 300 lines)."
 
 🤖 Generated Answer:
-To install BrainyFlow, use the command `pip install brainyflow` or simply copy its 300 lines of source code.
+To install Caskada, use the command `pip install brainyflow` or simply copy its 300 lines of source code.
 ```

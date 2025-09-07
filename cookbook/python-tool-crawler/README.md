@@ -4,7 +4,7 @@ complexity: 9.5
 
 # Web Crawler with Content Analysis
 
-A web crawler tool built with BrainyFlow that crawls websites and analyzes content using LLM.
+A web crawler tool built with Caskada that crawls websites and analyzes content using LLM.
 
 ## Features
 
@@ -57,7 +57,7 @@ python-tool-crawler/
 │   └── parser.py      # Content analysis using LLM
 ├── utils/
 │   └── call_llm.py    # LLM API wrapper
-├── nodes.py           # BrainyFlow nodes
+├── nodes.py           # Caskada nodes
 ├── flow.py           # Flow configuration
 ├── main.py           # Main script
 └── requirements.txt   # Dependencies

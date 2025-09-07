@@ -7,13 +7,13 @@ machine-display: false
 
 {% hint style="warning" %}
 
-**BrainyFlow does NOT provide built-in utilities**
+**Caskada does NOT provide built-in utilities**
 
 Instead, we offer examples that you can implement yourself. This approach gives you [more flexibility and control](./index.md#why-not-built-in) over your project's dependencies and functionality.
 
 {% endhint %}
 
-BrainyFlow doesn't provide built-in LLM wrappers.
+Caskada doesn't provide built-in LLM wrappers.
 You are better of checking out libraries like [litellm](https://github.com/BerriAI/litellm) (Python).
 Here's a simple example of how you might implement your own wrapper:
 
@@ -66,15 +66,15 @@ export async function callLLM(prompt: string, model: string = 'gpt-4o', temperat
 
 ## Why Implement Your Own?
 
-BrainyFlow intentionally doesn't include vendor-specific APIs for several reasons:
+Caskada intentionally doesn't include vendor-specific APIs for several reasons:
 
 1. **API Volatility**: External APIs change frequently
 2. **Flexibility**: You may want to switch providers or use fine-tuned models
 3. **Optimizations**: Custom implementations allow for caching, batching, and other optimizations
 
-## Integration with BrainyFlow
+## Integration with Caskada
 
-Here's how to use your LLM wrapper in a BrainyFlow node:
+Here's how to use your LLM wrapper in a Caskada node:
 
 {% tabs %}
 {% tab title="Python" %}

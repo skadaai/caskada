@@ -4,7 +4,7 @@ machine-display: false
 
 # Installation
 
-BrainyFlow is currently available for both Python and TypeScript.
+Caskada is currently available for both Python and TypeScript.
 
 {% tabs %}
 {% tab title="Python" %}
@@ -54,7 +54,7 @@ or
 
 ## Alternative: Copy the Source Code
 
-Since BrainyFlow is lightweight and dependency-free, you can also install it by simply copying the source code file directly into your project:
+Since Caskada is lightweight and dependency-free, you can also install it by simply copying the source code file directly into your project:
 
 {% tabs %}
 {% tab title="Python" %}
@@ -68,4 +68,4 @@ Copy [`typescript/brainyflow.ts`](https://github.com/skadaai/caskada/blob/main/t
 
 ## Next Steps
 
-Once you have BrainyFlow installed, check out the [Getting Started](./getting_started.md) guide to build your first flow, or explore the [Core Abstractions](./core_abstraction/node.md) to understand the framework's fundamental concepts.
+Once you have Caskada installed, check out the [Getting Started](./getting_started.md) guide to build your first flow, or explore the [Core Abstractions](./core_abstraction/node.md) to understand the framework's fundamental concepts.

@@ -1,6 +1,6 @@
-# Understanding BrainyFlow's Core Abstractions
+# Understanding Caskada's Core Abstractions
 
-BrainyFlow is built around a simple yet powerful abstraction: the **nested directed graph with shared store**. This mental model separates _data flow_ from _computation_, making complex LLM applications more maintainable and easier to reason about.
+Caskada is built around a simple yet powerful abstraction: the **nested directed graph with shared store**. This mental model separates _data flow_ from _computation_, making complex LLM applications more maintainable and easier to reason about.
 
 <div align="center">
   <img src="https://raw.githubusercontent.com/skadaai/caskada/main/.github/media/abstraction.jpg" width="1300"/>
@@ -8,7 +8,7 @@ BrainyFlow is built around a simple yet powerful abstraction: the **nested direc
 
 ## Core Philosophy
 
-BrainyFlow follows these fundamental principles:
+Caskada follows these fundamental principles:
 
 1. **Modularity & Composability**: Build complex systems from simple, reusable components that are easy to build, test, and maintain
 2. **Explicitness**: Make data dependencies between steps clear and traceable
@@ -18,7 +18,7 @@ BrainyFlow follows these fundamental principles:
 
 ## The Graph + Shared Store Pattern
 
-The fundamental pattern in BrainyFlow combines two key elements:
+The fundamental pattern in Caskada combines two key elements:
 
 - **Computation Graph**: A directed graph where nodes represent discrete units of work and edges represent the flow of control.
 - **Shared `Memory` Object**: A state management store that enables communication between nodes, separating `global` and `local` state.
@@ -32,7 +32,7 @@ This pattern offers several advantages:
 
 ## Key Components
 
-BrainyFlow's architecture is based on these fundamental building blocks:
+Caskada's architecture is based on these fundamental building blocks:
 
 | Component             | Description                                    | Key Features                                                                                                |
 | --------------------- | ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
@@ -63,7 +63,7 @@ BrainyFlow's architecture is based on these fundamental building blocks:
 
 ## Getting Started
 
-If you're new to BrainyFlow, we recommend exploring these core abstractions in the following order:
+If you're new to Caskada, we recommend exploring these core abstractions in the following order:
 
 1. [Node](./node.md) - Understand the basic building block
 2. [Flow](./flow.md) - Learn how to connect nodes together
