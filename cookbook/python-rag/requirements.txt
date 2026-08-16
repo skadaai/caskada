@@ -1,4 +1,4 @@
-caskada>=1.0.0
-numpy>=1.20.0
-faiss-cpu>=1.7.0
-openai>=1.0.0
+caskada>=2.2.0
+numpy>=2.5.2
+faiss-cpu>=1.15.0
+openai>=3.1.0

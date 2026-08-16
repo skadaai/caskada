@@ -1,3 +1,3 @@
-streamlit
-caskada
-openai
+streamlit>=1.61.1
+caskada>=2.2.0
+openai>=3.1.0

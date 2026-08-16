@@ -1,1 +1,1 @@
-caskada 
+caskada>=2.2.0

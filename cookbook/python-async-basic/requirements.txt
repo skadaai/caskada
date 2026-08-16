@@ -1,3 +1,3 @@
-caskada
-aiohttp>=3.8.0  # For async HTTP requests
-openai>=1.0.0   # For async LLM calls 
+caskada>=2.2.0
+aiohttp>=3.14.3  # For async HTTP requests
+openai>=3.1.0   # For async LLM calls
