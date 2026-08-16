@@ -1,0 +1,222 @@
+{
+  "version": 1,
+  "projects": {
+    "python-a2a": {
+      "runtime": "python",
+      "driver": "a2a",
+      "expect_stdout": ["A2A contract passed"]
+    },
+    "python-agent": {
+      "runtime": "python",
+      "command": ["python", "main.py"],
+      "expect_stdout": ["Final Answer", "Cookbook smoke response"]
+    },
+    "python-async-basic": {
+      "runtime": "python",
+      "command": ["python", "main.py"],
+      "stdin": "tomato\ny\n",
+      "expect_stdout": ["Great choice", "Thanks for using Recipe Finder"]
+    },
+    "python-batch": {
+      "runtime": "python",
+      "command": ["python", "main.py"],
+      "clean": ["translations"],
+      "expect_stdout": ["Translation Complete"],
+      "expect_files": [{"glob": "translations/README_*.md", "count": 8}]
+    },
+    "python-batch-flow": {
+      "runtime": "python",
+      "command": ["python", "main.py"],
+      "clean": ["output"],
+      "expect_stdout": ["All images processed successfully"],
+      "expect_files": [{"glob": "output/*.jpg", "count": 9}]
+    },
+    "python-batch-node": {
+      "runtime": "python",
+      "command": ["python", "main.py"],
+      "expect_stdout": ["Processing sales.csv", "Processor: exec_res_list"]
+    },
+    "python-chat": {
+      "runtime": "python",
+      "command": ["python", "main.py"],
+      "stdin": "hello\nexit\n",
+      "expect_stdout": ["Assistant: Cookbook smoke response", "Goodbye"]
+    },
+    "python-chat-guardrail": {
+      "runtime": "python",
+      "command": ["python", "main.py"],
+      "stdin": "Help me plan a trip to Paris\nexit\n",
+      "expect_stdout": ["Travel Advisor: Cookbook smoke response", "Goodbye! Safe travels"]
+    },
+    "python-chat-memory": {
+      "runtime": "python",
+      "command": ["python", "main.py"],
+      "stdin": "hello\nexit\n",
+      "expect_stdout": ["Assistant: Cookbook smoke response", "Goodbye"]
+    },
+    "python-communication": {
+      "runtime": "python",
+      "command": ["python", "main.py"],
+      "stdin": "hello caskada\nq\n",
+      "expect_stdout": ["Statistics:", "Total words: 2"]
+    },
+    "python-fastapi-hitl": {
+      "runtime": "python",
+      "driver": "fastapi_hitl",
+      "expect_stdout": ["FastAPI HITL contract passed"]
+    },
+    "python-flow": {
+      "runtime": "python",
+      "command": ["python", "main.py"],
+      "stdin": "hello caskada\n1\nn\n",
+      "expect_stdout": ["Result: HELLO CASKADA", "Thank you for using Text Converter"]
+    },
+    "python-hello-world": {
+      "runtime": "python",
+      "command": ["python", "main.py"],
+      "expect_stdout": ["Answer: Cookbook smoke response"]
+    },
+    "python-llm-streaming": {
+      "runtime": "python",
+      "command": ["python", "main.py"],
+      "stdin": "\n",
+      "expect_stdout": ["User interrupted streaming"]
+    },
+    "python-majority-vote": {
+      "runtime": "python",
+      "command": ["python", "main.py", "--tries", "3"],
+      "expect_stdout": ["Majority vote => 0.5", "Final Answer"]
+    },
+    "python-map-reduce": {
+      "runtime": "python",
+      "command": ["python", "main.py"],
+      "expect_stdout": ["Resume processing complete", "Qualified candidates"]
+    },
+    "python-mcp": {
+      "runtime": "python",
+      "command": ["python", "main.py"],
+      "timeout": 60,
+      "expect_stdout": ["Selected tool: add", "Final Answer"]
+    },
+    "python-multi-agent": {
+      "runtime": "python",
+      "command": ["python", "main.py"],
+      "expect_stdout": ["Game Over - Correct guess", "Game Complete"]
+    },
+    "python-nested-batch": {
+      "runtime": "python",
+      "command": ["python", "main.py"],
+      "expect_stdout": ["Processing school grades", "School Average"]
+    },
+    "python-node": {
+      "runtime": "python",
+      "command": ["python", "main.py"],
+      "expect_stdout": ["Summary: Cookbook smoke response"]
+    },
+    "python-parallel-batch": {
+      "runtime": "python",
+      "command": ["python", "main.py"],
+      "clean": ["translations"],
+      "expect_stdout": ["Translation Complete"],
+      "expect_files": [{"glob": "translations/README_*.md", "count": 8}]
+    },
+    "python-parallel-batch-flow": {
+      "runtime": "python",
+      "command": ["python", "main.py"],
+      "clean": ["output"],
+      "expect_stdout": ["Processing complete"],
+      "expect_files": [{"glob": "output/*.jpg", "count": 9}]
+    },
+    "python-rag": {
+      "runtime": "python",
+      "command": ["python", "main.py"],
+      "expect_stdout": ["Index created", "Generated Answer", "Cookbook smoke response"]
+    },
+    "python-streamlit-hitl": {
+      "runtime": "python",
+      "driver": "streamlit_hitl",
+      "expect_stdout": ["Streamlit HITL contract passed"]
+    },
+    "python-structured-output": {
+      "runtime": "python",
+      "command": ["python", "main.py"],
+      "expect_stdout": ["Extracted resume information", "Jane Cookbook"]
+    },
+    "python-supervisor": {
+      "runtime": "python",
+      "command": ["python", "main.py"],
+      "expect_stdout": ["Supervisor approved answer", "Final Answer"]
+    },
+    "python-text2sql": {
+      "runtime": "python",
+      "command": ["python", "main.py"],
+      "expect_stdout": ["GENERATED SQL", "Workflow Completed Successfully"]
+    },
+    "python-thinking": {
+      "runtime": "python",
+      "command": ["python", "main.py"],
+      "expect_stdout": ["FINAL SOLUTION", "Cookbook smoke solution"]
+    },
+    "python-tool-crawler": {
+      "runtime": "python",
+      "command": ["python", "main.py"],
+      "stdin": "https://example.test\n2\n",
+      "expect_stdout": ["Report generated", "Total pages analyzed: 2"]
+    },
+    "python-tool-database": {
+      "runtime": "python",
+      "command": ["python", "main.py"],
+      "clean": ["example.db"],
+      "expect_stdout": ["Database initialized", "Task created successfully", "Example Task"]
+    },
+    "python-tool-embeddings": {
+      "runtime": "python",
+      "command": ["python", "main.py"],
+      "expect_stdout": ["Embedding dimension: 8"]
+    },
+    "python-tool-pdf-vision": {
+      "runtime": "python",
+      "command": ["python", "main.py"],
+      "timeout": 60,
+      "expect_stdout": ["File: pocket-flow.pdf", "Cookbook smoke response"]
+    },
+    "python-tool-search": {
+      "runtime": "python",
+      "command": ["python", "main.py"],
+      "stdin": "caskada framework\n",
+      "expect_stdout": ["Search Analysis", "Cookbook search summary"]
+    },
+    "python-visualization": {
+      "runtime": "python",
+      "driver": "visualization",
+      "clean": ["smoke-viz"],
+      "expect_stdout": ["Visualization contract passed"],
+      "expect_files": [
+        {"glob": "smoke-viz/cookbook_smoke.html", "count": 1},
+        {"glob": "smoke-viz/cookbook_smoke.json", "count": 1}
+      ]
+    },
+    "python-voice-chat": {
+      "runtime": "python",
+      "command": ["python", "main.py"],
+      "timeout": 60,
+      "expect_stdout": ["Starting Caskada Voice Chat", "CaptureAudioNode: Failed to capture audio"]
+    },
+    "python-workflow": {
+      "runtime": "python",
+      "command": ["python", "main.py"],
+      "expect_stdout": ["Workflow Completed", "Final Article Length"]
+    },
+    "typescript-agent": {
+      "runtime": "typescript",
+      "command": ["npx", "tsx", "main.ts"],
+      "expect_stdout": ["Answering: Cookbook smoke response"]
+    },
+    "typescript-chat": {
+      "runtime": "typescript",
+      "command": ["npx", "tsx", "chat.ts"],
+      "stdin": "exit\n",
+      "expect_stdout": ["Welcome to the chat", "Goodbye"]
+    }
+  }
+}

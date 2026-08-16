@@ -3,7 +3,12 @@ from setuptools import setup
 
 # Read the README.md for the long description
 this_directory = Path(__file__).parent
-long_description = (this_directory / "README.md").read_text(encoding="utf-8")
+readme_path = this_directory / "README.md"
+if not readme_path.exists():
+    # The publish workflow copies README.md into this directory, while local
+    # source installs use the repository-level README.
+    readme_path = this_directory.parent / "README.md"
+long_description = readme_path.read_text(encoding="utf-8")
 
 setup(
     name='caskada',
@@ -15,7 +20,9 @@ setup(
     long_description_content_type="text/markdown",
     url="https://skada.ai/caskada/",
     license='MPL-2.0',
+    python_requires='>=3.13',
     classifiers=[
         'License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)',
+        'Programming Language :: Python :: 3.13',
     ],
 )

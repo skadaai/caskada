@@ -1,6 +1,6 @@
 """Flow definitions for parallel image processing."""
 
-from caskada import Flow, ParallelFlow
+from caskada import Flow, Node, ParallelFlow
 from nodes import LoadImage, ApplyFilter, SaveImage
 
 def create_base_flow():
@@ -20,7 +20,7 @@ def create_base_flow():
 class ImageTriggerNode(Node):
     """Node for processing multiple images with different filters."""
     
-    async def post(self, shared, prep_res, exec_res)
+    async def post(self, shared, prep_res, exec_res):
         """Generate parameters for each image-filter combination."""
         # Get list of images and filters
         images = getattr(shared, "images", [])
@@ -40,9 +40,12 @@ class ImageTriggerNode(Node):
 
 def create_flows():
     """Create the complete parallel processing flow."""
-    # Create base flow for single image processing
-    base_flow = create_base_flow()
-    trigger = ImageTriggerNode()
-    trigger >> base_flow
-    
-    return Flow(start=trigger), ParallelFlow(start=base_flow)
+    def create(flow_type):
+        # Each flow needs its own graph because Caskada nodes carry their
+        # successor relationships.
+        base_flow = create_base_flow()
+        trigger = ImageTriggerNode()
+        trigger >> base_flow
+        return flow_type(start=trigger)
+
+    return create(Flow), create(ParallelFlow)
