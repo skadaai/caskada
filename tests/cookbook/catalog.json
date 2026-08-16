@@ -209,12 +209,12 @@
     },
     "typescript-agent": {
       "runtime": "typescript",
-      "command": ["npx", "tsx", "main.ts"],
+      "command": ["./node_modules/.bin/tsx", "main.ts"],
       "expect_stdout": ["Answering: Cookbook smoke response"]
     },
     "typescript-chat": {
       "runtime": "typescript",
-      "command": ["npx", "tsx", "chat.ts"],
+      "command": ["./node_modules/.bin/tsx", "chat.ts"],
       "stdin": "exit\n",
       "expect_stdout": ["Welcome to the chat", "Goodbye"]
     }

@@ -10,12 +10,12 @@
   "license": "ISC",
   "description": "",
   "devDependencies": {
-    "@types/node": "^22.15.21",
-    "caskada": "^2.1.0",
-    "tsx": "^4.19.4",
-    "typescript": "^5.8.3"
+    "@types/node": "^24.13.3",
+    "caskada": "^2.2.0",
+    "tsx": "^4.23.12",
+    "typescript": "^5.9.3"
   },
   "dependencies": {
-    "openai": "^4.103.0"
+    "openai": "^7.4.0"
   }
 }

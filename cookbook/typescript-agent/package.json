@@ -9,14 +9,14 @@
   "license": "ISC",
   "description": "",
   "devDependencies": {
-    "@types/node": "^22.15.21",
-    "tsx": "^4.19.4",
-    "typescript": "^5.8.3"
+    "@types/node": "^24.13.3",
+    "tsx": "^4.23.12",
+    "typescript": "^5.9.3"
   },
   "dependencies": {
-    "@phukon/duckduckgo-search": "^1.1.0",
-    "caskada": "^2.1.0",
-    "openai": "^4.103.0",
-    "yaml": "^2.8.0"
+    "@phukon/duckduckgo-search": "^1.2.0",
+    "caskada": "^2.2.0",
+    "openai": "^7.4.0",
+    "yaml": "^2.9.0"
   }
 }

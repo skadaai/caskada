@@ -89,11 +89,10 @@ def install_project(name: str, contract: dict[str, Any], project_dir: Path) -> N
         )
         return
 
-    # Install the workspace and link the cookbook to this checkout rather than
-    # the last published npm package. The repository intentionally ignores its
-    # pnpm lockfile, so fresh CI checkouts cannot use --frozen-lockfile.
-    _run_checked(["corepack", "pnpm", "install", "--no-frozen-lockfile"], ROOT)
-    _run_checked(["corepack", "pnpm", "--dir", "typescript", "build"], ROOT)
+    # Install the locked workspace and link the cookbook to this checkout
+    # rather than the last published npm package.
+    _run_checked(["pnpm", "install", "--frozen-lockfile"], ROOT)
+    _run_checked(["pnpm", "--dir", "typescript", "build"], ROOT)
     source_modules = COOKBOOK / name / "node_modules"
     if not source_modules.is_dir():
         raise ContractError(f"{name}: workspace install did not create node_modules")
