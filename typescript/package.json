@@ -42,14 +42,14 @@
     "release": "pnpm run build && changeset publish"
   },
   "devDependencies": {
-    "@changesets/cli": "2.29.4",
-    "@std/assert": "npm:@jsr/std__assert@1.0.13",
-    "@types/node": "22.15.21",
-    "p-limit": "6.2.0",
-    "tsup": "8.5.0",
-    "typescript": "5.8.3"
+    "@changesets/cli": "2.31.1",
+    "@std/assert": "npm:@jsr/std__assert@1.0.19",
+    "@types/node": "24.13.3",
+    "p-limit": "7.3.1",
+    "tsup": "8.5.1",
+    "typescript": "5.9.3"
   },
-  "packageManager": "pnpm@10.11.0",
+  "packageManager": "pnpm@11.22.0",
   "publishConfig": {
     "access": "public"
   }

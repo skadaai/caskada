@@ -1,0 +1,91 @@
+name: Cookbook smoke tests
+
+on:
+  pull_request:
+    paths:
+      - 'cookbook/**'
+      - 'python/**'
+      - 'typescript/**'
+      - 'tests/cookbook/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - '.github/workflows/cookbook-smoke.yml'
+  push:
+    branches: ['main']
+    paths:
+      - 'cookbook/**'
+      - 'python/**'
+      - 'typescript/**'
+      - 'tests/cookbook/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - '.github/workflows/cookbook-smoke.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  catalog:
+    runs-on: ubuntu-latest
+    outputs:
+      projects: ${{ steps.matrix.outputs.projects }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@v7.0.0
+        with:
+          python-version: '3.13'
+
+      - name: Validate catalog and Python syntax
+        run: |
+          python -m pip install pytest
+          python -m pytest tests/cookbook/test_catalog.py -q
+
+      - name: Build project matrix
+        id: matrix
+        run: echo "projects=$(python tests/cookbook/runner.py list --json)" >> "$GITHUB_OUTPUT"
+
+  smoke:
+    needs: catalog
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      max-parallel: 8
+      matrix:
+        project: ${{ fromJSON(needs.catalog.outputs.projects) }}
+
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@v7.0.0
+        with:
+          python-version: '3.13'
+
+      - uses: actions/setup-node@v7.0.0
+        if: startsWith(matrix.project, 'typescript-')
+        with:
+          node-version: '24'
+
+      - uses: pnpm/action-setup@v6.0.10
+        if: startsWith(matrix.project, 'typescript-')
+        with:
+          run_install: false
+
+      - name: Restore pip download cache
+        if: startsWith(matrix.project, 'python-')
+        uses: actions/cache@v6.1.0
+        with:
+          path: ~/.cache/pip
+          key: cookbook-pip-${{ runner.os }}-${{ hashFiles(format('cookbook/{0}/requirements.txt', matrix.project)) }}
+          restore-keys: cookbook-pip-${{ runner.os }}-
+
+      - name: Install and run cookbook contract
+        run: python tests/cookbook/runner.py run "${{ matrix.project }}" --install

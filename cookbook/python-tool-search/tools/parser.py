@@ -20,11 +20,12 @@ Title: {result['title']}
 Snippet: {result['snippet']}
 URL: {result['link']}
 """)
-    
+    formatted_results_text = "\n".join(formatted_results)
+
     prompt = f"""
 Analyze these search results for the query: "{query}"
 
-{'\n'.join(formatted_results)}
+{formatted_results_text}
 
 Please provide:
 1. A concise summary of the findings (2-3 sentences)

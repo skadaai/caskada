@@ -16,12 +16,12 @@ jobs:
     environment: pypi
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0 # Needed for changeset changelog generation
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7.0.0
         with:
           python-version: '3.x'
 
@@ -36,9 +36,8 @@ jobs:
           python -m pytest tests/ -v
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v2
+        uses: pnpm/action-setup@v6.0.10
         with:
-          version: 10 # Match user's pnpm version
           run_install: true
 
       - name: Version Python package using Changesets
@@ -59,11 +58,11 @@ jobs:
           echo "Current version from setup.py: $CURRENT_VERSION"
 
           pnpm pkg set name=caskada
-          pnpm pkg set version=$CURRENT_VERSION # Use extracted version
+          pnpm pkg set "version=$CURRENT_VERSION" # Use extracted version
 
           echo "Running changeset version..."
           # Run changesets. This might create/update package.json in the current dir (python/)
-          pnpm dlx @changesets/cli version
+          pnpm dlx @changesets/cli@2.31.1 version
 
           echo "Extracting potential new version from python/package.json..."
           NEW_VERSION=$(grep '"version":' package.json | cut -d '"' -f 4)
@@ -76,7 +75,7 @@ jobs:
           if [ "$CURRENT_VERSION" == "$NEW_VERSION" ]; then
             echo "No version change detected in python/package.json."
             echo "Exiting step gracefully as no version bump occurred."
-            echo "has_changes=false" >> $GITHUB_OUTPUT
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
             exit 0 # Exit successfully, no publish needed
           fi
 
@@ -88,8 +87,10 @@ jobs:
           echo "setup.py content after update:"
           cat setup.py
 
-          echo "has_changes=true" >> $GITHUB_OUTPUT
-          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          {
+            echo "has_changes=true"
+            echo "new_version=$NEW_VERSION"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Prepare README
         if: steps.version.outputs.has_changes == 'true'
@@ -105,14 +106,14 @@ jobs:
 
       - name: Publish to PyPI
         if: steps.version.outputs.has_changes == 'true'
-        uses: pypa/gh-action-pypi-publish@release/v1
+        uses: pypa/gh-action-pypi-publish@v1.14.2
         with:
           packages-dir: python/dist/
           skip-existing: true
 
       - name: Commit and push version bump
         if: steps.version.outputs.has_changes == 'true'
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@v7.2.0
         with:
           commit_message: 'chore: update PY version and publish'
           file_pattern: 'python/setup.py python/.changeset/* python/CHANGELOG.md'
@@ -122,22 +123,30 @@ jobs:
       - name: Extract changelog text
         if: steps.version.outputs.has_changes == 'true'
         id: changelog_text
+        env:
+          RELEASE_VERSION: ${{ steps.version.outputs.new_version }}
         run: |
-          CHANGELOG_CONTENT=$(node .github/scripts/extract-changelog-text.js python ${{ steps.version.outputs.new_version }})
+          if [[ ! "$RELEASE_VERSION" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+            echo "Invalid release version: $RELEASE_VERSION" >&2
+            exit 1
+          fi
+          CHANGELOG_CONTENT=$(node .github/scripts/extract-changelog-text.js python "$RELEASE_VERSION")
           echo "$CHANGELOG_CONTENT"
-          echo "content<<EOF" >> $GITHUB_OUTPUT
-          echo "$CHANGELOG_CONTENT" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-          echo $GITHUB_OUTPUT
+          {
+            echo "changelog<<EOF"
+            echo "$CHANGELOG_CONTENT"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+          echo "$GITHUB_OUTPUT"
 
       - name: Create GitHub Release
         if: steps.version.outputs.has_changes == 'true'
-        uses: actions/create-release@v1
+        uses: softprops/action-gh-release@v3.0.2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: python-v${{ steps.version.outputs.new_version }}
-          release_name: Python Package v${{ steps.version.outputs.new_version }}
+          name: Python Package v${{ steps.version.outputs.new_version }}
           body: |
             ## Caskada Python Package v${{ steps.version.outputs.new_version }}
 

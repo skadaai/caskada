@@ -12,6 +12,7 @@ Thumbs.db
 
 
 # IDE specific files
+.codex
 .idea/
 .vscode/
 *.swp
@@ -19,10 +20,10 @@ Thumbs.db
 *~
 
 # Node
-pnpm-lock.yaml
 package-lock.json
 yarn.lock
 node_modules/
+.pnpm-store/
 npm-debug.log
 yarn-debug.log
 yarn-error.log
@@ -33,6 +34,7 @@ yarn-error.log
 .env.development.local
 .env.test.local
 .env.production.local
+.agent-sandbox.env
 
 # Python
 __pycache__/
@@ -82,3 +84,5 @@ htmlcov/
 
 test.ipynb
 .pytest_cache/
+.cookbook-test-artifacts/
+/typescript/README.md

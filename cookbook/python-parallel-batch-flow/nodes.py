@@ -8,7 +8,7 @@ class LoadImage(Node):
     """Node that loads an image from file."""
     async def prep(self, shared):
         """Get image path from parameters."""
-        image_path = self.params["image_path"]
+        image_path = shared["image_path"]
         print(f"Loading image: {image_path}")
         return image_path
     
@@ -28,7 +28,7 @@ class ApplyFilter(Node):
     async def prep(self, shared):
         """Get image and filter type."""
         image = shared["image"]
-        filter_type = self.params["filter"]
+        filter_type = shared["filter"]
         print(f"Applying {filter_type} filter...")
         return image, filter_type
     
@@ -67,8 +67,8 @@ class SaveImage(Node):
     async def prep(self, shared):
         """Prepare output path."""
         image = shared["filtered_image"]
-        base_name = os.path.splitext(os.path.basename(self.params["image_path"]))[0]
-        filter_type = self.params["filter"]
+        base_name = os.path.splitext(os.path.basename(shared["image_path"]))[0]
+        filter_type = shared["filter"]
         output_path = f"output/{base_name}_{filter_type}.jpg"
         
         # Create output directory if needed

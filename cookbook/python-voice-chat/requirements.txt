@@ -1,6 +1,6 @@
-openai
-caskada
-numpy
-sounddevice
-scipy
-soundfile 
+openai>=3.1.0
+caskada>=2.2.0
+numpy>=2.5.2
+sounddevice>=0.5.5
+scipy>=1.18.0
+soundfile>=0.14.0

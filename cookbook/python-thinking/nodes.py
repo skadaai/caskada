@@ -258,6 +258,7 @@ class ChainOfThoughtNode(Node):
             print(dedented_thinking)
             print("======================\n")
             self.trigger("end")
+            return
 
         # Otherwise, continue the chain
         print(f"\nThought {thought_num}:")

@@ -1,2 +1,2 @@
-caskada
-pandas>=2.0.0 
+caskada>=2.2.0
+pandas>=3.0.5

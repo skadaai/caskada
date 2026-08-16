@@ -1,4 +1,4 @@
-caskada>=1.0.0
-openai>=1.0.0
-PyMuPDF>=1.22.0  # for PDF processing
-Pillow>=10.0.0   # for image processing
+caskada>=2.2.0
+openai>=3.1.0
+PyMuPDF>=1.28.2  # for PDF processing
+Pillow>=12.3.0   # for image processing

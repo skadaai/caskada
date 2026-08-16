@@ -7,8 +7,8 @@ in pkgs.mkShell {
     ncurses
     openssh
     git
-    corepack_latest
-    nodejs_24
+    corepack_24
+    nodejs-slim
     uv
   ];
 

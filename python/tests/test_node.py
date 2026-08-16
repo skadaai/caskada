@@ -1,7 +1,12 @@
 import pytest
 import asyncio
+from typing import Any, get_args
 from unittest.mock import AsyncMock
-from caskada import Memory, Node, DEFAULT_ACTION
+from caskada import Action, Memory, Node, SharedStore, DEFAULT_ACTION
+
+
+def test_node_generic_parameters_keep_their_public_defaults():
+    assert get_args(Node[SharedStore]) == (SharedStore, Any, Any, Action)
 
 # Helper sleep function for async tests
 async def async_sleep(seconds: float):

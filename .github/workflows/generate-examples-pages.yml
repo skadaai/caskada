@@ -17,12 +17,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7.0.1
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7.0.0
         with:
-          node-version: '23'
+          node-version: '24'
 
       - name: Generate example pages
         id: generate
@@ -30,7 +30,7 @@ jobs:
           node .github/scripts/generate-examples.js
 
       - name: Commit and push example pages
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@v7.2.0
         with:
           commit_message: 'docs: update example pages from cookbook [skip ci]'
           # Specify the directory and files to check for changes and commit
