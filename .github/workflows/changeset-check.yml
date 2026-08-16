@@ -35,7 +35,6 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v6.0.10
         with:
-          version: 11
           run_install: true
 
       # Need to determine which paths were changed to conditionally run the checks
