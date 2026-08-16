@@ -56,7 +56,13 @@ jobs:
         id: version
         working-directory: typescript
         run: |
-          # Force pnpm workspace recognition @ https://www.perplexity.ai/search/github-workflows-typescript-pu-2CcFkyNPSJ.fnCXbNF47RQ#0
+          # Changesets needs a package-local workspace root. Remove the marker
+          # when this step exits so later pnpm commands use the locked root workspace.
+          if [ -e pnpm-workspace.yaml ] || [ -L pnpm-workspace.yaml ]; then
+            echo "Unexpected existing typescript/pnpm-workspace.yaml." >&2
+            exit 1
+          fi
+          trap 'rm -f pnpm-workspace.yaml' EXIT
           touch pnpm-workspace.yaml
 
           # Ensure package.json exists
