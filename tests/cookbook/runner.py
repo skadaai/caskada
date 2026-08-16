@@ -20,6 +20,7 @@ COOKBOOK = ROOT / "cookbook"
 HERE = Path(__file__).resolve().parent
 CATALOG_PATH = HERE / "catalog.json"
 FAKES = HERE / "fakes"
+SUBPROCESS_TIMEOUT_SECONDS = 10 * 60
 
 
 class ContractError(RuntimeError):
@@ -71,7 +72,7 @@ def validate_catalog(catalog: dict[str, dict[str, Any]]) -> None:
 
 def _run_checked(command: list[str], cwd: Path) -> None:
     print(f"+ {' '.join(command)}", flush=True)
-    subprocess.run(command, cwd=cwd, check=True)
+    subprocess.run(command, cwd=cwd, check=True, timeout=SUBPROCESS_TIMEOUT_SECONDS)
 
 
 def install_project(name: str, contract: dict[str, Any], project_dir: Path) -> None:

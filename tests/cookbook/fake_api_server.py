@@ -9,12 +9,14 @@ from __future__ import annotations
 
 import io
 import json
-import time
 import wave
 from contextlib import contextmanager
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from threading import Thread
 from typing import Any, Iterator
+
+
+FIXTURE_TIMESTAMP = 1_700_000_000
 
 
 def _flatten_content(value: Any) -> str:
@@ -227,7 +229,7 @@ class _Handler(BaseHTTPRequestHandler):
                 event = {
                     "id": "chatcmpl-cookbook-fixture",
                     "object": "chat.completion.chunk",
-                    "created": int(time.time()),
+                    "created": FIXTURE_TIMESTAMP,
                     "model": body.get("model", "fake-openai"),
                     "choices": [{"index": 0, "delta": {"content": chunk}, "finish_reason": None}],
                 }
@@ -240,7 +242,7 @@ class _Handler(BaseHTTPRequestHandler):
             {
                 "id": "chatcmpl-cookbook-fixture",
                 "object": "chat.completion",
-                "created": int(time.time()),
+                "created": FIXTURE_TIMESTAMP,
                 "model": body.get("model", "fake-openai"),
                 "choices": [
                     {

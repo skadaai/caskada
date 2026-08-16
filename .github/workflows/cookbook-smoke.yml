@@ -18,6 +18,9 @@ on:
       - '.github/workflows/cookbook-smoke.yml'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   catalog:
     runs-on: ubuntu-latest
@@ -25,6 +28,8 @@ jobs:
       projects: ${{ steps.matrix.outputs.projects }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - uses: actions/setup-python@v5
         with:
@@ -51,6 +56,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - uses: actions/setup-python@v5
         with:
