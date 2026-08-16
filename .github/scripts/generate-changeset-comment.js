@@ -9,7 +9,7 @@ ${title}
 `)
 }
 
-export function generateChangesetComment(context, packageType) {
+export function generateChangesetComment(context, packageType, hasChangeset = false) {
   const packageName = packageType.toLocaleLowerCase()
   const directory = packageName
   const isTypescript = packageName === 'typescript'
@@ -24,7 +24,17 @@ export function generateChangesetComment(context, packageType) {
     capitalize: false,
   })}.md&value=${getNewChangesetTemplate(packageName, context.payload.pull_request.title)}`
 
-  return `## Missing ${packageType} Changeset ${icon}
+  const marker = `<!-- caskada-changeset-check:${packageName} -->`
+
+  if (hasChangeset) {
+    return `${marker}
+## ${packageType} Changeset Found ${icon}
+
+✅ A changeset is present for the ${packageType} package. The versioning requirement is satisfied.`
+  }
+
+  return `${marker}
+## Missing ${packageType} Changeset ${icon}
   
   Changes to the ${packageType} package were detected, but no changeset was found.
   Merging this PR will not cause a version bump for the ${packageType} package.

@@ -26,6 +26,7 @@ jobs:
         uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Set up Node.js
         uses: actions/setup-node@v7.0.0
@@ -66,34 +67,30 @@ jobs:
         run: touch pnpm-workspace.yaml
 
       - name: Check for Python changesets
-        # Only run this step if python files were changed
         if: steps.filter.outputs.python == 'true'
         id: python-check
-        uses: changesets/action@v1.9.0
-        continue-on-error: true
-        with:
-          cwd: '${{ github.workspace }}/python'
-          version: false
-          publish: false
-          setupGitUser: true
-          createGithubReleases: false
+        working-directory: python
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          if pnpm dlx @changesets/cli@2.31.1 status --since="$BASE_SHA"; then
+            echo "has_changeset=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_changeset=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Check for TypeScript changesets
-        # Only run this step if typescript files were changed
         if: steps.filter.outputs.typescript == 'true'
         id: typescript-check
-        uses: changesets/action@v1.9.0
-        continue-on-error: true
-        with:
-          cwd: '${{ github.workspace }}/typescript'
-          version: false
-          publish: false
-          setupGitUser: true
-          createGithubReleases: false
+        working-directory: typescript
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          if pnpm dlx @changesets/cli@2.31.1 status --since="$BASE_SHA"; then
+            echo "has_changeset=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_changeset=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Find existing Python comment
         if: steps.filter.outputs.python == 'true'
@@ -102,7 +99,7 @@ jobs:
         with:
           issue-number: ${{ github.event.pull_request.number }}
           comment-author: 'github-actions[bot]'
-          body-includes: Missing Python Changeset
+          body-includes: Python Changeset
 
       - name: Find existing TypeScript comment
         if: steps.filter.outputs.typescript == 'true'
@@ -111,17 +108,20 @@ jobs:
         with:
           issue-number: ${{ github.event.pull_request.number }}
           comment-author: 'github-actions[bot]'
-          body-includes: Missing TypeScript Changeset
+          body-includes: TypeScript Changeset
 
-      - name: Comment on PR if Python changes missing changeset
-        if: steps.filter.outputs.python == 'true' && steps.python-check.outputs.hasChangesets == 'false'
+      - name: Update Python changeset status comment
+        if: steps.filter.outputs.python == 'true'
         uses: actions/github-script@v9.0.0
+        env:
+          HAS_CHANGESET: ${{ steps.python-check.outputs.has_changeset }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const tools = await import('${{ github.workspace }}/.github/scripts/generate-changeset-comment.js');
 
-            const commentBody = tools.generateChangesetComment(context, 'Python');
+            const hasChangeset = process.env.HAS_CHANGESET === 'true';
+            const commentBody = tools.generateChangesetComment(context, 'Python', hasChangeset);
 
             // Assign commentId as a string to handle cases where find-comment returns empty
             const commentId = '${{ steps.find-python-comment.outputs.comment-id }}';
@@ -142,15 +142,18 @@ jobs:
               });
             }
 
-      - name: Comment on PR if TypeScript changes missing changeset
-        if: steps.filter.outputs.typescript == 'true' && steps.typescript-check.outputs.hasChangesets == 'false'
+      - name: Update TypeScript changeset status comment
+        if: steps.filter.outputs.typescript == 'true'
         uses: actions/github-script@v9.0.0
+        env:
+          HAS_CHANGESET: ${{ steps.typescript-check.outputs.has_changeset }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const tools = await import('${{ github.workspace }}/.github/scripts/generate-changeset-comment.js');
 
-            const commentBody = tools.generateChangesetComment(context, 'TypeScript');
+            const hasChangeset = process.env.HAS_CHANGESET === 'true';
+            const commentBody = tools.generateChangesetComment(context, 'TypeScript', hasChangeset);
 
             // Assign commentId as a string to handle cases where find-comment returns empty
             const commentId = '${{ steps.find-typescript-comment.outputs.comment-id }}';
@@ -172,7 +175,7 @@ jobs:
             }
 
       - name: Fail if changesets are missing
-        if: (steps.filter.outputs.python == 'true' && steps.python-check.outputs.hasChangesets == 'false') || (steps.filter.outputs.typescript == 'true' && steps.typescript-check.outputs.hasChangesets == 'false')
+        if: (steps.filter.outputs.python == 'true' && steps.python-check.outputs.has_changeset == 'false') || (steps.filter.outputs.typescript == 'true' && steps.typescript-check.outputs.has_changeset == 'false')
         run: |
           echo "❌ Missing changesets detected. Please add changesets to document your changes."
           exit 1
