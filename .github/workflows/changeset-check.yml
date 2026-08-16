@@ -23,26 +23,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7.0.0
         with:
-          node-version: '23'
+          node-version: '24'
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v2
+        uses: pnpm/action-setup@v6.0.10
         with:
-          version: 10
-          run_install: false
-
-      - name: Install human-id
-        run: pnpm add human-id
+          version: 11
+          run_install: true
 
       # Need to determine which paths were changed to conditionally run the checks
-      - uses: dorny/paths-filter@v3
+      - uses: dorny/paths-filter@v4.0.3
         id: filter
         with:
           filters: |
@@ -61,11 +58,16 @@ jobs:
           echo "Checking .changeset:"
           ls -la .changeset
 
+      - name: Prepare TypeScript package to use Changesets
+        if: steps.filter.outputs.typescript == 'true'
+        working-directory: typescript
+        run: touch pnpm-workspace.yaml
+
       - name: Check for Python changesets
         # Only run this step if python files were changed
         if: steps.filter.outputs.python == 'true'
         id: python-check
-        uses: changesets/action@v1.4.9
+        uses: changesets/action@v1.9.0
         continue-on-error: true
         with:
           cwd: '${{ github.workspace }}/python'
@@ -80,7 +82,7 @@ jobs:
         # Only run this step if typescript files were changed
         if: steps.filter.outputs.typescript == 'true'
         id: typescript-check
-        uses: changesets/action@v1.4.9
+        uses: changesets/action@v1.9.0
         continue-on-error: true
         with:
           cwd: '${{ github.workspace }}/typescript'
@@ -93,7 +95,7 @@ jobs:
 
       - name: Find existing Python comment
         if: steps.filter.outputs.python == 'true'
-        uses: peter-evans/find-comment@v2
+        uses: peter-evans/find-comment@v4.0.0
         id: find-python-comment
         with:
           issue-number: ${{ github.event.pull_request.number }}
@@ -102,7 +104,7 @@ jobs:
 
       - name: Find existing TypeScript comment
         if: steps.filter.outputs.typescript == 'true'
-        uses: peter-evans/find-comment@v2
+        uses: peter-evans/find-comment@v4.0.0
         id: find-typescript-comment
         with:
           issue-number: ${{ github.event.pull_request.number }}
@@ -111,7 +113,7 @@ jobs:
 
       - name: Comment on PR if Python changes missing changeset
         if: steps.filter.outputs.python == 'true' && steps.python-check.outputs.hasChangesets == 'false'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9.0.0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -140,7 +142,7 @@ jobs:
 
       - name: Comment on PR if TypeScript changes missing changeset
         if: steps.filter.outputs.typescript == 'true' && steps.typescript-check.outputs.hasChangesets == 'false'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9.0.0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |

@@ -7,6 +7,9 @@ on:
       - 'python/**'
       - 'typescript/**'
       - 'tests/cookbook/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
       - '.github/workflows/cookbook-smoke.yml'
   push:
     branches: ['main']
@@ -15,6 +18,9 @@ on:
       - 'python/**'
       - 'typescript/**'
       - 'tests/cookbook/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
       - '.github/workflows/cookbook-smoke.yml'
   workflow_dispatch:
 
@@ -27,11 +33,11 @@ jobs:
     outputs:
       projects: ${{ steps.matrix.outputs.projects }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7.0.0
         with:
           python-version: '3.13'
 
@@ -55,22 +61,28 @@ jobs:
         project: ${{ fromJSON(needs.catalog.outputs.projects) }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7.0.0
         with:
           python-version: '3.13'
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7.0.0
         if: startsWith(matrix.project, 'typescript-')
         with:
-          node-version: '22'
+          node-version: '24'
+
+      - uses: pnpm/action-setup@v6.0.10
+        if: startsWith(matrix.project, 'typescript-')
+        with:
+          version: 11
+          run_install: false
 
       - name: Restore pip download cache
         if: startsWith(matrix.project, 'python-')
-        uses: actions/cache@v4
+        uses: actions/cache@v6.1.0
         with:
           path: ~/.cache/pip
           key: cookbook-pip-${{ runner.os }}-${{ hashFiles(format('cookbook/{0}/requirements.txt', matrix.project)) }}
