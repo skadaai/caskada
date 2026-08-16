@@ -65,9 +65,13 @@ jobs:
           pnpm dlx @changesets/cli@2.31.1 version
 
           echo "Extracting potential new version from python/package.json..."
-          NEW_VERSION=$(grep '"version":' package.json | cut -d '"' -f 4)
+          NEW_VERSION=$(jq -r '.version // empty' package.json)
           if [ -z "$NEW_VERSION" ]; then
             echo "Error: Could not extract version from python/package.json even though the file exists."
+            exit 1
+          fi
+          if [[ ! "$NEW_VERSION" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+            echo "Error: Invalid release version in python/package.json: $NEW_VERSION" >&2
             exit 1
           fi
 
