@@ -54,6 +54,9 @@ jobs:
           echo "Initializing pnpm project..."
           touch pnpm-workspace.yaml
           pnpm init
+          CURRENT_VERSION=$(grep "version=['\"]" setup.py | cut -d "'" -f 2 | cut -d '"' -f 2)
+          pnpm pkg set name=caskada
+          pnpm pkg set "version=$CURRENT_VERSION"
           echo "Checking .changeset:"
           ls -la .changeset
 
